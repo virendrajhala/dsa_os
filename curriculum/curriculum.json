@@ -4238,8 +4238,7 @@
       "dependency": [
         "TRE-026",
         "TRI-007",
-        "QUE-012",
-        "GRF-001"
+        "QUE-012"
       ],
       "status": "not_started",
       "revision_count": 0,
@@ -5249,8 +5248,7 @@
       "module": "Dynamic Programming",
       "dependency": [
         "GRF-056",
-        "PFX-014",
-        "DP-001"
+        "PFX-014"
       ],
       "status": "not_started",
       "revision_count": 0,
@@ -7476,8 +7474,7 @@
       "stage": "Inventor",
       "module": "Greedy Optimization",
       "dependency": [
-        "REC-031",
-        "GRD-001"
+        "REC-031"
       ],
       "status": "not_started",
       "revision_count": 0,
