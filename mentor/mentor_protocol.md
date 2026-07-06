@@ -52,4 +52,4 @@ At the end of every session, record:
 - which hint level was needed
 - the strongest invariant discovered
 - the main failure mode
-- whether the problem belongs in the revision queue
+- whether the problem belongs in the revision schedule

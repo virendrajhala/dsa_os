@@ -31,7 +31,7 @@ The curriculum follows six principles.
 4. Explanation before code.
    If the reasoning cannot be explained, the implementation is not trusted.
 5. Revision before ego.
-   Weak solves return to the queue.
+   Weak solves return to the revision schedule.
 6. Stages before streaks.
    Advancement is earned through capability, not merely volume.
 
@@ -57,7 +57,7 @@ The curriculum follows six principles.
 - Explain why rejected approaches fail.
 - State time and space complexity without hand-waving.
 - Reflect on the miss if the solve required heavy prompting.
-- Respect the revision queue.
+- Respect the revision schedule.
 
 ## Thinking Framework
 
@@ -226,9 +226,9 @@ The next problem is not chosen randomly.
 Priority order:
 
 1. due revision items
-2. unlocked problems in the current stage
-3. remaining problems in the current module
-4. the next module unlocked by the dependency graph
+2. unlocked problems in the current module
+3. unlocked problems in the current stage
+4. the earliest unlocked dependency-safe problem in the curriculum
 
 Selection rules:
 

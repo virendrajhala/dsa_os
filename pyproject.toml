@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "dsa-os"
+version = "1.0.0"
+description = "A dependency-first apprenticeship operating system for long-horizon DSA preparation."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [
+  { name = "DSA_OS Maintainers" }
+]
+dependencies = []
+keywords = ["dsa", "algorithms", "curriculum", "interview-prep", "progress-tracking"]
+classifiers = [
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Topic :: Education",
+  "Topic :: Software Development :: Libraries :: Python Modules"
+]
+
+[tool.setuptools]
+py-modules = []
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"

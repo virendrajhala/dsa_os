@@ -1,12 +1,17 @@
 # Case File
 
-## Problem
+## Session Metadata
 
-- `ID`:
+- `Date`:
+- `Problem ID`:
 - `Title`:
 - `Original Number`:
 - `Stage`:
 - `Module`:
+- `Time Taken (minutes)`:
+- `Hint Level Used`:
+- `Confidence Before (0-10)`:
+- `Confidence After (0-10)`:
 
 ## Understanding
 
@@ -57,11 +62,11 @@ Paste or link the final implementation here.
 
 ## Reflection
 
-- What unlocked the problem?
-- What almost caused failure?
+- Thinking breakthrough:
+- Main mistake:
 - What would I look for faster next time?
 
-## Thinking Score
+## Thinking Score (0-4)
 
 - Understanding:
 - Examples:
@@ -71,3 +76,17 @@ Paste or link the final implementation here.
 - Complexity Analysis:
 - Implementation:
 - Communication:
+
+## Interview Score (0-10)
+
+- Understanding:
+- Communication:
+- Algorithm:
+- Coding:
+- Complexity:
+
+## Revision
+
+- Next Revision Date:
+- Revision Reason:
+- Revision Priority:
