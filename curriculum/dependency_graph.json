@@ -1,0 +1,266 @@
+{
+  "module_order": [
+    "OBS",
+    "TWO",
+    "WIN",
+    "HSH",
+    "ORD",
+    "BSR",
+    "PFX",
+    "LNK",
+    "STK",
+    "QUE",
+    "HEP",
+    "TRE",
+    "BST",
+    "TRI",
+    "GRF",
+    "DP",
+    "REC",
+    "GRD",
+    "MAT",
+    "RNG",
+    "DES"
+  ],
+  "modules": {
+    "OBS": {
+      "name": "Observation & Simulation",
+      "stage": "Explorer",
+      "prerequisites": [],
+      "unlocks": [
+        "TWO"
+      ]
+    },
+    "TWO": {
+      "name": "Two-Pointer Reasoning",
+      "stage": "Observer",
+      "prerequisites": [
+        "OBS"
+      ],
+      "unlocks": [
+        "WIN"
+      ]
+    },
+    "WIN": {
+      "name": "Sliding Window",
+      "stage": "Observer",
+      "prerequisites": [
+        "TWO"
+      ],
+      "unlocks": [
+        "HSH"
+      ]
+    },
+    "HSH": {
+      "name": "Hashing & Frequency Maps",
+      "stage": "Observer",
+      "prerequisites": [
+        "WIN"
+      ],
+      "unlocks": [
+        "ORD",
+        "PFX"
+      ]
+    },
+    "ORD": {
+      "name": "Sorting & Interval Reasoning",
+      "stage": "Searcher",
+      "prerequisites": [
+        "HSH"
+      ],
+      "unlocks": [
+        "BSR"
+      ]
+    },
+    "BSR": {
+      "name": "Binary Search",
+      "stage": "Searcher",
+      "prerequisites": [
+        "ORD"
+      ],
+      "unlocks": [
+        "PFX",
+        "MAT",
+        "RNG"
+      ]
+    },
+    "PFX": {
+      "name": "Prefix Sums & Range Reasoning",
+      "stage": "Searcher",
+      "prerequisites": [
+        "HSH",
+        "BSR"
+      ],
+      "unlocks": [
+        "LNK",
+        "DP",
+        "MAT"
+      ]
+    },
+    "LNK": {
+      "name": "Linked Lists",
+      "stage": "State Builder",
+      "prerequisites": [
+        "PFX"
+      ],
+      "unlocks": [
+        "STK",
+        "DES"
+      ]
+    },
+    "STK": {
+      "name": "Stacks & Monotonic Structures",
+      "stage": "State Builder",
+      "prerequisites": [
+        "LNK"
+      ],
+      "unlocks": [
+        "QUE",
+        "DES"
+      ]
+    },
+    "QUE": {
+      "name": "Queues, Deques & BFS Simulation",
+      "stage": "State Builder",
+      "prerequisites": [
+        "STK"
+      ],
+      "unlocks": [
+        "HEP",
+        "GRF",
+        "DES"
+      ]
+    },
+    "HEP": {
+      "name": "Heaps & Online Order Statistics",
+      "stage": "State Builder",
+      "prerequisites": [
+        "QUE"
+      ],
+      "unlocks": [
+        "TRE",
+        "RNG",
+        "DES"
+      ]
+    },
+    "TRE": {
+      "name": "Tree Traversal & Structural Recursion",
+      "stage": "Recursive Thinker",
+      "prerequisites": [
+        "HEP"
+      ],
+      "unlocks": [
+        "BST",
+        "TRI",
+        "GRF"
+      ]
+    },
+    "BST": {
+      "name": "Binary Search Trees & Ordered Recursion",
+      "stage": "Recursive Thinker",
+      "prerequisites": [
+        "TRE"
+      ],
+      "unlocks": [
+        "TRI",
+        "RNG",
+        "DES"
+      ]
+    },
+    "TRI": {
+      "name": "Tries & Prefix Indexes",
+      "stage": "Recursive Thinker",
+      "prerequisites": [
+        "TRE",
+        "BST"
+      ],
+      "unlocks": [
+        "GRF",
+        "DES"
+      ]
+    },
+    "GRF": {
+      "name": "Graph Traversal & Connectivity",
+      "stage": "Navigator",
+      "prerequisites": [
+        "TRE",
+        "TRI",
+        "QUE"
+      ],
+      "unlocks": [
+        "DP",
+        "DES"
+      ]
+    },
+    "DP": {
+      "name": "Dynamic Programming",
+      "stage": "Optimizer",
+      "prerequisites": [
+        "GRF",
+        "PFX"
+      ],
+      "unlocks": [
+        "REC",
+        "DES"
+      ]
+    },
+    "REC": {
+      "name": "Backtracking & Recursive Search",
+      "stage": "Inventor",
+      "prerequisites": [
+        "DP"
+      ],
+      "unlocks": [
+        "GRD"
+      ]
+    },
+    "GRD": {
+      "name": "Greedy Optimization",
+      "stage": "Inventor",
+      "prerequisites": [
+        "REC"
+      ],
+      "unlocks": []
+    },
+    "MAT": {
+      "name": "Math & Bit Manipulation",
+      "stage": "Inventor",
+      "prerequisites": [
+        "PFX",
+        "BSR"
+      ],
+      "unlocks": [
+        "DES"
+      ]
+    },
+    "RNG": {
+      "name": "Range Structures & Ordered Interval Systems",
+      "stage": "Engineer",
+      "prerequisites": [
+        "BST",
+        "HEP",
+        "BSR"
+      ],
+      "unlocks": [
+        "DES"
+      ]
+    },
+    "DES": {
+      "name": "System & Data Structure Design",
+      "stage": "Engineer",
+      "prerequisites": [
+        "LNK",
+        "STK",
+        "QUE",
+        "HEP",
+        "BST",
+        "TRI",
+        "GRF",
+        "DP",
+        "MAT",
+        "RNG"
+      ],
+      "unlocks": []
+    }
+  }
+}

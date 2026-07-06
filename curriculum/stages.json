@@ -1,0 +1,126 @@
+{
+  "stage_order": [
+    "Explorer",
+    "Observer",
+    "Searcher",
+    "State Builder",
+    "Recursive Thinker",
+    "Navigator",
+    "Optimizer",
+    "Inventor",
+    "Engineer"
+  ],
+  "stages": {
+    "Explorer": {
+      "goal": "Learn to read the prompt exactly, simulate small examples, and state the invariant before reaching for a pattern name.",
+      "modules": [
+        "OBS"
+      ],
+      "graduation_criteria": [
+        "Explains the problem in plain language without losing constraints.",
+        "Builds at least two worked examples before proposing an approach.",
+        "Produces a correct brute-force baseline and identifies what makes it slow."
+      ]
+    },
+    "Observer": {
+      "goal": "Spot how local state changes as the input is scanned, and recognize when memory can be compressed into pointers, windows, or counts.",
+      "modules": [
+        "TWO",
+        "WIN",
+        "HSH"
+      ],
+      "graduation_criteria": [
+        "Identifies the moving boundary or state variable that controls the scan.",
+        "Chooses between pointer movement, window expansion, and hash-based bookkeeping without prompting.",
+        "Explains why the chosen invariant eliminates repeated work."
+      ]
+    },
+    "Searcher": {
+      "goal": "Recognize monotonic structure, ordered representations, and cumulative transforms that convert repeated scans into faster queries.",
+      "modules": [
+        "ORD",
+        "BSR",
+        "PFX"
+      ],
+      "graduation_criteria": [
+        "Justifies when sorting first is worth the cost.",
+        "Writes a monotonic feasibility check for answer-space search.",
+        "Uses prefix transforms to convert repeated range work into O(1) or amortized constant checks."
+      ]
+    },
+    "State Builder": {
+      "goal": "Manipulate explicit program state with pointer structures, stacks, queues, and heaps without losing track of invariants.",
+      "modules": [
+        "LNK",
+        "STK",
+        "QUE",
+        "HEP"
+      ],
+      "graduation_criteria": [
+        "Draws state transitions for linked structures before coding pointer updates.",
+        "Uses stacks, deques, or heaps only when the maintained ordering is explicit.",
+        "Can explain why each pushed or popped item will never be needed in its previous position again."
+      ]
+    },
+    "Recursive Thinker": {
+      "goal": "Decompose hierarchical structures into reusable subproblems and combine subtree results cleanly.",
+      "modules": [
+        "TRE",
+        "BST",
+        "TRI"
+      ],
+      "graduation_criteria": [
+        "States the recursive contract before traversing.",
+        "Separates traversal order from business logic.",
+        "Uses ordered-tree or prefix-tree invariants to prune search work."
+      ]
+    },
+    "Navigator": {
+      "goal": "Model problems as graphs, pick the right traversal or connectivity tool, and reason about reachability before optimization.",
+      "modules": [
+        "GRF"
+      ],
+      "graduation_criteria": [
+        "Chooses between BFS, DFS, Union-Find, topological order, and shortest-path tools with a clear graph model.",
+        "Defines nodes, edges, and visited state explicitly.",
+        "Explains the difference between traversal correctness and path optimality."
+      ]
+    },
+    "Optimizer": {
+      "goal": "Build states and transitions deliberately, then compress or reorder them without breaking the recurrence.",
+      "modules": [
+        "DP"
+      ],
+      "graduation_criteria": [
+        "Defines state, transition, and base cases before implementation.",
+        "Can explain why greedy or local reasoning fails on the same problem family.",
+        "Chooses an evaluation order that guarantees dependencies are already solved."
+      ]
+    },
+    "Inventor": {
+      "goal": "Generate possibilities, prune aggressively, and deploy proof-driven shortcuts in greedy, recursive, and arithmetic settings.",
+      "modules": [
+        "REC",
+        "GRD",
+        "MAT"
+      ],
+      "graduation_criteria": [
+        "Defines the decision tree for a search problem before recursing.",
+        "Defends a greedy choice with an exchange argument, invariant, or contradiction.",
+        "Uses number or bit properties to replace simulation with direct reasoning."
+      ]
+    },
+    "Engineer": {
+      "goal": "Compose multiple data structures into durable systems, support online updates, and reason about API behavior under sustained use.",
+      "modules": [
+        "RNG",
+        "DES"
+      ],
+      "graduation_criteria": [
+        "Chooses storage, indexing, and update rules as part of the solution, not as an afterthought.",
+        "Keeps interface guarantees and operational complexity aligned.",
+        "Can explain tradeoffs between simpler implementations and stronger asymptotic guarantees."
+      ]
+    }
+  }
+}

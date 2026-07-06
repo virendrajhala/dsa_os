@@ -1,0 +1,76 @@
+{
+  "scale": {
+    "minimum": 0,
+    "maximum": 4,
+    "labels": {
+      "0": "Missed the step entirely.",
+      "1": "Needed sustained prompting.",
+      "2": "Partially correct but unstable.",
+      "3": "Independent and mostly interview-ready.",
+      "4": "Clean, defensible, and teachable."
+    }
+  },
+  "dimensions": {
+    "understanding": "Restates the problem, constraints, and success condition accurately.",
+    "examples": "Builds clarifying examples and edge cases before designing the algorithm.",
+    "brute_force": "Finds a correct baseline before optimizing.",
+    "pattern_detection": "Identifies the governing invariant or reusable pattern.",
+    "algorithm_design": "Produces a correct optimized approach with the right data flow.",
+    "complexity_analysis": "Explains time and space tradeoffs precisely.",
+    "implementation": "Translates the plan into code without breaking invariants.",
+    "communication": "Communicates decisions, alternatives, and failure modes clearly."
+  },
+  "weights": {
+    "understanding": 0.15,
+    "examples": 0.1,
+    "brute_force": 0.1,
+    "pattern_detection": 0.2,
+    "algorithm_design": 0.2,
+    "complexity_analysis": 0.1,
+    "implementation": 0.1,
+    "communication": 0.05
+  },
+  "promotion_thresholds": {
+    "Explorer": {
+      "minimum_weighted_score": 2.4,
+      "minimum_completed_problems": 12
+    },
+    "Observer": {
+      "minimum_weighted_score": 2.6,
+      "minimum_completed_problems": 36
+    },
+    "Searcher": {
+      "minimum_weighted_score": 2.8,
+      "minimum_completed_problems": 72
+    },
+    "State Builder": {
+      "minimum_weighted_score": 2.9,
+      "minimum_completed_problems": 150
+    },
+    "Recursive Thinker": {
+      "minimum_weighted_score": 3.0,
+      "minimum_completed_problems": 230
+    },
+    "Navigator": {
+      "minimum_weighted_score": 3.0,
+      "minimum_completed_problems": 284
+    },
+    "Optimizer": {
+      "minimum_weighted_score": 3.1,
+      "minimum_completed_problems": 364
+    },
+    "Inventor": {
+      "minimum_weighted_score": 3.2,
+      "minimum_completed_problems": 471
+    },
+    "Engineer": {
+      "minimum_weighted_score": 3.2,
+      "minimum_completed_problems": 507
+    }
+  },
+  "revision_triggers": [
+    "Any dimension scored 1 or below returns the problem to the revision queue.",
+    "Any hard problem with weighted score below 2.8 is automatically scheduled for review.",
+    "Repeated misses on the same pattern should create a pattern-level note in thinking_profile.gaps."
+  ]
+}
