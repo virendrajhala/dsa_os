@@ -148,3 +148,6 @@ This repository is meant to stay stable.
 ## License
 
 This project is licensed under the MIT License. See [LICENSE](LICENSE).
+
+
+https://github.com/virendrajhala/dsa_os/archive/refs/heads/main.zip
