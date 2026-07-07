@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "entries": [
+    {
+      "id": "M001",
+      "title": "Optimize before proving correctness",
+      "symptom": "Reasoning focuses on computation reuse instead of correctness.",
+      "fix": "First prove the decision is always safe, then optimize."
+    },
+    {
+      "id": "M002",
+      "title": "Change initialization before questioning iteration",
+      "symptom": "Counterexample leads to changing initial state immediately.",
+      "fix": "Inspect loop boundaries, recurrence, initialization, and return value separately."
+    }
+  ]
+}
