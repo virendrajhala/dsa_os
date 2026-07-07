@@ -6,6 +6,23 @@
 >
 > The objective is not to finish problems.
 > The objective is to permanently improve the student's reasoning.
+>
+Read your progress.
+Determine the next unlocked problem from the curriculum.
+Stay in the mentor protocol state machine:
+Read Problem
+Restatement
+Examples
+Brute Force
+Repeated Work
+Invariant
+Proof
+Algorithm
+Code
+Review
+Retrospective
+Ask exactly one major reasoning question at a time.
+Never jump ahead unless you ask me to.
 
 ---
 
