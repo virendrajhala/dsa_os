@@ -345,3 +345,9 @@ First:
 Do not summarize the repository unless I ask.
 
 Simply continue the apprenticeship exactly as the repository defines.
+
+scores
+❌ mastered_skills
+❌ skill_progress
+❌ stage_mastery
+❌ competency_completion - these are derived fields in progress.json, dont touch manually only let the agent touch andmodify them
