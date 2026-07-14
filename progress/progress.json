@@ -120,7 +120,7 @@
       "problem_id": "OBS-005",
       "completed_at": "2026-07-14",
       "time_taken_minutes": 90,
-      "hint_level_used": 4,
+      "hint_level_used": 3,
       "confidence_before": 3,
       "confidence_after": 9,
       "thinking_breakthrough": "Discovered that a good index is one that can eventually reach another good index. Realized that because jump lengths represent a continuous reachable range, only the leftmost good index needs to be tracked.",
@@ -196,8 +196,6 @@
     "gaps": [
       "Initially optimizes implementation before proving correctness",
       "Should separate correctness proofs from efficiency arguments",
-      "Initially performs exhaustive case analysis before identifying the underlying state abstraction",
-      "Shows initial solution bias by attempting to reuse previous problem's state before validating changed constraints",
       "Can derive the correct state abstraction but spends significant time proving whether the state can be compressed.",
       "Initially searches for implementation conditions before defining the mathematical invariant."
     ],
@@ -210,108 +208,8 @@
       "State transition reasoning",
       "Running max/min state preservation"
     ],
-    "notes": "Student increasingly derives solutions from preserved state rather than memorizing algorithms. Continue reinforcing state identification before implementation."
+    "notes": "Student consistently derives solutions from invariants rather than memorized patterns. Continue reinforcing mathematical state definitions before implementation and require formal proof before accepting state compression."
   },
-  "scores": {
-    "latest_thinking_score": {
-      "understanding": 4,
-      "examples": 4,
-      "brute_force": 3,
-      "pattern_detection": 4,
-      "algorithm_design": 4,
-      "complexity_analysis": 4,
-      "implementation": 4,
-      "communication": 4
-    },
-    "latest_interview_score": {
-      "understanding": 9,
-      "communication": 9,
-      "algorithm": 9,
-      "coding": 9,
-      "complexity": 9
-    },
-    "averages": {
-      "thinking_weighted": 3.0,
-      "thinking_dimensions": {
-        "understanding": 3.0,
-        "examples": 3.0,
-        "brute_force": 3.0,
-        "pattern_detection": 3.0,
-        "algorithm_design": 3.0,
-        "complexity_analysis": 3.0,
-        "implementation": 3.0,
-        "communication": 3.0
-      },
-      "interview_average": 7.0,
-      "interview_dimensions": {
-        "understanding": 7.0,
-        "communication": 7.0,
-        "algorithm": 7.0,
-        "coding": 7.0,
-        "complexity": 7.0
-      },
-      "confidence_before": 4.0,
-      "confidence_after": 8.0,
-      "solved_unique_problems": 5
-    },
-    "stage_checks": {
-      "Observation": {
-        "attempted": 5,
-        "passed": 5
-      },
-      "State Construction": {
-        "attempted": 0,
-        "passed": 0
-      },
-      "Constraint Maintenance": {
-        "attempted": 0,
-        "passed": 0
-      },
-      "Ordered Reasoning": {
-        "attempted": 0,
-        "passed": 0
-      },
-      "Decision Making": {
-        "attempted": 0,
-        "passed": 0
-      },
-      "Interval Reasoning": {
-        "attempted": 0,
-        "passed": 0
-      },
-      "Recursive Thinking": {
-        "attempted": 0,
-        "passed": 0
-      },
-      "State Transition": {
-        "attempted": 0,
-        "passed": 0
-      },
-      "Graph Thinking": {
-        "attempted": 0,
-        "passed": 0
-      },
-      "Query Processing": {
-        "attempted": 0,
-        "passed": 0
-      },
-      "Pattern Discovery": {
-        "attempted": 0,
-        "passed": 0
-      },
-      "Mathematical Thinking": {
-        "attempted": 0,
-        "passed": 0
-      },
-      "Integration": {
-        "attempted": 0,
-        "passed": 0
-      }
-    }
-  },
-  "notes": [
-    "MIGRATION NOTE (2026-07-12): This file was migrated from a legacy schema_version 3 format that used `current_state.completed` (a list of IDs) and `apprenticeship_log` instead of the schema this repository's scripts actually require. The 4 historical completions (OBS-001..OBS-004) were carried forward, but the legacy format never recorded time_taken_minutes, confidence_before/after, thinking_score, or interview_score, so those fields were filled with clearly-approximate placeholder values (time=45min, confidence 4->8, thinking_score=3/4 across all dimensions, interview_score=7/10 across all dimensions) consistent with the qualitative outcome described in the original log. Replace them with real numbers next time you touch these records. The full original qualitative narrative (thinking_process, implementation_review, mentor_review breakdowns) was NOT dropped -- it is preserved verbatim in progress/legacy_apprenticeship_log_archive.md."
-  ],
   "history": [
     {
       "timestamp": "2026-07-09",
@@ -374,11 +272,104 @@
       "next_problem": "OBS-006"
     }
   ],
-  "mastered_skills": [
-    "SK-OB-03",
-    "SK-OB-04",
-    "SK-OB-05"
-  ],
+  "notes": [],
+  "scores": {
+    "latest_thinking_score": {
+      "understanding": 4,
+      "examples": 4,
+      "brute_force": 3,
+      "pattern_detection": 4,
+      "algorithm_design": 4,
+      "complexity_analysis": 4,
+      "implementation": 4,
+      "communication": 4
+    },
+    "latest_interview_score": {
+      "understanding": 9,
+      "communication": 9,
+      "algorithm": 9,
+      "coding": 9,
+      "complexity": 9
+    },
+    "averages": {
+      "thinking_weighted": 3.18,
+      "thinking_dimensions": {
+        "understanding": 3.2,
+        "examples": 3.2,
+        "brute_force": 3.0,
+        "pattern_detection": 3.2,
+        "algorithm_design": 3.2,
+        "complexity_analysis": 3.2,
+        "implementation": 3.2,
+        "communication": 3.2
+      },
+      "interview_average": 7.4,
+      "interview_dimensions": {
+        "understanding": 7.4,
+        "communication": 7.4,
+        "algorithm": 7.4,
+        "coding": 7.4,
+        "complexity": 7.4
+      },
+      "confidence_before": 3.8,
+      "confidence_after": 8.2,
+      "solved_unique_problems": 5
+    },
+    "stage_checks": {
+      "Observation": {
+        "attempted": 5,
+        "passed": 5
+      },
+      "State Construction": {
+        "attempted": 0,
+        "passed": 0
+      },
+      "Constraint Maintenance": {
+        "attempted": 0,
+        "passed": 0
+      },
+      "Ordered Reasoning": {
+        "attempted": 0,
+        "passed": 0
+      },
+      "Decision Making": {
+        "attempted": 0,
+        "passed": 0
+      },
+      "Interval Reasoning": {
+        "attempted": 0,
+        "passed": 0
+      },
+      "Recursive Thinking": {
+        "attempted": 0,
+        "passed": 0
+      },
+      "State Transition": {
+        "attempted": 0,
+        "passed": 0
+      },
+      "Graph Thinking": {
+        "attempted": 0,
+        "passed": 0
+      },
+      "Query Processing": {
+        "attempted": 0,
+        "passed": 0
+      },
+      "Pattern Discovery": {
+        "attempted": 0,
+        "passed": 0
+      },
+      "Mathematical Thinking": {
+        "attempted": 0,
+        "passed": 0
+      },
+      "Integration": {
+        "attempted": 0,
+        "passed": 0
+      }
+    }
+  },
   "skill_progress": {
     "SK-OB-01": {
       "primary_solved": false,
@@ -404,11 +395,11 @@
       "reinforcement_attempted": true,
       "mastered": true
     },
-    "SK-OB-05":{
-      "primary_solved": true,
-      "primary_weighted_score": 4.0,
-      "reinforcement_attempted": true,
-      "mastered": true
+    "SK-OB-05": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
     },
     "SK-OB-06": {
       "primary_solved": false,
@@ -921,10 +912,14 @@
       "mastered": false
     }
   },
+  "mastered_skills": [
+    "SK-OB-03",
+    "SK-OB-04"
+  ],
   "stage_mastery": {
-    "Observation":{
+    "Observation": {
       "status": "in_progress",
-      "skills_mastered": 3,
+      "skills_mastered": 2,
       "skills_total": 6
     },
     "State Construction": {
@@ -989,8 +984,8 @@
     }
   },
   "competency_completion": {
-    "mastered_skills": 3,
+    "mastered_skills": 2,
     "total_skills": 90,
-    "percent": 3.33
+    "percent": 2.22
   }
 }
