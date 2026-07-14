@@ -1,10 +1,624 @@
 {
-  "schema_version": 2,
+  "schema_version": 5,
   "last_updated": null,
-  "current_stage": "Explorer",
+  "current_stage": "Observation",
   "current_problem": null,
   "completed": [],
-  "revision_schedule": [],
+  "mastered_skills": [],
+  "skill_progress": {
+    "SK-OB-01": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-OB-02": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-OB-03": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-OB-04": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-OB-05": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-OB-06": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-SC-01": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-SC-02": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-SC-03": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-SC-04": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-SC-05": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-SC-06": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-CM-01": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-CM-02": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-CM-03": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-CM-04": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-CM-05": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-CM-06": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-OR-01": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-OR-02": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-OR-03": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-OR-04": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-OR-05": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-DM-01": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-DM-02": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-DM-03": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-IR-01": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-IR-02": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-IR-03": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-IR-04": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-IR-05": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-IR-06": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-IR-07": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-IR-08": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-IR-09": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-IR-10": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-IR-11": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-RT-01": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-RT-02": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-RT-03": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-RT-04": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-RT-05": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-RT-06": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-ST-01": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-ST-02": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-ST-03": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-ST-04": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-ST-05": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-ST-06": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-ST-07": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-ST-08": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-ST-09": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-ST-10": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-ST-11": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-ST-12": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-ST-13": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-ST-14": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-ST-15": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-ST-16": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-ST-17": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-GT-01": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-GT-02": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-GT-03": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-GT-04": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-GT-05": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-GT-06": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-GT-07": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-GT-08": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-GT-09": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-QP-01": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-QP-02": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-QP-03": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-QP-04": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-QP-05": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-QP-06": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-PD-01": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-PD-02": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-PD-03": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-PD-04": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-PD-05": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-MT-01": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-MT-02": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-MT-03": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-IN-01": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-IN-02": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-IN-03": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-IN-04": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-IN-05": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-IN-06": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-IN-07": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    }
+  },
+  "stage_mastery": {
+    "Observation": {
+      "status": "in_progress",
+      "skills_mastered": 0,
+      "skills_total": 6
+    },
+    "State Construction": {
+      "status": "locked",
+      "skills_mastered": 0,
+      "skills_total": 6
+    },
+    "Constraint Maintenance": {
+      "status": "locked",
+      "skills_mastered": 0,
+      "skills_total": 6
+    },
+    "Ordered Reasoning": {
+      "status": "locked",
+      "skills_mastered": 0,
+      "skills_total": 5
+    },
+    "Decision Making": {
+      "status": "locked",
+      "skills_mastered": 0,
+      "skills_total": 3
+    },
+    "Interval Reasoning": {
+      "status": "locked",
+      "skills_mastered": 0,
+      "skills_total": 11
+    },
+    "Recursive Thinking": {
+      "status": "locked",
+      "skills_mastered": 0,
+      "skills_total": 6
+    },
+    "State Transition": {
+      "status": "locked",
+      "skills_mastered": 0,
+      "skills_total": 17
+    },
+    "Graph Thinking": {
+      "status": "locked",
+      "skills_mastered": 0,
+      "skills_total": 9
+    },
+    "Query Processing": {
+      "status": "locked",
+      "skills_mastered": 0,
+      "skills_total": 6
+    },
+    "Pattern Discovery": {
+      "status": "locked",
+      "skills_mastered": 0,
+      "skills_total": 5
+    },
+    "Mathematical Thinking": {
+      "status": "locked",
+      "skills_mastered": 0,
+      "skills_total": 3
+    },
+    "Integration": {
+      "status": "locked",
+      "skills_mastered": 0,
+      "skills_total": 7
+    }
+  },
+  "competency_completion": {
+    "mastered_skills": 0,
+    "total_skills": 90,
+    "percent": 0.0
+  },
   "thinking_profile": {
     "strengths": [],
     "gaps": [],
@@ -40,44 +654,61 @@
       "solved_unique_problems": 0
     },
     "stage_checks": {
-      "Explorer": {
+      "Observation": {
         "attempted": 0,
         "passed": 0
       },
-      "Observer": {
+      "State Construction": {
         "attempted": 0,
         "passed": 0
       },
-      "Searcher": {
+      "Constraint Maintenance": {
         "attempted": 0,
         "passed": 0
       },
-      "State Builder": {
+      "Ordered Reasoning": {
         "attempted": 0,
         "passed": 0
       },
-      "Recursive Thinker": {
+      "Decision Making": {
         "attempted": 0,
         "passed": 0
       },
-      "Navigator": {
+      "Interval Reasoning": {
         "attempted": 0,
         "passed": 0
       },
-      "Optimizer": {
+      "Recursive Thinking": {
         "attempted": 0,
         "passed": 0
       },
-      "Inventor": {
+      "State Transition": {
         "attempted": 0,
         "passed": 0
       },
-      "Engineer": {
+      "Graph Thinking": {
+        "attempted": 0,
+        "passed": 0
+      },
+      "Query Processing": {
+        "attempted": 0,
+        "passed": 0
+      },
+      "Pattern Discovery": {
+        "attempted": 0,
+        "passed": 0
+      },
+      "Mathematical Thinking": {
+        "attempted": 0,
+        "passed": 0
+      },
+      "Integration": {
         "attempted": 0,
         "passed": 0
       }
     }
   },
+  "revision_schedule": [],
   "notes": [],
   "history": []
 }

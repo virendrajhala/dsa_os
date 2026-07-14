@@ -1,0 +1,1772 @@
+{
+  "schema_version": 1,
+  "source_of_truth": true,
+  "note": "Every skill's prerequisite is the single skill immediately before it in skill_order (stage order, then discovery order within the stage). This is an intentionally linear v1 dependency chain: it guarantees no cycles, no orphan skills, and that each curriculum transition introduces exactly one new reasoning model. Reviewers may add extra cross-links later (e.g. a skill drawing on two prior skills) as long as the graph stays acyclic and topologically consistent with stage_order.",
+  "skill_order": [
+    "SK-OB-01",
+    "SK-OB-02",
+    "SK-OB-03",
+    "SK-OB-04",
+    "SK-OB-05",
+    "SK-OB-06",
+    "SK-SC-01",
+    "SK-SC-02",
+    "SK-SC-03",
+    "SK-SC-04",
+    "SK-SC-05",
+    "SK-SC-06",
+    "SK-CM-01",
+    "SK-CM-02",
+    "SK-CM-03",
+    "SK-CM-04",
+    "SK-CM-05",
+    "SK-CM-06",
+    "SK-OR-01",
+    "SK-OR-02",
+    "SK-OR-03",
+    "SK-OR-04",
+    "SK-OR-05",
+    "SK-DM-01",
+    "SK-DM-02",
+    "SK-DM-03",
+    "SK-IR-01",
+    "SK-IR-02",
+    "SK-IR-03",
+    "SK-IR-04",
+    "SK-IR-05",
+    "SK-IR-06",
+    "SK-IR-07",
+    "SK-IR-08",
+    "SK-IR-09",
+    "SK-IR-10",
+    "SK-IR-11",
+    "SK-RT-01",
+    "SK-RT-02",
+    "SK-RT-03",
+    "SK-RT-04",
+    "SK-RT-05",
+    "SK-RT-06",
+    "SK-ST-01",
+    "SK-ST-02",
+    "SK-ST-03",
+    "SK-ST-04",
+    "SK-ST-05",
+    "SK-ST-06",
+    "SK-ST-07",
+    "SK-ST-08",
+    "SK-ST-09",
+    "SK-ST-10",
+    "SK-ST-11",
+    "SK-ST-12",
+    "SK-ST-13",
+    "SK-ST-14",
+    "SK-ST-15",
+    "SK-ST-16",
+    "SK-ST-17",
+    "SK-GT-01",
+    "SK-GT-02",
+    "SK-GT-03",
+    "SK-GT-04",
+    "SK-GT-05",
+    "SK-GT-06",
+    "SK-GT-07",
+    "SK-GT-08",
+    "SK-GT-09",
+    "SK-QP-01",
+    "SK-QP-02",
+    "SK-QP-03",
+    "SK-QP-04",
+    "SK-QP-05",
+    "SK-QP-06",
+    "SK-PD-01",
+    "SK-PD-02",
+    "SK-PD-03",
+    "SK-PD-04",
+    "SK-PD-05",
+    "SK-MT-01",
+    "SK-MT-02",
+    "SK-MT-03",
+    "SK-IN-01",
+    "SK-IN-02",
+    "SK-IN-03",
+    "SK-IN-04",
+    "SK-IN-05",
+    "SK-IN-06",
+    "SK-IN-07"
+  ],
+  "skills": {
+    "SK-OB-01": {
+      "id": "SK-OB-01",
+      "name": "Asymptotic Estimation",
+      "description": "Brute force O(n^2) vs hash-map O(n) \u2014 the canonical first lesson in reading constraints to infer required complexity.",
+      "stage": "Observation",
+      "prerequisites": [],
+      "primary_validation_problem": "CPX-001",
+      "reinforcement_problems": [
+        "CPX-002"
+      ],
+      "challenge_problems": [
+        "CPX-003"
+      ]
+    },
+    "SK-OB-02": {
+      "id": "SK-OB-02",
+      "name": "Amortized Analysis",
+      "description": "Every operation must be O(1) \u2014 introduces amortized/worst-case distinction via auxiliary state.",
+      "stage": "Observation",
+      "prerequisites": [
+        "SK-OB-01"
+      ],
+      "primary_validation_problem": "CPX-004",
+      "reinforcement_problems": [
+        "CPX-005",
+        "CPX-006"
+      ],
+      "challenge_problems": []
+    },
+    "SK-OB-03": {
+      "id": "SK-OB-03",
+      "name": "Running Extremum Scan",
+      "description": "Running Extremum Scan \u2014 track a running best-so-far value (max, min, or both) in a single pass; when a new element makes the running value worse than starting fresh, reset instead of carrying stale history forward. The basis of Kadane's algorithm for maximum subarray problems.",
+      "stage": "Observation",
+      "prerequisites": [
+        "SK-OB-02"
+      ],
+      "primary_validation_problem": "OBS-001",
+      "reinforcement_problems": [
+        "OBS-002"
+      ],
+      "challenge_problems": []
+    },
+    "SK-OB-04": {
+      "id": "SK-OB-04",
+      "name": "Single-Pass Greedy Choice",
+      "description": "Single-Pass Greedy Choice \u2014 scan once, maintain one running invariant (best buy-so-far, farthest reachable index, cumulative deficit, or a two-pass local allocation), and make an irrevocable locally-optimal decision at each step instead of exploring alternatives. Distinct from Running Extremum Scan: the invariant here drives a decision (buy/sell, jump, refuel, allocate), not just a max/min value.",
+      "stage": "Observation",
+      "prerequisites": [
+        "SK-OB-03"
+      ],
+      "primary_validation_problem": "OBS-003",
+      "reinforcement_problems": [
+        "OBS-004",
+        "OBS-005",
+        "OBS-006",
+        "OBS-007"
+      ],
+      "challenge_problems": [
+        "OBS-008"
+      ]
+    },
+    "SK-OB-05": {
+      "id": "SK-OB-05",
+      "name": "Expand Around Center",
+      "description": "Expand Around Center \u2014 for every possible palindrome center (each index, and each gap between two indices, for odd- and even-length palindromes), expand outward while the characters on both sides match. O(n^2) time, O(1) space; the standard non-DP approach to palindrome-substring problems.",
+      "stage": "Observation",
+      "prerequisites": [
+        "SK-OB-04"
+      ],
+      "primary_validation_problem": "OBS-019",
+      "reinforcement_problems": [
+        "OBS-020"
+      ],
+      "challenge_problems": []
+    },
+    "SK-OB-06": {
+      "id": "SK-OB-06",
+      "name": "Pattern Matching / Prefix Function",
+      "description": "PDF subsection: Pattern Matching. Shared technique note for this skill group (general, not specific to this problem): KMP / Rabin-Karp / Z-Algorithm \u2014 efficient O(n+m) substring search.",
+      "stage": "Observation",
+      "prerequisites": [
+        "SK-OB-05"
+      ],
+      "primary_validation_problem": "OBS-021",
+      "reinforcement_problems": [
+        "OBS-022",
+        "OBS-025"
+      ],
+      "challenge_problems": [
+        "OBS-023",
+        "OBS-024"
+      ]
+    },
+    "SK-SC-01": {
+      "id": "SK-SC-01",
+      "name": "String Simulation / Frequency Map",
+      "description": "PDF subsection: String Manipulation & Hashing. Shared technique note for this skill group (general, not specific to this problem): HashMap / Frequency Count \u2014 count character frequencies to compare or find patterns.",
+      "stage": "State Construction",
+      "prerequisites": [
+        "SK-OB-06"
+      ],
+      "primary_validation_problem": "HSH-001",
+      "reinforcement_problems": [
+        "OBS-011",
+        "OBS-014",
+        "HSH-003",
+        "HSH-004",
+        "HSH-002",
+        "OBS-012",
+        "OBS-013",
+        "OBS-015",
+        "OBS-016",
+        "OBS-017",
+        "OBS-018"
+      ],
+      "challenge_problems": []
+    },
+    "SK-SC-02": {
+      "id": "SK-SC-02",
+      "name": "Hash Map / Hash Set",
+      "description": "HashMap \u2014 O(1) lookups to avoid nested loops; track frequency, index, or pairs. Intentional revisit preserved from the PDF.",
+      "stage": "State Construction",
+      "prerequisites": [
+        "SK-SC-01"
+      ],
+      "primary_validation_problem": "HSH-005",
+      "reinforcement_problems": [
+        "HSH-008",
+        "HSH-009",
+        "HSH-006",
+        "HSH-007",
+        "HSH-010",
+        "HSH-011"
+      ],
+      "challenge_problems": []
+    },
+    "SK-SC-03": {
+      "id": "SK-SC-03",
+      "name": "Cycle Detection or Value-Space Search",
+      "description": "Sorting + Binary Search \u2014 sort once, then binary-search for O(n log n) solutions.",
+      "stage": "State Construction",
+      "prerequisites": [
+        "SK-SC-02"
+      ],
+      "primary_validation_problem": "LNK-001",
+      "reinforcement_problems": [
+        "LNK-027"
+      ],
+      "challenge_problems": []
+    },
+    "SK-SC-04": {
+      "id": "SK-SC-04",
+      "name": "Fast & Slow Pointers",
+      "description": "PDF subsection: Fast & Slow Pointers. Shared technique note for this skill group (general, not specific to this problem): Floyd's Cycle Detection \u2014 two pointers at different speeds to detect cycles and midpoints.",
+      "stage": "State Construction",
+      "prerequisites": [
+        "SK-SC-03"
+      ],
+      "primary_validation_problem": "LNK-002",
+      "reinforcement_problems": [
+        "LNK-004",
+        "LNK-005",
+        "LNK-003",
+        "LNK-006"
+      ],
+      "challenge_problems": []
+    },
+    "SK-SC-05": {
+      "id": "SK-SC-05",
+      "name": "Linked-List Reversal / Merge",
+      "description": "PDF subsection: Reversal & Merging. Shared technique note for this skill group (general, not specific to this problem): In-place Reversal \u2014 reverse sublists or entire lists using pointer manipulation.",
+      "stage": "State Construction",
+      "prerequisites": [
+        "SK-SC-04"
+      ],
+      "primary_validation_problem": "LNK-007",
+      "reinforcement_problems": [
+        "LNK-011",
+        "LNK-016",
+        "LNK-018",
+        "LNK-008",
+        "LNK-010",
+        "LNK-013",
+        "LNK-014",
+        "LNK-015",
+        "LNK-017",
+        "LNK-019",
+        "LNK-020"
+      ],
+      "challenge_problems": [
+        "LNK-009",
+        "LNK-012"
+      ]
+    },
+    "SK-SC-06": {
+      "id": "SK-SC-06",
+      "name": "Pointer Stitching / List Design",
+      "description": "PDF subsection: Advanced Linked List. Shared technique note for this skill group (general, not specific to this problem): In-place Reversal \u2014 reverse sublists or entire lists using pointer manipulation.",
+      "stage": "State Construction",
+      "prerequisites": [
+        "SK-SC-05"
+      ],
+      "primary_validation_problem": "LNK-026",
+      "reinforcement_problems": [
+        "LNK-021",
+        "LNK-022",
+        "LNK-023",
+        "LNK-024",
+        "LNK-025"
+      ],
+      "challenge_problems": []
+    },
+    "SK-CM-01": {
+      "id": "SK-CM-01",
+      "name": "Two Pointers",
+      "description": "Two Pointers \u2014 use two indices moving toward/away from each other to reduce O(n\u00b2) to O(n). Intentional revisit preserved from the PDF.",
+      "stage": "Constraint Maintenance",
+      "prerequisites": [
+        "SK-SC-06"
+      ],
+      "primary_validation_problem": "TWO-001",
+      "reinforcement_problems": [
+        "TWO-006",
+        "TWO-007",
+        "TWO-010",
+        "TWO-002",
+        "TWO-003",
+        "TWO-004",
+        "TWO-008",
+        "TWO-009"
+      ],
+      "challenge_problems": [
+        "TWO-005"
+      ]
+    },
+    "SK-CM-02": {
+      "id": "SK-CM-02",
+      "name": "Sliding Window",
+      "description": "Sliding Window \u2014 maintain a window of elements; expand/shrink to satisfy a constraint.",
+      "stage": "Constraint Maintenance",
+      "prerequisites": [
+        "SK-CM-01"
+      ],
+      "primary_validation_problem": "WIN-002",
+      "reinforcement_problems": [
+        "WIN-001",
+        "WIN-003",
+        "WIN-005",
+        "WIN-006",
+        "WIN-007",
+        "WIN-009",
+        "WIN-010"
+      ],
+      "challenge_problems": [
+        "WIN-004",
+        "WIN-008"
+      ]
+    },
+    "SK-CM-03": {
+      "id": "SK-CM-03",
+      "name": "Sliding Window on Strings",
+      "description": "Variable-size Sliding Window \u2014 track character counts inside a window.",
+      "stage": "Constraint Maintenance",
+      "prerequisites": [
+        "SK-CM-02"
+      ],
+      "primary_validation_problem": "WIN-011",
+      "reinforcement_problems": [
+        "WIN-013",
+        "WIN-014"
+      ],
+      "challenge_problems": [
+        "WIN-012"
+      ]
+    },
+    "SK-CM-04": {
+      "id": "SK-CM-04",
+      "name": "Stack Parsing / Monotonic Stack",
+      "description": "Monotonic Stack / Explicit Stack \u2014 process characters left-to-right with a stack.",
+      "stage": "Constraint Maintenance",
+      "prerequisites": [
+        "SK-CM-03"
+      ],
+      "primary_validation_problem": "STK-001",
+      "reinforcement_problems": [
+        "STK-005",
+        "STK-002",
+        "STK-003",
+        "STK-004",
+        "STK-006",
+        "STK-007",
+        "STK-008",
+        "STK-009"
+      ],
+      "challenge_problems": [
+        "STK-010"
+      ]
+    },
+    "SK-CM-05": {
+      "id": "SK-CM-05",
+      "name": "Monotonic Stack on Linked List",
+      "description": "In-place Reversal \u2014 reverse sublists or entire lists using pointer manipulation.",
+      "stage": "Constraint Maintenance",
+      "prerequisites": [
+        "SK-CM-04"
+      ],
+      "primary_validation_problem": "STK-011",
+      "reinforcement_problems": [
+        "STK-023"
+      ],
+      "challenge_problems": []
+    },
+    "SK-CM-06": {
+      "id": "SK-CM-06",
+      "name": "Monotonic Stack",
+      "description": "Monotonic Stack \u2014 maintain a stack in increasing/decreasing order for next-greater/smaller",
+      "stage": "Constraint Maintenance",
+      "prerequisites": [
+        "SK-CM-05"
+      ],
+      "primary_validation_problem": "STK-012",
+      "reinforcement_problems": [
+        "STK-013",
+        "STK-014",
+        "STK-017",
+        "STK-018",
+        "STK-019",
+        "STK-020",
+        "STK-021"
+      ],
+      "challenge_problems": [
+        "STK-015",
+        "STK-016"
+      ]
+    },
+    "SK-OR-01": {
+      "id": "SK-OR-01",
+      "name": "Patience Sorting / Bisect",
+      "description": "Patience Sorting / Bisect \u2014 maintain a `tails` array where tails[k] is the smallest possible tail of an increasing subsequence of length k+1; binary-search for each new element's insertion point. The basis of the O(n log n) Longest Increasing Subsequence algorithm.",
+      "stage": "Ordered Reasoning",
+      "prerequisites": [
+        "SK-CM-06"
+      ],
+      "primary_validation_problem": "OBS-026",
+      "reinforcement_problems": [
+        "OBS-027"
+      ],
+      "challenge_problems": []
+    },
+    "SK-OR-02": {
+      "id": "SK-OR-02",
+      "name": "Parametric Search",
+      "description": "PDF subsection: Binary Search on Answer. Shared technique note for this skill group (general, not specific to this problem): Parametric Search \u2014 binary search on the answer space, validate with a feasibility function.",
+      "stage": "Ordered Reasoning",
+      "prerequisites": [
+        "SK-OR-01"
+      ],
+      "primary_validation_problem": "TWO-011",
+      "reinforcement_problems": [
+        "BSR-012",
+        "BSR-014",
+        "BSR-015",
+        "BSR-016",
+        "BSR-017",
+        "BSR-018",
+        "BSR-019",
+        "BSR-021"
+      ],
+      "challenge_problems": [
+        "BSR-013",
+        "BSR-020",
+        "BSR-022",
+        "BSR-023",
+        "BSR-024",
+        "BSR-025"
+      ]
+    },
+    "SK-OR-03": {
+      "id": "SK-OR-03",
+      "name": "Binary Search on Rotated Array",
+      "description": "PDF subsection: Sorting & Searching in Arrays. Shared technique note for this skill group (general, not specific to this problem): Sorting + Binary Search \u2014 sort once, then binary-search for O(n log n) solutions.",
+      "stage": "Ordered Reasoning",
+      "prerequisites": [
+        "SK-OR-02"
+      ],
+      "primary_validation_problem": "BSR-001",
+      "reinforcement_problems": [
+        "BSR-002"
+      ],
+      "challenge_problems": []
+    },
+    "SK-OR-04": {
+      "id": "SK-OR-04",
+      "name": "Binary Search",
+      "description": "Binary Search \u2014 repeatedly halve the search space on a monotonic function.",
+      "stage": "Ordered Reasoning",
+      "prerequisites": [
+        "SK-OR-03"
+      ],
+      "primary_validation_problem": "BSR-003",
+      "reinforcement_problems": [
+        "BSR-004",
+        "BSR-005",
+        "BSR-006",
+        "BSR-008",
+        "BSR-009",
+        "BSR-010",
+        "BSR-011"
+      ],
+      "challenge_problems": [
+        "BSR-007"
+      ]
+    },
+    "SK-OR-05": {
+      "id": "SK-OR-05",
+      "name": "Sorting Algorithms & Custom Comparators",
+      "description": "Raw sorting mechanics were previously assumed, never taught \u2014 implement the algorithm itself.",
+      "stage": "Ordered Reasoning",
+      "prerequisites": [
+        "SK-OR-04"
+      ],
+      "primary_validation_problem": "ORD-008",
+      "reinforcement_problems": [
+        "ORD-010",
+        "ORD-011",
+        "ORD-012",
+        "ORD-009",
+        "ORD-013",
+        "ORD-014",
+        "ORD-015"
+      ],
+      "challenge_problems": []
+    },
+    "SK-DM-01": {
+      "id": "SK-DM-01",
+      "name": "Priority Scheduling",
+      "description": "Priority Scheduling \u2014 repeatedly pick the highest-priority or most-frequent remaining item using a max-heap (or frequency-bucket count), respecting a cooldown or ordering constraint before that item can be reused.",
+      "stage": "Decision Making",
+      "prerequisites": [
+        "SK-OR-05"
+      ],
+      "primary_validation_problem": "HEP-002",
+      "reinforcement_problems": [
+        "HEP-024"
+      ],
+      "challenge_problems": []
+    },
+    "SK-DM-02": {
+      "id": "SK-DM-02",
+      "name": "Sorting / Greedy Choice",
+      "description": "Sorting / Greedy Choice \u2014 sort the input first, then apply a greedy selection rule (e.g. always take from a fixed relative position within each sorted group) to optimize an aggregate outcome; correctness typically follows from an exchange argument.",
+      "stage": "Decision Making",
+      "prerequisites": [
+        "SK-DM-01"
+      ],
+      "primary_validation_problem": "GRD-001",
+      "reinforcement_problems": [
+        "GRD-027"
+      ],
+      "challenge_problems": []
+    },
+    "SK-DM-03": {
+      "id": "SK-DM-03",
+      "name": "String / Array Greedy",
+      "description": "Greedy Selection \u2014 always pick the locally optimal choice; prove exchange argument.",
+      "stage": "Decision Making",
+      "prerequisites": [
+        "SK-DM-02"
+      ],
+      "primary_validation_problem": "GRD-014",
+      "reinforcement_problems": [
+        "GRD-012",
+        "GRD-013",
+        "GRD-015",
+        "GRD-016",
+        "GRD-017",
+        "GRD-018",
+        "GRD-019",
+        "GRD-020",
+        "GRD-021",
+        "GRD-022",
+        "GRD-023",
+        "GRD-025",
+        "GRD-026"
+      ],
+      "challenge_problems": [
+        "GRD-024"
+      ]
+    },
+    "SK-IR-01": {
+      "id": "SK-IR-01",
+      "name": "Interval / Scheduling Greedy",
+      "description": "PDF subsection: Interval & Scheduling Greedy. Shared technique note for this skill group (general, not specific to this problem): Greedy Selection \u2014 always pick the locally optimal choice; prove exchange argument.",
+      "stage": "Interval Reasoning",
+      "prerequisites": [
+        "SK-DM-03"
+      ],
+      "primary_validation_problem": "GRD-005",
+      "reinforcement_problems": [
+        "GRD-006",
+        "GRD-007",
+        "GRD-008",
+        "GRD-011",
+        "OBS-009",
+        "OBS-010",
+        "GRD-002",
+        "GRD-003",
+        "GRD-004",
+        "GRD-009",
+        "GRD-010"
+      ],
+      "challenge_problems": []
+    },
+    "SK-IR-02": {
+      "id": "SK-IR-02",
+      "name": "Sorting / Interval Sweep",
+      "description": "PDF subsection: Sorting & Searching in Arrays. Shared technique note for this skill group (general, not specific to this problem): Sorting + Binary Search \u2014 sort once, then binary-search for O(n log n) solutions.",
+      "stage": "Interval Reasoning",
+      "prerequisites": [
+        "SK-IR-01"
+      ],
+      "primary_validation_problem": "ORD-001",
+      "reinforcement_problems": [
+        "ORD-002",
+        "ORD-003",
+        "ORD-004",
+        "ORD-005"
+      ],
+      "challenge_problems": []
+    },
+    "SK-IR-03": {
+      "id": "SK-IR-03",
+      "name": "Two-Pointer Interval Sweep",
+      "description": "Second example of sweeping sorted values into ranges \u2014 gives 'Interval List Intersections' a companion instead of standing alone.",
+      "stage": "Interval Reasoning",
+      "prerequisites": [
+        "SK-IR-02"
+      ],
+      "primary_validation_problem": "ORD-007",
+      "reinforcement_problems": [
+        "ORD-006"
+      ],
+      "challenge_problems": []
+    },
+    "SK-IR-04": {
+      "id": "SK-IR-04",
+      "name": "Fenwick Tree / Ordered Merge",
+      "description": "Fenwick Tree / Ordered Merge \u2014 coordinate-compress the values, then use a Fenwick (Binary Indexed) tree to count, in O(log n) per element, how many previously-inserted values are smaller; a merge-sort-based inversion count is the ordered-merge alternative.",
+      "stage": "Interval Reasoning",
+      "prerequisites": [
+        "SK-IR-03"
+      ],
+      "primary_validation_problem": "RNG-001",
+      "reinforcement_problems": [
+        "RNG-015"
+      ],
+      "challenge_problems": []
+    },
+    "SK-IR-05": {
+      "id": "SK-IR-05",
+      "name": "Range Count / Ordered Prefix",
+      "description": "Range Count / Ordered Prefix \u2014 compute prefix sums, then count index pairs (i, j) whose prefix-sum difference falls in a target range, using a Fenwick tree, merge sort, or balanced BST over the prefix-sum sequence for O(n log n).",
+      "stage": "Interval Reasoning",
+      "prerequisites": [
+        "SK-IR-04"
+      ],
+      "primary_validation_problem": "RNG-002",
+      "reinforcement_problems": [
+        "RNG-016"
+      ],
+      "challenge_problems": []
+    },
+    "SK-IR-06": {
+      "id": "SK-IR-06",
+      "name": "Fenwick Tree / Ordered Statistics",
+      "description": "Second ordered-statistics counting problem, more approachable difficulty than the existing Hard-only pair.",
+      "stage": "Interval Reasoning",
+      "prerequisites": [
+        "SK-IR-05"
+      ],
+      "primary_validation_problem": "RNG-017",
+      "reinforcement_problems": [
+        "RNG-003"
+      ],
+      "challenge_problems": []
+    },
+    "SK-IR-07": {
+      "id": "SK-IR-07",
+      "name": "Fenwick Tree / Segment Tree",
+      "description": "Segment Tree / Fenwick Tree \u2014 O(log n) range queries and point updates.",
+      "stage": "Interval Reasoning",
+      "prerequisites": [
+        "SK-IR-06"
+      ],
+      "primary_validation_problem": "RNG-004",
+      "reinforcement_problems": [
+        "RNG-005"
+      ],
+      "challenge_problems": [
+        "RNG-006",
+        "RNG-007",
+        "RNG-009",
+        "RNG-010",
+        "RNG-011"
+      ]
+    },
+    "SK-IR-08": {
+      "id": "SK-IR-08",
+      "name": "Interval Booking Structure",
+      "description": "Interval Booking Structure \u2014 maintain a dynamic set of booked intervals (sorted structure, balanced BST, or segment tree) supporting fast overlap queries and insertions as new bookings arrive online.",
+      "stage": "Interval Reasoning",
+      "prerequisites": [
+        "SK-IR-07"
+      ],
+      "primary_validation_problem": "RNG-008",
+      "reinforcement_problems": [
+        "RNG-018"
+      ],
+      "challenge_problems": []
+    },
+    "SK-IR-09": {
+      "id": "SK-IR-09",
+      "name": "Persistent Array Snapshot Design",
+      "description": "Persistent Array Snapshot Design \u2014 instead of copying the whole array on every snapshot, store each index's value history as a list of (snapshot_id, value) pairs and binary-search that history on read, giving O(1) snapshot and O(log n) get.",
+      "stage": "Interval Reasoning",
+      "prerequisites": [
+        "SK-IR-08"
+      ],
+      "primary_validation_problem": "RNG-012",
+      "reinforcement_problems": [
+        "RNG-019"
+      ],
+      "challenge_problems": []
+    },
+    "SK-IR-10": {
+      "id": "SK-IR-10",
+      "name": "Segment Tree / Ordered Range Design",
+      "description": "Segment Tree / Ordered Range Design \u2014 maintain a dynamic set of non-overlapping ranges (a sorted map of interval boundaries, or a segment tree with lazy propagation) supporting add/remove/query of arbitrary ranges.",
+      "stage": "Interval Reasoning",
+      "prerequisites": [
+        "SK-IR-09"
+      ],
+      "primary_validation_problem": "RNG-013",
+      "reinforcement_problems": [
+        "RNG-020"
+      ],
+      "challenge_problems": []
+    },
+    "SK-IR-11": {
+      "id": "SK-IR-11",
+      "name": "Segment Tree Ticket Allocation",
+      "description": "A simpler Fenwick/segment-tree prerequisite that should precede the harder Booking Concert Tickets problem already in this pattern.",
+      "stage": "Interval Reasoning",
+      "prerequisites": [
+        "SK-IR-10"
+      ],
+      "primary_validation_problem": "RNG-021",
+      "reinforcement_problems": [
+        "RNG-014"
+      ],
+      "challenge_problems": []
+    },
+    "SK-RT-01": {
+      "id": "SK-RT-01",
+      "name": "Tree Traversal (DFS/BFS)",
+      "description": "PDF subsection: Tree Traversals. Shared technique note for this skill group (general, not specific to this problem): DFS (Pre/In/Post-order) & BFS (Level-order) \u2014 foundation of nearly all tree problems.",
+      "stage": "Recursive Thinking",
+      "prerequisites": [
+        "SK-IR-11"
+      ],
+      "primary_validation_problem": "TRE-001",
+      "reinforcement_problems": [
+        "TRE-002",
+        "TRE-003",
+        "TRE-007",
+        "TRE-004",
+        "TRE-005",
+        "TRE-006",
+        "TRE-008",
+        "TRE-010"
+      ],
+      "challenge_problems": [
+        "TRE-009"
+      ]
+    },
+    "SK-RT-02": {
+      "id": "SK-RT-02",
+      "name": "Tree Recursion",
+      "description": "Tree Recursion \u2014 solve sub-problems on left/right subtrees and combine results.",
+      "stage": "Recursive Thinking",
+      "prerequisites": [
+        "SK-RT-01"
+      ],
+      "primary_validation_problem": "TRE-011",
+      "reinforcement_problems": [
+        "TRE-012",
+        "TRE-013",
+        "TRE-014",
+        "TRE-015",
+        "TRE-016",
+        "TRE-017",
+        "TRE-019",
+        "TRE-020",
+        "TRE-018",
+        "TRE-021",
+        "TRE-023",
+        "TRE-024",
+        "TRE-025"
+      ],
+      "challenge_problems": [
+        "TRE-022"
+      ]
+    },
+    "SK-RT-03": {
+      "id": "SK-RT-03",
+      "name": "Tree Serialization",
+      "description": "Tree Serialization \u2014 convert a tree into a string (typically via pre-order or level-order traversal, encoding null children as sentinels) and reconstruct it unambiguously from that string alone.",
+      "stage": "Recursive Thinking",
+      "prerequisites": [
+        "SK-RT-02"
+      ],
+      "primary_validation_problem": "TRE-026",
+      "reinforcement_problems": [
+        "TRE-027"
+      ],
+      "challenge_problems": []
+    },
+    "SK-RT-04": {
+      "id": "SK-RT-04",
+      "name": "BST Invariant",
+      "description": "BST Invariant \u2014 for every node, all values in the left subtree are smaller and all values in the right subtree are larger. Exploit this ordering to prune search (go left or right, never both) instead of visiting every node.",
+      "stage": "Recursive Thinking",
+      "prerequisites": [
+        "SK-RT-03"
+      ],
+      "primary_validation_problem": "BST-003",
+      "reinforcement_problems": [
+        "BST-005",
+        "BST-011",
+        "BST-001",
+        "BST-002",
+        "BST-004",
+        "BST-006",
+        "BST-007",
+        "BST-008",
+        "BST-010"
+      ],
+      "challenge_problems": [
+        "BST-009"
+      ]
+    },
+    "SK-RT-05": {
+      "id": "SK-RT-05",
+      "name": "Trie / Prefix Tree",
+      "description": "PDF subsection: Tries. Shared technique note for this skill group (general, not specific to this problem): Trie (Prefix Tree) \u2014 efficient prefix search and autocomplete in O(L) per query.",
+      "stage": "Recursive Thinking",
+      "prerequisites": [
+        "SK-RT-04"
+      ],
+      "primary_validation_problem": "TRI-001",
+      "reinforcement_problems": [
+        "TRI-003",
+        "TRI-004",
+        "TRI-005"
+      ],
+      "challenge_problems": [
+        "TRI-002",
+        "TRI-006"
+      ]
+    },
+    "SK-RT-06": {
+      "id": "SK-RT-06",
+      "name": "Trie with Multiplicity",
+      "description": "Trie with Multiplicity \u2014 extend a standard trie node with a count (or list) at each node or end-of-word marker to track how many times a word or prefix has been inserted, enabling frequency-aware prefix queries.",
+      "stage": "Recursive Thinking",
+      "prerequisites": [
+        "SK-RT-05"
+      ],
+      "primary_validation_problem": "TRI-007",
+      "reinforcement_problems": [
+        "TRI-008"
+      ],
+      "challenge_problems": []
+    },
+    "SK-ST-01": {
+      "id": "SK-ST-01",
+      "name": "2-D Dynamic Programming",
+      "description": "2-D DP \u2014 state is two indices (i, j); fill a table row by row.",
+      "stage": "State Transition",
+      "prerequisites": [
+        "SK-RT-06"
+      ],
+      "primary_validation_problem": "DP-029",
+      "reinforcement_problems": [
+        "DP-030",
+        "DP-031",
+        "DP-033",
+        "DP-034",
+        "DP-035",
+        "DP-039"
+      ],
+      "challenge_problems": [
+        "DP-001",
+        "DP-002",
+        "DP-032",
+        "DP-036",
+        "DP-037",
+        "DP-038",
+        "DP-040",
+        "DP-041",
+        "DP-042",
+        "DP-043"
+      ]
+    },
+    "SK-ST-02": {
+      "id": "SK-ST-02",
+      "name": "Word-Break Dynamic Programming",
+      "description": "Word-Break Dynamic Programming \u2014 dp[i] is true if the prefix of length i can be segmented into dictionary words: dp[i] is true when some dp[j] is true and s[j:i] is in the dictionary.",
+      "stage": "State Transition",
+      "prerequisites": [
+        "SK-ST-01"
+      ],
+      "primary_validation_problem": "DP-003",
+      "reinforcement_problems": [
+        "DP-093"
+      ],
+      "challenge_problems": []
+    },
+    "SK-ST-03": {
+      "id": "SK-ST-03",
+      "name": "Decode Dynamic Programming",
+      "description": "Decode Dynamic Programming \u2014 dp[i] is the number of ways to decode the prefix of length i, combining the ways from treating s[i-1] alone and s[i-2:i] as a pair, with '0' and two-digit validity as base-case constraints.",
+      "stage": "State Transition",
+      "prerequisites": [
+        "SK-ST-02"
+      ],
+      "primary_validation_problem": "DP-004",
+      "reinforcement_problems": [
+        "DP-094"
+      ],
+      "challenge_problems": []
+    },
+    "SK-ST-04": {
+      "id": "SK-ST-04",
+      "name": "LIS Dynamic Programming with Bisect",
+      "description": "Parametric Search \u2014 binary search on the answer space, validate with a feasibility function.",
+      "stage": "State Transition",
+      "prerequisites": [
+        "SK-ST-03"
+      ],
+      "primary_validation_problem": "DP-005",
+      "reinforcement_problems": [
+        "DP-095"
+      ],
+      "challenge_problems": []
+    },
+    "SK-ST-05": {
+      "id": "SK-ST-05",
+      "name": "LIS on Ordered Envelopes",
+      "description": "LIS on Ordered Envelopes \u2014 sort by one dimension (width ascending, height descending on ties) to reduce a 2-D nesting problem to a 1-D Longest Increasing Subsequence on the second dimension, then solve with patience sorting / bisect.",
+      "stage": "State Transition",
+      "prerequisites": [
+        "SK-ST-04"
+      ],
+      "primary_validation_problem": "DP-006",
+      "reinforcement_problems": [
+        "DP-096"
+      ],
+      "challenge_problems": []
+    },
+    "SK-ST-06": {
+      "id": "SK-ST-06",
+      "name": "Weighted Interval Scheduling",
+      "description": "Second weighted-interval-scheduling DP, more approachable than Job Scheduling.",
+      "stage": "State Transition",
+      "prerequisites": [
+        "SK-ST-05"
+      ],
+      "primary_validation_problem": "DP-097",
+      "reinforcement_problems": [
+        "DP-007"
+      ],
+      "challenge_problems": []
+    },
+    "SK-ST-07": {
+      "id": "SK-ST-07",
+      "name": "Longest Increasing Subsequence Counting",
+      "description": "Longest Increasing Subsequence Counting \u2014 for each index, track both the length of the longest increasing subsequence ending there and the number of subsequences achieving that length, combining counts from all valid predecessors.",
+      "stage": "State Transition",
+      "prerequisites": [
+        "SK-ST-06"
+      ],
+      "primary_validation_problem": "DP-008",
+      "reinforcement_problems": [
+        "DP-098"
+      ],
+      "challenge_problems": []
+    },
+    "SK-ST-08": {
+      "id": "SK-ST-08",
+      "name": "Catalan Dynamic Programming",
+      "description": "Catalan Dynamic Programming \u2014 dp[n] is the number of structurally distinct trees/structures of size n, computed by summing dp[i-1] * dp[n-i] over every possible split point i. Produces the Catalan number sequence.",
+      "stage": "State Transition",
+      "prerequisites": [
+        "SK-ST-07"
+      ],
+      "primary_validation_problem": "DP-009",
+      "reinforcement_problems": [
+        "DP-099"
+      ],
+      "challenge_problems": []
+    },
+    "SK-ST-09": {
+      "id": "SK-ST-09",
+      "name": "Tree Dynamic Programming",
+      "description": "Simpler tree-DP on-ramp that should really be solved before the harder Binary Tree Cameras already in this pattern.",
+      "stage": "State Transition",
+      "prerequisites": [
+        "SK-ST-08"
+      ],
+      "primary_validation_problem": "DP-100",
+      "reinforcement_problems": [
+        "DP-010"
+      ],
+      "challenge_problems": []
+    },
+    "SK-ST-10": {
+      "id": "SK-ST-10",
+      "name": "LIS Counting with Range Queries",
+      "description": "Segment Tree / Fenwick Tree \u2014 O(log n) range queries and point updates. Intentional revisit preserved from the PDF.",
+      "stage": "State Transition",
+      "prerequisites": [
+        "SK-ST-09"
+      ],
+      "primary_validation_problem": "DP-011",
+      "reinforcement_problems": [
+        "DP-101"
+      ],
+      "challenge_problems": []
+    },
+    "SK-ST-11": {
+      "id": "SK-ST-11",
+      "name": "Pointer Dynamic Programming",
+      "description": "PDF subsection: Two-Heap Pattern. Shared technique note for this skill group (general, not specific to this problem): Two Heaps \u2014 one max-heap and one min-heap to find the median dynamically.",
+      "stage": "State Transition",
+      "prerequisites": [
+        "SK-ST-10"
+      ],
+      "primary_validation_problem": "DP-012",
+      "reinforcement_problems": [
+        "DP-013"
+      ],
+      "challenge_problems": []
+    },
+    "SK-ST-12": {
+      "id": "SK-ST-12",
+      "name": "1-D Dynamic Programming",
+      "description": "1-D DP \u2014 state is a single index; transition from previous states.",
+      "stage": "State Transition",
+      "prerequisites": [
+        "SK-ST-11"
+      ],
+      "primary_validation_problem": "DP-014",
+      "reinforcement_problems": [
+        "DP-018",
+        "DP-019",
+        "DP-020",
+        "DP-028",
+        "DP-102",
+        "DP-103",
+        "DP-015",
+        "DP-016",
+        "DP-017",
+        "DP-021",
+        "DP-022",
+        "DP-023",
+        "DP-024",
+        "DP-025",
+        "DP-027"
+      ],
+      "challenge_problems": [
+        "DP-026"
+      ]
+    },
+    "SK-ST-13": {
+      "id": "SK-ST-13",
+      "name": "Knapsack Dynamic Programming",
+      "description": "PDF subsection: Knapsack Variants. Shared technique note for this skill group (general, not specific to this problem): 0/1 Knapsack / Unbounded Knapsack \u2014 classic DP on items with weight/value.",
+      "stage": "State Transition",
+      "prerequisites": [
+        "SK-ST-12"
+      ],
+      "primary_validation_problem": "DP-044",
+      "reinforcement_problems": [
+        "DP-045",
+        "DP-046",
+        "DP-047",
+        "DP-048",
+        "DP-049",
+        "DP-051",
+        "DP-052",
+        "DP-053"
+      ],
+      "challenge_problems": [
+        "DP-050"
+      ]
+    },
+    "SK-ST-14": {
+      "id": "SK-ST-14",
+      "name": "Interval / Range Dynamic Programming",
+      "description": "PDF subsection: Interval / Range DP. Shared technique note for this skill group (general, not specific to this problem): Interval DP \u2014 solve subproblems over all intervals [i, j], merge results.",
+      "stage": "State Transition",
+      "prerequisites": [
+        "SK-ST-13"
+      ],
+      "primary_validation_problem": "DP-055",
+      "reinforcement_problems": [
+        "DP-060"
+      ],
+      "challenge_problems": [
+        "DP-054",
+        "DP-056",
+        "DP-057",
+        "DP-058",
+        "DP-059",
+        "DP-061",
+        "DP-062"
+      ]
+    },
+    "SK-ST-15": {
+      "id": "SK-ST-15",
+      "name": "State Machine Dynamic Programming",
+      "description": "PDF subsection: State-Machine DP (Stocks & Transactions). Shared technique note for this skill group (general, not specific to this problem): State Machine DP \u2014 model allowed states (holding/not holding) and transitions.",
+      "stage": "State Transition",
+      "prerequisites": [
+        "SK-ST-14"
+      ],
+      "primary_validation_problem": "DP-065",
+      "reinforcement_problems": [
+        "DP-066",
+        "DP-067",
+        "DP-069"
+      ],
+      "challenge_problems": [
+        "DP-063",
+        "DP-064",
+        "DP-068",
+        "DP-070",
+        "DP-071",
+        "DP-072"
+      ]
+    },
+    "SK-ST-16": {
+      "id": "SK-ST-16",
+      "name": "Bitmask Dynamic Programming",
+      "description": "PDF subsection: Bitmask DP. Shared technique note for this skill group (general, not specific to this problem): Bitmask DP \u2014 represent subsets as bitmasks; ideal for small n (\u226420).",
+      "stage": "State Transition",
+      "prerequisites": [
+        "SK-ST-15"
+      ],
+      "primary_validation_problem": "DP-074",
+      "reinforcement_problems": [
+        "DP-073"
+      ],
+      "challenge_problems": [
+        "DP-075",
+        "DP-076",
+        "DP-077",
+        "DP-078",
+        "DP-079",
+        "DP-080",
+        "DP-081",
+        "DP-082"
+      ]
+    },
+    "SK-ST-17": {
+      "id": "SK-ST-17",
+      "name": "Tree / Graph Dynamic Programming",
+      "description": "Tree / Graph Dynamic Programming \u2014 compute a value at each node from its already-computed children (post-order traversal), e.g. height, diameter, or max path sum, combining child results at each parent.",
+      "stage": "State Transition",
+      "prerequisites": [
+        "SK-ST-16"
+      ],
+      "primary_validation_problem": "DP-083",
+      "reinforcement_problems": [
+        "DP-084"
+      ],
+      "challenge_problems": [
+        "DP-085",
+        "DP-086",
+        "DP-087",
+        "DP-088",
+        "DP-089",
+        "DP-090",
+        "DP-091",
+        "DP-092"
+      ]
+    },
+    "SK-GT-01": {
+      "id": "SK-GT-01",
+      "name": "Queue / Deque / BFS",
+      "description": "Monotonic Deque \u2014 maintain a deque for sliding window max/min in O(n).",
+      "stage": "Graph Thinking",
+      "prerequisites": [
+        "SK-ST-17"
+      ],
+      "primary_validation_problem": "QUE-003",
+      "reinforcement_problems": [
+        "QUE-004",
+        "QUE-010",
+        "QUE-002",
+        "QUE-005",
+        "QUE-006",
+        "QUE-008",
+        "QUE-011",
+        "QUE-012"
+      ],
+      "challenge_problems": [
+        "QUE-001",
+        "STK-022",
+        "QUE-007",
+        "QUE-009"
+      ]
+    },
+    "SK-GT-02": {
+      "id": "SK-GT-02",
+      "name": "Grid BFS",
+      "description": "Grid BFS \u2014 treat each grid cell as a graph node connected to its (usually 4-directional) neighbors, and run multi-source BFS from every initially 'active' cell simultaneously to compute the minimum steps for a state to propagate across the grid.",
+      "stage": "Graph Thinking",
+      "prerequisites": [
+        "SK-GT-01"
+      ],
+      "primary_validation_problem": "GRF-001",
+      "reinforcement_problems": [
+        "GRF-057"
+      ],
+      "challenge_problems": []
+    },
+    "SK-GT-03": {
+      "id": "SK-GT-03",
+      "name": "Graph BFS",
+      "description": "PDF subsection: BFS (Shortest Path / Level-order). Shared technique note for this skill group (general, not specific to this problem): BFS \u2014 explore nodes level by level; guarantees shortest path in unweighted graphs.",
+      "stage": "Graph Thinking",
+      "prerequisites": [
+        "SK-GT-02"
+      ],
+      "primary_validation_problem": "GRF-004",
+      "reinforcement_problems": [
+        "GRF-002",
+        "GRF-003",
+        "GRF-005",
+        "GRF-006",
+        "GRF-007",
+        "GRF-008",
+        "GRF-009",
+        "GRF-010",
+        "GRF-011",
+        "GRF-014"
+      ],
+      "challenge_problems": [
+        "GRF-012",
+        "GRF-013",
+        "GRF-015",
+        "GRF-016"
+      ]
+    },
+    "SK-GT-04": {
+      "id": "SK-GT-04",
+      "name": "Graph DFS / Union-Find",
+      "description": "PDF subsection: DFS / Backtracking on Graphs. Shared technique note for this skill group (general, not specific to this problem): DFS with Visited Set \u2014 explore all paths; detect cycles and connected components.",
+      "stage": "Graph Thinking",
+      "prerequisites": [
+        "SK-GT-03"
+      ],
+      "primary_validation_problem": "GRF-017",
+      "reinforcement_problems": [
+        "GRF-018",
+        "GRF-019",
+        "GRF-020",
+        "GRF-021",
+        "GRF-022",
+        "GRF-023",
+        "GRF-024",
+        "GRF-025",
+        "GRF-026"
+      ],
+      "challenge_problems": []
+    },
+    "SK-GT-05": {
+      "id": "SK-GT-05",
+      "name": "Topological Sort",
+      "description": "PDF subsection: Topological Sort. Shared technique note for this skill group (general, not specific to this problem): Kahn's Algorithm / DFS Post-order \u2014 linear ordering of nodes in a DAG.",
+      "stage": "Graph Thinking",
+      "prerequisites": [
+        "SK-GT-04"
+      ],
+      "primary_validation_problem": "GRF-028",
+      "reinforcement_problems": [
+        "GRF-029",
+        "GRF-030",
+        "GRF-031"
+      ],
+      "challenge_problems": [
+        "GRF-027",
+        "GRF-032"
+      ]
+    },
+    "SK-GT-06": {
+      "id": "SK-GT-06",
+      "name": "Disjoint Set Union",
+      "description": "PDF subsection: Union-Find (Disjoint Set Union). Shared technique note for this skill group (general, not specific to this problem): DSU with Path Compression + Union by Rank \u2014 near-O(1) amortised operations.",
+      "stage": "Graph Thinking",
+      "prerequisites": [
+        "SK-GT-05"
+      ],
+      "primary_validation_problem": "GRF-033",
+      "reinforcement_problems": [
+        "GRF-034",
+        "GRF-038",
+        "GRF-039"
+      ],
+      "challenge_problems": [
+        "GRF-035",
+        "GRF-036",
+        "GRF-037",
+        "GRF-040"
+      ]
+    },
+    "SK-GT-07": {
+      "id": "SK-GT-07",
+      "name": "Shortest Path Algorithms",
+      "description": "PDF subsection: Shortest Path Algorithms. Shared technique note for this skill group (general, not specific to this problem): Dijkstra / Bellman-Ford / Floyd-Warshall \u2014 weighted shortest paths.",
+      "stage": "Graph Thinking",
+      "prerequisites": [
+        "SK-GT-06"
+      ],
+      "primary_validation_problem": "GRF-041",
+      "reinforcement_problems": [
+        "GRF-042",
+        "GRF-043",
+        "GRF-044",
+        "GRF-045",
+        "GRF-046",
+        "GRF-048"
+      ],
+      "challenge_problems": [
+        "GRF-047",
+        "GRF-049",
+        "GRF-050"
+      ]
+    },
+    "SK-GT-08": {
+      "id": "SK-GT-08",
+      "name": "Minimum Spanning Tree",
+      "description": "PDF subsection: Minimum Spanning Tree. Shared technique note for this skill group (general, not specific to this problem): Kruskal's / Prim's \u2014 greedily build a spanning tree with minimum total edge weight.",
+      "stage": "Graph Thinking",
+      "prerequisites": [
+        "SK-GT-07"
+      ],
+      "primary_validation_problem": "GRF-051",
+      "reinforcement_problems": [
+        "GRF-054"
+      ],
+      "challenge_problems": [
+        "GRF-052",
+        "GRF-053",
+        "GRF-055"
+      ]
+    },
+    "SK-GT-09": {
+      "id": "SK-GT-09",
+      "name": "Grid DFS / Flood Fill",
+      "description": "An Easy grid-DFS problem \u2014 softens the module's steep 2-Easy-out-of-56 difficulty cliff.",
+      "stage": "Graph Thinking",
+      "prerequisites": [
+        "SK-GT-08"
+      ],
+      "primary_validation_problem": "GRF-058",
+      "reinforcement_problems": [
+        "GRF-056"
+      ],
+      "challenge_problems": []
+    },
+    "SK-QP-01": {
+      "id": "SK-QP-01",
+      "name": "Prefix Sum / Difference Array",
+      "description": "Prefix Sum \u2014 precompute cumulative sums for O(1) range queries.",
+      "stage": "Query Processing",
+      "prerequisites": [
+        "SK-GT-09"
+      ],
+      "primary_validation_problem": "PFX-002",
+      "reinforcement_problems": [
+        "PFX-005",
+        "PFX-009",
+        "PFX-001",
+        "PFX-003",
+        "PFX-004",
+        "PFX-006",
+        "PFX-007",
+        "PFX-008",
+        "PFX-010"
+      ],
+      "challenge_problems": []
+    },
+    "SK-QP-02": {
+      "id": "SK-QP-02",
+      "name": "Prefix Sum + Hash Map",
+      "description": "HashMap \u2014 O(1) lookups to avoid nested loops; track frequency, index, or pairs. Intentional revisit preserved from the PDF.",
+      "stage": "Query Processing",
+      "prerequisites": [
+        "SK-QP-01"
+      ],
+      "primary_validation_problem": "PFX-011",
+      "reinforcement_problems": [
+        "PFX-012",
+        "PFX-013"
+      ],
+      "challenge_problems": []
+    },
+    "SK-QP-03": {
+      "id": "SK-QP-03",
+      "name": "Weighted Prefix Sampling",
+      "description": "Reservoir Sampling / Fisher-Yates \u2014 uniform random sampling in O(1) space. Intentional revisit preserved from the PDF.",
+      "stage": "Query Processing",
+      "prerequisites": [
+        "SK-QP-02"
+      ],
+      "primary_validation_problem": "PFX-014",
+      "reinforcement_problems": [
+        "PFX-015"
+      ],
+      "challenge_problems": []
+    },
+    "SK-QP-04": {
+      "id": "SK-QP-04",
+      "name": "Heap Selection",
+      "description": "Heap Selection \u2014 maintain a fixed-size min-heap (size k) of the largest elements seen so far; after processing all elements, the heap's minimum is the kth largest, avoiding a full O(n log n) sort.",
+      "stage": "Query Processing",
+      "prerequisites": [
+        "SK-QP-03"
+      ],
+      "primary_validation_problem": "HEP-001",
+      "reinforcement_problems": [
+        "HEP-023"
+      ],
+      "challenge_problems": []
+    },
+    "SK-QP-05": {
+      "id": "SK-QP-05",
+      "name": "Top-K Heap",
+      "description": "Min-Heap of size K \u2014 maintain the K largest elements efficiently. Intentional revisit preserved from the PDF.",
+      "stage": "Query Processing",
+      "prerequisites": [
+        "SK-QP-04"
+      ],
+      "primary_validation_problem": "HEP-003",
+      "reinforcement_problems": [
+        "HEP-004",
+        "HEP-005",
+        "HEP-006",
+        "HEP-007",
+        "HEP-008",
+        "HEP-009",
+        "HEP-010",
+        "HEP-011"
+      ],
+      "challenge_problems": [
+        "HEP-012"
+      ]
+    },
+    "SK-QP-06": {
+      "id": "SK-QP-06",
+      "name": "Two Heaps / Priority Queue",
+      "description": "Two Heaps \u2014 one max-heap and one min-heap to find the median dynamically.",
+      "stage": "Query Processing",
+      "prerequisites": [
+        "SK-QP-05"
+      ],
+      "primary_validation_problem": "HEP-016",
+      "reinforcement_problems": [
+        "HEP-020",
+        "HEP-021",
+        "HEP-022"
+      ],
+      "challenge_problems": [
+        "HEP-013",
+        "HEP-014",
+        "HEP-015",
+        "HEP-017",
+        "HEP-018",
+        "HEP-019"
+      ]
+    },
+    "SK-PD-01": {
+      "id": "SK-PD-01",
+      "name": "Memoized DFS / Enumeration",
+      "description": "Simpler enumeration-with-pruning on-ramp before the harder Word Break II already in this pattern.",
+      "stage": "Pattern Discovery",
+      "prerequisites": [
+        "SK-QP-06"
+      ],
+      "primary_validation_problem": "REC-032",
+      "reinforcement_problems": [
+        "REC-001"
+      ],
+      "challenge_problems": []
+    },
+    "SK-PD-02": {
+      "id": "SK-PD-02",
+      "name": "Recursive Tree Construction",
+      "description": "Recursive Tree Construction \u2014 for each possible root value, recursively generate every valid left-subtree and right-subtree shape, then combine each left/right pair under that root to enumerate all distinct trees.",
+      "stage": "Pattern Discovery",
+      "prerequisites": [
+        "SK-PD-01"
+      ],
+      "primary_validation_problem": "REC-002",
+      "reinforcement_problems": [
+        "REC-033"
+      ],
+      "challenge_problems": []
+    },
+    "SK-PD-03": {
+      "id": "SK-PD-03",
+      "name": "Combination Backtracking",
+      "description": "PDF subsection: Subsets & Combinations. Shared technique note for this skill group (general, not specific to this problem): Backtracking \u2014 explore all choices recursively; prune branches that violate constraints.",
+      "stage": "Pattern Discovery",
+      "prerequisites": [
+        "SK-PD-02"
+      ],
+      "primary_validation_problem": "REC-003",
+      "reinforcement_problems": [
+        "REC-004",
+        "REC-005",
+        "REC-006",
+        "REC-007",
+        "REC-008",
+        "REC-009",
+        "REC-010",
+        "REC-011",
+        "REC-012"
+      ],
+      "challenge_problems": []
+    },
+    "SK-PD-04": {
+      "id": "SK-PD-04",
+      "name": "Permutation Backtracking",
+      "description": "PDF subsection: Permutations. Shared technique note for this skill group (general, not specific to this problem): Permutation Backtracking \u2014 swap elements or use a visited array.",
+      "stage": "Pattern Discovery",
+      "prerequisites": [
+        "SK-PD-03"
+      ],
+      "primary_validation_problem": "REC-013",
+      "reinforcement_problems": [
+        "REC-014",
+        "REC-015",
+        "REC-017",
+        "REC-018"
+      ],
+      "challenge_problems": [
+        "REC-016",
+        "REC-019",
+        "REC-020",
+        "REC-021",
+        "REC-022"
+      ]
+    },
+    "SK-PD-05": {
+      "id": "SK-PD-05",
+      "name": "Constraint Backtracking",
+      "description": "PDF subsection: Advanced Backtracking. Shared technique note for this skill group (general, not specific to this problem): Permutation Backtracking \u2014 swap elements or use a visited array.",
+      "stage": "Pattern Discovery",
+      "prerequisites": [
+        "SK-PD-04"
+      ],
+      "primary_validation_problem": "REC-024",
+      "reinforcement_problems": [
+        "REC-025",
+        "REC-026",
+        "REC-028",
+        "REC-030",
+        "REC-031"
+      ],
+      "challenge_problems": [
+        "REC-023",
+        "REC-027",
+        "REC-029"
+      ]
+    },
+    "SK-MT-01": {
+      "id": "SK-MT-01",
+      "name": "Cycle Detection on State Space",
+      "description": "Floyd's Cycle Detection \u2014 two pointers at different speeds to detect cycles and midpoints. Intentional revisit preserved from the PDF.",
+      "stage": "Mathematical Thinking",
+      "prerequisites": [
+        "SK-PD-05"
+      ],
+      "primary_validation_problem": "MAT-001",
+      "reinforcement_problems": [
+        "MAT-022"
+      ],
+      "challenge_problems": []
+    },
+    "SK-MT-02": {
+      "id": "SK-MT-02",
+      "name": "Number Theory / Arithmetic",
+      "description": "Number Theory \u2014 prime sieves, GCD/LCM, modular arithmetic, combinatorics.",
+      "stage": "Mathematical Thinking",
+      "prerequisites": [
+        "SK-MT-01"
+      ],
+      "primary_validation_problem": "MAT-003",
+      "reinforcement_problems": [
+        "MAT-004",
+        "MAT-005",
+        "MAT-006",
+        "MAT-008",
+        "MAT-002",
+        "MAT-007",
+        "MAT-009",
+        "MAT-010",
+        "MAT-011"
+      ],
+      "challenge_problems": []
+    },
+    "SK-MT-03": {
+      "id": "SK-MT-03",
+      "name": "Bit Manipulation",
+      "description": "PDF subsection: Bit Manipulation. Shared technique note for this skill group (general, not specific to this problem): Bit Tricks \u2014 XOR, AND/OR masks, Brian Kernighan's algorithm for O(1) bit operations.",
+      "stage": "Mathematical Thinking",
+      "prerequisites": [
+        "SK-MT-02"
+      ],
+      "primary_validation_problem": "MAT-012",
+      "reinforcement_problems": [
+        "MAT-015",
+        "MAT-016",
+        "MAT-017",
+        "MAT-018",
+        "MAT-013",
+        "MAT-014",
+        "MAT-019",
+        "MAT-020",
+        "MAT-021"
+      ],
+      "challenge_problems": []
+    },
+    "SK-IN-01": {
+      "id": "SK-IN-01",
+      "name": "O(1) Cache Design",
+      "description": "O(1) Cache Design \u2014 combine a hash map (O(1) key lookup) with a doubly linked list (O(1) reordering/eviction) so both get and put run in O(1); the list tracks recency or frequency order for eviction.",
+      "stage": "Integration",
+      "prerequisites": [
+        "SK-MT-03"
+      ],
+      "primary_validation_problem": "DES-001",
+      "reinforcement_problems": [
+        "DES-035"
+      ],
+      "challenge_problems": []
+    },
+    "SK-IN-02": {
+      "id": "SK-IN-02",
+      "name": "Frequency-Aware Cache Design",
+      "description": "Second recency/frequency-aware design problem, complementing LFU Cache.",
+      "stage": "Integration",
+      "prerequisites": [
+        "SK-IN-01"
+      ],
+      "primary_validation_problem": "DES-036",
+      "reinforcement_problems": [
+        "DES-002"
+      ],
+      "challenge_problems": []
+    },
+    "SK-IN-03": {
+      "id": "SK-IN-03",
+      "name": "Ordered Probabilistic Structure",
+      "description": "Ordered Probabilistic Structure \u2014 build a multi-level linked structure where each node is randomly promoted to higher levels with fixed probability, giving expected O(log n) search/insert/delete without balanced-tree rebalancing logic.",
+      "stage": "Integration",
+      "prerequisites": [
+        "SK-IN-02"
+      ],
+      "primary_validation_problem": "DES-003",
+      "reinforcement_problems": [
+        "DES-037"
+      ],
+      "challenge_problems": []
+    },
+    "SK-IN-04": {
+      "id": "SK-IN-04",
+      "name": "Core Data-Structure Design",
+      "description": "PDF subsection: Classic Design Problems. Shared technique note for this skill group (general, not specific to this problem): OOP + Right Data Structures \u2014 combine hash maps, heaps, doubly linked lists for O(1) ops.",
+      "stage": "Integration",
+      "prerequisites": [
+        "SK-IN-03"
+      ],
+      "primary_validation_problem": "DES-004",
+      "reinforcement_problems": [
+        "DES-006",
+        "DES-007",
+        "DES-008",
+        "DES-011",
+        "DES-012"
+      ],
+      "challenge_problems": [
+        "DES-005",
+        "DES-009",
+        "DES-010"
+      ]
+    },
+    "SK-IN-05": {
+      "id": "SK-IN-05",
+      "name": "Randomized Data Structure",
+      "description": "PDF subsection: Randomized & Probabilistic Structures. Shared technique note for this skill group (general, not specific to this problem): Reservoir Sampling / Fisher-Yates \u2014 uniform random sampling in O(1) space.",
+      "stage": "Integration",
+      "prerequisites": [
+        "SK-IN-04"
+      ],
+      "primary_validation_problem": "DES-013",
+      "reinforcement_problems": [
+        "DES-014",
+        "DES-015",
+        "DES-016"
+      ],
+      "challenge_problems": [
+        "DES-017"
+      ]
+    },
+    "SK-IN-06": {
+      "id": "SK-IN-06",
+      "name": "Online / Streaming Design",
+      "description": "Online Algorithms \u2014 process data one element at a time without looking back.",
+      "stage": "Integration",
+      "prerequisites": [
+        "SK-IN-05"
+      ],
+      "primary_validation_problem": "DES-018",
+      "reinforcement_problems": [
+        "DES-020",
+        "DES-022",
+        "DES-024",
+        "DES-021",
+        "DES-023",
+        "DES-025",
+        "DES-026"
+      ],
+      "challenge_problems": [
+        "DES-019"
+      ]
+    },
+    "SK-IN-07": {
+      "id": "SK-IN-07",
+      "name": "Advanced System Design",
+      "description": "Advanced System Design \u2014 maintain a dynamic ordered set of occupied positions (a sorted structure or a heap of gaps) supporting online insert/remove operations while always answering the optimal-placement query efficiently.",
+      "stage": "Integration",
+      "prerequisites": [
+        "SK-IN-06"
+      ],
+      "primary_validation_problem": "DES-028",
+      "reinforcement_problems": [
+        "DES-029",
+        "DES-031",
+        "DES-032",
+        "DES-034"
+      ],
+      "challenge_problems": [
+        "DES-027",
+        "DES-030",
+        "DES-033"
+      ]
+    }
+  }
+}

@@ -1,16 +1,152 @@
 {
-  "schema_version": 3,
+  "schema_version": 5,
   "last_updated": "2026-07-12",
-  "current_state": {
-    "stage": "Explorer",
-    "current_problem": "OBS-005",
-    "completed": [
-      "OBS-001",
-      "OBS-002",
-      "OBS-003",
-      "OBS-004"
-    ]
-  },
+  "current_stage": "Observation",
+  "current_problem": "OBS-005",
+  "completed": [
+    {
+      "problem_id": "OBS-001",
+      "completed_at": "2026-07-09",
+      "time_taken_minutes": 45,
+      "hint_level_used": 2,
+      "confidence_before": 4,
+      "confidence_after": 8,
+      "thinking_breakthrough": "Derived Kadane's algorithm from first principles. Correct Java implementation without algorithm reveal.",
+      "main_mistake": "None recorded in the original session log.",
+      "thinking_score": {
+        "understanding": 3,
+        "examples": 3,
+        "brute_force": 3,
+        "pattern_detection": 3,
+        "algorithm_design": 3,
+        "complexity_analysis": 3,
+        "implementation": 3,
+        "communication": 3
+      },
+      "interview_score": {
+        "understanding": 7,
+        "communication": 7,
+        "algorithm": 7,
+        "coding": 7,
+        "complexity": 7
+      },
+      "next_revision_date": "2026-07-16"
+    },
+    {
+      "problem_id": "OBS-002",
+      "completed_at": "2026-07-10",
+      "time_taken_minutes": 45,
+      "hint_level_used": 2,
+      "confidence_before": 4,
+      "confidence_after": 8,
+      "thinking_breakthrough": "Need to preserve both running maximum and running minimum because a future negative can swap their roles.",
+      "main_mistake": "Initially focused on implementation before identifying the minimal state.",
+      "thinking_score": {
+        "understanding": 3,
+        "examples": 3,
+        "brute_force": 3,
+        "pattern_detection": 3,
+        "algorithm_design": 3,
+        "complexity_analysis": 3,
+        "implementation": 3,
+        "communication": 3
+      },
+      "interview_score": {
+        "understanding": 7,
+        "communication": 7,
+        "algorithm": 7,
+        "coding": 7,
+        "complexity": 7
+      },
+      "next_revision_date": "2026-07-17"
+    },
+    {
+      "problem_id": "OBS-003",
+      "completed_at": "2026-07-11",
+      "time_taken_minutes": 45,
+      "hint_level_used": 2,
+      "confidence_before": 4,
+      "confidence_after": 8,
+      "thinking_breakthrough": "Only the minimum historical value influences every future decision.",
+      "main_mistake": "Introduced an unnecessary runningMaxProfit variable.",
+      "thinking_score": {
+        "understanding": 3,
+        "examples": 3,
+        "brute_force": 3,
+        "pattern_detection": 3,
+        "algorithm_design": 3,
+        "complexity_analysis": 3,
+        "implementation": 3,
+        "communication": 3
+      },
+      "interview_score": {
+        "understanding": 7,
+        "communication": 7,
+        "algorithm": 7,
+        "coding": 7,
+        "complexity": 7
+      },
+      "next_revision_date": "2026-07-18"
+    },
+    {
+      "problem_id": "OBS-004",
+      "completed_at": "2026-07-12",
+      "time_taken_minutes": 45,
+      "hint_level_used": 2,
+      "confidence_before": 4,
+      "confidence_after": 8,
+      "thinking_breakthrough": "Local profitable transitions replace the need for maintaining a historical minimum price.",
+      "main_mistake": "Initially attempted to reuse the single-transaction approach before recognizing the changed constraint.",
+      "thinking_score": {
+        "understanding": 3,
+        "examples": 3,
+        "brute_force": 3,
+        "pattern_detection": 3,
+        "algorithm_design": 3,
+        "complexity_analysis": 3,
+        "implementation": 3,
+        "communication": 3
+      },
+      "interview_score": {
+        "understanding": 7,
+        "communication": 7,
+        "algorithm": 7,
+        "coding": 7,
+        "complexity": 7
+      },
+      "next_revision_date": "2026-07-19"
+    }
+  ],
+  "revision_schedule": [
+    {
+      "problem": "OBS-001",
+      "date": "2026-07-16",
+      "reason": "Follow-up needed due to weighted thinking score 3.00, interview average 7.00, post-session confidence 8, hint level 2; revisit main mistake: None recorded in the original session log.",
+      "priority": "medium",
+      "status": "scheduled"
+    },
+    {
+      "problem": "OBS-002",
+      "date": "2026-07-17",
+      "reason": "Follow-up needed due to weighted thinking score 3.00, interview average 7.00, post-session confidence 8, hint level 2; revisit main mistake: Initially focused on implementation before identifying the minimal state.",
+      "priority": "medium",
+      "status": "scheduled"
+    },
+    {
+      "problem": "OBS-003",
+      "date": "2026-07-18",
+      "reason": "Follow-up needed due to weighted thinking score 3.00, interview average 7.00, post-session confidence 8, hint level 2; revisit main mistake: Introduced an unnecessary runningMaxProfit variable.",
+      "priority": "medium",
+      "status": "scheduled"
+    },
+    {
+      "problem": "OBS-004",
+      "date": "2026-07-19",
+      "reason": "Follow-up needed due to weighted thinking score 3.00, interview average 7.00, post-session confidence 8, hint level 2; revisit main mistake: Initially attempted to reuse the single-transaction approach before recognizing the changed constraint.",
+      "priority": "medium",
+      "status": "scheduled"
+    }
+  ],
   "thinking_profile": {
     "strengths": [
       "Builds concrete examples before optimizing",
@@ -34,189 +170,774 @@
       "State transition reasoning",
       "Running max/min state preservation"
     ],
-    "mentor_summary": "Student increasingly derives solutions from preserved state rather than memorizing algorithms. Continue reinforcing state identification before implementation."
+    "notes": "Student increasingly derives solutions from preserved state rather than memorizing algorithms. Continue reinforcing state identification before implementation."
   },
   "scores": {
-    "latest_thinking_score": {},
-    "latest_interview_score": {},
+    "latest_thinking_score": {
+      "understanding": 3,
+      "examples": 3,
+      "brute_force": 3,
+      "pattern_detection": 3,
+      "algorithm_design": 3,
+      "complexity_analysis": 3,
+      "implementation": 3,
+      "communication": 3
+    },
+    "latest_interview_score": {
+      "understanding": 7,
+      "communication": 7,
+      "algorithm": 7,
+      "coding": 7,
+      "complexity": 7
+    },
     "averages": {
-      "thinking_weighted": 0.0,
+      "thinking_weighted": 3.0,
       "thinking_dimensions": {
-        "understanding": 0.0,
-        "examples": 0.0,
-        "brute_force": 0.0,
-        "pattern_detection": 0.0,
-        "algorithm_design": 0.0,
-        "complexity_analysis": 0.0,
-        "implementation": 0.0,
-        "communication": 0.0
+        "understanding": 3.0,
+        "examples": 3.0,
+        "brute_force": 3.0,
+        "pattern_detection": 3.0,
+        "algorithm_design": 3.0,
+        "complexity_analysis": 3.0,
+        "implementation": 3.0,
+        "communication": 3.0
       },
-      "interview_average": 0.0,
+      "interview_average": 7.0,
       "interview_dimensions": {
-        "understanding": 0.0,
-        "communication": 0.0,
-        "algorithm": 0.0,
-        "coding": 0.0,
-        "complexity": 0.0
+        "understanding": 7.0,
+        "communication": 7.0,
+        "algorithm": 7.0,
+        "coding": 7.0,
+        "complexity": 7.0
       },
-      "confidence_before": 0.0,
-      "confidence_after": 0.0,
+      "confidence_before": 4.0,
+      "confidence_after": 8.0,
       "solved_unique_problems": 4
     },
     "stage_checks": {
-      "Explorer": {
+      "Observation": {
         "attempted": 4,
         "passed": 4
       },
-      "Observer": {
+      "State Construction": {
         "attempted": 0,
         "passed": 0
       },
-      "Searcher": {
+      "Constraint Maintenance": {
         "attempted": 0,
         "passed": 0
       },
-      "State Builder": {
+      "Ordered Reasoning": {
         "attempted": 0,
         "passed": 0
       },
-      "Recursive Thinker": {
+      "Decision Making": {
         "attempted": 0,
         "passed": 0
       },
-      "Navigator": {
+      "Interval Reasoning": {
         "attempted": 0,
         "passed": 0
       },
-      "Optimizer": {
+      "Recursive Thinking": {
         "attempted": 0,
         "passed": 0
       },
-      "Inventor": {
+      "State Transition": {
         "attempted": 0,
         "passed": 0
       },
-      "Engineer": {
+      "Graph Thinking": {
+        "attempted": 0,
+        "passed": 0
+      },
+      "Query Processing": {
+        "attempted": 0,
+        "passed": 0
+      },
+      "Pattern Discovery": {
+        "attempted": 0,
+        "passed": 0
+      },
+      "Mathematical Thinking": {
+        "attempted": 0,
+        "passed": 0
+      },
+      "Integration": {
         "attempted": 0,
         "passed": 0
       }
     }
   },
-  "revision_schedule": [],
-  "notes": [],
-  "apprenticeship_log": [
+  "notes": [
+    "MIGRATION NOTE (2026-07-12): This file was migrated from a legacy schema_version 3 format that used `current_state.completed` (a list of IDs) and `apprenticeship_log` instead of the schema this repository's scripts actually require. The 4 historical completions (OBS-001..OBS-004) were carried forward, but the legacy format never recorded time_taken_minutes, confidence_before/after, thinking_score, or interview_score, so those fields were filled with clearly-approximate placeholder values (time=45min, confidence 4->8, thinking_score=3/4 across all dimensions, interview_score=7/10 across all dimensions) consistent with the qualitative outcome described in the original log. Replace them with real numbers next time you touch these records. The full original qualitative narrative (thinking_process, implementation_review, mentor_review breakdowns) was NOT dropped -- it is preserved verbatim in progress/legacy_apprenticeship_log_archive.md."
+  ],
+  "history": [
     {
-      "problem": "OBS-001",
-      "status": "passed",
-      "hint_level": 2,
-      "summary": "Derived Kadane's algorithm from first principles. Correct Java implementation without algorithm reveal."
+      "timestamp": "2026-07-09",
+      "event": "problem_completed",
+      "problem_id": "OBS-001",
+      "mode": "new_problem",
+      "stage_before": "Foundational",
+      "stage_after": "Foundational",
+      "closed_revisions": 0,
+      "scheduled_revision_date": "2026-07-16",
+      "scheduled_revision_priority": "medium",
+      "next_problem": null
     },
     {
-      "problem": "OBS-002",
-      "status": "passed",
-      "hint_level": 2,
-      "summary": "Derived Maximum Product Subarray from first principles.",
-      "thinking_process": {
-        "breakthrough": "Need to preserve both running maximum and running minimum because a future negative can swap their roles."
-      },
-      "implementation_review": {
-        "mistakes": [
-          "Initially focused on implementation before identifying the minimal state."
-        ]
-      },
-      "mentor_review": {
-        "weaknesses": [
-          "Started with exhaustive sign-case analysis instead of searching for a higher-level abstraction."
-        ],
-        "lessons": [
-          "Identify the minimum state that must survive.",
-          "Think using state transitions instead of enumerating cases.",
-          "Preserve previous state before updating dependent variables."
-        ]
-      }
+      "timestamp": "2026-07-10",
+      "event": "problem_completed",
+      "problem_id": "OBS-002",
+      "mode": "new_problem",
+      "stage_before": "Foundational",
+      "stage_after": "Foundational",
+      "closed_revisions": 0,
+      "scheduled_revision_date": "2026-07-17",
+      "scheduled_revision_priority": "medium",
+      "next_problem": null
     },
     {
-      "problem": "OBS-003",
-      "status": "passed",
-      "hint_level": 2,
-      "summary": "Derived Best Time to Buy and Sell Stock from first principles.",
-      "thinking_process": {
-        "first_observation": "Maximum profit at an index can only be obtained by subtracting the minimum value before that index from the current value.",
-        "breakthrough": "Only the minimum historical value influences every future decision.",
-        "mental_model": "Future transitions depend only on the minimum state that must survive.",
-        "transfer_rule": "Whenever scanning sequential data, determine the minimum historical information required for future transitions and preserve only that state.",
-        "personal_note": "Identify the minimum state that future transitions depend on and preserve only that state."
-      },
-      "implementation_review": {
-        "initial_solution_issue": "Introduced an unnecessary runningMaxProfit variable.",
-        "final_solution": "Removed redundant state and retained only minPrice and maxProfit.",
-        "clean_code_notes": [
-          "Each variable should represent exactly one responsibility.",
-          "Remove redundant state after correctness is established."
-        ]
-      },
-      "mentor_review": {
-        "strengths": [
-          "Derived the required state before implementation.",
-          "Challenged mentor assumptions when terminology became inconsistent.",
-          "Refactored independently after identifying redundant state."
-        ],
-        "weaknesses": [
-          "Initially carried redundant state.",
-          "Allowed variable responsibility to drift before refactoring."
-        ],
-        "lessons": [
-          "Identify what information from the past can still influence future decisions.",
-          "Store only the minimum state required.",
-          "Separate current state from accumulated optimal state.",
-          "Review working solutions to eliminate unnecessary state."
-        ],
-        "future_watch_items": [
-          "Continue searching for minimal state before coding.",
-          "Maintain strict single responsibility for every variable."
-        ]
-      }
+      "timestamp": "2026-07-11",
+      "event": "problem_completed",
+      "problem_id": "OBS-003",
+      "mode": "new_problem",
+      "stage_before": "Foundational",
+      "stage_after": "Foundational",
+      "closed_revisions": 0,
+      "scheduled_revision_date": "2026-07-18",
+      "scheduled_revision_priority": "medium",
+      "next_problem": null
     },
     {
-      "problem": "OBS-004",
-      "status": "passed",
-      "hint_level": 2,
-      "summary": "Derived Best Time to Buy and Sell Stock II from first principles.",
-      "thinking_process": {
-        "first_observation": "Every profitable local price increase can be treated as an independent transaction and accumulated.",
-        "breakthrough": "Local profitable transitions replace the need for maintaining a historical minimum price.",
-        "mental_model": "When multiple independent transactions are allowed, evaluate each local transition instead of optimizing for one global transaction.",
-        "transfer_rule": "Before reusing a previous solution, verify whether changed constraints require a different state representation.",
-        "personal_note": "For multiple transactions, focus on profitable local transaction opportunities instead of maintaining a single historical minimum price."
-      },
-      "implementation_review": {
-        "initial_solution_issue": "Initially attempted to reuse the single-transaction approach before recognizing the changed constraint.",
-        "final_solution": "Accumulated profit from every positive adjacent price difference in a single traversal.",
-        "clean_code_notes": [
-          "Align maintained state with the transaction constraints.",
-          "Accumulate only guaranteed profitable local gains."
-        ]
-      },
-      "mentor_review": {
-        "strengths": [
-          "Adapted reasoning after identifying the changed problem constraint.",
-          "Derived the solution through examples instead of memorizing a pattern.",
-          "Implemented the derived logic cleanly in one pass."
-        ],
-        "weaknesses": [
-          "Initially exhibited solution bias by applying the previous problem's state model.",
-          "Needed to validate that changed constraints require re-evaluating preserved state."
-        ],
-        "lessons": [
-          "Constraint changes should trigger a re-evaluation of the required state.",
-          "Multiple independent transactions may eliminate the need for historical optimization state.",
-          "Accumulate independent local gains when they are provably optimal."
-        ],
-        "future_watch_items": [
-          "Check whether previous problem assumptions still hold before coding.",
-          "Derive the required state from the current constraints rather than the previous solution."
-        ]
-      }
+      "timestamp": "2026-07-12",
+      "event": "problem_completed",
+      "problem_id": "OBS-004",
+      "mode": "new_problem",
+      "stage_before": "Foundational",
+      "stage_after": "Foundational",
+      "closed_revisions": 0,
+      "scheduled_revision_date": "2026-07-19",
+      "scheduled_revision_priority": "medium",
+      "next_problem": null
     }
-  ]
+  ],
+  "mastered_skills": [
+    "SK-OB-03",
+    "SK-OB-04"
+  ],
+  "skill_progress": {
+    "SK-OB-01": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-OB-02": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-OB-03": {
+      "primary_solved": true,
+      "primary_weighted_score": 3.0,
+      "reinforcement_attempted": true,
+      "mastered": true
+    },
+    "SK-OB-04": {
+      "primary_solved": true,
+      "primary_weighted_score": 3.0,
+      "reinforcement_attempted": true,
+      "mastered": true
+    },
+    "SK-OB-05": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-OB-06": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-SC-01": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-SC-02": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-SC-03": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-SC-04": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-SC-05": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-SC-06": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-CM-01": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-CM-02": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-CM-03": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-CM-04": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-CM-05": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-CM-06": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-OR-01": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-OR-02": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-OR-03": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-OR-04": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-OR-05": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-DM-01": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-DM-02": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-DM-03": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-IR-01": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-IR-02": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-IR-03": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-IR-04": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-IR-05": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-IR-06": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-IR-07": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-IR-08": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-IR-09": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-IR-10": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-IR-11": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-RT-01": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-RT-02": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-RT-03": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-RT-04": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-RT-05": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-RT-06": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-ST-01": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-ST-02": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-ST-03": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-ST-04": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-ST-05": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-ST-06": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-ST-07": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-ST-08": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-ST-09": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-ST-10": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-ST-11": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-ST-12": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-ST-13": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-ST-14": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-ST-15": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-ST-16": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-ST-17": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-GT-01": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-GT-02": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-GT-03": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-GT-04": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-GT-05": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-GT-06": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-GT-07": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-GT-08": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-GT-09": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-QP-01": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-QP-02": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-QP-03": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-QP-04": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-QP-05": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-QP-06": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-PD-01": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-PD-02": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-PD-03": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-PD-04": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-PD-05": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-MT-01": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-MT-02": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-MT-03": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-IN-01": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-IN-02": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-IN-03": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-IN-04": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-IN-05": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-IN-06": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-IN-07": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    }
+  },
+  "stage_mastery": {
+    "Observation": {
+      "status": "in_progress",
+      "skills_mastered": 2,
+      "skills_total": 6
+    },
+    "State Construction": {
+      "status": "locked",
+      "skills_mastered": 0,
+      "skills_total": 6
+    },
+    "Constraint Maintenance": {
+      "status": "locked",
+      "skills_mastered": 0,
+      "skills_total": 6
+    },
+    "Ordered Reasoning": {
+      "status": "locked",
+      "skills_mastered": 0,
+      "skills_total": 5
+    },
+    "Decision Making": {
+      "status": "locked",
+      "skills_mastered": 0,
+      "skills_total": 3
+    },
+    "Interval Reasoning": {
+      "status": "locked",
+      "skills_mastered": 0,
+      "skills_total": 11
+    },
+    "Recursive Thinking": {
+      "status": "locked",
+      "skills_mastered": 0,
+      "skills_total": 6
+    },
+    "State Transition": {
+      "status": "locked",
+      "skills_mastered": 0,
+      "skills_total": 17
+    },
+    "Graph Thinking": {
+      "status": "locked",
+      "skills_mastered": 0,
+      "skills_total": 9
+    },
+    "Query Processing": {
+      "status": "locked",
+      "skills_mastered": 0,
+      "skills_total": 6
+    },
+    "Pattern Discovery": {
+      "status": "locked",
+      "skills_mastered": 0,
+      "skills_total": 5
+    },
+    "Mathematical Thinking": {
+      "status": "locked",
+      "skills_mastered": 0,
+      "skills_total": 3
+    },
+    "Integration": {
+      "status": "locked",
+      "skills_mastered": 0,
+      "skills_total": 7
+    }
+  },
+  "competency_completion": {
+    "mastered_skills": 2,
+    "total_skills": 90,
+    "percent": 2.22
+  }
 }

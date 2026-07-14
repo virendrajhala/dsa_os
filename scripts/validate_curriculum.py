@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate curriculum, dependency graph, stages, scoring, and progress integrity."""
+"""Validate curriculum, skills, dependency graph, stages, scoring, and progress integrity."""
 
 from __future__ import annotations
 
@@ -17,6 +17,7 @@ from _shared import (
     PROGRESS_PATH,
     PROGRESS_TEMPLATE_PATH,
     SCORING_PATH,
+    SKILLS_PATH,
     STAGES_PATH,
     OPEN_REVISION_STATUSES,
     REVISION_PRIORITY_ORDER,
@@ -24,18 +25,18 @@ from _shared import (
     RepositoryState,
     completed_records,
     load_json_file,
-    module_name_to_code,
     normalize_progress,
     open_revision_entries,
     parse_iso_date,
     problem_lookup,
-    weighted_thinking_score,
 )
 
 
 ID_RE = re.compile(r"^[A-Z]{2,3}-\d{3}$")
+SKILL_ID_RE = re.compile(r"^SK-[A-Z]{2}-\d{2}$")
 ALLOWED_DIFFICULTIES = {"Easy", "Medium", "Hard"}
-ALLOWED_INTERVIEW_FREQUENCIES = {"high", "medium", "selective", "low"}
+ALLOWED_IMPORTANCE = {"CORE", "COMMON", "SPECIALIZED", "NICHE"}
+ALLOWED_PROBLEM_ROLES = {"PRIMARY", "REINFORCEMENT", "CHALLENGE"}
 ALLOWED_PROBLEM_STATUSES = {"not_started", "active", "completed", "revision"}
 ALLOWED_REVISION_STATUSES = OPEN_REVISION_STATUSES | {"completed", "skipped", "cancelled"}
 
@@ -45,15 +46,33 @@ REQUIRED_PROBLEM_FIELDS = {
     "title",
     "difficulty",
     "section",
-    "pattern",
     "stage",
-    "module",
-    "dependency",
+    "primary_skill",
+    "secondary_skill",
+    "problem_role",
+    "difficulty_weight",
+    "importance",
     "status",
     "revision_count",
-    "estimated_minutes",
-    "interview_frequency",
     "notes",
+}
+REQUIRED_SKILL_FIELDS = {
+    "id",
+    "name",
+    "description",
+    "stage",
+    "prerequisites",
+    "primary_validation_problem",
+    "reinforcement_problems",
+    "challenge_problems",
+}
+REQUIRED_STAGE_FIELDS = {
+    "goal",
+    "skills",
+    "entry_requirements",
+    "exit_requirements",
+    "mastery_criteria",
+    "common_failure_modes",
 }
 REQUIRED_PROGRESS_FIELDS = {
     "schema_version",
@@ -61,6 +80,10 @@ REQUIRED_PROGRESS_FIELDS = {
     "current_stage",
     "current_problem",
     "completed",
+    "mastered_skills",
+    "skill_progress",
+    "stage_mastery",
+    "competency_completion",
     "revision_schedule",
     "thinking_profile",
     "scores",
@@ -87,7 +110,7 @@ def build_parser() -> argparse.ArgumentParser:
     """Create the CLI parser."""
 
     parser = argparse.ArgumentParser(
-        description="Run integrity checks across curriculum, dependency, stages, scoring, and progress files."
+        description="Run integrity checks across curriculum, skills, dependency, stages, scoring, and progress files."
     )
     parser.add_argument(
         "--progress-file",
@@ -115,18 +138,20 @@ def add_warning(warnings: list[str], message: str) -> None:
 
 
 def detect_cycle_nodes(nodes: list[str], edges: dict[str, list[str]]) -> list[str]:
-    """Return nodes that participate in or depend on a cycle."""
+    """Return nodes that participate in or depend on a cycle. `edges[n]` = things `n` depends on."""
 
     indegree = {node: 0 for node in nodes}
-    for source in nodes:
-        for target in edges.get(source, []):
-            indegree[target] = indegree.get(target, 0) + 1
+    forward: dict[str, list[str]] = defaultdict(list)
+    for node in nodes:
+        for dep in edges.get(node, []):
+            forward[dep].append(node)
+            indegree[node] += 1
     queue = deque(node for node, degree in indegree.items() if degree == 0)
     visited_count = 0
     while queue:
         node = queue.popleft()
         visited_count += 1
-        for target in edges.get(node, []):
+        for target in forward.get(node, []):
             indegree[target] -= 1
             if indegree[target] == 0:
                 queue.append(target)
@@ -136,7 +161,8 @@ def detect_cycle_nodes(nodes: list[str], edges: dict[str, list[str]]) -> list[st
 
 
 def reachable_nodes(roots: list[str], edges: dict[str, list[str]]) -> set[str]:
-    """Return all nodes reachable from the provided roots."""
+    """Return all nodes reachable by following `edges` forward from the provided roots.
+    `edges[n]` = things that depend on `n` (i.e. unlocked by `n`)."""
 
     seen: set[str] = set()
     queue = deque(roots)
@@ -155,9 +181,10 @@ def validate_curriculum(
     curriculum: dict[str, Any],
     graph: dict[str, Any],
     stages: dict[str, Any],
+    skills: dict[str, Any],
     scoring: dict[str, Any],
 ) -> tuple[list[str], list[str]]:
-    """Validate curriculum, graph, stages, and scoring files."""
+    """Validate curriculum, skills, dependency graph, stages, and scoring files."""
 
     errors: list[str] = []
     warnings: list[str] = []
@@ -166,29 +193,37 @@ def validate_curriculum(
     if not isinstance(problems, list):
         add_error(errors, "curriculum.json: `problems` must be a list.")
         return errors, warnings
-    if len(problems) != 507:
-        add_error(errors, f"curriculum.json: expected 507 problems, found {len(problems)}.")
 
+    # -- source / count metadata ------------------------------------------------
     source = curriculum.get("source", {})
+    original_count = 507
     if not isinstance(source, dict):
         add_error(errors, "curriculum.json: `source` must be an object.")
     else:
-        if source.get("problem_count") != 507:
-            add_error(errors, "curriculum.json: `source.problem_count` must be 507.")
+        original_count = source.get("original_problem_count", source.get("problem_count"))
+        if not isinstance(original_count, int) or original_count <= 0:
+            add_error(errors, "curriculum.json: `source.original_problem_count` must be a positive integer.")
+            original_count = 507
+        total_count = source.get("total_problem_count", original_count)
+        if not isinstance(total_count, int) or total_count < original_count:
+            add_error(errors, "curriculum.json: `source.total_problem_count` must be an integer >= original_problem_count.")
+            total_count = original_count
+        if len(problems) != total_count:
+            add_error(
+                errors,
+                f"curriculum.json: expected {total_count} problems per `source.total_problem_count`, "
+                f"found {len(problems)}.",
+            )
+        supplemental_declared = source.get("supplemental_problems_added", 0)
+        supplemental_actual = sum(1 for p in problems if isinstance(p, dict) and p.get("supplemental"))
+        if supplemental_declared != supplemental_actual:
+            add_error(
+                errors,
+                f"curriculum.json: `source.supplemental_problems_added` ({supplemental_declared}) does not "
+                f"match the actual count of problems marked `supplemental` ({supplemental_actual}).",
+            )
 
-    module_order = graph.get("module_order")
-    modules = graph.get("modules")
-    if not isinstance(module_order, list) or not module_order:
-        add_error(errors, "dependency_graph.json: `module_order` must be a non-empty list.")
-        module_order = []
-    if not isinstance(modules, dict) or not modules:
-        add_error(errors, "dependency_graph.json: `modules` must be a non-empty object.")
-        modules = {}
-    if len(module_order) != len(set(module_order)):
-        add_error(errors, "dependency_graph.json: `module_order` contains duplicate module codes.")
-    if set(module_order) != set(modules):
-        add_error(errors, "dependency_graph.json: `module_order` and `modules` keys must match exactly.")
-
+    # -- stages.json --------------------------------------------------------------
     stage_order = stages.get("stage_order")
     stage_defs = stages.get("stages")
     if not isinstance(stage_order, list) or not stage_order:
@@ -202,104 +237,266 @@ def validate_curriculum(
     if set(stage_order) != set(stage_defs):
         add_error(errors, "stages.json: `stage_order` and `stages` keys must match exactly.")
 
-    module_name_map = module_name_to_code(graph) if modules else {}
-    expected_stage_by_module_name: dict[str, str] = {}
-    module_edges: dict[str, list[str]] = defaultdict(list)
-    module_stage_occurrences: Counter[str] = Counter()
-
-    for code in module_order:
-        module = modules.get(code, {})
-        if not isinstance(module, dict):
-            add_error(errors, f"dependency_graph.json: module `{code}` must be an object.")
-            continue
-        name = module.get("name")
-        stage_name = module.get("stage")
-        prerequisites = module.get("prerequisites")
-        unlocks = module.get("unlocks")
-        if not isinstance(name, str) or not name:
-            add_error(errors, f"dependency_graph.json: module `{code}` missing a valid `name`.")
-        if stage_name not in stage_defs:
-            add_error(errors, f"dependency_graph.json: module `{code}` has invalid stage `{stage_name}`.")
-        if not isinstance(prerequisites, list) or not isinstance(unlocks, list):
-            add_error(
-                errors,
-                f"dependency_graph.json: module `{code}` must define `prerequisites` and `unlocks` as lists.",
-            )
-            continue
-        if isinstance(name, str) and isinstance(stage_name, str):
-            expected_stage_by_module_name[name] = stage_name
-        for prereq in prerequisites:
-            if prereq not in modules:
-                add_error(errors, f"dependency_graph.json: `{code}` references missing prerequisite `{prereq}`.")
-            else:
-                module_edges[prereq].append(code)
-                if code not in modules[prereq].get("unlocks", []):
-                    add_error(
-                        errors,
-                        f"dependency_graph.json: `{prereq}` must list `{code}` in `unlocks`.",
-                    )
-        for target in unlocks:
-            if target not in modules:
-                add_error(errors, f"dependency_graph.json: `{code}` unlocks missing module `{target}`.")
-            elif code not in modules[target].get("prerequisites", []):
-                add_error(
-                    errors,
-                    f"dependency_graph.json: `{target}` must list `{code}` in `prerequisites`.",
-                )
-
-    module_cycle_nodes = detect_cycle_nodes(module_order, module_edges)
-    if module_cycle_nodes:
-        add_error(
-            errors,
-            "dependency_graph.json: module graph contains a cycle involving "
-            + ", ".join(module_cycle_nodes[:10])
-            + ".",
-        )
-    module_roots = [code for code in module_order if not modules.get(code, {}).get("prerequisites")]
-    if not module_roots:
-        add_error(errors, "dependency_graph.json: module graph has no root module.")
-    else:
-        reachable_modules = reachable_nodes(module_roots, module_edges)
-        orphan_modules = sorted(set(module_order) - reachable_modules)
-        if orphan_modules:
-            add_error(
-                errors,
-                "dependency_graph.json: orphan modules detected: " + ", ".join(orphan_modules[:10]) + ".",
-            )
-
+    stage_skill_occurrences: Counter[str] = Counter()
     for stage_name in stage_order:
         stage = stage_defs.get(stage_name, {})
         if not isinstance(stage, dict):
             add_error(errors, f"stages.json: stage `{stage_name}` must be an object.")
             continue
-        if not isinstance(stage.get("goal"), str) or not stage["goal"]:
-            add_error(errors, f"stages.json: stage `{stage_name}` missing a valid `goal`.")
-        if not isinstance(stage.get("graduation_criteria"), list) or not stage["graduation_criteria"]:
-            add_error(
-                errors,
-                f"stages.json: stage `{stage_name}` must define non-empty `graduation_criteria`.",
-            )
-        modules_in_stage = stage.get("modules")
-        if not isinstance(modules_in_stage, list) or not modules_in_stage:
-            add_error(errors, f"stages.json: stage `{stage_name}` must define a non-empty `modules` list.")
+        missing = sorted(REQUIRED_STAGE_FIELDS - stage.keys())
+        if missing:
+            add_error(errors, f"stages.json: stage `{stage_name}` missing fields: {', '.join(missing)}.")
             continue
-        for code in modules_in_stage:
-            module_stage_occurrences[code] += 1
-            if code not in modules:
-                add_error(errors, f"stages.json: stage `{stage_name}` references unknown module `{code}`.")
-            elif modules[code].get("stage") != stage_name:
-                add_error(
-                    errors,
-                    f"stages.json: module `{code}` stage mismatch between stages.json and dependency_graph.json.",
-                )
+        for field in ("entry_requirements", "exit_requirements", "mastery_criteria", "common_failure_modes"):
+            if not isinstance(stage[field], list) or not stage[field]:
+                add_error(errors, f"stages.json: stage `{stage_name}` must define a non-empty `{field}`.")
+        if not isinstance(stage["goal"], str) or not stage["goal"]:
+            add_error(errors, f"stages.json: stage `{stage_name}` missing a valid `goal`.")
+        stage_skills = stage.get("skills")
+        if not isinstance(stage_skills, list) or not stage_skills:
+            add_error(errors, f"stages.json: stage `{stage_name}` must define a non-empty `skills` list.")
+            continue
+        for skill_id in stage_skills:
+            stage_skill_occurrences[skill_id] += 1
 
-    for code in module_order:
-        if module_stage_occurrences[code] != 1:
+    # -- knowledge/skills.json ------------------------------------------------------
+    skill_order = skills.get("skill_order")
+    skill_defs = skills.get("skills")
+    if not isinstance(skill_order, list) or not skill_order:
+        add_error(errors, "knowledge/skills.json: `skill_order` must be a non-empty list.")
+        skill_order = []
+    if not isinstance(skill_defs, dict) or not skill_defs:
+        add_error(errors, "knowledge/skills.json: `skills` must be a non-empty object.")
+        skill_defs = {}
+    if len(skill_order) != len(set(skill_order)):
+        add_error(errors, "knowledge/skills.json: `skill_order` contains duplicates.")
+    if set(skill_order) != set(skill_defs):
+        add_error(errors, "knowledge/skills.json: `skill_order` and `skills` keys must match exactly.")
+
+    for skill_id in skill_order:
+        if stage_skill_occurrences[skill_id] != 1:
             add_error(
                 errors,
-                f"stages.json: module `{code}` must appear in exactly one stage, found {module_stage_occurrences[code]}.",
+                f"stages.json / knowledge/skills.json: skill `{skill_id}` must appear in exactly one "
+                f"stage's `skills` list, found {stage_skill_occurrences[skill_id]}.",
             )
 
+    problems_by_id_raw = {p["id"]: p for p in problems if isinstance(p, dict) and isinstance(p.get("id"), str)}
+
+    for skill_id in skill_order:
+        skill = skill_defs.get(skill_id, {})
+        if not isinstance(skill, dict):
+            add_error(errors, f"knowledge/skills.json: skill `{skill_id}` must be an object.")
+            continue
+        missing = sorted(REQUIRED_SKILL_FIELDS - skill.keys())
+        if missing:
+            add_error(errors, f"knowledge/skills.json: skill `{skill_id}` missing fields: {', '.join(missing)}.")
+            continue
+        if not SKILL_ID_RE.match(skill_id):
+            add_error(errors, f"knowledge/skills.json: skill id `{skill_id}` has an unexpected format.")
+        if skill["stage"] not in stage_defs:
+            add_error(errors, f"knowledge/skills.json: skill `{skill_id}` references unknown stage `{skill['stage']}`.")
+        if not isinstance(skill["description"], str) or not skill["description"].strip():
+            add_error(errors, f"knowledge/skills.json: skill `{skill_id}` must have a non-empty `description`.")
+        prereqs = skill.get("prerequisites")
+        if not isinstance(prereqs, list):
+            add_error(errors, f"knowledge/skills.json: skill `{skill_id}` `prerequisites` must be a list.")
+        else:
+            for p in prereqs:
+                if p not in skill_defs:
+                    add_error(errors, f"knowledge/skills.json: skill `{skill_id}` references missing prerequisite `{p}`.")
+
+        primary_id = skill.get("primary_validation_problem")
+        if primary_id not in problems_by_id_raw:
+            add_error(errors, f"knowledge/skills.json: skill `{skill_id}` primary_validation_problem `{primary_id}` not found.")
+        elif problems_by_id_raw[primary_id].get("problem_role") != "PRIMARY":
+            add_error(
+                errors,
+                f"knowledge/skills.json: skill `{skill_id}` primary_validation_problem `{primary_id}` "
+                f"must have `problem_role: PRIMARY` in curriculum.json.",
+            )
+        elif problems_by_id_raw[primary_id].get("primary_skill") != skill_id:
+            add_error(errors, f"knowledge/skills.json: `{primary_id}`.primary_skill does not point back to `{skill_id}`.")
+
+        reinforcement = skill.get("reinforcement_problems")
+        if not isinstance(reinforcement, list) or not reinforcement:
+            add_error(errors, f"knowledge/skills.json: skill `{skill_id}` must have at least one reinforcement problem.")
+        challenge = skill.get("challenge_problems", [])
+        for pid in list(reinforcement or []) + list(challenge or []):
+            if pid not in problems_by_id_raw:
+                add_error(errors, f"knowledge/skills.json: skill `{skill_id}` references missing problem `{pid}`.")
+
+    # skill dependency graph must be acyclic, and (per the frozen curriculum rule)
+    # every non-root skill has exactly one prerequisite so that each curriculum
+    # transition introduces exactly one new reasoning model at a time.
+    skill_dependencies = graph.get("skill_dependencies", {})
+    if not isinstance(skill_dependencies, dict):
+        add_error(errors, "dependency_graph.json: `skill_dependencies` must be an object.")
+        skill_dependencies = {}
+    for skill_id in skill_order:
+        deps = skill_dependencies.get(skill_id)
+        if not isinstance(deps, list):
+            add_error(errors, f"dependency_graph.json: `skill_dependencies.{skill_id}` must be a list.")
+            continue
+        if len(deps) > 1:
+            add_error(
+                errors,
+                f"dependency_graph.json: skill `{skill_id}` has {len(deps)} prerequisites; the frozen "
+                f"curriculum rule requires at most one, so each transition unlocks a single new skill.",
+            )
+        for dep in deps:
+            if dep not in skill_defs:
+                add_error(errors, f"dependency_graph.json: skill `{skill_id}` depends on missing skill `{dep}`.")
+
+    skill_cycle_nodes = detect_cycle_nodes(skill_order, skill_dependencies)
+    if skill_cycle_nodes:
+        add_error(errors, "dependency_graph.json: skill graph contains a cycle involving " + ", ".join(skill_cycle_nodes[:10]) + ".")
+
+    skill_roots = [s for s in skill_order if not skill_dependencies.get(s)]
+    if not skill_roots:
+        add_error(errors, "dependency_graph.json: skill graph has no root skill.")
+    else:
+        skill_unlock_edges: dict[str, list[str]] = defaultdict(list)
+        for s, deps in skill_dependencies.items():
+            for dep in deps:
+                skill_unlock_edges[dep].append(s)
+        reachable_skills = reachable_nodes(skill_roots, skill_unlock_edges)
+        orphan_skills = sorted(set(skill_order) - reachable_skills)
+        if orphan_skills:
+            add_error(errors, "dependency_graph.json: orphan skills detected (unreachable from any root): " + ", ".join(orphan_skills[:10]) + ".")
+
+    # -- per-problem validation ------------------------------------------------------
+    problem_ids: list[str] = []
+    original_numbers: list[int] = []
+    title_occurrences: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    problem_order: dict[str, int] = {}
+
+    for index, problem in enumerate(problems):
+        if not isinstance(problem, dict):
+            add_error(errors, f"curriculum.json: problem #{index + 1} must be an object.")
+            continue
+        missing_fields = sorted(REQUIRED_PROBLEM_FIELDS - problem.keys())
+        if missing_fields:
+            add_error(errors, f"curriculum.json: problem #{index + 1} missing fields: {', '.join(missing_fields)}.")
+            continue
+
+        problem_id = problem["id"]
+        if not isinstance(problem_id, str) or not ID_RE.match(problem_id):
+            add_error(errors, f"curriculum.json: invalid problem id `{problem_id}`.")
+            continue
+        problem_ids.append(problem_id)
+        problem_order[problem_id] = index
+
+        original_number = problem["original_number"]
+        is_supplemental = problem.get("supplemental") is True
+        if is_supplemental:
+            if original_number is not None:
+                add_error(errors, f"curriculum.json: supplemental problem `{problem_id}` must have `original_number: null`.")
+        elif not isinstance(original_number, int) or not 1 <= original_number <= original_count:
+            add_error(errors, f"curriculum.json: `{problem_id}` has invalid `original_number` `{original_number}`.")
+        else:
+            original_numbers.append(original_number)
+
+        title = problem["title"]
+        if not isinstance(title, str) or not title:
+            add_error(errors, f"curriculum.json: `{problem_id}` missing a valid `title`.")
+        else:
+            title_occurrences[title].append(problem)
+
+        if problem["difficulty"] not in ALLOWED_DIFFICULTIES:
+            add_error(errors, f"curriculum.json: `{problem_id}` has invalid difficulty `{problem['difficulty']}`.")
+        expected_weight = {"Easy": 1, "Medium": 2, "Hard": 4}.get(problem["difficulty"])
+        if problem.get("difficulty_weight") != expected_weight:
+            add_error(
+                errors,
+                f"curriculum.json: `{problem_id}` `difficulty_weight` ({problem.get('difficulty_weight')}) "
+                f"does not match its difficulty ({problem['difficulty']} -> {expected_weight}).",
+            )
+        if problem.get("importance") not in ALLOWED_IMPORTANCE:
+            add_error(errors, f"curriculum.json: `{problem_id}` has invalid `importance` `{problem.get('importance')}`.")
+        if problem.get("problem_role") not in ALLOWED_PROBLEM_ROLES:
+            add_error(errors, f"curriculum.json: `{problem_id}` has invalid `problem_role` `{problem.get('problem_role')}`.")
+        if not isinstance(problem["notes"], str) or not problem["notes"]:
+            add_error(errors, f"curriculum.json: `{problem_id}` must include non-empty `notes`.")
+        if problem["status"] not in ALLOWED_PROBLEM_STATUSES:
+            add_error(errors, f"curriculum.json: `{problem_id}` has invalid status `{problem['status']}`.")
+        if not isinstance(problem["revision_count"], int) or problem["revision_count"] < 0:
+            add_error(errors, f"curriculum.json: `{problem_id}` has invalid `revision_count`.")
+
+        primary_skill = problem.get("primary_skill")
+        if primary_skill not in skill_defs:
+            add_error(errors, f"curriculum.json: `{problem_id}` references unknown `primary_skill` `{primary_skill}`.")
+        secondary_skill = problem.get("secondary_skill")
+        if secondary_skill is not None and secondary_skill not in skill_defs:
+            add_error(errors, f"curriculum.json: `{problem_id}` references unknown `secondary_skill` `{secondary_skill}`.")
+        if secondary_skill is not None and secondary_skill == primary_skill:
+            add_error(errors, f"curriculum.json: `{problem_id}` `secondary_skill` must differ from `primary_skill`.")
+
+        stage_name = problem.get("stage")
+        if stage_name not in stage_defs:
+            add_error(errors, f"curriculum.json: `{problem_id}` references unknown stage `{stage_name}`.")
+        elif primary_skill in skill_defs and skill_defs[primary_skill].get("stage") != stage_name:
+            add_error(
+                errors,
+                f"curriculum.json: `{problem_id}` stage `{stage_name}` does not match its "
+                f"primary_skill `{primary_skill}` stage `{skill_defs[primary_skill].get('stage')}`.",
+            )
+
+    duplicate_ids = sorted(problem_id for problem_id, count in Counter(problem_ids).items() if count > 1)
+    if duplicate_ids:
+        add_error(errors, "curriculum.json: duplicate ids found: " + ", ".join(duplicate_ids[:10]) + ".")
+
+    duplicate_originals = sorted(number for number, count in Counter(original_numbers).items() if count > 1)
+    if duplicate_originals:
+        add_error(errors, "curriculum.json: duplicate original numbers found: " + ", ".join(str(n) for n in duplicate_originals[:10]) + ".")
+    missing_originals = [n for n in range(1, original_count + 1) if n not in set(original_numbers)]
+    if missing_originals:
+        add_error(errors, "curriculum.json: missing original numbers: " + ", ".join(str(n) for n in missing_originals[:10]) + ".")
+
+    for title, matching_problems in sorted(title_occurrences.items()):
+        if len(matching_problems) <= 1:
+            continue
+        if not all(isinstance(p.get("notes"), str) and "Intentional revisit preserved" in p["notes"] for p in matching_problems):
+            add_error(errors, f"curriculum.json: duplicate title `{title}` is missing intentional-duplicate notes.")
+        else:
+            add_warning(warnings, f"curriculum.json: duplicate title preserved intentionally: `{title}`.")
+
+    # -- problem_dependencies (auto-generated; still validated for safety) -----------
+    problem_dependencies = graph.get("problem_dependencies", {})
+    if not isinstance(problem_dependencies, dict):
+        add_error(errors, "dependency_graph.json: `problem_dependencies` must be an object.")
+        problem_dependencies = {}
+
+    problem_edges: dict[str, list[str]] = defaultdict(list)  # dep_id -> [ids that depend on it]
+    for problem_id in problem_ids:
+        deps = problem_dependencies.get(problem_id, [])
+        if not isinstance(deps, list):
+            add_error(errors, f"dependency_graph.json: `problem_dependencies.{problem_id}` must be a list.")
+            continue
+        if len(deps) != len(set(deps)):
+            add_error(errors, f"dependency_graph.json: `{problem_id}` contains duplicate dependencies.")
+        for dep_id in deps:
+            if dep_id == problem_id:
+                add_error(errors, f"dependency_graph.json: `{problem_id}` cannot depend on itself.")
+            elif dep_id not in problems_by_id_raw:
+                add_error(errors, f"dependency_graph.json: `{problem_id}` has broken dependency `{dep_id}`.")
+            else:
+                problem_edges[dep_id].append(problem_id)
+
+    problem_cycle_nodes = detect_cycle_nodes(problem_ids, problem_dependencies)
+    if problem_cycle_nodes:
+        add_error(errors, "dependency_graph.json: problem dependency cycle detected involving " + ", ".join(problem_cycle_nodes[:10]) + ".")
+
+    problem_roots = [pid for pid in problem_ids if not problem_dependencies.get(pid)]
+    if not problem_roots:
+        add_error(errors, "dependency_graph.json: problem dependency graph has no root problem.")
+    else:
+        reachable_problems = reachable_nodes(problem_roots, problem_edges)
+        orphan_problems = sorted(set(problem_ids) - reachable_problems)
+        if orphan_problems:
+            add_error(errors, "dependency_graph.json: orphan problems detected: " + ", ".join(orphan_problems[:10]) + ".")
+
+    # -- scoring.json -----------------------------------------------------------------
     if set(scoring.get("dimensions", {})) != set(scoring.get("weights", {})):
         add_error(errors, "scoring.json: `dimensions` and `weights` must use the same keys.")
     else:
@@ -325,10 +522,7 @@ def validate_curriculum(
     else:
         for priority in REVISION_PRIORITY_ORDER:
             if priority not in priority_days or not isinstance(priority_days[priority], int):
-                add_error(
-                    errors,
-                    f"scoring.json: revision priority `{priority}` must define integer review days.",
-                )
+                add_error(errors, f"scoring.json: revision priority `{priority}` must define integer review days.")
 
     thresholds = scoring.get("promotion_thresholds", {})
     if not isinstance(thresholds, dict):
@@ -338,184 +532,8 @@ def validate_curriculum(
             if stage_name not in thresholds:
                 add_error(errors, f"scoring.json: missing promotion threshold for stage `{stage_name}`.")
 
-    problem_ids: list[str] = []
-    original_numbers: list[int] = []
-    title_occurrences: dict[str, list[dict[str, Any]]] = defaultdict(list)
-    problem_edges: dict[str, list[str]] = defaultdict(list)
-    problem_order: dict[str, int] = {}
-
-    for index, problem in enumerate(problems):
-        if not isinstance(problem, dict):
-            add_error(errors, f"curriculum.json: problem #{index + 1} must be an object.")
-            continue
-        missing_fields = sorted(REQUIRED_PROBLEM_FIELDS - problem.keys())
-        if missing_fields:
-            add_error(
-                errors,
-                f"curriculum.json: problem #{index + 1} missing fields: {', '.join(missing_fields)}.",
-            )
-            continue
-
-        problem_id = problem["id"]
-        if not isinstance(problem_id, str) or not ID_RE.match(problem_id):
-            add_error(errors, f"curriculum.json: invalid problem id `{problem_id}`.")
-            continue
-        problem_ids.append(problem_id)
-        problem_order[problem_id] = index
-
-        original_number = problem["original_number"]
-        if not isinstance(original_number, int) or not 1 <= original_number <= 507:
-            add_error(
-                errors,
-                f"curriculum.json: `{problem_id}` has invalid `original_number` `{original_number}`.",
-            )
-        else:
-            original_numbers.append(original_number)
-
-        title = problem["title"]
-        if not isinstance(title, str) or not title:
-            add_error(errors, f"curriculum.json: `{problem_id}` missing a valid `title`.")
-        else:
-            title_occurrences[title].append(problem)
-
-        if problem["difficulty"] not in ALLOWED_DIFFICULTIES:
-            add_error(errors, f"curriculum.json: `{problem_id}` has invalid difficulty `{problem['difficulty']}`.")
-        if not isinstance(problem["notes"], str) or not problem["notes"]:
-            add_error(errors, f"curriculum.json: `{problem_id}` must include non-empty `notes`.")
-        if problem["status"] not in ALLOWED_PROBLEM_STATUSES:
-            add_error(errors, f"curriculum.json: `{problem_id}` has invalid status `{problem['status']}`.")
-        if not isinstance(problem["revision_count"], int) or problem["revision_count"] < 0:
-            add_error(errors, f"curriculum.json: `{problem_id}` has invalid `revision_count`.")
-        if not isinstance(problem["estimated_minutes"], int) or problem["estimated_minutes"] <= 0:
-            add_error(errors, f"curriculum.json: `{problem_id}` has invalid `estimated_minutes`.")
-        if problem["interview_frequency"] not in ALLOWED_INTERVIEW_FREQUENCIES:
-            add_error(
-                errors,
-                f"curriculum.json: `{problem_id}` has invalid interview frequency `{problem['interview_frequency']}`.",
-            )
-
-        module_name = problem["module"]
-        stage_name = problem["stage"]
-        if module_name not in module_name_map:
-            add_error(errors, f"curriculum.json: `{problem_id}` references unknown module `{module_name}`.")
-        else:
-            expected_code = module_name_map[module_name]
-            if problem_id.split("-")[0] != expected_code:
-                add_error(
-                    errors,
-                    f"curriculum.json: `{problem_id}` prefix does not match module `{module_name}` ({expected_code}).",
-                )
-            if stage_name != expected_stage_by_module_name.get(module_name):
-                add_error(
-                    errors,
-                    f"curriculum.json: `{problem_id}` stage `{stage_name}` does not match module stage.",
-                )
-        if stage_name not in stage_defs:
-            add_error(errors, f"curriculum.json: `{problem_id}` references unknown stage `{stage_name}`.")
-
-        dependencies = problem["dependency"]
-        if not isinstance(dependencies, list):
-            add_error(errors, f"curriculum.json: `{problem_id}` must use a list for `dependency`.")
-            continue
-        if index > 0 and not dependencies:
-            add_error(errors, f"curriculum.json: `{problem_id}` is missing dependencies.")
-        if len(dependencies) != len(set(dependencies)):
-            add_error(errors, f"curriculum.json: `{problem_id}` contains duplicate dependencies.")
-        for dependency_id in dependencies:
-            if dependency_id == problem_id:
-                add_error(errors, f"curriculum.json: `{problem_id}` cannot depend on itself.")
-            elif not isinstance(dependency_id, str):
-                add_error(errors, f"curriculum.json: `{problem_id}` has a non-string dependency.")
-            else:
-                problem_edges[dependency_id].append(problem_id)
-
-    duplicate_ids = sorted(problem_id for problem_id, count in Counter(problem_ids).items() if count > 1)
-    if duplicate_ids:
-        add_error(errors, "curriculum.json: duplicate ids found: " + ", ".join(duplicate_ids[:10]) + ".")
-
-    duplicate_originals = sorted(
-        number for number, count in Counter(original_numbers).items() if count > 1
-    )
-    if duplicate_originals:
-        add_error(
-            errors,
-            "curriculum.json: duplicate original numbers found: "
-            + ", ".join(str(number) for number in duplicate_originals[:10])
-            + ".",
-        )
-    missing_originals = [number for number in range(1, 508) if number not in set(original_numbers)]
-    if missing_originals:
-        add_error(
-            errors,
-            "curriculum.json: missing original numbers: "
-            + ", ".join(str(number) for number in missing_originals[:10])
-            + ".",
-        )
-
-    problems_by_id = problem_lookup(curriculum)
-    for problem_id in problem_ids:
-        dependencies = problems_by_id[problem_id]["dependency"]
-        for dependency_id in dependencies:
-            if dependency_id not in problems_by_id:
-                add_error(
-                    errors,
-                    f"curriculum.json: `{problem_id}` has broken dependency `{dependency_id}`.",
-                )
-            elif problem_order[dependency_id] >= problem_order[problem_id]:
-                add_error(
-                    errors,
-                    f"curriculum.json: `{problem_id}` depends on `{dependency_id}` after it in curriculum order.",
-                )
-
-    for title, matching_problems in sorted(title_occurrences.items()):
-        if len(matching_problems) <= 1:
-            continue
-        if not all(
-            isinstance(problem.get("notes"), str)
-            and "Intentional revisit preserved" in problem["notes"]
-            for problem in matching_problems
-        ):
-            add_error(
-                errors,
-                f"curriculum.json: duplicate title `{title}` is missing intentional-duplicate notes.",
-            )
-        else:
-            add_warning(
-                warnings,
-                f"curriculum.json: duplicate title preserved intentionally: `{title}`.",
-            )
-
-    module_problem_sequences: dict[str, list[int]] = defaultdict(list)
-    for problem_id in problem_ids:
-        prefix, suffix = problem_id.split("-")
-        module_problem_sequences[prefix].append(int(suffix))
-    for module_code, sequence in module_problem_sequences.items():
-        expected_sequence = list(range(1, len(sequence) + 1))
-        if sorted(sequence) != expected_sequence:
-            add_error(
-                errors,
-                f"curriculum.json: module `{module_code}` ids must be contiguous from 001.",
-            )
-
-    problem_cycle_nodes = detect_cycle_nodes(problem_ids, problem_edges)
-    if problem_cycle_nodes:
-        add_error(
-            errors,
-            "curriculum.json: dependency cycle detected involving "
-            + ", ".join(problem_cycle_nodes[:10])
-            + ".",
-        )
-    problem_roots = [problem_id for problem_id in problem_ids if not problems_by_id[problem_id]["dependency"]]
-    if not problem_roots:
-        add_error(errors, "curriculum.json: dependency graph has no root problem.")
-    else:
-        reachable_problems = reachable_nodes(problem_roots, problem_edges)
-        orphan_problems = sorted(set(problem_ids) - reachable_problems)
-        if orphan_problems:
-            add_error(
-                errors,
-                "curriculum.json: orphan problems detected: " + ", ".join(orphan_problems[:10]) + ".",
-            )
+    if not isinstance(scoring.get("skill_mastery", {}).get("minimum_primary_weighted_score"), (int, float)):
+        add_error(errors, "scoring.json: `skill_mastery.minimum_primary_weighted_score` must be numeric.")
 
     return errors, warnings
 
@@ -526,6 +544,7 @@ def validate_progress_payload(
     curriculum: dict[str, Any],
     graph: dict[str, Any],
     stages: dict[str, Any],
+    skills: dict[str, Any],
     scoring: dict[str, Any],
 ) -> tuple[list[str], list[str]]:
     """Validate a progress payload against the repository metadata."""
@@ -534,6 +553,7 @@ def validate_progress_payload(
     warnings: list[str] = []
     problems = problem_lookup(curriculum)
     stage_defs = stages.get("stages", {})
+    skill_defs = skills.get("skills", {})
     if not isinstance(stage_defs, dict):
         add_error(errors, f"{label}: stages metadata is unreadable.")
         return errors, warnings
@@ -575,6 +595,33 @@ def validate_progress_payload(
         add_error(errors, f"{label}: `notes` must be a list.")
     if not isinstance(progress.get("history"), list):
         add_error(errors, f"{label}: `history` must be a list.")
+
+    mastered_skills = progress.get("mastered_skills")
+    if not isinstance(mastered_skills, list):
+        add_error(errors, f"{label}: `mastered_skills` must be a list.")
+    else:
+        for sid in mastered_skills:
+            if sid not in skill_defs:
+                add_error(errors, f"{label}: `mastered_skills` references unknown skill `{sid}`.")
+
+    skill_progress = progress.get("skill_progress")
+    if not isinstance(skill_progress, dict):
+        add_error(errors, f"{label}: `skill_progress` must be an object.")
+
+    stage_mastery = progress.get("stage_mastery")
+    if not isinstance(stage_mastery, dict):
+        add_error(errors, f"{label}: `stage_mastery` must be an object.")
+    else:
+        for stage_name, entry in stage_mastery.items():
+            if stage_name not in stage_defs:
+                add_error(errors, f"{label}: `stage_mastery` references unknown stage `{stage_name}`.")
+                continue
+            if not isinstance(entry, dict) or entry.get("status") not in {"locked", "in_progress", "mastered"}:
+                add_error(errors, f"{label}: `stage_mastery.{stage_name}.status` must be locked/in_progress/mastered.")
+
+    competency_completion = progress.get("competency_completion")
+    if not isinstance(competency_completion, dict) or "percent" not in competency_completion:
+        add_error(errors, f"{label}: `competency_completion` must be an object with a `percent` field.")
 
     hint_levels = scoring.get("hint_levels", {})
     thinking_dimensions = set(scoring.get("dimensions", {}))
@@ -632,10 +679,7 @@ def validate_progress_payload(
         else:
             for dimension, value in thinking_score.items():
                 if not isinstance(value, (int, float)) or not thinking_min <= float(value) <= thinking_max:
-                    add_error(
-                        errors,
-                        f"{label}: completion #{index} has out-of-range thinking score `{dimension}`.",
-                    )
+                    add_error(errors, f"{label}: completion #{index} has out-of-range thinking score `{dimension}`.")
 
         interview_score = record.get("interview_score")
         if not isinstance(interview_score, dict) or set(interview_score) != interview_dimensions:
@@ -643,27 +687,18 @@ def validate_progress_payload(
         else:
             for dimension, value in interview_score.items():
                 if not isinstance(value, (int, float)) or not interview_min <= float(value) <= interview_max:
-                    add_error(
-                        errors,
-                        f"{label}: completion #{index} has out-of-range interview score `{dimension}`.",
-                    )
+                    add_error(errors, f"{label}: completion #{index} has out-of-range interview score `{dimension}`.")
 
         next_revision_date = record.get("next_revision_date")
         if not isinstance(next_revision_date, str):
             add_error(errors, f"{label}: completion #{index} has invalid `next_revision_date`.")
         else:
             try:
-                next_revision = parse_iso_date(
-                    next_revision_date,
-                    f"{label}.completed[{index}].next_revision_date",
-                )
+                next_revision = parse_iso_date(next_revision_date, f"{label}.completed[{index}].next_revision_date")
                 if isinstance(completed_at, str):
                     solved_on = parse_iso_date(completed_at, f"{label}.completed[{index}].completed_at")
                     if next_revision < solved_on:
-                        add_error(
-                            errors,
-                            f"{label}: completion #{index} schedules revision before completion date.",
-                        )
+                        add_error(errors, f"{label}: completion #{index} schedules revision before completion date.")
             except RepositoryError as exc:
                 add_error(errors, f"{label}: {exc}")
 
@@ -716,18 +751,12 @@ def validate_progress_payload(
 
     duplicate_open_entries = [pair for pair, count in latest_open_pairs.items() if count > 1]
     if duplicate_open_entries:
-        add_error(
-            errors,
-            f"{label}: duplicate open revision entries detected for {duplicate_open_entries[:5]}.",
-        )
+        add_error(errors, f"{label}: duplicate open revision entries detected for {duplicate_open_entries[:5]}.")
 
     for record in completion_records:
         pair = (str(record.get("problem_id")), str(record.get("next_revision_date")))
         if scheduled_pairs[pair] == 0:
-            add_error(
-                errors,
-                f"{label}: missing revision schedule entry for {pair[0]} on {pair[1]}.",
-            )
+            add_error(errors, f"{label}: missing revision schedule entry for {pair[0]} on {pair[1]}.")
 
     for index, event in enumerate(progress.get("history", []), start=1):
         if not isinstance(event, dict):
@@ -749,10 +778,7 @@ def validate_progress_payload(
     if current_problem is not None and current_problem in {record.get("problem_id") for record in completion_records}:
         open_problem_ids = {entry.get("problem") for entry in open_revision_entries(progress)}
         if current_problem not in open_problem_ids:
-            add_warning(
-                warnings,
-                f"{label}: `current_problem` is already completed and not currently scheduled for revision.",
-            )
+            add_warning(warnings, f"{label}: `current_problem` is already completed and not currently scheduled for revision.")
 
     expected_progress = copy.deepcopy(progress)
     try:
@@ -761,6 +787,7 @@ def validate_progress_payload(
                 curriculum=curriculum,
                 graph=graph,
                 stages=stages,
+                skills=skills,
                 scoring=scoring,
                 progress=expected_progress,
                 progress_path=Path(label),
@@ -770,10 +797,9 @@ def validate_progress_payload(
     except RepositoryError as exc:
         add_error(errors, f"{label}: failed to recompute derived progress state: {exc}")
     else:
-        if expected_progress.get("scores") != progress.get("scores"):
-            add_error(errors, f"{label}: cached `scores` do not match the recomputed summary.")
-        if expected_progress.get("current_stage") != progress.get("current_stage"):
-            add_error(errors, f"{label}: `current_stage` does not match the recomputed stage.")
+        for field in ("scores", "current_stage", "mastered_skills", "skill_progress", "stage_mastery", "competency_completion"):
+            if expected_progress.get(field) != progress.get(field):
+                add_error(errors, f"{label}: cached `{field}` does not match the recomputed value.")
 
     return errors, warnings
 
@@ -788,6 +814,7 @@ def main() -> int:
         curriculum = load_json_file(CURRICULUM_PATH)
         graph = load_json_file(GRAPH_PATH)
         stages = load_json_file(STAGES_PATH)
+        skills = load_json_file(SKILLS_PATH)
         scoring = load_json_file(SCORING_PATH)
         progress_payloads: list[tuple[str, dict[str, Any]]] = [
             (str(Path(args.progress_file)), load_json_file(Path(args.progress_file))),
@@ -800,7 +827,7 @@ def main() -> int:
         print(str(exc), file=sys.stderr)
         return 1
 
-    errors, warnings = validate_curriculum(curriculum, graph, stages, scoring)
+    errors, warnings = validate_curriculum(curriculum, graph, stages, skills, scoring)
     for label, payload in progress_payloads:
         progress_errors, progress_warnings = validate_progress_payload(
             label=label,
@@ -808,6 +835,7 @@ def main() -> int:
             curriculum=curriculum,
             graph=graph,
             stages=stages,
+            skills=skills,
             scoring=scoring,
         )
         errors.extend(progress_errors)
@@ -825,7 +853,7 @@ def main() -> int:
 
     print("Validation passed.")
     print(f"- Problems: {len(curriculum['problems'])}")
-    print(f"- Modules: {len(graph['module_order'])}")
+    print(f"- Skills: {len(skills['skill_order'])}")
     print(f"- Stages: {len(stages['stage_order'])}")
     print(f"- Progress files: {len(progress_payloads)}")
     if warnings:

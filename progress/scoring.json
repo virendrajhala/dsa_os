@@ -57,41 +57,57 @@
     "7": "Solution was effectively revealed."
   },
   "promotion_thresholds": {
-    "Explorer": {
+    "Observation": {
       "minimum_weighted_score": 2.4,
-      "minimum_completed_problems": 12
+      "minimum_completed_problems": 23
     },
-    "Observer": {
+    "State Construction": {
+      "minimum_weighted_score": 2.5,
+      "minimum_completed_problems": 69
+    },
+    "Constraint Maintenance": {
       "minimum_weighted_score": 2.6,
-      "minimum_completed_problems": 36
+      "minimum_completed_problems": 115
     },
-    "Searcher": {
+    "Ordered Reasoning": {
+      "minimum_weighted_score": 2.7,
+      "minimum_completed_problems": 151
+    },
+    "Decision Making": {
       "minimum_weighted_score": 2.8,
-      "minimum_completed_problems": 72
+      "minimum_completed_problems": 170
     },
-    "State Builder": {
+    "Interval Reasoning": {
+      "minimum_weighted_score": 2.85,
+      "minimum_completed_problems": 208
+    },
+    "Recursive Thinking": {
       "minimum_weighted_score": 2.9,
-      "minimum_completed_problems": 150
+      "minimum_completed_problems": 254
     },
-    "Recursive Thinker": {
+    "State Transition": {
+      "minimum_weighted_score": 2.95,
+      "minimum_completed_problems": 357
+    },
+    "Graph Thinking": {
       "minimum_weighted_score": 3.0,
-      "minimum_completed_problems": 230
+      "minimum_completed_problems": 428
     },
-    "Navigator": {
-      "minimum_weighted_score": 3.0,
-      "minimum_completed_problems": 284
+    "Query Processing": {
+      "minimum_weighted_score": 3.05,
+      "minimum_completed_problems": 465
     },
-    "Optimizer": {
+    "Pattern Discovery": {
       "minimum_weighted_score": 3.1,
-      "minimum_completed_problems": 364
+      "minimum_completed_problems": 498
     },
-    "Inventor": {
-      "minimum_weighted_score": 3.2,
-      "minimum_completed_problems": 471
+    "Mathematical Thinking": {
+      "minimum_weighted_score": 3.15,
+      "minimum_completed_problems": 520
     },
-    "Engineer": {
+    "Integration": {
       "minimum_weighted_score": 3.2,
-      "minimum_completed_problems": 507
+      "minimum_completed_problems": 557
     }
   },
   "revision_policy": {
@@ -130,5 +146,13 @@
     "Any thinking dimension scored 1 or below should create a near-term revision.",
     "Any hard problem with weighted thinking score below 2.8 should return to the revision schedule.",
     "Repeated misses on the same pattern should update thinking_profile.gaps."
-  ]
+  ],
+  "skill_mastery": {
+    "description": "A skill is mastered when its primary validation problem is solved at or above minimum_primary_weighted_score AND at least one reinforcement problem for that skill is solved (any passing score). This mirrors improvement #11: the mentor unlocks new material on skill mastery, not merely on problem completion.",
+    "minimum_primary_weighted_score": 2.6,
+    "require_reinforcement_attempt": true
+  },
+  "stage_mastery": {
+    "description": "A stage is mastered once every skill in that stage (see curriculum/stages.json `skills`) is mastered."
+  }
 }

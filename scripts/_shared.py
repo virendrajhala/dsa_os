@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Shared repository utilities for DSA_OS command-line tools."""
+"""Shared repository utilities for DSA_OS command-line tools (skill-first engine)."""
 
 from __future__ import annotations
 
@@ -15,6 +15,7 @@ ROOT = Path(__file__).resolve().parent.parent
 CURRICULUM_PATH = ROOT / "curriculum" / "curriculum.json"
 GRAPH_PATH = ROOT / "curriculum" / "dependency_graph.json"
 STAGES_PATH = ROOT / "curriculum" / "stages.json"
+SKILLS_PATH = ROOT / "knowledge" / "skills.json"
 SCORING_PATH = ROOT / "progress" / "scoring.json"
 PROGRESS_PATH = ROOT / "progress" / "progress.json"
 PROGRESS_TEMPLATE_PATH = ROOT / "progress" / "progress_template.json"
@@ -51,6 +52,7 @@ class RepositoryState:
     curriculum: JsonDict
     graph: JsonDict
     stages: JsonDict
+    skills: JsonDict
     scoring: JsonDict
     progress: JsonDict
     progress_path: Path
@@ -95,13 +97,14 @@ def resolve_progress_path(explicit_path: str | None = None) -> Path:
 
 
 def load_repository_state(explicit_progress_path: str | None = None) -> RepositoryState:
-    """Load curriculum, graph, stages, scoring, and progress state."""
+    """Load curriculum, graph, stages, skills, scoring, and progress state."""
 
     progress_path = resolve_progress_path(explicit_progress_path)
     return RepositoryState(
         curriculum=load_json_file(CURRICULUM_PATH),
         graph=load_json_file(GRAPH_PATH),
         stages=load_json_file(STAGES_PATH),
+        skills=load_json_file(SKILLS_PATH),
         scoring=load_json_file(SCORING_PATH),
         progress=load_json_file(progress_path),
         progress_path=progress_path,
@@ -151,17 +154,31 @@ def problem_order_index(curriculum: JsonDict) -> dict[str, int]:
     }
 
 
-def module_name_to_code(graph: JsonDict) -> dict[str, str]:
-    """Return a mapping from module name to module code."""
+def skill_lookup(skills: JsonDict) -> dict[str, JsonDict]:
+    """Return skills keyed by skill id."""
 
-    modules = graph.get("modules")
-    if not isinstance(modules, dict):
-        raise RepositoryError("dependency_graph.json: `modules` must be an object.")
-    mapping: dict[str, str] = {}
-    for code, module in modules.items():
-        if isinstance(module, dict) and isinstance(module.get("name"), str):
-            mapping[module["name"]] = code
-    return mapping
+    data = skills.get("skills")
+    if not isinstance(data, dict):
+        raise RepositoryError("knowledge/skills.json: `skills` must be an object.")
+    return data
+
+
+def problem_dependencies_map(graph: JsonDict) -> dict[str, list[str]]:
+    """Return the auto-generated problem-level dependency map."""
+
+    deps = graph.get("problem_dependencies")
+    if not isinstance(deps, dict):
+        raise RepositoryError("dependency_graph.json: `problem_dependencies` must be an object.")
+    return deps
+
+
+def skill_dependencies_map(graph: JsonDict) -> dict[str, list[str]]:
+    """Return the skill-level dependency map (source of truth)."""
+
+    deps = graph.get("skill_dependencies")
+    if not isinstance(deps, dict):
+        raise RepositoryError("dependency_graph.json: `skill_dependencies` must be an object.")
+    return deps
 
 
 def completed_records(progress: JsonDict) -> list[JsonDict]:
@@ -254,35 +271,84 @@ def average_interview_score(record: JsonDict) -> float | None:
         return None
 
 
-def determine_stage(progress: JsonDict, stages: JsonDict, scoring: JsonDict) -> str:
-    """Determine the learner's stage from unique completed problems and score quality."""
+# ---------------------------------------------------------------------------
+# Skill mastery (item #11: the mentor unlocks new material on skill mastery,
+# not merely problem completion).
+# ---------------------------------------------------------------------------
+def compute_skill_progress(
+    curriculum: JsonDict,
+    skills: JsonDict,
+    scoring: JsonDict,
+    progress: JsonDict,
+) -> dict[str, JsonDict]:
+    """Recompute per-skill mastery from completion records.
 
-    stage_order = stages.get("stage_order")
-    thresholds = scoring.get("promotion_thresholds")
-    if not isinstance(stage_order, list) or not stage_order:
-        raise RepositoryError("stages.json: `stage_order` must be a non-empty list.")
-    if not isinstance(thresholds, dict):
-        raise RepositoryError("scoring.json: `promotion_thresholds` must be an object.")
+    A skill is mastered when its primary validation problem is solved at or
+    above `scoring.skill_mastery.minimum_primary_weighted_score` AND at least
+    one reinforcement problem for that skill has been completed.
+    """
 
-    latest_records = list(latest_records_by_problem(progress).values())
-    weighted_scores = [
-        score
-        for score in (weighted_thinking_score(record, scoring) for record in latest_records)
-        if score is not None
-    ]
-    average_weighted = mean(weighted_scores) if weighted_scores else 0.0
-    unique_completed = len(latest_records)
+    latest_by_problem = latest_records_by_problem(progress)
+    mastery_cfg = scoring.get("skill_mastery", {})
+    min_primary_score = float(mastery_cfg.get("minimum_primary_weighted_score", 2.6))
+    require_reinforcement = bool(mastery_cfg.get("require_reinforcement_attempt", True))
 
-    resolved_stage = stage_order[0]
+    skill_progress: dict[str, JsonDict] = {}
+    for skill_id, skill in skill_lookup(skills).items():
+        primary = skill.get("primary_validation_problem")
+        reinforcement = skill.get("reinforcement_problems", [])
+        primary_record = latest_by_problem.get(primary)
+        primary_solved = primary_record is not None
+        primary_score = weighted_thinking_score(primary_record, scoring) if primary_record else None
+        # If no numeric score was recorded, treat any recorded completion as
+        # provisionally passing so early/manual progress logs still register.
+        primary_meets_bar = primary_solved and (primary_score is None or primary_score >= min_primary_score)
+        reinforcement_done = any(r in latest_by_problem for r in reinforcement)
+        mastered = primary_meets_bar and (reinforcement_done or not require_reinforcement)
+        skill_progress[skill_id] = {
+            "primary_solved": primary_solved,
+            "primary_weighted_score": primary_score,
+            "reinforcement_attempted": reinforcement_done,
+            "mastered": mastered,
+        }
+    return skill_progress
+
+
+def compute_stage_mastery(stages: JsonDict, skill_progress: dict[str, JsonDict]) -> dict[str, JsonDict]:
+    """Recompute per-stage mastery from skill mastery."""
+
+    stage_order = ensure_list(stages.get("stage_order"), "stages.stage_order")
+    stage_defs = stages.get("stages", {})
+    result: dict[str, JsonDict] = {}
+    unlocked = True
     for stage_name in stage_order:
-        threshold = thresholds.get(stage_name, {})
-        if not isinstance(threshold, dict):
-            continue
-        minimum_completed = threshold.get("minimum_completed_problems", 0)
-        minimum_score = threshold.get("minimum_weighted_score", 0.0)
-        if unique_completed >= minimum_completed and average_weighted >= minimum_score:
-            resolved_stage = stage_name
-    return resolved_stage
+        stage_skills = stage_defs.get(stage_name, {}).get("skills", [])
+        total = len(stage_skills)
+        mastered = sum(1 for sid in stage_skills if skill_progress.get(sid, {}).get("mastered"))
+        if not unlocked:
+            status = "locked"
+        elif total > 0 and mastered == total:
+            status = "mastered"
+        else:
+            status = "in_progress"
+        result[stage_name] = {"status": status, "skills_mastered": mastered, "skills_total": total}
+        if status != "mastered":
+            unlocked = False
+    return result
+
+
+def determine_stage(progress: JsonDict, stages: JsonDict, scoring: JsonDict, skills: JsonDict | None = None) -> str:
+    """Determine the learner's current stage: earliest non-mastered stage in order."""
+
+    stage_order = ensure_list(stages.get("stage_order"), "stages.stage_order")
+    stage_mastery = progress.get("stage_mastery")
+    if isinstance(stage_mastery, dict) and stage_mastery:
+        for stage_name in stage_order:
+            status = stage_mastery.get(stage_name, {}).get("status")
+            if status != "mastered":
+                return stage_name
+        return stage_order[-1]
+    return stage_order[0]
 
 
 def recompute_score_summary(
@@ -390,47 +456,56 @@ def normalize_progress(state: RepositoryState, payload: JsonDict) -> JsonDict:
         stages=state.stages,
         scoring=state.scoring,
     )
-    payload["current_stage"] = determine_stage(payload, state.stages, state.scoring)
+    skill_progress = compute_skill_progress(state.curriculum, state.skills, state.scoring, payload)
+    payload["skill_progress"] = skill_progress
+    payload["mastered_skills"] = [sid for sid, sp in skill_progress.items() if sp["mastered"]]
+    stage_mastery = compute_stage_mastery(state.stages, skill_progress)
+    payload["stage_mastery"] = stage_mastery
+    total_skills = len(skill_progress)
+    payload["competency_completion"] = {
+        "mastered_skills": len(payload["mastered_skills"]),
+        "total_skills": total_skills,
+        "percent": round(100 * len(payload["mastered_skills"]) / total_skills, 2) if total_skills else 0.0,
+    }
+    payload["current_stage"] = determine_stage(payload, state.stages, state.scoring, state.skills)
     return payload
 
 
-def derive_current_module_code(state: RepositoryState) -> str | None:
-    """Infer the active module from the current problem or latest solved work."""
+def derive_current_skill_id(state: RepositoryState) -> str | None:
+    """Infer the active skill from the current problem or latest solved work."""
 
     problems = problem_lookup(state.curriculum)
-    module_map = module_name_to_code(state.graph)
 
     active_problem_id = current_problem_id(state.progress)
     if active_problem_id and active_problem_id in problems:
-        return module_map.get(problems[active_problem_id]["module"])
+        return problems[active_problem_id].get("primary_skill")
 
     latest_record = last_completion_record(state.progress)
     if latest_record and isinstance(latest_record.get("problem_id"), str):
         latest_problem = problems.get(latest_record["problem_id"])
         if latest_problem:
-            return module_map.get(latest_problem["module"])
+            return latest_problem.get("primary_skill")
 
     return None
 
 
-def is_problem_unlocked(problem: JsonDict, completed_ids: set[str]) -> bool:
+def is_problem_unlocked(problem: JsonDict, completed_ids: set[str], problem_deps: dict[str, list[str]]) -> bool:
     """Return whether a curriculum problem is unlocked for first-pass solving."""
 
-    dependencies = problem.get("dependency", [])
+    dependencies = problem_deps.get(problem["id"], [])
     if not isinstance(dependencies, list):
         return False
     return all(isinstance(dep, str) and dep in completed_ids for dep in dependencies)
 
 
 def select_next_problem(state: RepositoryState, on_date: date | None = None) -> SelectionResult:
-    """Choose the next problem using revisions, module continuity, and stage order."""
+    """Choose the next problem using revisions, skill continuity, and stage order."""
 
     today = on_date or date.today()
     problems = ensure_list(state.curriculum.get("problems"), "curriculum.problems")
     problems_by_id = problem_lookup(state.curriculum)
     problem_order = problem_order_index(state.curriculum)
-    module_map = module_name_to_code(state.graph)
-    module_order = ensure_list(state.graph.get("module_order"), "dependency_graph.module_order")
+    problem_deps = problem_dependencies_map(state.graph)
     stage_order = ensure_list(state.stages.get("stage_order"), "stages.stage_order")
     stage_defs = state.stages.get("stages")
     if not isinstance(stage_defs, dict):
@@ -473,13 +548,13 @@ def select_next_problem(state: RepositoryState, on_date: date | None = None) -> 
         if isinstance(problem, dict)
         and isinstance(problem.get("id"), str)
         and problem["id"] not in completed_ids
-        and is_problem_unlocked(problem, completed_ids)
+        and is_problem_unlocked(problem, completed_ids, problem_deps)
     ]
 
     active_problem_id = current_problem_id(state.progress)
     if active_problem_id and active_problem_id in problems_by_id and active_problem_id not in completed_ids:
         active_problem = problems_by_id[active_problem_id]
-        if is_problem_unlocked(active_problem, completed_ids):
+        if is_problem_unlocked(active_problem, completed_ids, problem_deps):
             return SelectionResult(
                 mode="resume_current_problem",
                 reason="Current problem is still active and remains unlocked.",
@@ -487,21 +562,19 @@ def select_next_problem(state: RepositoryState, on_date: date | None = None) -> 
                 suggested_stage=active_problem.get("stage"),
             )
 
-    current_module_code = derive_current_module_code(state)
-    if current_module_code:
-        current_module_candidates = [
-            problem
-            for problem in incomplete_unlocked
-            if module_map.get(str(problem.get("module"))) == current_module_code
+    current_skill_id = derive_current_skill_id(state)
+    if current_skill_id:
+        current_skill_candidates = [
+            problem for problem in incomplete_unlocked if problem.get("primary_skill") == current_skill_id
         ]
-        if current_module_candidates:
+        if current_skill_candidates:
             chosen_problem = sorted(
-                current_module_candidates,
+                current_skill_candidates,
                 key=lambda problem: problem_order[problem["id"]],
             )[0]
             return SelectionResult(
-                mode="current_module",
-                reason="Continuing in the current module preserves local reasoning context.",
+                mode="current_skill",
+                reason="Continuing in the current skill preserves local reasoning context.",
                 problem=chosen_problem,
                 suggested_stage=chosen_problem.get("stage"),
             )
@@ -509,11 +582,9 @@ def select_next_problem(state: RepositoryState, on_date: date | None = None) -> 
     current_stage = state.progress.get("current_stage")
     if not isinstance(current_stage, str) or current_stage not in stage_order:
         current_stage = stage_order[0]
-    stage_modules = stage_defs[current_stage]["modules"]
+    stage_skill_ids = set(stage_defs[current_stage]["skills"])
     stage_candidates = [
-        problem
-        for problem in incomplete_unlocked
-        if module_map.get(str(problem.get("module"))) in stage_modules
+        problem for problem in incomplete_unlocked if problem.get("primary_skill") in stage_skill_ids
     ]
     if stage_candidates:
         chosen_problem = sorted(stage_candidates, key=lambda problem: problem_order[problem["id"]])[0]
@@ -686,8 +757,8 @@ def interview_trend(records: list[JsonDict]) -> JsonDict:
     }
 
 
-def weakest_modules(state: RepositoryState, limit: int = 5) -> list[JsonDict]:
-    """Return the weakest solved modules by average weighted thinking score."""
+def weakest_skills(state: RepositoryState, limit: int = 5) -> list[JsonDict]:
+    """Return the weakest solved skills by average weighted thinking score."""
 
     latest_by_problem = latest_records_by_problem(state.progress)
     problems = problem_lookup(state.curriculum)
@@ -700,18 +771,20 @@ def weakest_modules(state: RepositoryState, limit: int = 5) -> list[JsonDict]:
         score = weighted_thinking_score(record, state.scoring)
         if score is None:
             continue
-        module_name = str(problem["module"])
-        grouped.setdefault(module_name, []).append(score)
-        counts[module_name] = counts.get(module_name, 0) + 1
+        skill_id = str(problem["primary_skill"])
+        grouped.setdefault(skill_id, []).append(score)
+        counts[skill_id] = counts.get(skill_id, 0) + 1
+    skills_data = skill_lookup(state.skills)
     results = [
         {
-            "module": module_name,
+            "skill": skill_id,
+            "skill_name": skills_data.get(skill_id, {}).get("name", skill_id),
             "average_weighted_thinking_score": round(mean(scores), 2),
-            "solved_problems": counts[module_name],
+            "solved_problems": counts[skill_id],
         }
-        for module_name, scores in grouped.items()
+        for skill_id, scores in grouped.items()
     ]
     return sorted(
         results,
-        key=lambda item: (item["average_weighted_thinking_score"], item["module"]),
+        key=lambda item: (item["average_weighted_thinking_score"], item["skill"]),
     )[:limit]

@@ -1,266 +1,2052 @@
 {
-  "module_order": [
-    "OBS",
-    "TWO",
-    "WIN",
-    "HSH",
-    "ORD",
-    "BSR",
-    "PFX",
-    "LNK",
-    "STK",
-    "QUE",
-    "HEP",
-    "TRE",
-    "BST",
-    "TRI",
-    "GRF",
-    "DP",
-    "REC",
-    "GRD",
-    "MAT",
-    "RNG",
-    "DES"
+  "schema_version": 3,
+  "note": "skill_dependencies is the source of truth (see knowledge/skills.json). problem_dependencies is generated automatically: a skill's primary validation problem depends on the primary validation problems of its prerequisite skills; every reinforcement/challenge problem depends on its own skill's primary validation problem.",
+  "stage_order": [
+    "Observation",
+    "State Construction",
+    "Constraint Maintenance",
+    "Ordered Reasoning",
+    "Decision Making",
+    "Interval Reasoning",
+    "Recursive Thinking",
+    "State Transition",
+    "Graph Thinking",
+    "Query Processing",
+    "Pattern Discovery",
+    "Mathematical Thinking",
+    "Integration"
   ],
-  "modules": {
-    "OBS": {
-      "name": "Observation & Simulation",
-      "stage": "Explorer",
-      "prerequisites": [],
-      "unlocks": [
-        "TWO"
-      ]
-    },
-    "TWO": {
-      "name": "Two-Pointer Reasoning",
-      "stage": "Observer",
-      "prerequisites": [
-        "OBS"
-      ],
-      "unlocks": [
-        "WIN"
-      ]
-    },
-    "WIN": {
-      "name": "Sliding Window",
-      "stage": "Observer",
-      "prerequisites": [
-        "TWO"
-      ],
-      "unlocks": [
-        "HSH"
-      ]
-    },
-    "HSH": {
-      "name": "Hashing & Frequency Maps",
-      "stage": "Observer",
-      "prerequisites": [
-        "WIN"
-      ],
-      "unlocks": [
-        "ORD",
-        "PFX"
-      ]
-    },
-    "ORD": {
-      "name": "Sorting & Interval Reasoning",
-      "stage": "Searcher",
-      "prerequisites": [
-        "HSH"
-      ],
-      "unlocks": [
-        "BSR"
-      ]
-    },
-    "BSR": {
-      "name": "Binary Search",
-      "stage": "Searcher",
-      "prerequisites": [
-        "ORD"
-      ],
-      "unlocks": [
-        "PFX",
-        "MAT",
-        "RNG"
-      ]
-    },
-    "PFX": {
-      "name": "Prefix Sums & Range Reasoning",
-      "stage": "Searcher",
-      "prerequisites": [
-        "HSH",
-        "BSR"
-      ],
-      "unlocks": [
-        "LNK",
-        "DP",
-        "MAT"
-      ]
-    },
-    "LNK": {
-      "name": "Linked Lists",
-      "stage": "State Builder",
-      "prerequisites": [
-        "PFX"
-      ],
-      "unlocks": [
-        "STK",
-        "DES"
-      ]
-    },
-    "STK": {
-      "name": "Stacks & Monotonic Structures",
-      "stage": "State Builder",
-      "prerequisites": [
-        "LNK"
-      ],
-      "unlocks": [
-        "QUE",
-        "DES"
-      ]
-    },
-    "QUE": {
-      "name": "Queues, Deques & BFS Simulation",
-      "stage": "State Builder",
-      "prerequisites": [
-        "STK"
-      ],
-      "unlocks": [
-        "HEP",
-        "GRF",
-        "DES"
-      ]
-    },
-    "HEP": {
-      "name": "Heaps & Online Order Statistics",
-      "stage": "State Builder",
-      "prerequisites": [
-        "QUE"
-      ],
-      "unlocks": [
-        "TRE",
-        "RNG",
-        "DES"
-      ]
-    },
-    "TRE": {
-      "name": "Tree Traversal & Structural Recursion",
-      "stage": "Recursive Thinker",
-      "prerequisites": [
-        "HEP"
-      ],
-      "unlocks": [
-        "BST",
-        "TRI",
-        "GRF"
-      ]
-    },
-    "BST": {
-      "name": "Binary Search Trees & Ordered Recursion",
-      "stage": "Recursive Thinker",
-      "prerequisites": [
-        "TRE"
-      ],
-      "unlocks": [
-        "TRI",
-        "RNG",
-        "DES"
-      ]
-    },
-    "TRI": {
-      "name": "Tries & Prefix Indexes",
-      "stage": "Recursive Thinker",
-      "prerequisites": [
-        "TRE",
-        "BST"
-      ],
-      "unlocks": [
-        "GRF",
-        "DES"
-      ]
-    },
-    "GRF": {
-      "name": "Graph Traversal & Connectivity",
-      "stage": "Navigator",
-      "prerequisites": [
-        "TRE",
-        "TRI",
-        "QUE"
-      ],
-      "unlocks": [
-        "DP",
-        "DES"
-      ]
-    },
-    "DP": {
-      "name": "Dynamic Programming",
-      "stage": "Optimizer",
-      "prerequisites": [
-        "GRF",
-        "PFX"
-      ],
-      "unlocks": [
-        "REC",
-        "DES"
-      ]
-    },
-    "REC": {
-      "name": "Backtracking & Recursive Search",
-      "stage": "Inventor",
-      "prerequisites": [
-        "DP"
-      ],
-      "unlocks": [
-        "GRD"
-      ]
-    },
-    "GRD": {
-      "name": "Greedy Optimization",
-      "stage": "Inventor",
-      "prerequisites": [
-        "REC"
-      ],
-      "unlocks": []
-    },
-    "MAT": {
-      "name": "Math & Bit Manipulation",
-      "stage": "Inventor",
-      "prerequisites": [
-        "PFX",
-        "BSR"
-      ],
-      "unlocks": [
-        "DES"
-      ]
-    },
-    "RNG": {
-      "name": "Range Structures & Ordered Interval Systems",
-      "stage": "Engineer",
-      "prerequisites": [
-        "BST",
-        "HEP",
-        "BSR"
-      ],
-      "unlocks": [
-        "DES"
-      ]
-    },
-    "DES": {
-      "name": "System & Data Structure Design",
-      "stage": "Engineer",
-      "prerequisites": [
-        "LNK",
-        "STK",
-        "QUE",
-        "HEP",
-        "BST",
-        "TRI",
-        "GRF",
-        "DP",
-        "MAT",
-        "RNG"
-      ],
-      "unlocks": []
-    }
+  "skill_order": [
+    "SK-OB-01",
+    "SK-OB-02",
+    "SK-OB-03",
+    "SK-OB-04",
+    "SK-OB-05",
+    "SK-OB-06",
+    "SK-SC-01",
+    "SK-SC-02",
+    "SK-SC-03",
+    "SK-SC-04",
+    "SK-SC-05",
+    "SK-SC-06",
+    "SK-CM-01",
+    "SK-CM-02",
+    "SK-CM-03",
+    "SK-CM-04",
+    "SK-CM-05",
+    "SK-CM-06",
+    "SK-OR-01",
+    "SK-OR-02",
+    "SK-OR-03",
+    "SK-OR-04",
+    "SK-OR-05",
+    "SK-DM-01",
+    "SK-DM-02",
+    "SK-DM-03",
+    "SK-IR-01",
+    "SK-IR-02",
+    "SK-IR-03",
+    "SK-IR-04",
+    "SK-IR-05",
+    "SK-IR-06",
+    "SK-IR-07",
+    "SK-IR-08",
+    "SK-IR-09",
+    "SK-IR-10",
+    "SK-IR-11",
+    "SK-RT-01",
+    "SK-RT-02",
+    "SK-RT-03",
+    "SK-RT-04",
+    "SK-RT-05",
+    "SK-RT-06",
+    "SK-ST-01",
+    "SK-ST-02",
+    "SK-ST-03",
+    "SK-ST-04",
+    "SK-ST-05",
+    "SK-ST-06",
+    "SK-ST-07",
+    "SK-ST-08",
+    "SK-ST-09",
+    "SK-ST-10",
+    "SK-ST-11",
+    "SK-ST-12",
+    "SK-ST-13",
+    "SK-ST-14",
+    "SK-ST-15",
+    "SK-ST-16",
+    "SK-ST-17",
+    "SK-GT-01",
+    "SK-GT-02",
+    "SK-GT-03",
+    "SK-GT-04",
+    "SK-GT-05",
+    "SK-GT-06",
+    "SK-GT-07",
+    "SK-GT-08",
+    "SK-GT-09",
+    "SK-QP-01",
+    "SK-QP-02",
+    "SK-QP-03",
+    "SK-QP-04",
+    "SK-QP-05",
+    "SK-QP-06",
+    "SK-PD-01",
+    "SK-PD-02",
+    "SK-PD-03",
+    "SK-PD-04",
+    "SK-PD-05",
+    "SK-MT-01",
+    "SK-MT-02",
+    "SK-MT-03",
+    "SK-IN-01",
+    "SK-IN-02",
+    "SK-IN-03",
+    "SK-IN-04",
+    "SK-IN-05",
+    "SK-IN-06",
+    "SK-IN-07"
+  ],
+  "skill_dependencies": {
+    "SK-OB-01": [],
+    "SK-OB-02": [
+      "SK-OB-01"
+    ],
+    "SK-OB-03": [
+      "SK-OB-02"
+    ],
+    "SK-OB-04": [
+      "SK-OB-03"
+    ],
+    "SK-OB-05": [
+      "SK-OB-04"
+    ],
+    "SK-OB-06": [
+      "SK-OB-05"
+    ],
+    "SK-SC-01": [
+      "SK-OB-06"
+    ],
+    "SK-SC-02": [
+      "SK-SC-01"
+    ],
+    "SK-SC-03": [
+      "SK-SC-02"
+    ],
+    "SK-SC-04": [
+      "SK-SC-03"
+    ],
+    "SK-SC-05": [
+      "SK-SC-04"
+    ],
+    "SK-SC-06": [
+      "SK-SC-05"
+    ],
+    "SK-CM-01": [
+      "SK-SC-06"
+    ],
+    "SK-CM-02": [
+      "SK-CM-01"
+    ],
+    "SK-CM-03": [
+      "SK-CM-02"
+    ],
+    "SK-CM-04": [
+      "SK-CM-03"
+    ],
+    "SK-CM-05": [
+      "SK-CM-04"
+    ],
+    "SK-CM-06": [
+      "SK-CM-05"
+    ],
+    "SK-OR-01": [
+      "SK-CM-06"
+    ],
+    "SK-OR-02": [
+      "SK-OR-01"
+    ],
+    "SK-OR-03": [
+      "SK-OR-02"
+    ],
+    "SK-OR-04": [
+      "SK-OR-03"
+    ],
+    "SK-OR-05": [
+      "SK-OR-04"
+    ],
+    "SK-DM-01": [
+      "SK-OR-05"
+    ],
+    "SK-DM-02": [
+      "SK-DM-01"
+    ],
+    "SK-DM-03": [
+      "SK-DM-02"
+    ],
+    "SK-IR-01": [
+      "SK-DM-03"
+    ],
+    "SK-IR-02": [
+      "SK-IR-01"
+    ],
+    "SK-IR-03": [
+      "SK-IR-02"
+    ],
+    "SK-IR-04": [
+      "SK-IR-03"
+    ],
+    "SK-IR-05": [
+      "SK-IR-04"
+    ],
+    "SK-IR-06": [
+      "SK-IR-05"
+    ],
+    "SK-IR-07": [
+      "SK-IR-06"
+    ],
+    "SK-IR-08": [
+      "SK-IR-07"
+    ],
+    "SK-IR-09": [
+      "SK-IR-08"
+    ],
+    "SK-IR-10": [
+      "SK-IR-09"
+    ],
+    "SK-IR-11": [
+      "SK-IR-10"
+    ],
+    "SK-RT-01": [
+      "SK-IR-11"
+    ],
+    "SK-RT-02": [
+      "SK-RT-01"
+    ],
+    "SK-RT-03": [
+      "SK-RT-02"
+    ],
+    "SK-RT-04": [
+      "SK-RT-03"
+    ],
+    "SK-RT-05": [
+      "SK-RT-04"
+    ],
+    "SK-RT-06": [
+      "SK-RT-05"
+    ],
+    "SK-ST-01": [
+      "SK-RT-06"
+    ],
+    "SK-ST-02": [
+      "SK-ST-01"
+    ],
+    "SK-ST-03": [
+      "SK-ST-02"
+    ],
+    "SK-ST-04": [
+      "SK-ST-03"
+    ],
+    "SK-ST-05": [
+      "SK-ST-04"
+    ],
+    "SK-ST-06": [
+      "SK-ST-05"
+    ],
+    "SK-ST-07": [
+      "SK-ST-06"
+    ],
+    "SK-ST-08": [
+      "SK-ST-07"
+    ],
+    "SK-ST-09": [
+      "SK-ST-08"
+    ],
+    "SK-ST-10": [
+      "SK-ST-09"
+    ],
+    "SK-ST-11": [
+      "SK-ST-10"
+    ],
+    "SK-ST-12": [
+      "SK-ST-11"
+    ],
+    "SK-ST-13": [
+      "SK-ST-12"
+    ],
+    "SK-ST-14": [
+      "SK-ST-13"
+    ],
+    "SK-ST-15": [
+      "SK-ST-14"
+    ],
+    "SK-ST-16": [
+      "SK-ST-15"
+    ],
+    "SK-ST-17": [
+      "SK-ST-16"
+    ],
+    "SK-GT-01": [
+      "SK-ST-17"
+    ],
+    "SK-GT-02": [
+      "SK-GT-01"
+    ],
+    "SK-GT-03": [
+      "SK-GT-02"
+    ],
+    "SK-GT-04": [
+      "SK-GT-03"
+    ],
+    "SK-GT-05": [
+      "SK-GT-04"
+    ],
+    "SK-GT-06": [
+      "SK-GT-05"
+    ],
+    "SK-GT-07": [
+      "SK-GT-06"
+    ],
+    "SK-GT-08": [
+      "SK-GT-07"
+    ],
+    "SK-GT-09": [
+      "SK-GT-08"
+    ],
+    "SK-QP-01": [
+      "SK-GT-09"
+    ],
+    "SK-QP-02": [
+      "SK-QP-01"
+    ],
+    "SK-QP-03": [
+      "SK-QP-02"
+    ],
+    "SK-QP-04": [
+      "SK-QP-03"
+    ],
+    "SK-QP-05": [
+      "SK-QP-04"
+    ],
+    "SK-QP-06": [
+      "SK-QP-05"
+    ],
+    "SK-PD-01": [
+      "SK-QP-06"
+    ],
+    "SK-PD-02": [
+      "SK-PD-01"
+    ],
+    "SK-PD-03": [
+      "SK-PD-02"
+    ],
+    "SK-PD-04": [
+      "SK-PD-03"
+    ],
+    "SK-PD-05": [
+      "SK-PD-04"
+    ],
+    "SK-MT-01": [
+      "SK-PD-05"
+    ],
+    "SK-MT-02": [
+      "SK-MT-01"
+    ],
+    "SK-MT-03": [
+      "SK-MT-02"
+    ],
+    "SK-IN-01": [
+      "SK-MT-03"
+    ],
+    "SK-IN-02": [
+      "SK-IN-01"
+    ],
+    "SK-IN-03": [
+      "SK-IN-02"
+    ],
+    "SK-IN-04": [
+      "SK-IN-03"
+    ],
+    "SK-IN-05": [
+      "SK-IN-04"
+    ],
+    "SK-IN-06": [
+      "SK-IN-05"
+    ],
+    "SK-IN-07": [
+      "SK-IN-06"
+    ]
+  },
+  "problem_dependencies": {
+    "CPX-001": [],
+    "CPX-002": [
+      "CPX-001"
+    ],
+    "CPX-003": [
+      "CPX-001"
+    ],
+    "CPX-004": [
+      "CPX-001"
+    ],
+    "CPX-005": [
+      "CPX-004"
+    ],
+    "CPX-006": [
+      "CPX-004"
+    ],
+    "OBS-001": [
+      "CPX-004"
+    ],
+    "OBS-002": [
+      "OBS-001"
+    ],
+    "OBS-003": [
+      "OBS-001"
+    ],
+    "OBS-004": [
+      "OBS-003"
+    ],
+    "OBS-005": [
+      "OBS-003"
+    ],
+    "OBS-006": [
+      "OBS-003"
+    ],
+    "OBS-007": [
+      "OBS-003"
+    ],
+    "OBS-008": [
+      "OBS-003"
+    ],
+    "OBS-019": [
+      "OBS-003"
+    ],
+    "OBS-020": [
+      "OBS-019"
+    ],
+    "OBS-021": [
+      "OBS-019"
+    ],
+    "OBS-022": [
+      "OBS-021"
+    ],
+    "OBS-025": [
+      "OBS-021"
+    ],
+    "OBS-023": [
+      "OBS-021"
+    ],
+    "OBS-024": [
+      "OBS-021"
+    ],
+    "HSH-001": [
+      "OBS-021"
+    ],
+    "OBS-011": [
+      "HSH-001"
+    ],
+    "OBS-014": [
+      "HSH-001"
+    ],
+    "HSH-003": [
+      "HSH-001"
+    ],
+    "HSH-004": [
+      "HSH-001"
+    ],
+    "HSH-002": [
+      "HSH-001"
+    ],
+    "OBS-012": [
+      "HSH-001"
+    ],
+    "OBS-013": [
+      "HSH-001"
+    ],
+    "OBS-015": [
+      "HSH-001"
+    ],
+    "OBS-016": [
+      "HSH-001"
+    ],
+    "OBS-017": [
+      "HSH-001"
+    ],
+    "OBS-018": [
+      "HSH-001"
+    ],
+    "HSH-005": [
+      "HSH-001"
+    ],
+    "HSH-008": [
+      "HSH-005"
+    ],
+    "HSH-009": [
+      "HSH-005"
+    ],
+    "HSH-006": [
+      "HSH-005"
+    ],
+    "HSH-007": [
+      "HSH-005"
+    ],
+    "HSH-010": [
+      "HSH-005"
+    ],
+    "HSH-011": [
+      "HSH-005"
+    ],
+    "LNK-001": [
+      "HSH-005"
+    ],
+    "LNK-027": [
+      "LNK-001"
+    ],
+    "LNK-002": [
+      "LNK-001"
+    ],
+    "LNK-004": [
+      "LNK-002"
+    ],
+    "LNK-005": [
+      "LNK-002"
+    ],
+    "LNK-003": [
+      "LNK-002"
+    ],
+    "LNK-006": [
+      "LNK-002"
+    ],
+    "LNK-007": [
+      "LNK-002"
+    ],
+    "LNK-011": [
+      "LNK-007"
+    ],
+    "LNK-016": [
+      "LNK-007"
+    ],
+    "LNK-018": [
+      "LNK-007"
+    ],
+    "LNK-008": [
+      "LNK-007"
+    ],
+    "LNK-010": [
+      "LNK-007"
+    ],
+    "LNK-013": [
+      "LNK-007"
+    ],
+    "LNK-014": [
+      "LNK-007"
+    ],
+    "LNK-015": [
+      "LNK-007"
+    ],
+    "LNK-017": [
+      "LNK-007"
+    ],
+    "LNK-019": [
+      "LNK-007"
+    ],
+    "LNK-020": [
+      "LNK-007"
+    ],
+    "LNK-009": [
+      "LNK-007"
+    ],
+    "LNK-012": [
+      "LNK-007"
+    ],
+    "LNK-026": [
+      "LNK-007"
+    ],
+    "LNK-021": [
+      "LNK-026"
+    ],
+    "LNK-022": [
+      "LNK-026"
+    ],
+    "LNK-023": [
+      "LNK-026"
+    ],
+    "LNK-024": [
+      "LNK-026"
+    ],
+    "LNK-025": [
+      "LNK-026"
+    ],
+    "TWO-001": [
+      "LNK-026"
+    ],
+    "TWO-006": [
+      "TWO-001"
+    ],
+    "TWO-007": [
+      "TWO-001"
+    ],
+    "TWO-010": [
+      "TWO-001"
+    ],
+    "TWO-002": [
+      "TWO-001"
+    ],
+    "TWO-003": [
+      "TWO-001"
+    ],
+    "TWO-004": [
+      "TWO-001"
+    ],
+    "TWO-008": [
+      "TWO-001"
+    ],
+    "TWO-009": [
+      "TWO-001"
+    ],
+    "TWO-005": [
+      "TWO-001"
+    ],
+    "WIN-002": [
+      "TWO-001"
+    ],
+    "WIN-001": [
+      "WIN-002"
+    ],
+    "WIN-003": [
+      "WIN-002"
+    ],
+    "WIN-005": [
+      "WIN-002"
+    ],
+    "WIN-006": [
+      "WIN-002"
+    ],
+    "WIN-007": [
+      "WIN-002"
+    ],
+    "WIN-009": [
+      "WIN-002"
+    ],
+    "WIN-010": [
+      "WIN-002"
+    ],
+    "WIN-004": [
+      "WIN-002"
+    ],
+    "WIN-008": [
+      "WIN-002"
+    ],
+    "WIN-011": [
+      "WIN-002"
+    ],
+    "WIN-013": [
+      "WIN-011"
+    ],
+    "WIN-014": [
+      "WIN-011"
+    ],
+    "WIN-012": [
+      "WIN-011"
+    ],
+    "STK-001": [
+      "WIN-011"
+    ],
+    "STK-005": [
+      "STK-001"
+    ],
+    "STK-002": [
+      "STK-001"
+    ],
+    "STK-003": [
+      "STK-001"
+    ],
+    "STK-004": [
+      "STK-001"
+    ],
+    "STK-006": [
+      "STK-001"
+    ],
+    "STK-007": [
+      "STK-001"
+    ],
+    "STK-008": [
+      "STK-001"
+    ],
+    "STK-009": [
+      "STK-001"
+    ],
+    "STK-010": [
+      "STK-001"
+    ],
+    "STK-011": [
+      "STK-001"
+    ],
+    "STK-023": [
+      "STK-011"
+    ],
+    "STK-012": [
+      "STK-011"
+    ],
+    "STK-013": [
+      "STK-012"
+    ],
+    "STK-014": [
+      "STK-012"
+    ],
+    "STK-017": [
+      "STK-012"
+    ],
+    "STK-018": [
+      "STK-012"
+    ],
+    "STK-019": [
+      "STK-012"
+    ],
+    "STK-020": [
+      "STK-012"
+    ],
+    "STK-021": [
+      "STK-012"
+    ],
+    "STK-015": [
+      "STK-012"
+    ],
+    "STK-016": [
+      "STK-012"
+    ],
+    "OBS-026": [
+      "STK-012"
+    ],
+    "OBS-027": [
+      "OBS-026"
+    ],
+    "TWO-011": [
+      "OBS-026"
+    ],
+    "BSR-012": [
+      "TWO-011"
+    ],
+    "BSR-014": [
+      "TWO-011"
+    ],
+    "BSR-015": [
+      "TWO-011"
+    ],
+    "BSR-016": [
+      "TWO-011"
+    ],
+    "BSR-017": [
+      "TWO-011"
+    ],
+    "BSR-018": [
+      "TWO-011"
+    ],
+    "BSR-019": [
+      "TWO-011"
+    ],
+    "BSR-021": [
+      "TWO-011"
+    ],
+    "BSR-013": [
+      "TWO-011"
+    ],
+    "BSR-020": [
+      "TWO-011"
+    ],
+    "BSR-022": [
+      "TWO-011"
+    ],
+    "BSR-023": [
+      "TWO-011"
+    ],
+    "BSR-024": [
+      "TWO-011"
+    ],
+    "BSR-025": [
+      "TWO-011"
+    ],
+    "BSR-001": [
+      "TWO-011"
+    ],
+    "BSR-002": [
+      "BSR-001"
+    ],
+    "BSR-003": [
+      "BSR-001"
+    ],
+    "BSR-004": [
+      "BSR-003"
+    ],
+    "BSR-005": [
+      "BSR-003"
+    ],
+    "BSR-006": [
+      "BSR-003"
+    ],
+    "BSR-008": [
+      "BSR-003"
+    ],
+    "BSR-009": [
+      "BSR-003"
+    ],
+    "BSR-010": [
+      "BSR-003"
+    ],
+    "BSR-011": [
+      "BSR-003"
+    ],
+    "BSR-007": [
+      "BSR-003"
+    ],
+    "ORD-008": [
+      "BSR-003"
+    ],
+    "ORD-010": [
+      "ORD-008"
+    ],
+    "ORD-011": [
+      "ORD-008"
+    ],
+    "ORD-012": [
+      "ORD-008"
+    ],
+    "ORD-009": [
+      "ORD-008"
+    ],
+    "ORD-013": [
+      "ORD-008"
+    ],
+    "ORD-014": [
+      "ORD-008"
+    ],
+    "ORD-015": [
+      "ORD-008"
+    ],
+    "HEP-002": [
+      "ORD-008"
+    ],
+    "HEP-024": [
+      "HEP-002"
+    ],
+    "GRD-001": [
+      "HEP-002"
+    ],
+    "GRD-027": [
+      "GRD-001"
+    ],
+    "GRD-014": [
+      "GRD-001"
+    ],
+    "GRD-012": [
+      "GRD-014"
+    ],
+    "GRD-013": [
+      "GRD-014"
+    ],
+    "GRD-015": [
+      "GRD-014"
+    ],
+    "GRD-016": [
+      "GRD-014"
+    ],
+    "GRD-017": [
+      "GRD-014"
+    ],
+    "GRD-018": [
+      "GRD-014"
+    ],
+    "GRD-019": [
+      "GRD-014"
+    ],
+    "GRD-020": [
+      "GRD-014"
+    ],
+    "GRD-021": [
+      "GRD-014"
+    ],
+    "GRD-022": [
+      "GRD-014"
+    ],
+    "GRD-023": [
+      "GRD-014"
+    ],
+    "GRD-025": [
+      "GRD-014"
+    ],
+    "GRD-026": [
+      "GRD-014"
+    ],
+    "GRD-024": [
+      "GRD-014"
+    ],
+    "GRD-005": [
+      "GRD-014"
+    ],
+    "GRD-006": [
+      "GRD-005"
+    ],
+    "GRD-007": [
+      "GRD-005"
+    ],
+    "GRD-008": [
+      "GRD-005"
+    ],
+    "GRD-011": [
+      "GRD-005"
+    ],
+    "OBS-009": [
+      "GRD-005"
+    ],
+    "OBS-010": [
+      "GRD-005"
+    ],
+    "GRD-002": [
+      "GRD-005"
+    ],
+    "GRD-003": [
+      "GRD-005"
+    ],
+    "GRD-004": [
+      "GRD-005"
+    ],
+    "GRD-009": [
+      "GRD-005"
+    ],
+    "GRD-010": [
+      "GRD-005"
+    ],
+    "ORD-001": [
+      "GRD-005"
+    ],
+    "ORD-002": [
+      "ORD-001"
+    ],
+    "ORD-003": [
+      "ORD-001"
+    ],
+    "ORD-004": [
+      "ORD-001"
+    ],
+    "ORD-005": [
+      "ORD-001"
+    ],
+    "ORD-007": [
+      "ORD-001"
+    ],
+    "ORD-006": [
+      "ORD-007"
+    ],
+    "RNG-001": [
+      "ORD-007"
+    ],
+    "RNG-015": [
+      "RNG-001"
+    ],
+    "RNG-002": [
+      "RNG-001"
+    ],
+    "RNG-016": [
+      "RNG-002"
+    ],
+    "RNG-017": [
+      "RNG-002"
+    ],
+    "RNG-003": [
+      "RNG-017"
+    ],
+    "RNG-004": [
+      "RNG-017"
+    ],
+    "RNG-005": [
+      "RNG-004"
+    ],
+    "RNG-006": [
+      "RNG-004"
+    ],
+    "RNG-007": [
+      "RNG-004"
+    ],
+    "RNG-009": [
+      "RNG-004"
+    ],
+    "RNG-010": [
+      "RNG-004"
+    ],
+    "RNG-011": [
+      "RNG-004"
+    ],
+    "RNG-008": [
+      "RNG-004"
+    ],
+    "RNG-018": [
+      "RNG-008"
+    ],
+    "RNG-012": [
+      "RNG-008"
+    ],
+    "RNG-019": [
+      "RNG-012"
+    ],
+    "RNG-013": [
+      "RNG-012"
+    ],
+    "RNG-020": [
+      "RNG-013"
+    ],
+    "RNG-021": [
+      "RNG-013"
+    ],
+    "RNG-014": [
+      "RNG-021"
+    ],
+    "TRE-001": [
+      "RNG-021"
+    ],
+    "TRE-002": [
+      "TRE-001"
+    ],
+    "TRE-003": [
+      "TRE-001"
+    ],
+    "TRE-007": [
+      "TRE-001"
+    ],
+    "TRE-004": [
+      "TRE-001"
+    ],
+    "TRE-005": [
+      "TRE-001"
+    ],
+    "TRE-006": [
+      "TRE-001"
+    ],
+    "TRE-008": [
+      "TRE-001"
+    ],
+    "TRE-010": [
+      "TRE-001"
+    ],
+    "TRE-009": [
+      "TRE-001"
+    ],
+    "TRE-011": [
+      "TRE-001"
+    ],
+    "TRE-012": [
+      "TRE-011"
+    ],
+    "TRE-013": [
+      "TRE-011"
+    ],
+    "TRE-014": [
+      "TRE-011"
+    ],
+    "TRE-015": [
+      "TRE-011"
+    ],
+    "TRE-016": [
+      "TRE-011"
+    ],
+    "TRE-017": [
+      "TRE-011"
+    ],
+    "TRE-019": [
+      "TRE-011"
+    ],
+    "TRE-020": [
+      "TRE-011"
+    ],
+    "TRE-018": [
+      "TRE-011"
+    ],
+    "TRE-021": [
+      "TRE-011"
+    ],
+    "TRE-023": [
+      "TRE-011"
+    ],
+    "TRE-024": [
+      "TRE-011"
+    ],
+    "TRE-025": [
+      "TRE-011"
+    ],
+    "TRE-022": [
+      "TRE-011"
+    ],
+    "TRE-026": [
+      "TRE-011"
+    ],
+    "TRE-027": [
+      "TRE-026"
+    ],
+    "BST-003": [
+      "TRE-026"
+    ],
+    "BST-005": [
+      "BST-003"
+    ],
+    "BST-011": [
+      "BST-003"
+    ],
+    "BST-001": [
+      "BST-003"
+    ],
+    "BST-002": [
+      "BST-003"
+    ],
+    "BST-004": [
+      "BST-003"
+    ],
+    "BST-006": [
+      "BST-003"
+    ],
+    "BST-007": [
+      "BST-003"
+    ],
+    "BST-008": [
+      "BST-003"
+    ],
+    "BST-010": [
+      "BST-003"
+    ],
+    "BST-009": [
+      "BST-003"
+    ],
+    "TRI-001": [
+      "BST-003"
+    ],
+    "TRI-003": [
+      "TRI-001"
+    ],
+    "TRI-004": [
+      "TRI-001"
+    ],
+    "TRI-005": [
+      "TRI-001"
+    ],
+    "TRI-002": [
+      "TRI-001"
+    ],
+    "TRI-006": [
+      "TRI-001"
+    ],
+    "TRI-007": [
+      "TRI-001"
+    ],
+    "TRI-008": [
+      "TRI-007"
+    ],
+    "DP-029": [
+      "TRI-007"
+    ],
+    "DP-030": [
+      "DP-029"
+    ],
+    "DP-031": [
+      "DP-029"
+    ],
+    "DP-033": [
+      "DP-029"
+    ],
+    "DP-034": [
+      "DP-029"
+    ],
+    "DP-035": [
+      "DP-029"
+    ],
+    "DP-039": [
+      "DP-029"
+    ],
+    "DP-001": [
+      "DP-029"
+    ],
+    "DP-002": [
+      "DP-029"
+    ],
+    "DP-032": [
+      "DP-029"
+    ],
+    "DP-036": [
+      "DP-029"
+    ],
+    "DP-037": [
+      "DP-029"
+    ],
+    "DP-038": [
+      "DP-029"
+    ],
+    "DP-040": [
+      "DP-029"
+    ],
+    "DP-041": [
+      "DP-029"
+    ],
+    "DP-042": [
+      "DP-029"
+    ],
+    "DP-043": [
+      "DP-029"
+    ],
+    "DP-003": [
+      "DP-029"
+    ],
+    "DP-093": [
+      "DP-003"
+    ],
+    "DP-004": [
+      "DP-003"
+    ],
+    "DP-094": [
+      "DP-004"
+    ],
+    "DP-005": [
+      "DP-004"
+    ],
+    "DP-095": [
+      "DP-005"
+    ],
+    "DP-006": [
+      "DP-005"
+    ],
+    "DP-096": [
+      "DP-006"
+    ],
+    "DP-097": [
+      "DP-006"
+    ],
+    "DP-007": [
+      "DP-097"
+    ],
+    "DP-008": [
+      "DP-097"
+    ],
+    "DP-098": [
+      "DP-008"
+    ],
+    "DP-009": [
+      "DP-008"
+    ],
+    "DP-099": [
+      "DP-009"
+    ],
+    "DP-100": [
+      "DP-009"
+    ],
+    "DP-010": [
+      "DP-100"
+    ],
+    "DP-011": [
+      "DP-100"
+    ],
+    "DP-101": [
+      "DP-011"
+    ],
+    "DP-012": [
+      "DP-011"
+    ],
+    "DP-013": [
+      "DP-012"
+    ],
+    "DP-014": [
+      "DP-012"
+    ],
+    "DP-018": [
+      "DP-014"
+    ],
+    "DP-019": [
+      "DP-014"
+    ],
+    "DP-020": [
+      "DP-014"
+    ],
+    "DP-028": [
+      "DP-014"
+    ],
+    "DP-102": [
+      "DP-014"
+    ],
+    "DP-103": [
+      "DP-014"
+    ],
+    "DP-015": [
+      "DP-014"
+    ],
+    "DP-016": [
+      "DP-014"
+    ],
+    "DP-017": [
+      "DP-014"
+    ],
+    "DP-021": [
+      "DP-014"
+    ],
+    "DP-022": [
+      "DP-014"
+    ],
+    "DP-023": [
+      "DP-014"
+    ],
+    "DP-024": [
+      "DP-014"
+    ],
+    "DP-025": [
+      "DP-014"
+    ],
+    "DP-027": [
+      "DP-014"
+    ],
+    "DP-026": [
+      "DP-014"
+    ],
+    "DP-044": [
+      "DP-014"
+    ],
+    "DP-045": [
+      "DP-044"
+    ],
+    "DP-046": [
+      "DP-044"
+    ],
+    "DP-047": [
+      "DP-044"
+    ],
+    "DP-048": [
+      "DP-044"
+    ],
+    "DP-049": [
+      "DP-044"
+    ],
+    "DP-051": [
+      "DP-044"
+    ],
+    "DP-052": [
+      "DP-044"
+    ],
+    "DP-053": [
+      "DP-044"
+    ],
+    "DP-050": [
+      "DP-044"
+    ],
+    "DP-055": [
+      "DP-044"
+    ],
+    "DP-060": [
+      "DP-055"
+    ],
+    "DP-054": [
+      "DP-055"
+    ],
+    "DP-056": [
+      "DP-055"
+    ],
+    "DP-057": [
+      "DP-055"
+    ],
+    "DP-058": [
+      "DP-055"
+    ],
+    "DP-059": [
+      "DP-055"
+    ],
+    "DP-061": [
+      "DP-055"
+    ],
+    "DP-062": [
+      "DP-055"
+    ],
+    "DP-065": [
+      "DP-055"
+    ],
+    "DP-066": [
+      "DP-065"
+    ],
+    "DP-067": [
+      "DP-065"
+    ],
+    "DP-069": [
+      "DP-065"
+    ],
+    "DP-063": [
+      "DP-065"
+    ],
+    "DP-064": [
+      "DP-065"
+    ],
+    "DP-068": [
+      "DP-065"
+    ],
+    "DP-070": [
+      "DP-065"
+    ],
+    "DP-071": [
+      "DP-065"
+    ],
+    "DP-072": [
+      "DP-065"
+    ],
+    "DP-074": [
+      "DP-065"
+    ],
+    "DP-073": [
+      "DP-074"
+    ],
+    "DP-075": [
+      "DP-074"
+    ],
+    "DP-076": [
+      "DP-074"
+    ],
+    "DP-077": [
+      "DP-074"
+    ],
+    "DP-078": [
+      "DP-074"
+    ],
+    "DP-079": [
+      "DP-074"
+    ],
+    "DP-080": [
+      "DP-074"
+    ],
+    "DP-081": [
+      "DP-074"
+    ],
+    "DP-082": [
+      "DP-074"
+    ],
+    "DP-083": [
+      "DP-074"
+    ],
+    "DP-084": [
+      "DP-083"
+    ],
+    "DP-085": [
+      "DP-083"
+    ],
+    "DP-086": [
+      "DP-083"
+    ],
+    "DP-087": [
+      "DP-083"
+    ],
+    "DP-088": [
+      "DP-083"
+    ],
+    "DP-089": [
+      "DP-083"
+    ],
+    "DP-090": [
+      "DP-083"
+    ],
+    "DP-091": [
+      "DP-083"
+    ],
+    "DP-092": [
+      "DP-083"
+    ],
+    "QUE-003": [
+      "DP-083"
+    ],
+    "QUE-004": [
+      "QUE-003"
+    ],
+    "QUE-010": [
+      "QUE-003"
+    ],
+    "QUE-002": [
+      "QUE-003"
+    ],
+    "QUE-005": [
+      "QUE-003"
+    ],
+    "QUE-006": [
+      "QUE-003"
+    ],
+    "QUE-008": [
+      "QUE-003"
+    ],
+    "QUE-011": [
+      "QUE-003"
+    ],
+    "QUE-012": [
+      "QUE-003"
+    ],
+    "QUE-001": [
+      "QUE-003"
+    ],
+    "STK-022": [
+      "QUE-003"
+    ],
+    "QUE-007": [
+      "QUE-003"
+    ],
+    "QUE-009": [
+      "QUE-003"
+    ],
+    "GRF-001": [
+      "QUE-003"
+    ],
+    "GRF-057": [
+      "GRF-001"
+    ],
+    "GRF-004": [
+      "GRF-001"
+    ],
+    "GRF-002": [
+      "GRF-004"
+    ],
+    "GRF-003": [
+      "GRF-004"
+    ],
+    "GRF-005": [
+      "GRF-004"
+    ],
+    "GRF-006": [
+      "GRF-004"
+    ],
+    "GRF-007": [
+      "GRF-004"
+    ],
+    "GRF-008": [
+      "GRF-004"
+    ],
+    "GRF-009": [
+      "GRF-004"
+    ],
+    "GRF-010": [
+      "GRF-004"
+    ],
+    "GRF-011": [
+      "GRF-004"
+    ],
+    "GRF-014": [
+      "GRF-004"
+    ],
+    "GRF-012": [
+      "GRF-004"
+    ],
+    "GRF-013": [
+      "GRF-004"
+    ],
+    "GRF-015": [
+      "GRF-004"
+    ],
+    "GRF-016": [
+      "GRF-004"
+    ],
+    "GRF-017": [
+      "GRF-004"
+    ],
+    "GRF-018": [
+      "GRF-017"
+    ],
+    "GRF-019": [
+      "GRF-017"
+    ],
+    "GRF-020": [
+      "GRF-017"
+    ],
+    "GRF-021": [
+      "GRF-017"
+    ],
+    "GRF-022": [
+      "GRF-017"
+    ],
+    "GRF-023": [
+      "GRF-017"
+    ],
+    "GRF-024": [
+      "GRF-017"
+    ],
+    "GRF-025": [
+      "GRF-017"
+    ],
+    "GRF-026": [
+      "GRF-017"
+    ],
+    "GRF-028": [
+      "GRF-017"
+    ],
+    "GRF-029": [
+      "GRF-028"
+    ],
+    "GRF-030": [
+      "GRF-028"
+    ],
+    "GRF-031": [
+      "GRF-028"
+    ],
+    "GRF-027": [
+      "GRF-028"
+    ],
+    "GRF-032": [
+      "GRF-028"
+    ],
+    "GRF-033": [
+      "GRF-028"
+    ],
+    "GRF-034": [
+      "GRF-033"
+    ],
+    "GRF-038": [
+      "GRF-033"
+    ],
+    "GRF-039": [
+      "GRF-033"
+    ],
+    "GRF-035": [
+      "GRF-033"
+    ],
+    "GRF-036": [
+      "GRF-033"
+    ],
+    "GRF-037": [
+      "GRF-033"
+    ],
+    "GRF-040": [
+      "GRF-033"
+    ],
+    "GRF-041": [
+      "GRF-033"
+    ],
+    "GRF-042": [
+      "GRF-041"
+    ],
+    "GRF-043": [
+      "GRF-041"
+    ],
+    "GRF-044": [
+      "GRF-041"
+    ],
+    "GRF-045": [
+      "GRF-041"
+    ],
+    "GRF-046": [
+      "GRF-041"
+    ],
+    "GRF-048": [
+      "GRF-041"
+    ],
+    "GRF-047": [
+      "GRF-041"
+    ],
+    "GRF-049": [
+      "GRF-041"
+    ],
+    "GRF-050": [
+      "GRF-041"
+    ],
+    "GRF-051": [
+      "GRF-041"
+    ],
+    "GRF-054": [
+      "GRF-051"
+    ],
+    "GRF-052": [
+      "GRF-051"
+    ],
+    "GRF-053": [
+      "GRF-051"
+    ],
+    "GRF-055": [
+      "GRF-051"
+    ],
+    "GRF-058": [
+      "GRF-051"
+    ],
+    "GRF-056": [
+      "GRF-058"
+    ],
+    "PFX-002": [
+      "GRF-058"
+    ],
+    "PFX-005": [
+      "PFX-002"
+    ],
+    "PFX-009": [
+      "PFX-002"
+    ],
+    "PFX-001": [
+      "PFX-002"
+    ],
+    "PFX-003": [
+      "PFX-002"
+    ],
+    "PFX-004": [
+      "PFX-002"
+    ],
+    "PFX-006": [
+      "PFX-002"
+    ],
+    "PFX-007": [
+      "PFX-002"
+    ],
+    "PFX-008": [
+      "PFX-002"
+    ],
+    "PFX-010": [
+      "PFX-002"
+    ],
+    "PFX-011": [
+      "PFX-002"
+    ],
+    "PFX-012": [
+      "PFX-011"
+    ],
+    "PFX-013": [
+      "PFX-011"
+    ],
+    "PFX-014": [
+      "PFX-011"
+    ],
+    "PFX-015": [
+      "PFX-014"
+    ],
+    "HEP-001": [
+      "PFX-014"
+    ],
+    "HEP-023": [
+      "HEP-001"
+    ],
+    "HEP-003": [
+      "HEP-001"
+    ],
+    "HEP-004": [
+      "HEP-003"
+    ],
+    "HEP-005": [
+      "HEP-003"
+    ],
+    "HEP-006": [
+      "HEP-003"
+    ],
+    "HEP-007": [
+      "HEP-003"
+    ],
+    "HEP-008": [
+      "HEP-003"
+    ],
+    "HEP-009": [
+      "HEP-003"
+    ],
+    "HEP-010": [
+      "HEP-003"
+    ],
+    "HEP-011": [
+      "HEP-003"
+    ],
+    "HEP-012": [
+      "HEP-003"
+    ],
+    "HEP-016": [
+      "HEP-003"
+    ],
+    "HEP-020": [
+      "HEP-016"
+    ],
+    "HEP-021": [
+      "HEP-016"
+    ],
+    "HEP-022": [
+      "HEP-016"
+    ],
+    "HEP-013": [
+      "HEP-016"
+    ],
+    "HEP-014": [
+      "HEP-016"
+    ],
+    "HEP-015": [
+      "HEP-016"
+    ],
+    "HEP-017": [
+      "HEP-016"
+    ],
+    "HEP-018": [
+      "HEP-016"
+    ],
+    "HEP-019": [
+      "HEP-016"
+    ],
+    "REC-032": [
+      "HEP-016"
+    ],
+    "REC-001": [
+      "REC-032"
+    ],
+    "REC-002": [
+      "REC-032"
+    ],
+    "REC-033": [
+      "REC-002"
+    ],
+    "REC-003": [
+      "REC-002"
+    ],
+    "REC-004": [
+      "REC-003"
+    ],
+    "REC-005": [
+      "REC-003"
+    ],
+    "REC-006": [
+      "REC-003"
+    ],
+    "REC-007": [
+      "REC-003"
+    ],
+    "REC-008": [
+      "REC-003"
+    ],
+    "REC-009": [
+      "REC-003"
+    ],
+    "REC-010": [
+      "REC-003"
+    ],
+    "REC-011": [
+      "REC-003"
+    ],
+    "REC-012": [
+      "REC-003"
+    ],
+    "REC-013": [
+      "REC-003"
+    ],
+    "REC-014": [
+      "REC-013"
+    ],
+    "REC-015": [
+      "REC-013"
+    ],
+    "REC-017": [
+      "REC-013"
+    ],
+    "REC-018": [
+      "REC-013"
+    ],
+    "REC-016": [
+      "REC-013"
+    ],
+    "REC-019": [
+      "REC-013"
+    ],
+    "REC-020": [
+      "REC-013"
+    ],
+    "REC-021": [
+      "REC-013"
+    ],
+    "REC-022": [
+      "REC-013"
+    ],
+    "REC-024": [
+      "REC-013"
+    ],
+    "REC-025": [
+      "REC-024"
+    ],
+    "REC-026": [
+      "REC-024"
+    ],
+    "REC-028": [
+      "REC-024"
+    ],
+    "REC-030": [
+      "REC-024"
+    ],
+    "REC-031": [
+      "REC-024"
+    ],
+    "REC-023": [
+      "REC-024"
+    ],
+    "REC-027": [
+      "REC-024"
+    ],
+    "REC-029": [
+      "REC-024"
+    ],
+    "MAT-001": [
+      "REC-024"
+    ],
+    "MAT-022": [
+      "MAT-001"
+    ],
+    "MAT-003": [
+      "MAT-001"
+    ],
+    "MAT-004": [
+      "MAT-003"
+    ],
+    "MAT-005": [
+      "MAT-003"
+    ],
+    "MAT-006": [
+      "MAT-003"
+    ],
+    "MAT-008": [
+      "MAT-003"
+    ],
+    "MAT-002": [
+      "MAT-003"
+    ],
+    "MAT-007": [
+      "MAT-003"
+    ],
+    "MAT-009": [
+      "MAT-003"
+    ],
+    "MAT-010": [
+      "MAT-003"
+    ],
+    "MAT-011": [
+      "MAT-003"
+    ],
+    "MAT-012": [
+      "MAT-003"
+    ],
+    "MAT-015": [
+      "MAT-012"
+    ],
+    "MAT-016": [
+      "MAT-012"
+    ],
+    "MAT-017": [
+      "MAT-012"
+    ],
+    "MAT-018": [
+      "MAT-012"
+    ],
+    "MAT-013": [
+      "MAT-012"
+    ],
+    "MAT-014": [
+      "MAT-012"
+    ],
+    "MAT-019": [
+      "MAT-012"
+    ],
+    "MAT-020": [
+      "MAT-012"
+    ],
+    "MAT-021": [
+      "MAT-012"
+    ],
+    "DES-001": [
+      "MAT-012"
+    ],
+    "DES-035": [
+      "DES-001"
+    ],
+    "DES-036": [
+      "DES-001"
+    ],
+    "DES-002": [
+      "DES-036"
+    ],
+    "DES-003": [
+      "DES-036"
+    ],
+    "DES-037": [
+      "DES-003"
+    ],
+    "DES-004": [
+      "DES-003"
+    ],
+    "DES-006": [
+      "DES-004"
+    ],
+    "DES-007": [
+      "DES-004"
+    ],
+    "DES-008": [
+      "DES-004"
+    ],
+    "DES-011": [
+      "DES-004"
+    ],
+    "DES-012": [
+      "DES-004"
+    ],
+    "DES-005": [
+      "DES-004"
+    ],
+    "DES-009": [
+      "DES-004"
+    ],
+    "DES-010": [
+      "DES-004"
+    ],
+    "DES-013": [
+      "DES-004"
+    ],
+    "DES-014": [
+      "DES-013"
+    ],
+    "DES-015": [
+      "DES-013"
+    ],
+    "DES-016": [
+      "DES-013"
+    ],
+    "DES-017": [
+      "DES-013"
+    ],
+    "DES-018": [
+      "DES-013"
+    ],
+    "DES-020": [
+      "DES-018"
+    ],
+    "DES-022": [
+      "DES-018"
+    ],
+    "DES-024": [
+      "DES-018"
+    ],
+    "DES-021": [
+      "DES-018"
+    ],
+    "DES-023": [
+      "DES-018"
+    ],
+    "DES-025": [
+      "DES-018"
+    ],
+    "DES-026": [
+      "DES-018"
+    ],
+    "DES-019": [
+      "DES-018"
+    ],
+    "DES-028": [
+      "DES-018"
+    ],
+    "DES-029": [
+      "DES-028"
+    ],
+    "DES-031": [
+      "DES-028"
+    ],
+    "DES-032": [
+      "DES-028"
+    ],
+    "DES-034": [
+      "DES-028"
+    ],
+    "DES-027": [
+      "DES-028"
+    ],
+    "DES-030": [
+      "DES-028"
+    ],
+    "DES-033": [
+      "DES-028"
+    ]
   }
 }

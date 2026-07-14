@@ -1,125 +1,409 @@
 {
   "stage_order": [
-    "Explorer",
-    "Observer",
-    "Searcher",
-    "State Builder",
-    "Recursive Thinker",
-    "Navigator",
-    "Optimizer",
-    "Inventor",
-    "Engineer"
+    "Observation",
+    "State Construction",
+    "Constraint Maintenance",
+    "Ordered Reasoning",
+    "Decision Making",
+    "Interval Reasoning",
+    "Recursive Thinking",
+    "State Transition",
+    "Graph Thinking",
+    "Query Processing",
+    "Pattern Discovery",
+    "Mathematical Thinking",
+    "Integration"
   ],
   "stages": {
-    "Explorer": {
-      "goal": "Learn to read the prompt exactly, simulate small examples, and state the invariant before reaching for a pattern name.",
-      "modules": [
-        "OBS"
+    "Observation": {
+      "goal": "Learn to read the prompt exactly, simulate small examples, and state the invariant before reaching for a pattern name. Includes reasoning about what a brute force costs and why.",
+      "skills": [
+        "SK-OB-01",
+        "SK-OB-02",
+        "SK-OB-03",
+        "SK-OB-04",
+        "SK-OB-05",
+        "SK-OB-06"
       ],
-      "graduation_criteria": [
-        "Explains the problem in plain language without losing constraints.",
+      "entry_requirements": [
+        "No prior stage required; this is the entry point of the curriculum.",
+        "Comfortable writing and tracing simple procedural code (loops, conditionals, arrays, strings)."
+      ],
+      "exit_requirements": [
+        "Restates a problem's input, output, and constraints without losing edge cases.",
         "Builds at least two worked examples before proposing an approach.",
-        "Produces a correct brute-force baseline and identifies what makes it slow."
+        "Produces a correct brute-force baseline and names its time/space complexity.",
+        "Identifies which repeated work in the brute force an invariant could eliminate."
+      ],
+      "mastery_criteria": [
+        "All skills in this stage reach skill mastery (see knowledge/skills.json).",
+        "Can estimate required complexity directly from stated constraints (e.g. n <= 10^5 implies O(n log n)) without being told."
+      ],
+      "common_failure_modes": [
+        "Jumping to a remembered pattern name before simulating a single example.",
+        "Silently dropping a constraint (duplicates, negative numbers, empty input) while restating the problem.",
+        "Estimating complexity from habit rather than from the stated input bounds."
       ]
     },
-    "Observer": {
-      "goal": "Spot how local state changes as the input is scanned, and recognize when memory can be compressed into pointers, windows, or counts.",
-      "modules": [
-        "TWO",
-        "WIN",
-        "HSH"
+    "State Construction": {
+      "goal": "Build explicit state representations (hash maps, frequency counts, pointer-linked structures) that summarize an input well enough to answer the actual question.",
+      "skills": [
+        "SK-SC-01",
+        "SK-SC-02",
+        "SK-SC-03",
+        "SK-SC-04",
+        "SK-SC-05",
+        "SK-SC-06"
       ],
-      "graduation_criteria": [
-        "Identifies the moving boundary or state variable that controls the scan.",
-        "Chooses between pointer movement, window expansion, and hash-based bookkeeping without prompting.",
-        "Explains why the chosen invariant eliminates repeated work."
+      "entry_requirements": [
+        "Observation stage mastered.",
+        "Can trace a loop that mutates a running variable and explain what that variable represents at each step."
+      ],
+      "exit_requirements": [
+        "Chooses between a hash map, frequency array, or pointer structure based on what needs to be looked up or mutated, not by habit.",
+        "Explains what invariant the constructed state preserves as the scan progresses.",
+        "Draws pointer state (next/prev links) before writing pointer-mutation code."
+      ],
+      "mastery_criteria": [
+        "All skills in this stage reach skill mastery.",
+        "Can justify why a chosen state representation is sufficient, i.e. why nothing outside it needs to be tracked."
+      ],
+      "common_failure_modes": [
+        "Rebuilding a hash map inside a loop instead of maintaining it incrementally.",
+        "Losing a pointer reference before rewiring a linked structure, corrupting the list.",
+        "Tracking more state than the problem requires, obscuring the real invariant."
       ]
     },
-    "Searcher": {
-      "goal": "Recognize monotonic structure, ordered representations, and cumulative transforms that convert repeated scans into faster queries.",
-      "modules": [
-        "ORD",
-        "BSR",
-        "PFX"
+    "Constraint Maintenance": {
+      "goal": "Maintain a moving invariant (window, pointer pair, or monotonic stack) while scanning, so that repeated work collapses into amortized linear time.",
+      "skills": [
+        "SK-CM-01",
+        "SK-CM-02",
+        "SK-CM-03",
+        "SK-CM-04",
+        "SK-CM-05",
+        "SK-CM-06"
       ],
-      "graduation_criteria": [
-        "Justifies when sorting first is worth the cost.",
-        "Writes a monotonic feasibility check for answer-space search.",
-        "Uses prefix transforms to convert repeated range work into O(1) or amortized constant checks."
+      "entry_requirements": [
+        "State Construction stage mastered.",
+        "Comfortable with the two-pointer and single-pass scanning idioms from earlier stages."
+      ],
+      "exit_requirements": [
+        "Identifies the moving boundary or invariant that controls a window or pointer scan before coding it.",
+        "Chooses between pointer movement, window expansion/contraction, and monotonic-stack maintenance without prompting.",
+        "Explains, for every push/pop or pointer move, why the discarded element can never be the answer again."
+      ],
+      "mastery_criteria": [
+        "All skills in this stage reach skill mastery.",
+        "Can prove amortized linear time for a monotonic-stack or two-pointer solution rather than asserting it."
+      ],
+      "common_failure_modes": [
+        "Shrinking or growing a window without a clear exit condition, causing off-by-one bugs.",
+        "Popping a monotonic stack without checking the invariant that justifies discarding the element.",
+        "Reintroducing an O(n^2) rescan instead of trusting the maintained invariant."
       ]
     },
-    "State Builder": {
-      "goal": "Manipulate explicit program state with pointer structures, stacks, queues, and heaps without losing track of invariants.",
-      "modules": [
-        "LNK",
-        "STK",
-        "QUE",
-        "HEP"
+    "Ordered Reasoning": {
+      "goal": "Use sorted order and monotonic feasibility to replace repeated scans with binary search or a single sorted pass.",
+      "skills": [
+        "SK-OR-01",
+        "SK-OR-02",
+        "SK-OR-03",
+        "SK-OR-04",
+        "SK-OR-05"
       ],
-      "graduation_criteria": [
-        "Draws state transitions for linked structures before coding pointer updates.",
-        "Uses stacks, deques, or heaps only when the maintained ordering is explicit.",
-        "Can explain why each pushed or popped item will never be needed in its previous position again."
+      "entry_requirements": [
+        "Constraint Maintenance stage mastered.",
+        "Understands sorting complexity and stability tradeoffs."
+      ],
+      "exit_requirements": [
+        "Justifies when sorting first is worth its cost versus scanning unsorted.",
+        "Writes a monotonic feasibility check (`can(x)`) before binary-searching an answer space.",
+        "Distinguishes searching a sorted array from binary-searching an abstract answer space."
+      ],
+      "mastery_criteria": [
+        "All skills in this stage reach skill mastery.",
+        "Can identify, from a problem statement alone, whether the answer space is monotonic and therefore binary-searchable."
+      ],
+      "common_failure_modes": [
+        "Binary-searching a value space that is not actually monotonic.",
+        "Off-by-one errors at the boundary between the last-false and first-true feasibility check.",
+        "Choosing a custom comparator that is not a valid total order, producing inconsistent sorts."
       ]
     },
-    "Recursive Thinker": {
-      "goal": "Decompose hierarchical structures into reusable subproblems and combine subtree results cleanly.",
-      "modules": [
-        "TRE",
-        "BST",
-        "TRI"
+    "Decision Making": {
+      "goal": "Commit to local, irrevocable choices and defend them with an exchange argument, invariant, or counterexample search, instead of exploring every branch.",
+      "skills": [
+        "SK-DM-01",
+        "SK-DM-02",
+        "SK-DM-03"
       ],
-      "graduation_criteria": [
-        "States the recursive contract before traversing.",
-        "Separates traversal order from business logic.",
-        "Uses ordered-tree or prefix-tree invariants to prune search work."
+      "entry_requirements": [
+        "Ordered Reasoning stage mastered.",
+        "Comfortable sorting or ranking candidates before choosing among them."
+      ],
+      "exit_requirements": [
+        "States the greedy rule explicitly before implementing it.",
+        "Defends the greedy choice with an exchange argument or a concrete counterexample search, not intuition alone.",
+        "Can name a similar-looking problem where the same greedy rule fails, and explain why."
+      ],
+      "mastery_criteria": [
+        "All skills in this stage reach skill mastery.",
+        "Produces a correctness argument (exchange or matroid-style reasoning) for at least one non-trivial greedy solution without being prompted."
+      ],
+      "common_failure_modes": [
+        "Assuming a greedy choice is correct because it works on the first example.",
+        "Applying a memorized greedy rule to a problem whose constraints invalidate it.",
+        "Skipping the correctness argument and moving straight to implementation."
       ]
     },
-    "Navigator": {
-      "goal": "Model problems as graphs, pick the right traversal or connectivity tool, and reason about reachability before optimization.",
-      "modules": [
-        "GRF"
+    "Interval Reasoning": {
+      "goal": "Reason about overlapping ranges, sweeps, and ordered range-query structures (Fenwick/segment trees) that summarize or update intervals efficiently.",
+      "skills": [
+        "SK-IR-01",
+        "SK-IR-02",
+        "SK-IR-03",
+        "SK-IR-04",
+        "SK-IR-05",
+        "SK-IR-06",
+        "SK-IR-07",
+        "SK-IR-08",
+        "SK-IR-09",
+        "SK-IR-10",
+        "SK-IR-11"
       ],
-      "graduation_criteria": [
-        "Chooses between BFS, DFS, Union-Find, topological order, and shortest-path tools with a clear graph model.",
-        "Defines nodes, edges, and visited state explicitly.",
-        "Explains the difference between traversal correctness and path optimality."
+      "entry_requirements": [
+        "Decision Making stage mastered.",
+        "Comfortable sorting events or intervals by start/end as a first step."
+      ],
+      "exit_requirements": [
+        "Chooses between a sweep-line, interval-merge, or range-structure (Fenwick/segment tree) approach based on whether updates are one-shot or online.",
+        "Explains what a segment/Fenwick tree node represents at each level before coding it.",
+        "Handles interval-boundary edge cases (touching vs. overlapping) explicitly."
+      ],
+      "mastery_criteria": [
+        "All skills in this stage reach skill mastery.",
+        "Can implement a range-update/range-query structure and justify its complexity without referencing memorized code."
+      ],
+      "common_failure_modes": [
+        "Treating touching intervals as overlapping (or vice versa) without checking the problem's definition.",
+        "Rebuilding a range structure from scratch per query instead of supporting incremental updates.",
+        "Losing track of what a segment tree node aggregates after a merge."
       ]
     },
-    "Optimizer": {
-      "goal": "Build states and transitions deliberately, then compress or reorder them without breaking the recurrence.",
-      "modules": [
-        "DP"
+    "Recursive Thinking": {
+      "goal": "Decompose hierarchical structures (trees, BSTs, tries) into reusable subproblems and combine subtree results through a stated recursive contract.",
+      "skills": [
+        "SK-RT-01",
+        "SK-RT-02",
+        "SK-RT-03",
+        "SK-RT-04",
+        "SK-RT-05",
+        "SK-RT-06"
       ],
-      "graduation_criteria": [
-        "Defines state, transition, and base cases before implementation.",
-        "Can explain why greedy or local reasoning fails on the same problem family.",
-        "Chooses an evaluation order that guarantees dependencies are already solved."
+      "entry_requirements": [
+        "Interval Reasoning stage mastered.",
+        "Can trace recursive call stacks by hand for small inputs."
+      ],
+      "exit_requirements": [
+        "States the recursive contract (what a call returns and assumes about its subcalls) before traversing.",
+        "Separates traversal order (pre/in/post/level) from the business logic applied at each node.",
+        "Uses BST ordering or trie prefix structure to prune search work instead of visiting every node."
+      ],
+      "mastery_criteria": [
+        "All skills in this stage reach skill mastery.",
+        "Can convert a recursive tree solution to an iterative one (explicit stack/queue) when asked, without losing correctness."
+      ],
+      "common_failure_modes": [
+        "Mutating shared state across recursive calls without restoring it (missing backtrack/undo).",
+        "Conflating traversal order with the aggregation logic, producing tangled recursive code.",
+        "Ignoring BST ordering and searching both subtrees when one is provably irrelevant."
       ]
     },
-    "Inventor": {
-      "goal": "Generate possibilities, prune aggressively, and deploy proof-driven shortcuts in greedy, recursive, and arithmetic settings.",
-      "modules": [
-        "REC",
-        "GRD",
-        "MAT"
+    "State Transition": {
+      "goal": "Define explicit states, transitions, and base cases, then choose an evaluation order that respects dependencies -- the discipline of dynamic programming.",
+      "skills": [
+        "SK-ST-01",
+        "SK-ST-02",
+        "SK-ST-03",
+        "SK-ST-04",
+        "SK-ST-05",
+        "SK-ST-06",
+        "SK-ST-07",
+        "SK-ST-08",
+        "SK-ST-09",
+        "SK-ST-10",
+        "SK-ST-11",
+        "SK-ST-12",
+        "SK-ST-13",
+        "SK-ST-14",
+        "SK-ST-15",
+        "SK-ST-16",
+        "SK-ST-17"
       ],
-      "graduation_criteria": [
-        "Defines the decision tree for a search problem before recursing.",
-        "Defends a greedy choice with an exchange argument, invariant, or contradiction.",
-        "Uses number or bit properties to replace simulation with direct reasoning."
+      "entry_requirements": [
+        "Recursive Thinking stage mastered.",
+        "Can write a correct (if exponential) recursive brute force for an optimization problem."
+      ],
+      "exit_requirements": [
+        "Defines state, transition, and base cases in words before writing a recurrence.",
+        "Explains why greedy or local reasoning fails on the same problem family, when relevant.",
+        "Chooses an evaluation order (top-down memoization vs. bottom-up table) that guarantees dependencies are already solved.",
+        "Reduces state dimensionality only after the correct recurrence is established."
+      ],
+      "mastery_criteria": [
+        "All skills in this stage reach skill mastery.",
+        "Can derive a DP recurrence for a novel problem from the recursive brute force, without pattern-matching to a memorized template."
+      ],
+      "common_failure_modes": [
+        "Writing a memo table before the recurrence is proven correct on paper.",
+        "Iterating states in an order that reads an unfilled table entry.",
+        "Over-compressing state before verifying the full-dimensional version is correct."
       ]
     },
-    "Engineer": {
-      "goal": "Compose multiple data structures into durable systems, support online updates, and reason about API behavior under sustained use.",
-      "modules": [
-        "RNG",
-        "DES"
+    "Graph Thinking": {
+      "goal": "Model problems as graphs, choose the right traversal or connectivity tool, and separate reachability/traversal correctness from path optimality.",
+      "skills": [
+        "SK-GT-01",
+        "SK-GT-02",
+        "SK-GT-03",
+        "SK-GT-04",
+        "SK-GT-05",
+        "SK-GT-06",
+        "SK-GT-07",
+        "SK-GT-08",
+        "SK-GT-09"
       ],
-      "graduation_criteria": [
-        "Chooses storage, indexing, and update rules as part of the solution, not as an afterthought.",
-        "Keeps interface guarantees and operational complexity aligned.",
-        "Can explain tradeoffs between simpler implementations and stronger asymptotic guarantees."
+      "entry_requirements": [
+        "State Transition stage mastered.",
+        "Comfortable with queue- and stack-based traversal mechanics from Constraint Maintenance and State Construction."
+      ],
+      "exit_requirements": [
+        "Defines nodes, edges, and visited state explicitly before choosing an algorithm.",
+        "Chooses between BFS, DFS, Union-Find, topological sort, and shortest-path algorithms with a stated reason.",
+        "Explains the difference between 'a path exists' (traversal) and 'this is the best path' (optimization)."
+      ],
+      "mastery_criteria": [
+        "All skills in this stage reach skill mastery.",
+        "Can pick the correct shortest-path algorithm (BFS/Dijkstra/Bellman-Ford) based on edge-weight properties stated in the problem."
+      ],
+      "common_failure_modes": [
+        "Revisiting nodes without correct visited-state tracking, causing infinite loops or wrong counts.",
+        "Using DFS/BFS reachability where an actual shortest-path algorithm is required.",
+        "Forgetting to detect negative cycles or disconnected components when the problem allows them."
+      ]
+    },
+    "Query Processing": {
+      "goal": "Answer repeated queries efficiently using precomputed prefix structures or order-statistic heaps, instead of rescanning the input per query.",
+      "skills": [
+        "SK-QP-01",
+        "SK-QP-02",
+        "SK-QP-03",
+        "SK-QP-04",
+        "SK-QP-05",
+        "SK-QP-06"
+      ],
+      "entry_requirements": [
+        "Graph Thinking stage mastered.",
+        "Comfortable with prefix-sum arithmetic and heap invariants from earlier stages."
+      ],
+      "exit_requirements": [
+        "Uses prefix sums or prefix-hash combinations to convert repeated range queries into O(1) or amortized-constant checks.",
+        "Chooses between a single heap, two heaps, or top-k heap based on what statistic the query needs.",
+        "States what invariant a heap maintains (e.g. 'the smaller half is a max-heap') before coding it."
+      ],
+      "mastery_criteria": [
+        "All skills in this stage reach skill mastery.",
+        "Can design an online query-answering structure (heap- or prefix-based) for a novel streaming problem."
+      ],
+      "common_failure_modes": [
+        "Recomputing a prefix sum per query instead of precomputing once.",
+        "Letting two heaps drift out of balance, breaking the median/order-statistic invariant.",
+        "Using a single sort where an online, incrementally-updated structure is required."
+      ]
+    },
+    "Pattern Discovery": {
+      "goal": "Generate the space of possibilities deliberately, prune aggressively using the problem's constraints, and recognize when a decision tree is the right model.",
+      "skills": [
+        "SK-PD-01",
+        "SK-PD-02",
+        "SK-PD-03",
+        "SK-PD-04",
+        "SK-PD-05"
+      ],
+      "entry_requirements": [
+        "Query Processing stage mastered.",
+        "Comfortable writing and tracing recursive backtracking code with explicit undo steps."
+      ],
+      "exit_requirements": [
+        "Defines the decision tree (choices at each node, and what closes a branch) before recursing.",
+        "Prunes branches using problem constraints rather than generating everything and filtering afterward.",
+        "Distinguishes combination, permutation, and constraint-satisfaction backtracking by what they hold fixed (order, uniqueness, or feasibility)."
+      ],
+      "mastery_criteria": [
+        "All skills in this stage reach skill mastery.",
+        "Can add memoization to a backtracking solution when subproblems repeat, and explain what makes a state cacheable."
+      ],
+      "common_failure_modes": [
+        "Forgetting to undo a choice (state, visited-set) before backtracking, corrupting later branches.",
+        "Generating duplicate combinations/permutations due to a missing 'skip equal siblings' check.",
+        "Pruning too late -- after full recursion into a branch that constraints already ruled out."
+      ]
+    },
+    "Mathematical Thinking": {
+      "goal": "Replace simulation with direct reasoning using number-theoretic or bitwise properties, and prove correctness algebraically rather than by example.",
+      "skills": [
+        "SK-MT-01",
+        "SK-MT-02",
+        "SK-MT-03"
+      ],
+      "entry_requirements": [
+        "Pattern Discovery stage mastered.",
+        "Comfortable with modular arithmetic and binary representation basics."
+      ],
+      "exit_requirements": [
+        "States the number-theoretic or bit-level property being exploited before writing code.",
+        "Distinguishes problems that need exact arithmetic reasoning from ones that only look numeric on the surface.",
+        "Verifies an arithmetic shortcut against brute force on small cases before trusting it."
+      ],
+      "mastery_criteria": [
+        "All skills in this stage reach skill mastery.",
+        "Can prove (not just test) a closed-form or bitwise identity used in a solution."
+      ],
+      "common_failure_modes": [
+        "Integer overflow or sign-bit mistakes when reasoning about bit manipulation.",
+        "Asserting a numeric pattern from a few examples without proving it holds generally.",
+        "Reaching for simulation on a problem whose constraints demand a closed-form or O(log n) approach."
+      ]
+    },
+    "Integration": {
+      "goal": "Compose multiple data structures into a durable system, support online updates, and reason about API guarantees under sustained use -- the terminal stage of the apprenticeship.",
+      "skills": [
+        "SK-IN-01",
+        "SK-IN-02",
+        "SK-IN-03",
+        "SK-IN-04",
+        "SK-IN-05",
+        "SK-IN-06",
+        "SK-IN-07"
+      ],
+      "entry_requirements": [
+        "Mathematical Thinking stage mastered, and at least one skill mastered in each of the other 11 stages.",
+        "Comfortable designing a class-level API (not just a single function) with documented method contracts."
+      ],
+      "exit_requirements": [
+        "Chooses storage, indexing, and update rules as part of the design, not as an afterthought bolted onto a working prototype.",
+        "Keeps interface guarantees (e.g. O(1) amortized) aligned with the actual operational complexity under sustained use.",
+        "Explains the tradeoff between a simpler implementation and one with stronger asymptotic guarantees, and picks deliberately."
+      ],
+      "mastery_criteria": [
+        "All skills in this stage reach skill mastery.",
+        "Can design a system (e.g. an LRU cache, rate limiter, or streaming median service) end-to-end and defend every data-structure choice against an alternative."
+      ],
+      "common_failure_modes": [
+        "Optimizing one operation (e.g. insert) while silently degrading another (e.g. lookup) below its stated guarantee.",
+        "Skipping capacity/eviction edge cases that only appear under sustained use, not in a single test call.",
+        "Combining data structures without re-verifying that their combined invariants still hold."
       ]
     }
   }

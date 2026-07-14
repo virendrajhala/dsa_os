@@ -17,7 +17,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     parser = argparse.ArgumentParser(
         description=(
-            "Choose the next problem using revision urgency, current module continuity, "
+            "Choose the next problem using revision urgency, current skill continuity, "
             "current stage focus, and dependency-safe curriculum order."
         )
     )
@@ -64,7 +64,7 @@ def render_text(selection: SelectionResult) -> str:
         f"Mode: {selection.mode}",
         f"Reason: {selection.reason}",
         f"Problem: {selection.problem['id']} - {selection.problem['title']}",
-        f"Module: {selection.problem['module']}",
+        f"Skill: {selection.problem['primary_skill']}",
         f"Stage: {selection.problem['stage']}",
     ]
     if selection.revision_entry is not None:

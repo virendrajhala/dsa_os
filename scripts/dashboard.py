@@ -59,11 +59,11 @@ def build_payload(reference_date: date, state: Any) -> dict[str, Any]:
     current_problem = current_problem_id(state.progress)
     active_problem = problems.get(current_problem) if current_problem else None
     next_problem = selection.problem
-    current_module = None
+    current_skill = None
     if active_problem is not None:
-        current_module = active_problem["module"]
+        current_skill = active_problem["primary_skill"]
     elif next_problem is not None:
-        current_module = next_problem["module"]
+        current_skill = next_problem["primary_skill"]
 
     thinking_dimensions = state.progress.get("scores", {}).get("averages", {}).get(
         "thinking_dimensions",
@@ -85,7 +85,7 @@ def build_payload(reference_date: date, state: Any) -> dict[str, Any]:
 
     return {
         "current_stage": state.progress.get("current_stage"),
-        "current_module": current_module,
+        "current_skill": current_skill,
         "completed": len(completed_ids),
         "total_problems": len(state.curriculum["problems"]),
         "revision_due": len(due_revisions),
@@ -106,7 +106,7 @@ def render_text(payload: dict[str, Any]) -> str:
         "------------------------------------",
         "",
         f"Current Stage      {payload['current_stage']}",
-        f"Current Module     {payload['current_module'] or 'None'}",
+        f"Current Skill      {payload['current_skill'] or 'None'}",
         f"Completed          {payload['completed']} / {payload['total_problems']}",
         f"Revision Due       {payload['revision_due']}",
         f"Current Confidence {payload['current_confidence']:.2f}",

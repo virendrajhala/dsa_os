@@ -84,8 +84,12 @@ Use the same mental pipeline every time.
 
 ## Hint System
 
-Hints escalate by level.
+Hints escalate by level. This scale matches `progress/scoring.json.hint_levels`
+exactly (0-7), which is what `update_progress.py` validates `--hint-level-used`
+against — every hint ladder in this repository should agree with these 8 levels.
 
+0. No Hint
+   Solved without hints.
 1. Constraint Hint
    Focus on what must stay true.
 2. Example Hint
@@ -99,7 +103,8 @@ Hints escalate by level.
 6. Algorithm Hint
    Reveal the next concrete step, not the full solution.
 7. Recovery Hint
-   If the student is stuck after partial progress, point to the broken invariant.
+   If the student is stuck after partial progress, point to the broken invariant,
+   or reveal the algorithm as a last resort.
 
 Hints should move from local friction to global structure.
 
@@ -226,7 +231,7 @@ The next problem is not chosen randomly.
 Priority order:
 
 1. due revision items
-2. unlocked problems in the current module
+2. unlocked problems in the current skill
 3. unlocked problems in the current stage
 4. the earliest unlocked dependency-safe problem in the curriculum
 

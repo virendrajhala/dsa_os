@@ -4,17 +4,14 @@ DSA_OS is a production-grade apprenticeship repository for data structures and a
 
 It is not a problem dump and it is not a Leetcode tracker. The repository is designed to support a 6-9 month preparation journey focused on transferable interview thinking: reading precisely, building examples, grounding in brute force, identifying invariants, selecting the right pattern, communicating tradeoffs, and revising weak spots deliberately.
 
-The curriculum is derived from the PDF source `DSA_Questions_and_Patterns_500.pdf (1).pdf`. All 507 problems are preserved and mapped back through `original_number`, then reorganized by learning dependency instead of PDF order.
+The curriculum is derived from the PDF source `DSA_Questions_and_Patterns_500.pdf (1).pdf`. All 507 original problems are preserved and mapped back through `original_number`, then reorganized by learning dependency instead of PDF order. An additional 50 supplemental problems (marked `"supplemental": true`, `original_number: null`) were added on top to close specific coverage gaps — see `curriculum/curriculum.json`'s `source` block and `curriculum/dsa-skill-map.md` for the full breakdown. The curriculum currently totals 557 problems across 90 skills and 13 stages (see `knowledge/skills.json` and `curriculum/stages.json`); every problem's `primary_skill` determines its stage, replacing the old `pattern`/`module` fields.
 
 ## Installation
 
-DSA_OS has no external runtime dependencies. Python `3.10+` is sufficient.
+DSA_OS has no external runtime dependencies. Python `3.10+` is sufficient — nothing to `pip install`.
 
 ```bash
 python3 --version
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
 ```
 
 ## Quick Start
@@ -36,7 +33,7 @@ pip install -r requirements.txt
 The repository operates in a tight loop.
 
 1. `scripts/validate_curriculum.py` checks curriculum, dependency, stage, scoring, and progress integrity.
-2. `scripts/next_problem.py` selects the next dependency-safe task using revision urgency, module continuity, and stage order.
+2. `scripts/next_problem.py` selects the next dependency-safe task using revision urgency, skill continuity, and stage order.
 3. `templates/case_file_template.md` captures the session thinking process.
 4. `scripts/update_progress.py` records the solve, appends history, rotates the revision schedule, promotes stage when earned, and selects the next problem automatically.
 5. `scripts/revision_report.py` reports revision pressure and trend data.

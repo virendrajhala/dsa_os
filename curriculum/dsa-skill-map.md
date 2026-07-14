@@ -1,871 +1,213 @@
-# DSA OS — Study Guide v2.1 (Gap-Fixed, 557 Problems)
+# DSA OS — Skill Map (generated from `knowledge/skills.json`)
 
-Built from the corrected `curriculum.json`. The original 507-problem bank is unchanged and unmarked; **50 new supplemental problems** (`"supplemental": true`, marked 🆕 below) were added on top of it to close every gap identified in review. Nothing was removed or reordered — only added.
+This file is generated, not hand-maintained. It replaces the old module/pattern-based skill map after the skill-first migration (curriculum.json v3.0). Regenerate it any time `knowledge/skills.json` or `curriculum/curriculum.json` changes.
 
-### What was fixed
+**557 problems** across **90 skills** in **13 stages**. Difficulty: 94 Easy / 320 Medium / 143 Hard. Importance: 266 CORE / 250 COMMON / 41 SPECIALIZED / 0 NICHE.
 
-| Gap | Fix |
-|---|---|
-| No complexity-analysis content | New **Foundational** stage: 'Complexity & Asymptotic Reasoning' module, 6 problems |
-| Sorting module too thin (6 problems) | +8 problems on raw sorting mechanics (new pattern) |
-| 34 single-problem patterns (not 32 — recount was more precise this pass) | +1 problem to every one of them, 34 total |
-| Difficulty cliff into Graphs (2 Easy / 56) | +2 problems, incl. 1 Easy (Island Perimeter) |
-| Difficulty cliff into DP (5 Easy / 92) | +11 problems, incl. 2 Easy on-ramps |
+## Observation
 
-## Overview
+Learn to read the prompt exactly, simulate small examples, and state the invariant before reaching for a pattern name. Includes reasoning about what a brute force costs and why.
 
-- **557 problems** total (507 original + 50 supplemental) across **22 modules**, grouped into **10 stages**
-- Difficulty: 94 Easy / 320 Medium / 143 Hard
-- Interview frequency: 266 high / 250 medium / 41 selective
-- Total estimated time: **32436 minutes (~541 hours)**
+*6 skills, 21 problems.*
 
-## Stage-by-stage time & difficulty budget
-
-| Stage | Modules | Problems | Est. hours | Easy/Med/Hard |
+| Skill | Description | Primary | Reinforcement | Challenge |
 |---|---|---|---|---|
-| **Foundational** | Complexity & Asymptotic Reasoning | 6 | ~4.6h | 2/3/1 |
-| **Explorer** | Observation & Simulation | 27 | ~17.9h | 7/16/4 |
-| **Observer** | Two-Pointer Reasoning, Sliding Window, Hashing & Frequency Maps | 36 | ~25.0h | 12/20/4 |
-| **Searcher** | Sorting & Interval Reasoning, Binary Search, Prefix Sums & Range Reasoning | 55 | ~45.1h | 11/37/7 |
-| **State Builder** | Linked Lists, Stacks & Monotonic Structures, Queues, Deques & BFS Simulation, Heaps & Online Order Statistics | 86 | ~76.9h | 15/54/17 |
-| **Recursive Thinker** | Tree Traversal & Structural Recursion, Binary Search Trees & Ordered Recursion, Tries & Prefix Indexes | 46 | ~40.2h | 16/23/7 |
-| **Navigator** | Graph Traversal & Connectivity | 58 | ~59.9h | 3/39/16 |
-| **Optimizer** | Dynamic Programming | 103 | ~124.1h | 7/45/51 |
-| **Inventor** | Backtracking & Recursive Search, Greedy Optimization, Math & Bit Manipulation | 82 | ~76.0h | 17/53/12 |
-| **Engineer** | Range Structures & Ordered Interval Systems, System & Data Structure Design | 58 | ~70.9h | 4/30/24 |
-
-## Stage: Foundational
-*Complexity and asymptotic reasoning — read constraints, estimate required complexity, understand amortized cost. (New stage, added to close a gap.)*
-
-### Complexity & Asymptotic Reasoning (6 problems, ~4.6h)
-
-**Asymptotic Estimation** (3)
-- Two Sum — *Easy* 🔥 🆕 (supplemental)
-- Contains Duplicate — *Easy* 🔥 🆕 (supplemental)
-- First Missing Positive — *Hard* 🆕 (supplemental)
-
-**Amortized Analysis** (3)
-- Min Stack — *Medium* 🔥 🆕 (supplemental)
-- Flatten Nested List Iterator — *Medium* 🆕 (supplemental)
-- Design a HashMap — *Medium* 🆕 (supplemental)
-
-
-## Stage: Explorer
-*Read a sequence once, track running state, and make simulation-level observations.*
-
-### Observation & Simulation (27 problems, ~17.9h)
-
-**Invariant Scan / Greedy on Arrays** (10)
-- Maximum Subarray (Kadane's) — *Medium* (#31)
-- Maximum Product Subarray — *Medium* (#32)
-- Best Time to Buy and Sell Stock — *Easy* (#33)
-- Best Time to Buy and Sell Stock II — *Medium* (#34)
-- Jump Game — *Medium* (#35)
-- Jump Game II (minimum jumps) — *Medium* (#36)
-- Gas Station — *Medium* (#37)
-- Candy Distribution — *Hard* (#38)
-- Partition Labels — *Medium* (#39)
-- Minimum Number of Arrows to Burst Balloons — *Medium* (#40)
-
-**String Simulation / Frequency Map** (8)
-- Longest Common Prefix — *Easy* (#53)
-- Reverse Words in a String — *Medium* (#54)
-- String to Integer (atoi) — *Medium* (#55)
-- Roman to Integer — *Easy* (#56)
-- Integer to Roman — *Medium* (#57)
-- Count and Say — *Medium* (#58)
-- ZigZag Conversion — *Medium* (#59)
-- Multiply Strings — *Medium* (#60)
-
-**Expand Around Center** (2)
-- Longest Palindromic Substring — *Medium* (#67)
-- Palindromic Substrings (count all) — *Medium* (#68)
-
-**Pattern Matching / Prefix Function** (5)
-- Implement strStr() / Needle in Haystack — *Easy* (#69)
-- Repeated Substring Pattern — *Easy* (#70)
-- Shortest Palindrome (KMP) — *Hard* (#71)
-- Longest Happy Prefix (KMP failure function) — *Hard* (#72)
-- Find the Index of the First Occurrence in a String — *Easy* (#73)
-
-**Patience Sorting / Bisect** (2)
-- Minimum Operations to Make Array Increasing — *Easy* (#172)
-- Minimum Number of Removals to Make Mountain Array — *Hard* 🆕 (supplemental)
-
-
-## Stage: Observer
-*Two pointers and windows — exploit structure by moving indices with a rule.*
-
-### Two-Pointer Reasoning (11 problems, ~7.1h)
-
-**Two Pointers** (10)
-- Two Sum (sorted array) — *Easy* 🔥 (#1)
-- Three Sum — *Medium* 🔥 (#2)
-- Four Sum — *Medium* 🔥 (#3)
-- Container With Most Water — *Medium* 🔥 (#4)
-- Trapping Rain Water — *Hard* (#5)
-- Remove Duplicates from Sorted Array — *Easy* 🔥 (#6)
-- Move Zeroes to End — *Easy* 🔥 (#7)
-- Sort Colors (Dutch National Flag) — *Medium* 🔥 (#8)
-- Minimum Size Subarray Sum — *Medium* 🔥 (#9)
-- Squares of a Sorted Array — *Easy* 🔥 (#10)
-
-**Parametric Search** (1)
-- Count of Pairs with Sum Less Than Target — *Easy* 🔥 (#167)
-
-### Sliding Window (14 problems, ~11.7h)
-
-**Sliding Window** (10)
-- Longest Substring Without Repeating Characters — *Medium* 🔥 (#11)
-- Maximum Sum Subarray of Size K — *Easy* 🔥 (#12)
-- Fruit Into Baskets (at most 2 distinct) — *Medium* 🔥 (#13)
-- Minimum Window Substring — *Hard* 🔥 (#14)
-- Longest Subarray with Ones after Replacement — *Medium* 🔥 (#15)
-- Permutation in String — *Medium* 🔥 (#16)
-- Find All Anagrams in a String — *Medium* 🔥 (#17)
-- Substring with Concatenation of All Words — *Hard* (#18)
-- Max Consecutive Ones III — *Medium* 🔥 (#19)
-- Number of Subarrays with Product Less Than K — *Medium* 🔥 (#20)
-
-**Sliding Window on Strings** (4)
-- Longest Repeating Character Replacement — *Medium* 🔥 (#63)
-- Minimum Window Substring (revisited with string focus) — *Hard* 🔥 (#64)
-- Longest Substring with At Most K Distinct Characters — *Medium* 🔥 (#65)
-- Longest Substring with At Most Two Distinct Characters — *Medium* 🔥 (#66)
-
-### Hashing & Frequency Maps (11 problems, ~6.2h)
-
-**String Simulation / Frequency Map** (4)
-- Valid Anagram — *Easy* 🔥 (#51)
-- Group Anagrams — *Medium* 🔥 (#52)
-- Longest Palindrome (by rearrangement) — *Easy* 🔥 (#61)
-- First Unique Character in a String — *Easy* 🔥 (#62)
-
-**Hash Map / Hash Set** (7)
-- Two Sum (HashMap) — *Easy* 🔥 (#442)
-- Longest Consecutive Sequence — *Medium* 🔥 (#443)
-- 4Sum II (count tuples) — *Medium* 🔥 (#444)
-- Isomorphic Strings — *Easy* 🔥 (#445)
-- Word Pattern — *Easy* 🔥 (#446)
-- Bulls and Cows — *Medium* 🔥 (#447)
-- Brick Wall (maximum bricks not cut) — *Medium* 🔥 (#448)
-
-
-## Stage: Searcher
-*Sorting, binary search, prefix sums — reduce a problem via ordering or precomputation.*
-
-### Sorting & Interval Reasoning (15 problems, ~10.3h)
-
-**Sorting / Interval Sweep** (5)
-- Merge Intervals — *Medium* 🔥 (#41)
-- Insert Interval — *Medium* 🔥 (#42)
-- Meeting Rooms II (min conference rooms) — *Medium* 🔥 (#43)
-- Non-overlapping Intervals — *Medium* 🔥 (#44)
-- Largest Number (custom sort) — *Medium* 🔥 (#45)
-
-**Two-Pointer Interval Sweep** (2)
-- Interval List Intersections — *Medium* 🔥 (#223)
-- Summary Ranges — *Easy* 🆕 (supplemental)
-
-**Sorting Algorithms & Custom Comparators** (8)
-- Merge Sort (Implement) — *Easy* 🔥 🆕 (supplemental)
-- Quick Sort (Implement) — *Medium* 🔥 🆕 (supplemental)
-- Sort Array By Parity II — *Easy* 🆕 (supplemental)
-- Sort Array By Parity — *Easy* 🆕 (supplemental)
-- Relative Sort Array — *Easy* 🆕 (supplemental)
-- H-Index — *Medium* 🆕 (supplemental)
-- Wiggle Sort II — *Medium* 🆕 (supplemental)
-- Sort List (Merge Sort on Linked List) — *Medium* 🔥 🆕 (supplemental)
-
-### Binary Search (25 problems, ~23.3h)
-
-**Binary Search on Rotated Array** (2)
-- Find Minimum in Rotated Sorted Array — *Medium* 🔥 (#47)
-- Search in Rotated Sorted Array — *Medium* 🔥 (#48)
-
-**Binary Search** (9)
-- Binary Search (basic) — *Easy* 🔥 (#144)
-- First Bad Version — *Easy* 🔥 (#145)
-- Search Insert Position — *Easy* 🔥 (#146)
-- Find Peak Element — *Medium* 🔥 (#148)
-- Find Minimum in Rotated Sorted Array II (duplicates) — *Hard* (#149)
-- Search a 2D Matrix — *Medium* 🔥 (#150)
-- Search a 2D Matrix II — *Medium* 🔥 (#151)
-- Kth Smallest Element in Sorted Matrix — *Medium* 🔥 (#152)
-- Find K Closest Elements — *Medium* 🔥 (#153)
-
-**Parametric Search** (14)
-- Capacity to Ship Packages Within D Days — *Medium* 🔥 (#154)
-- Split Array Largest Sum — *Hard* (#155)
-- Koko Eating Bananas — *Medium* 🔥 (#156)
-- Minimum Number of Days to Make m Bouquets — *Medium* 🔥 (#157)
-- Magnetic Force Between Two Balls — *Medium* 🔥 (#158)
-- Find the Smallest Divisor Given a Threshold — *Medium* 🔥 (#159)
-- Allocate Minimum Number of Pages — *Medium* 🔥 (#160)
-- Aggressive Cows (SPOJ classic) — *Medium* 🔥 (#161)
-- Painters Partition Problem — *Hard* (#162)
-- EKO — Cutting Trees (binary search on height) — *Medium* 🔥 (#163)
-- Median of Two Sorted Arrays — *Hard* (#164)
-- K-th Smallest Prime Fraction — *Hard* (#165)
-- Find K-th Smallest Pair Distance — *Hard* (#166)
-- Maximum Running Time of N Computers — *Hard* (#168)
-
-### Prefix Sums & Range Reasoning (15 problems, ~11.5h)
-
-**Prefix Sum / Difference Array** (10)
-- Subarray Sum Equals K — *Medium* 🔥 (#21)
-- Range Sum Query — Immutable — *Easy* 🔥 (#22)
-- Continuous Subarray Sum (multiple of k) — *Medium* 🔥 (#23)
-- Product of Array Except Self — *Medium* 🔥 (#24)
-- Find Pivot Index — *Easy* 🔥 (#25)
-- Count Subarrays with Equal 0s and 1s — *Medium* 🔥 (#26)
-- Subarray Sums Divisible by K — *Medium* 🔥 (#27)
-- Minimum Operations to Reduce X to Zero — *Medium* 🔥 (#28)
-- Running Sum of 1D Array — *Easy* 🔥 (#29)
-- Random Pick with Weight — *Medium* 🔥 (#30)
-
-**Prefix Sum + Hash Map** (3)
-- Subarray Sum Equals K (revisited with HashMap) — *Medium* 🔥 (#449)
-- Contiguous Array (equal 0s and 1s) — *Medium* 🔥 (#450)
-- Maximum Size Subarray Sum Equals k — *Medium* 🔥 (#451)
-
-**Weighted Prefix Sampling** (2)
-- Random Pick with Weight — *Medium* 🔥 (#485)
-- Random Point in Non-overlapping Rectangles — *Medium* 🆕 (supplemental)
-
-
-## Stage: State Builder
-*Linked lists, stacks, queues, heaps — build and maintain non-trivial live state.*
-
-### Linked Lists (27 problems, ~20.8h)
-
-**Cycle Detection or Value-Space Search** (2)
-- Find the Duplicate Number — *Medium* 🔥 (#50)
-- Linked List Cycle II — *Medium* 🔥 🆕 (supplemental)
-
-**Fast & Slow Pointers** (5)
-- Linked List Cycle Detection — *Easy* 🔥 (#89)
-- Linked List Cycle II (entry point) — *Medium* 🔥 (#90)
-- Find the Middle of Linked List — *Easy* 🔥 (#91)
-- Palindrome Linked List — *Easy* 🔥 (#93)
-- Reorder List (L0→Ln→L1→Ln-1) — *Medium* 🔥 (#94)
-
-**Linked-List Reversal / Merge** (14)
-- Reverse a Linked List — *Easy* 🔥 (#95)
-- Reverse Linked List II (sub-list) — *Medium* 🔥 (#96)
-- Reverse Nodes in k-Group — *Hard* (#97)
-- Rotate List by k — *Medium* 🔥 (#98)
-- Merge Two Sorted Lists — *Easy* 🔥 (#99)
-- Merge K Sorted Lists — *Hard* (#100)
-- Sort List (merge sort on LL) — *Medium* 🔥 (#101)
-- Partition List around value x — *Medium* 🔥 (#102)
-- Remove Nth Node from End — *Medium* 🔥 (#103)
-- Delete Node in a Linked List (no head) — *Easy* 🔥 (#104)
-- Odd Even Linked List — *Medium* 🔥 (#105)
-- Intersection of Two Linked Lists — *Easy* 🔥 (#106)
-- Flatten a Multilevel Doubly Linked List — *Medium* 🔥 (#107)
-- Copy List with Random Pointer — *Medium* 🔥 (#108)
-
-**Pointer Stitching / List Design** (6)
-- Add Two Numbers (LL representation) — *Medium* 🔥 (#112)
-- Add Two Numbers II (no reversal) — *Medium* 🔥 (#113)
-- Swap Nodes in Pairs — *Medium* 🔥 (#114)
-- Remove Duplicates from Sorted List II — *Medium* 🔥 (#115)
-- Insert into a Sorted Circular Linked List — *Medium* 🔥 (#117)
-- Convert Binary Number in LL to Integer — *Easy* 🔥 (#118)
-
-### Stacks & Monotonic Structures (23 problems, ~20.1h)
-
-**Stack Parsing / Monotonic Stack** (10)
-- Valid Parentheses — *Easy* 🔥 (#79)
-- Minimum Remove to Make Valid Parentheses — *Medium* 🔥 (#80)
-- Score of Parentheses — *Medium* 🔥 (#81)
-- Decode String (k[encoded_string]) — *Medium* 🔥 (#82)
-- Remove All Adjacent Duplicates in String — *Easy* 🔥 (#83)
-- Remove K Digits — *Medium* 🔥 (#84)
-- Basic Calculator II — *Medium* 🔥 (#85)
-- Evaluate Reverse Polish Notation — *Medium* 🔥 (#86)
-- Remove Duplicate Letters (lexicographically smallest) — *Medium* 🔥 (#87)
-- Largest Rectangle in Histogram (string of bars) — *Hard* 🔥 (#88)
-
-**Monotonic Stack on Linked List** (2)
-- Next Greater Node in Linked List — *Medium* 🔥 (#116)
-- Remove Nodes From Linked List — *Medium* 🆕 (supplemental)
-
-**Monotonic Stack** (10)
-- Next Greater Element I — *Easy* 🔥 (#119)
-- Next Greater Element II (circular) — *Medium* 🔥 (#120)
-- Daily Temperatures — *Medium* 🔥 (#121)
-- Largest Rectangle in Histogram — *Hard* 🔥 (#122)
-- Maximal Rectangle in Binary Matrix — *Hard* (#123)
-- Sum of Subarray Minimums — *Medium* 🔥 (#124)
-- Maximum Width Ramp — *Medium* 🔥 (#125)
-- Online Stock Span — *Medium* 🔥 (#126)
-- 132 Pattern — *Medium* 🔥 (#127)
-- Asteroid Collision — *Medium* 🔥 (#128)
-
-**Queue / Deque / BFS** (1)
-- Max of Min for Every Window Size — *Hard* (#135)
-
-### Queues, Deques & BFS Simulation (12 problems, ~10.5h)
-
-**Queue / Deque / BFS** (12)
-- Sliding Window Maximum — *Hard* (#129)
-- First Negative in Every Window of Size K — *Medium* (#130)
-- Implement Stack using Queues — *Easy* (#131)
-- Implement Queue using Stacks — *Easy* (#132)
-- Design Circular Queue — *Medium* (#133)
-- Design Circular Deque — *Medium* (#134)
-- Shortest Subarray with Sum at Least K — *Hard* (#136)
-- Jump Game VI (DP + deque) — *Medium* (#137)
-- Constrained Subsequence Sum — *Hard* (#138)
-- Number of Recent Calls — *Easy* (#140)
-- Dota2 Senate — *Medium* 🔥 (#141)
-- Reveal Cards in Increasing Order — *Medium* (#142)
-
-### Heaps & Online Order Statistics (24 problems, ~25.5h)
-
-**Heap Selection** (2)
-- Kth Largest Element in an Array — *Medium* (#46)
-- Kth Smallest Element in a Sorted Matrix — *Medium* 🔥 🆕 (supplemental)
-
-**Priority Scheduling** (2)
-- Task Scheduler — *Medium* 🔥 (#139)
-- Rearrange String k Distance Apart — *Hard* 🆕 (supplemental)
-
-**Top-K Heap** (10)
-- Kth Largest Element in a Stream — *Easy* 🔥 (#231)
-- Top K Frequent Elements — *Medium* (#232)
-- Top K Frequent Words — *Medium* (#233)
-- K Closest Points to Origin — *Medium* (#234)
-- Find K Pairs with Smallest Sums — *Medium* (#235)
-- Kth Smallest Element in Sorted Matrix (Heap) — *Medium* 🔥 (#236)
-- Sort Characters By Frequency — *Medium* (#237)
-- Reorganize String — *Medium* (#238)
-- Task Scheduler (Heap approach) — *Medium* 🔥 (#239)
-- Maximum Frequency Stack — *Hard* (#240)
-
-**Two Heaps / Priority Queue** (10)
-- Find Median from Data Stream — *Hard* 🔥 (#241)
-- Sliding Window Median — *Hard* (#242)
-- IPO (Maximize Capital) — *Hard* (#243)
-- Minimum Cost to Connect Sticks — *Medium* (#244)
-- Smallest Range Covering Elements from K Lists — *Hard* (#245)
-- Meeting Rooms III (heap-based room assignment) — *Hard* (#248)
-- Employee Free Time — *Hard* (#249)
-- Process Tasks Using Servers — *Medium* (#250)
-- Single-Threaded CPU — *Medium* (#251)
-- Furthest Building You Can Reach — *Medium* (#252)
-
-
-## Stage: Recursive Thinker
-*Trees, BSTs, tries — recursive structure and recursive traversal.*
-
-### Tree Traversal & Structural Recursion (27 problems, ~22.4h)
-
-**Tree Traversal (DFS/BFS)** (10)
-- Binary Tree Inorder Traversal (iterative) — *Easy* 🔥 (#175)
-- Binary Tree Preorder Traversal (iterative) — *Easy* 🔥 (#176)
-- Binary Tree Postorder Traversal (iterative) — *Easy* 🔥 (#177)
-- Binary Tree Level Order Traversal — *Medium* 🔥 (#178)
-- Binary Tree Zigzag Level Order — *Medium* 🔥 (#179)
-- Binary Tree Right Side View — *Medium* 🔥 (#180)
-- Average of Levels in Binary Tree — *Easy* 🔥 (#181)
-- N-ary Tree Level Order Traversal — *Medium* 🔥 (#182)
-- Vertical Order Traversal — *Hard* (#183)
-- Boundary Traversal of Binary Tree — *Medium* 🔥 (#184)
-
-**Tree Recursion** (15)
-- Maximum Depth of Binary Tree — *Easy* 🔥 (#185)
-- Minimum Depth of Binary Tree — *Easy* 🔥 (#186)
-- Diameter of Binary Tree — *Easy* 🔥 (#187)
-- Balanced Binary Tree — *Easy* 🔥 (#188)
-- Same Tree — *Easy* 🔥 (#189)
-- Symmetric Tree — *Easy* 🔥 (#190)
-- Invert Binary Tree — *Easy* 🔥 (#191)
-- Count Complete Tree Nodes — *Medium* 🔥 (#192)
-- Sum of Left Leaves — *Easy* 🔥 (#193)
-- Path Sum — *Easy* 🔥 (#194)
-- Path Sum II (all paths) — *Medium* 🔥 (#195)
-- Binary Tree Maximum Path Sum — *Hard* 🔥 (#196)
-- Sum Root to Leaf Numbers — *Medium* 🔥 (#197)
-- Flatten Binary Tree to Linked List — *Medium* 🔥 (#198)
-- Populating Next Right Pointers — *Medium* 🔥 (#199)
-
-**Tree Serialization** (2)
-- Serialize and Deserialize Binary Tree — *Hard* (#211)
-- Serialize and Deserialize N-ary Tree — *Hard* 🆕 (supplemental)
-
-### Binary Search Trees & Ordered Recursion (11 problems, ~9.6h)
-
-**BST Invariant** (11)
-- Validate Binary Search Tree — *Medium* (#200)
-- Kth Smallest Element in a BST — *Medium* (#201)
-- Lowest Common Ancestor of BST — *Easy* (#202)
-- Lowest Common Ancestor of Binary Tree — *Medium* (#203)
-- Convert Sorted Array to BST — *Easy* (#204)
-- Convert BST to Greater Tree — *Medium* (#205)
-- Insert into a BST — *Medium* (#206)
-- Delete Node in a BST — *Medium* (#207)
-- Recover Binary Search Tree (two nodes swapped) — *Hard* (#208)
-- Construct BST from Preorder Traversal — *Medium* (#213)
-- Two Sum IV in BST — *Easy* (#214)
-
-### Tries & Prefix Indexes (8 problems, ~8.2h)
-
-**Trie / Prefix Tree** (6)
-- Implement Trie (Prefix Tree) — *Medium* (#225)
-- Word Search II (Trie + DFS) — *Hard* (#226)
-- Design Add and Search Words Data Structure — *Medium* (#227)
-- Replace Words with Root (Trie) — *Medium* (#228)
-- Maximum XOR of Two Numbers (Trie) — *Medium* (#229)
-- Palindrome Pairs (Trie) — *Hard* (#230)
-
-**Trie with Multiplicity** (2)
-- Implement Trie with Count — *Medium* (#480)
-- Replace Words — *Medium* 🆕 (supplemental)
-
-
-## Stage: Navigator
-*Graphs — traversal, connectivity, shortest paths, MST.*
-
-### Graph Traversal & Connectivity (58 problems, ~59.9h)
-
-**Grid BFS** (2)
-- Rotten Oranges (BFS) — *Medium* 🔥 (#143)
-- Nearest Exit from Entrance in Maze — *Medium* 🔥 🆕 (supplemental)
-
-**Graph BFS** (15)
-- Number of Islands — *Medium* 🔥 (#253)
-- Max Area of Island — *Medium* 🔥 (#254)
-- Flood Fill — *Easy* 🔥 (#255)
-- Pacific Atlantic Water Flow — *Medium* 🔥 (#256)
-- 01 Matrix (multi-source BFS) — *Medium* 🔥 (#257)
-- Rotting Oranges — *Medium* 🔥 (#258)
-- Walls and Gates (multi-source BFS) — *Medium* 🔥 (#259)
-- Shortest Path in Binary Matrix — *Medium* 🔥 (#260)
-- Snakes and Ladders — *Medium* 🔥 (#261)
-- Open the Lock — *Medium* 🔥 (#262)
-- Word Ladder — *Hard* (#263)
-- Word Ladder II (all shortest paths) — *Hard* (#264)
-- Minimum Knight Moves — *Medium* 🔥 (#265)
-- Bus Routes (BFS on routes) — *Hard* (#266)
-- Cut Off Trees for Golf Event — *Hard* (#267)
-
-**Graph DFS / Union-Find** (10)
-- Clone Graph — *Medium* 🔥 (#268)
-- Course Schedule (cycle detection) — *Medium* 🔥 (#269)
-- Course Schedule II (topological sort) — *Medium* 🔥 (#270)
-- Number of Connected Components in Undirected Graph — *Medium* 🔥 (#271)
-- Graph Valid Tree — *Medium* 🔥 (#272)
-- Redundant Connection (Union-Find) — *Medium* 🔥 (#273)
-- Accounts Merge (Union-Find / DFS) — *Medium* 🔥 (#274)
-- All Paths from Source to Target — *Medium* 🔥 (#275)
-- Is Graph Bipartite? — *Medium* 🔥 (#276)
-- Possible Bipartition — *Medium* 🔥 (#277)
-
-**Topological Sort** (6)
-- Alien Dictionary — *Hard* (#278)
-- Sequence Reconstruction — *Medium* 🔥 (#279)
-- Minimum Height Trees — *Medium* 🔥 (#280)
-- Find Eventual Safe States — *Medium* 🔥 (#281)
-- Parallel Courses (min semesters) — *Medium* 🔥 (#282)
-- Sort Items by Groups Respecting Dependencies — *Hard* (#283)
-
-**Disjoint Set Union** (8)
-- Find if Path Exists in Graph — *Easy* 🔥 (#284)
-- Number of Provinces — *Medium* 🔥 (#285)
-- Redundant Connection II (directed) — *Hard* (#286)
-- Making a Large Island — *Hard* (#287)
-- Swim in Rising Water — *Hard* (#288)
-- Earliest Moment When Everyone Become Friends — *Medium* 🔥 (#289)
-- Satisfiability of Equality Equations — *Medium* 🔥 (#290)
-- Remove Max Number of Edges to Keep Graph Fully Traversable — *Hard* (#291)
-
-**Shortest Path Algorithms** (10)
-- Network Delay Time (Dijkstra) — *Medium* 🔥 (#292)
-- Path with Maximum Probability — *Medium* 🔥 (#293)
-- Cheapest Flights Within K Stops (Bellman-Ford) — *Medium* 🔥 (#294)
-- Find the City with Smallest Number of Neighbors (Floyd-Warshall) — *Medium* 🔥 (#295)
-- Path with Minimum Effort (Dijkstra / Binary Search) — *Medium* 🔥 (#296)
-- Number of Ways to Arrive at Destination — *Medium* 🔥 (#297)
-- Minimum Weighted Subgraph with Required Paths — *Hard* (#298)
-- Minimum Score of a Path Between Two Cities — *Medium* 🔥 (#299)
-- Reachable Nodes in Subdivided Graph — *Hard* (#300)
-- K-th Shortest Path (Yen's Algorithm concept) — *Hard* (#301)
-
-**Minimum Spanning Tree** (5)
-- Min Cost to Connect All Points (Prim's) — *Medium* 🔥 (#302)
-- Optimize Water Distribution in a Village — *Hard* (#303)
-- Critical Connections in a Network (Bridges) — *Hard* (#304)
-- Minimum Cost to Reach City with Tolls — *Medium* 🔥 (#305)
-- Find Critical and Pseudo-Critical Edges in MST — *Hard* (#306)
-
-**Grid DFS / Flood Fill** (2)
-- Coloring a Border — *Medium* 🔥 (#414)
-- Island Perimeter — *Easy* 🔥 🆕 (supplemental)
-
-
-## Stage: Optimizer
-*Dynamic programming — the largest and hardest stage by far.*
-
-### Dynamic Programming (103 problems, ~124.1h)
-
-**2-D Dynamic Programming** (17)
-- Wildcard Matching — *Hard* 🔥 (#74)
-- Regular Expression Matching — *Hard* 🔥 (#75)
-- Unique Paths — *Medium* 🔥 (#322)
-- Unique Paths II (with obstacles) — *Medium* 🔥 (#323)
-- Minimum Path Sum in Grid — *Medium* 🔥 (#324)
-- Dungeon Game (reverse DP) — *Hard* (#325)
-- Maximal Square — *Medium* 🔥 (#326)
-- Count Square Submatrices with All Ones — *Medium* 🔥 (#327)
-- Longest Common Subsequence — *Medium* 🔥 (#328)
-- Shortest Common Supersequence — *Hard* (#329)
-- Edit Distance — *Hard* (#330)
-- Distinct Subsequences — *Hard* (#331)
-- Interleaving String — *Medium* 🔥 (#332)
-- Regular Expression Matching (DP) — *Hard* 🔥 (#333)
-- Wildcard Matching (DP) — *Hard* 🔥 (#334)
-- Scramble String — *Hard* (#335)
-- Burst Balloons (interval DP) — *Hard* (#336)
-
-**Word-Break Dynamic Programming** (2)
-- Word Break — *Medium* 🔥 (#76)
-- Concatenated Words — *Hard* 🆕 (supplemental)
-
-**Decode Dynamic Programming** (2)
-- Decode Ways — *Medium* 🔥 (#78)
-- Palindrome Partitioning II — *Hard* 🔥 🆕 (supplemental)
-
-**LIS Dynamic Programming with Bisect** (2)
-- Longest Increasing Subsequence (O(n log n)) — *Medium* 🔥 (#169)
-- Longest String Chain — *Medium* 🆕 (supplemental)
-
-**LIS on Ordered Envelopes** (2)
-- Russian Doll Envelopes — *Hard* (#170)
-- Box Stacking Problem — *Hard* 🆕 (supplemental)
-
-**Weighted Interval Scheduling** (2)
-- Maximum Profit in Job Scheduling — *Hard* (#173)
-- Maximum Earnings From Taxi — *Medium* 🔥 🆕 (supplemental)
-
-**Longest Increasing Subsequence Counting** (2)
-- Number of Longest Increasing Subsequences — *Medium* 🔥 (#174)
-- Longest Arithmetic Subsequence — *Medium* 🆕 (supplemental)
-
-**Catalan Dynamic Programming** (2)
-- Unique Binary Search Trees (count) — *Medium* 🔥 (#209)
-- Different Ways to Add Parentheses — *Medium* 🆕 (supplemental)
-
-**Tree Dynamic Programming** (2)
-- Binary Tree Cameras — *Hard* (#212)
-- House Robber III — *Medium* 🔥 🆕 (supplemental)
-
-**LIS Counting with Range Queries** (2)
-- Number of Longest Increasing Subsequences (Segment Tree) — *Medium* 🔥 (#218)
-- Create Sorted Array through Instructions — *Hard* 🆕 (supplemental)
-
-**Pointer Dynamic Programming** (2)
-- Ugly Number II — *Medium* 🔥 (#246)
-- Super Ugly Number — *Medium* 🔥 (#247)
-
-**1-D Dynamic Programming** (17)
-- Climbing Stairs — *Easy* 🔥 (#307)
-- House Robber — *Medium* 🔥 (#308)
-- House Robber II (circular) — *Medium* 🔥 (#309)
-- House Robber III (tree DP) — *Medium* 🔥 (#310)
-- Min Cost Climbing Stairs — *Easy* 🔥 (#311)
-- Fibonacci Number — *Easy* 🔥 (#312)
-- Tribonacci Number — *Easy* 🔥 (#313)
-- Coin Change (minimum coins) — *Medium* 🔥 (#314)
-- Coin Change II (number of ways) — *Medium* 🔥 (#315)
-- Perfect Squares — *Medium* 🔥 (#316)
-- Integer Break — *Medium* 🔥 (#317)
-- Decode Ways — *Medium* 🔥 (#318)
-- Decode Ways II — *Hard* (#319)
-- Ugly Number III — *Medium* 🔥 (#320)
-- N-th Tribonacci Number — *Easy* 🔥 (#321)
-- Pascal's Triangle II — *Easy* 🆕 (supplemental)
-- Divisor Game — *Easy* 🆕 (supplemental)
-
-**Knapsack Dynamic Programming** (10)
-- 0/1 Knapsack Problem — *Medium* 🔥 (#337)
-- Unbounded Knapsack — *Medium* 🔥 (#338)
-- Partition Equal Subset Sum — *Medium* 🔥 (#339)
-- Target Sum (assign +/- to reach target) — *Medium* 🔥 (#340)
-- Last Stone Weight II (knapsack) — *Medium* 🔥 (#341)
-- Ones and Zeroes (2D knapsack) — *Medium* 🔥 (#342)
-- Profitable Schemes — *Hard* (#343)
-- Number of Dice Rolls with Target Sum — *Medium* 🔥 (#344)
-- Combination Sum IV — *Medium* 🔥 (#345)
-- Count Ways to Build Good Strings — *Medium* 🔥 (#346)
-
-**Interval / Range Dynamic Programming** (9)
-- Matrix Chain Multiplication — *Hard* (#347)
-- Minimum Cost Tree from Leaf Values — *Medium* 🔥 (#348)
-- Strange Printer — *Hard* (#349)
-- Remove Boxes — *Hard* (#350)
-- Zuma Game — *Hard* (#351)
-- Minimum Cost to Merge Stones — *Hard* (#352)
-- Optimal Strategy for a Game — *Medium* 🔥 (#353)
-- Palindrome Partitioning II (min cuts) — *Hard* (#354)
-- Palindrome Partitioning IV (3 parts) — *Hard* (#355)
-
-**State Machine Dynamic Programming** (10)
-- Best Time to Buy and Sell Stock III (at most 2 transactions) — *Hard* (#357)
-- Best Time to Buy and Sell Stock IV (at most k transactions) — *Hard* (#358)
-- Best Time to Buy and Sell Stock with Cooldown — *Medium* 🔥 (#359)
-- Best Time to Buy and Sell Stock with Transaction Fee — *Medium* 🔥 (#360)
-- Paint House — *Medium* 🔥 (#361)
-- Paint House II (k colors) — *Hard* (#362)
-- Paint Fence — *Medium* 🔥 (#363)
-- Student Attendance Record II — *Hard* (#364)
-- Coin Path (min cost with k steps) — *Hard* (#365)
-- Number of Ways to Stay in the Same Place After Some Steps — *Hard* (#366)
-
-**Bitmask Dynamic Programming** (10)
-- Traveling Salesman Problem (bitmask DP) — *Hard* (#367)
-- Partition to K Equal Sum Subsets — *Medium* 🔥 (#368)
-- Minimum XOR Sum of Two Arrays (assignment) — *Hard* (#369)
-- Maximum Students Taking Exam — *Hard* (#370)
-- Stickers to Spell Word — *Hard* (#371)
-- Shortest Path Visiting All Nodes (BFS + bitmask) — *Hard* (#372)
-- Number of Ways to Wear Different Hats to Each Other — *Hard* (#373)
-- Count Ways to Distribute Candies — *Hard* (#374)
-- Maximize Score After N Operations — *Hard* (#375)
-- Find the Shortest Superstring (bitmask DP) — *Hard* (#376)
-
-**Tree / Graph Dynamic Programming** (10)
-- Diameter of N-ary Tree — *Hard* (#377)
-- Binary Tree Maximum Path Sum (revisited) — *Hard* 🔥 (#378)
-- Maximum Sum of 3 Non-Overlapping Subarrays — *Hard* (#379)
-- Cherry Pickup — *Hard* (#380)
-- Cherry Pickup II (two robots) — *Hard* (#381)
-- Minimum Difficulty of a Job Schedule — *Hard* (#382)
-- Build Array Where You Can Find the Maximum Exactly K Comparisons — *Hard* (#383)
-- Number of Music Playlists — *Hard* (#384)
-- Count Vowels Permutation — *Hard* (#385)
-- Minimum Cost to Cut a Stick — *Hard* (#386)
-
-
-## Stage: Inventor
-*Backtracking, greedy, math/bits — construct search spaces and prove correctness.*
-
-### Backtracking & Recursive Search (33 problems, ~37.1h)
-
-**Memoized DFS / Enumeration** (2)
-- Word Break II — *Hard* (#77)
-- Combination Sum III — *Medium* 🔥 🆕 (supplemental)
-
-**Recursive Tree Construction** (2)
-- Unique Binary Search Trees II (generate all) — *Medium* (#210)
-- All Possible Full Binary Trees — *Medium* 🆕 (supplemental)
-
-**Combination Backtracking** (10)
-- Subsets — *Medium* (#387)
-- Subsets II (with duplicates) — *Medium* (#388)
-- Combinations — *Medium* (#389)
-- Combination Sum — *Medium* (#390)
-- Combination Sum II (each number once) — *Medium* (#391)
-- Combination Sum III (exactly k numbers) — *Medium* (#392)
-- Letter Combinations of a Phone Number — *Medium* (#393)
-- Generate Parentheses — *Medium* (#394)
-- Count Numbers with Unique Digits — *Medium* (#395)
-- Beautiful Arrangement — *Medium* (#396)
-
-**Permutation Backtracking** (10)
-- Permutations — *Medium* (#397)
-- Permutations II (with duplicates) — *Medium* (#398)
-- Next Permutation — *Medium* (#399)
-- Permutation Sequence (kth permutation) — *Hard* (#400)
-- Palindrome Partitioning — *Medium* (#401)
-- Word Search — *Medium* (#402)
-- N-Queens — *Hard* (#403)
-- N-Queens II (count solutions) — *Hard* (#404)
-- Sudoku Solver — *Hard* (#405)
-- Remove Invalid Parentheses — *Hard* (#406)
-
-**Constraint Backtracking** (9)
-- Expression Add Operators — *Hard* (#407)
-- Restore IP Addresses — *Medium* (#408)
-- Letter Tile Possibilities — *Medium* (#409)
-- Splitting a String Into Descending Consecutive Values — *Medium* (#410)
-- Number of Squareful Arrays — *Hard* (#411)
-- Maximum Length of a Concatenated String with Unique Characters — *Medium* (#412)
-- Tiling a Rectangle with the Fewest Squares — *Hard* (#413)
-- Factor Combinations — *Medium* (#415)
-- Construct the Lexicographically Largest Valid Sequence — *Medium* (#416)
-
-### Greedy Optimization (27 problems, ~23.7h)
-
-**Sorting / Greedy Choice** (2)
-- Maximum Coins You Can Get — *Medium* (#356)
-- Minimum Number of Taps to Open to Water a Garden — *Hard* 🆕 (supplemental)
-
-**Interval / Scheduling Greedy** (10)
-- Activity Selection / Non-overlapping Intervals — *Medium* (#417)
-- Minimum Number of Platforms Required — *Medium* (#418)
-- Job Sequencing Problem — *Medium* (#419)
-- Fractional Knapsack — *Easy* (#420)
-- N meetings in one room — *Easy* (#421)
-- Assign Cookies — *Easy* (#422)
-- Lemonade Change — *Easy* (#423)
-- Queue Reconstruction by Height — *Medium* (#424)
-- Two City Scheduling — *Medium* (#425)
-- Minimum Cost to Move Chips to Same Position — *Easy* (#426)
-
-**String / Array Greedy** (15)
-- Remove K Digits (smallest number) — *Medium* 🔥 (#427)
-- Largest Number After Removing k Digits (largest) — *Medium* (#428)
-- Maximum Units on a Truck — *Easy* (#429)
-- Minimum Deletions to Make Character Frequencies Unique — *Medium* (#430)
-- Minimum Number of Flips to Make Binary String Alternating — *Medium* (#431)
-- Minimum Swaps to Balance Parentheses — *Medium* (#432)
-- Maximum Score from Removing Substrings — *Medium* (#433)
-- Wiggle Subsequence — *Medium* (#434)
-- Dota2 Senate (greedy queue) — *Medium* 🔥 (#435)
-- Minimum Time to Make Rope Colorful — *Medium* (#436)
-- Boats to Save People — *Medium* (#437)
-- Advantage Shuffle — *Medium* (#438)
-- Maximum Performance of a Team — *Hard* (#439)
-- Minimize Maximum Pair Sum in Array — *Medium* (#440)
-- Earliest Deadline First Scheduling — *Medium* (#441)
-
-### Math & Bit Manipulation (22 problems, ~15.2h)
-
-**Cycle Detection on State Space** (2)
-- Happy Number (cycle in sequence) — *Easy* 🔥 (#92)
-- Longest Cycle in a Graph — *Hard* 🆕 (supplemental)
-
-**Number Theory / Arithmetic** (10)
-- Count Primes (Sieve of Eratosthenes) — *Medium* (#452)
-- Power of Two / Three / Four — *Easy* (#453)
-- Excel Sheet Column Number — *Easy* (#454)
-- Happy Number (Floyd's cycle) — *Easy* 🔥 (#455)
-- Ugly Number — *Easy* (#456)
-- Reverse Integer — *Medium* (#457)
-- Palindrome Number — *Easy* (#458)
-- Factorial Trailing Zeroes — *Medium* (#459)
-- Nth Digit — *Medium* (#460)
-- Super Power (modular exponentiation) — *Medium* (#461)
-
-**Bit Manipulation** (10)
-- Single Number — *Easy* (#462)
-- Single Number II (bit counting) — *Medium* (#463)
-- Single Number III (two unique) — *Medium* (#464)
-- Number of 1 Bits (Hamming Weight) — *Easy* (#465)
-- Counting Bits (0 to n) — *Easy* (#466)
-- Reverse Bits — *Easy* (#467)
-- Missing Number — *Easy* (#468)
-- Sum of Two Integers (without + operator) — *Medium* (#469)
-- Maximum XOR of Two Numbers in Array — *Medium* (#470)
-- UTF-8 Validation — *Medium* (#471)
-
-
-## Stage: Engineer
-*Range/segment structures and system design — combine everything into designed systems.*
-
-### Range Structures & Ordered Interval Systems (21 problems, ~27.5h)
-
-**Fenwick Tree / Ordered Merge** (2)
-- Count of Smaller Numbers After Self — *Hard* 🔥 (#49)
-- Reverse Pairs — *Hard* 🔥 🆕 (supplemental)
-
-**Range Count / Ordered Prefix** (2)
-- Count of Range Sum (advanced) — *Hard* 🔥 (#147)
-- Number of Pairs Satisfying Inequality — *Hard* 🆕 (supplemental)
-
-**Fenwick Tree / Ordered Statistics** (2)
-- Count of Smaller Numbers After Self (BIT/BST) — *Hard* 🔥 (#171)
-- Count Number of Teams — *Medium* 🆕 (supplemental)
-
-**Fenwick Tree / Segment Tree** (7)
-- Range Sum Query — Mutable (Segment Tree / BIT) — *Medium* (#215)
-- Range Minimum Query — *Medium* (#216)
-- Count of Range Sum (Merge Sort / BIT) — *Hard* 🔥 (#217)
-- The Skyline Problem — *Hard* (#219)
-- Rectangle Area II (coordinate compression) — *Hard* (#221)
-- Falling Squares — *Hard* (#222)
-- Data Stream as Disjoint Intervals — *Hard* (#224)
-
-**Interval Booking Structure** (2)
-- My Calendar I, II, III — *Medium* 🔥 (#220)
-- Car Pooling — *Medium* 🔥 🆕 (supplemental)
-
-**Persistent Array Snapshot Design** (2)
-- Snapshot Array — *Medium* (#495)
-- Design a Stack With Increment Operation — *Medium* 🆕 (supplemental)
-
-**Segment Tree / Ordered Range Design** (2)
-- Range Module (add/remove/query ranges) — *Hard* (#501)
-- Rectangle Area II — *Hard* 🆕 (supplemental)
-
-**Segment Tree Ticket Allocation** (2)
-- Booking Concert Tickets in Groups — *Hard* (#506)
-- Range Sum Query - Mutable — *Medium* 🔥 🆕 (supplemental)
-
-### System & Data Structure Design (37 problems, ~43.5h)
-
-**O(1) Cache Design** (2)
-- LRU Cache (design problem) — *Medium* (#109)
-- Design Underground System — *Medium* 🆕 (supplemental)
-
-**Frequency-Aware Cache Design** (2)
-- LFU Cache — *Hard* (#110)
-- Design Twitter — *Medium* 🔥 🆕 (supplemental)
-
-**Ordered Probabilistic Structure** (2)
-- Design Skiplist — *Hard* (#111)
-- Random Pick with Blacklist — *Hard* 🆕 (supplemental)
-
-**Core Data-Structure Design** (9)
-- Design LRU Cache — *Medium* (#472)
-- Design LFU Cache — *Hard* (#473)
-- Design Twitter (top 10 tweets feed) — *Medium* (#474)
-- Design a Hit Counter — *Medium* (#475)
-- Design a Rate Limiter (token bucket) — *Medium* (#476)
-- Design In-Memory File System — *Hard* (#477)
-- Design Search Autocomplete System (Trie + heap) — *Hard* (#478)
-- Design a Phone Directory — *Medium* (#479)
-- Design Underground System (check-in/check-out) — *Medium* (#481)
-
-**Randomized Data Structure** (5)
-- Shuffle an Array — *Medium* (#482)
-- Random Pick Index (reservoir sampling) — *Medium* (#483)
-- Linked List Random Node — *Medium* (#484)
-- Insert Delete GetRandom O(1) — *Medium* (#486)
-- Insert Delete GetRandom O(1) — Duplicates Allowed — *Hard* (#487)
-
-**Online / Streaming Design** (9)
-- Moving Average from Data Stream — *Easy* (#488)
-- Find Median from Data Stream (revisited) — *Hard* 🔥 (#489)
-- Kth Largest Element in a Stream (revisited) — *Easy* 🔥 (#490)
-- Design a Stack with Increment Operation — *Medium* (#491)
-- Design a Stack with getMin() / getMax() — *Easy* (#492)
-- Time-Based Key-Value Store — *Medium* (#493)
-- Design an Ordered Stream — *Easy* (#494)
-- Design a Log Aggregation System — *Medium* (#496)
-- First Unique Number in Stream — *Medium* (#497)
-
-**Advanced System Design** (8)
-- Word Filter (prefix + suffix search, Trie) — *Hard* (#498)
-- Exam Room (seat assignment) — *Medium* (#499)
-- My Calendar I / II / III — *Medium* 🔥 (#500)
-- All O'one Data Structure (O(1) min/max string freq) — *Hard* (#502)
-- Design a Food Rating System — *Medium* (#503)
-- Stock Price Fluctuation (max/min with updates) — *Medium* (#504)
-- Find Servers That Handled Most Requests — *Hard* (#505)
-- Subrectangle Queries — *Medium* (#507)
-
----
-
-## How to use this guide
-
-Work stage by stage, top to bottom, starting with the new **Foundational** stage — it's short (6 problems, ~4 hours) and everything after it assumes you can read a constraint and estimate required complexity. Within a module, problems are listed in sequence order; new 🆕 supplemental problems are appended after the original block for that pattern, so solve the original entries first, then the supplement as reinforcement. 🔥 marks `interview_frequency: high`. Supplemental problems have `original_number: null` and `"supplemental": true` in the JSON — filter on that field if you ever want to isolate just the original 507 or just the additions.
-
-## Verification
-
-- 557 total problems in the fixed file (507 original + 50 supplemental), all present in this doc — checked programmatically, zero missing.
-- Zero duplicate IDs. Two duplicate *titles* exist ("Random Pick with Weight", "Decode Ways") — both pre-existing in the original 507, not introduced by the fix.
-- Every one of the 34 single-problem patterns identified in the gap analysis now has 2 problems. The Sorting module went from 6 → 14 problems. A new Foundational stage now precedes Explorer. Graph module Easy count: 2 → 3. DP module Easy count: 5 → 7.
+| `SK-OB-01` Asymptotic Estimation | Brute force O(n^2) vs hash-map O(n) — the canonical first lesson in reading constraints to infer required complexity. | CPX-001 | 1 problems | 1 problems |
+| `SK-OB-02` Amortized Analysis | Every operation must be O(1) — introduces amortized/worst-case distinction via auxiliary state. | CPX-004 | 2 problems | 0 problems |
+| `SK-OB-03` Running Extremum Scan | Running Extremum Scan — track a running best-so-far value (max, min, or both) in a single pass; when a new element makes the running value worse than starting fresh, reset instead of carrying stale history forward. The basis of Kadane's algorithm for maximum subarray problems. | OBS-001 | 1 problems | 0 problems |
+| `SK-OB-04` Single-Pass Greedy Choice | Single-Pass Greedy Choice — scan once, maintain one running invariant (best buy-so-far, farthest reachable index, cumulative deficit, or a two-pass local allocation), and make an irrevocable locally-optimal decision at each step instead of exploring alternatives. Distinct from Running Extremum Scan: the invariant here drives a decision (buy/sell, jump, refuel, allocate), not just a max/min value. | OBS-003 | 4 problems | 1 problems |
+| `SK-OB-05` Expand Around Center | Expand Around Center — for every possible palindrome center (each index, and each gap between two indices, for odd- and even-length palindromes), expand outward while the characters on both sides match. O(n^2) time, O(1) space; the standard non-DP approach to palindrome-substring problems. | OBS-019 | 1 problems | 0 problems |
+| `SK-OB-06` Pattern Matching / Prefix Function | PDF subsection: Pattern Matching. Shared technique note for this skill group (general, not specific to this problem): KMP / Rabin-Karp / Z-Algorithm — efficient O(n+m) substring search. | OBS-021 | 2 problems | 2 problems |
+
+## State Construction
+
+Build explicit state representations (hash maps, frequency counts, pointer-linked structures) that summarize an input well enough to answer the actual question.
+
+*6 skills, 46 problems.*
+
+| Skill | Description | Primary | Reinforcement | Challenge |
+|---|---|---|---|---|
+| `SK-SC-01` String Simulation / Frequency Map | PDF subsection: String Manipulation & Hashing. Shared technique note for this skill group (general, not specific to this problem): HashMap / Frequency Count — count character frequencies to compare or find patterns. | HSH-001 | 11 problems | 0 problems |
+| `SK-SC-02` Hash Map / Hash Set | HashMap — O(1) lookups to avoid nested loops; track frequency, index, or pairs. Intentional revisit preserved from the PDF. | HSH-005 | 6 problems | 0 problems |
+| `SK-SC-03` Cycle Detection or Value-Space Search | Sorting + Binary Search — sort once, then binary-search for O(n log n) solutions. | LNK-001 | 1 problems | 0 problems |
+| `SK-SC-04` Fast & Slow Pointers | PDF subsection: Fast & Slow Pointers. Shared technique note for this skill group (general, not specific to this problem): Floyd's Cycle Detection — two pointers at different speeds to detect cycles and midpoints. | LNK-002 | 4 problems | 0 problems |
+| `SK-SC-05` Linked-List Reversal / Merge | PDF subsection: Reversal & Merging. Shared technique note for this skill group (general, not specific to this problem): In-place Reversal — reverse sublists or entire lists using pointer manipulation. | LNK-007 | 11 problems | 2 problems |
+| `SK-SC-06` Pointer Stitching / List Design | PDF subsection: Advanced Linked List. Shared technique note for this skill group (general, not specific to this problem): In-place Reversal — reverse sublists or entire lists using pointer manipulation. | LNK-026 | 5 problems | 0 problems |
+
+## Constraint Maintenance
+
+Maintain a moving invariant (window, pointer pair, or monotonic stack) while scanning, so that repeated work collapses into amortized linear time.
+
+*6 skills, 46 problems.*
+
+| Skill | Description | Primary | Reinforcement | Challenge |
+|---|---|---|---|---|
+| `SK-CM-01` Two Pointers | Two Pointers — use two indices moving toward/away from each other to reduce O(n²) to O(n). Intentional revisit preserved from the PDF. | TWO-001 | 8 problems | 1 problems |
+| `SK-CM-02` Sliding Window | Sliding Window — maintain a window of elements; expand/shrink to satisfy a constraint. | WIN-002 | 7 problems | 2 problems |
+| `SK-CM-03` Sliding Window on Strings | Variable-size Sliding Window — track character counts inside a window. | WIN-011 | 2 problems | 1 problems |
+| `SK-CM-04` Stack Parsing / Monotonic Stack | Monotonic Stack / Explicit Stack — process characters left-to-right with a stack. | STK-001 | 8 problems | 1 problems |
+| `SK-CM-05` Monotonic Stack on Linked List | In-place Reversal — reverse sublists or entire lists using pointer manipulation. | STK-011 | 1 problems | 0 problems |
+| `SK-CM-06` Monotonic Stack | Monotonic Stack — maintain a stack in increasing/decreasing order for next-greater/smaller | STK-012 | 7 problems | 2 problems |
+
+## Ordered Reasoning
+
+Use sorted order and monotonic feasibility to replace repeated scans with binary search or a single sorted pass.
+
+*5 skills, 36 problems.*
+
+| Skill | Description | Primary | Reinforcement | Challenge |
+|---|---|---|---|---|
+| `SK-OR-01` Patience Sorting / Bisect | Patience Sorting / Bisect — maintain a `tails` array where tails[k] is the smallest possible tail of an increasing subsequence of length k+1; binary-search for each new element's insertion point. The basis of the O(n log n) Longest Increasing Subsequence algorithm. | OBS-026 | 1 problems | 0 problems |
+| `SK-OR-02` Parametric Search | PDF subsection: Binary Search on Answer. Shared technique note for this skill group (general, not specific to this problem): Parametric Search — binary search on the answer space, validate with a feasibility function. | TWO-011 | 8 problems | 6 problems |
+| `SK-OR-03` Binary Search on Rotated Array | PDF subsection: Sorting & Searching in Arrays. Shared technique note for this skill group (general, not specific to this problem): Sorting + Binary Search — sort once, then binary-search for O(n log n) solutions. | BSR-001 | 1 problems | 0 problems |
+| `SK-OR-04` Binary Search | Binary Search — repeatedly halve the search space on a monotonic function. | BSR-003 | 7 problems | 1 problems |
+| `SK-OR-05` Sorting Algorithms & Custom Comparators | Raw sorting mechanics were previously assumed, never taught — implement the algorithm itself. | ORD-008 | 7 problems | 0 problems |
+
+## Decision Making
+
+Commit to local, irrevocable choices and defend them with an exchange argument, invariant, or counterexample search, instead of exploring every branch.
+
+*3 skills, 19 problems.*
+
+| Skill | Description | Primary | Reinforcement | Challenge |
+|---|---|---|---|---|
+| `SK-DM-01` Priority Scheduling | Priority Scheduling — repeatedly pick the highest-priority or most-frequent remaining item using a max-heap (or frequency-bucket count), respecting a cooldown or ordering constraint before that item can be reused. | HEP-002 | 1 problems | 0 problems |
+| `SK-DM-02` Sorting / Greedy Choice | Sorting / Greedy Choice — sort the input first, then apply a greedy selection rule (e.g. always take from a fixed relative position within each sorted group) to optimize an aggregate outcome; correctness typically follows from an exchange argument. | GRD-001 | 1 problems | 0 problems |
+| `SK-DM-03` String / Array Greedy | Greedy Selection — always pick the locally optimal choice; prove exchange argument. | GRD-014 | 13 problems | 1 problems |
+
+## Interval Reasoning
+
+Reason about overlapping ranges, sweeps, and ordered range-query structures (Fenwick/segment trees) that summarize or update intervals efficiently.
+
+*11 skills, 40 problems.*
+
+| Skill | Description | Primary | Reinforcement | Challenge |
+|---|---|---|---|---|
+| `SK-IR-01` Interval / Scheduling Greedy | PDF subsection: Interval & Scheduling Greedy. Shared technique note for this skill group (general, not specific to this problem): Greedy Selection — always pick the locally optimal choice; prove exchange argument. | GRD-005 | 11 problems | 0 problems |
+| `SK-IR-02` Sorting / Interval Sweep | PDF subsection: Sorting & Searching in Arrays. Shared technique note for this skill group (general, not specific to this problem): Sorting + Binary Search — sort once, then binary-search for O(n log n) solutions. | ORD-001 | 4 problems | 0 problems |
+| `SK-IR-03` Two-Pointer Interval Sweep | Second example of sweeping sorted values into ranges — gives 'Interval List Intersections' a companion instead of standing alone. | ORD-007 | 1 problems | 0 problems |
+| `SK-IR-04` Fenwick Tree / Ordered Merge | Fenwick Tree / Ordered Merge — coordinate-compress the values, then use a Fenwick (Binary Indexed) tree to count, in O(log n) per element, how many previously-inserted values are smaller; a merge-sort-based inversion count is the ordered-merge alternative. | RNG-001 | 1 problems | 0 problems |
+| `SK-IR-05` Range Count / Ordered Prefix | Range Count / Ordered Prefix — compute prefix sums, then count index pairs (i, j) whose prefix-sum difference falls in a target range, using a Fenwick tree, merge sort, or balanced BST over the prefix-sum sequence for O(n log n). | RNG-002 | 1 problems | 0 problems |
+| `SK-IR-06` Fenwick Tree / Ordered Statistics | Second ordered-statistics counting problem, more approachable difficulty than the existing Hard-only pair. | RNG-017 | 1 problems | 0 problems |
+| `SK-IR-07` Fenwick Tree / Segment Tree | Segment Tree / Fenwick Tree — O(log n) range queries and point updates. | RNG-004 | 1 problems | 5 problems |
+| `SK-IR-08` Interval Booking Structure | Interval Booking Structure — maintain a dynamic set of booked intervals (sorted structure, balanced BST, or segment tree) supporting fast overlap queries and insertions as new bookings arrive online. | RNG-008 | 1 problems | 0 problems |
+| `SK-IR-09` Persistent Array Snapshot Design | Persistent Array Snapshot Design — instead of copying the whole array on every snapshot, store each index's value history as a list of (snapshot_id, value) pairs and binary-search that history on read, giving O(1) snapshot and O(log n) get. | RNG-012 | 1 problems | 0 problems |
+| `SK-IR-10` Segment Tree / Ordered Range Design | Segment Tree / Ordered Range Design — maintain a dynamic set of non-overlapping ranges (a sorted map of interval boundaries, or a segment tree with lazy propagation) supporting add/remove/query of arbitrary ranges. | RNG-013 | 1 problems | 0 problems |
+| `SK-IR-11` Segment Tree Ticket Allocation | A simpler Fenwick/segment-tree prerequisite that should precede the harder Booking Concert Tickets problem already in this pattern. | RNG-021 | 1 problems | 0 problems |
+
+## Recursive Thinking
+
+Decompose hierarchical structures (trees, BSTs, tries) into reusable subproblems and combine subtree results through a stated recursive contract.
+
+*6 skills, 46 problems.*
+
+| Skill | Description | Primary | Reinforcement | Challenge |
+|---|---|---|---|---|
+| `SK-RT-01` Tree Traversal (DFS/BFS) | PDF subsection: Tree Traversals. Shared technique note for this skill group (general, not specific to this problem): DFS (Pre/In/Post-order) & BFS (Level-order) — foundation of nearly all tree problems. | TRE-001 | 8 problems | 1 problems |
+| `SK-RT-02` Tree Recursion | Tree Recursion — solve sub-problems on left/right subtrees and combine results. | TRE-011 | 13 problems | 1 problems |
+| `SK-RT-03` Tree Serialization | Tree Serialization — convert a tree into a string (typically via pre-order or level-order traversal, encoding null children as sentinels) and reconstruct it unambiguously from that string alone. | TRE-026 | 1 problems | 0 problems |
+| `SK-RT-04` BST Invariant | BST Invariant — for every node, all values in the left subtree are smaller and all values in the right subtree are larger. Exploit this ordering to prune search (go left or right, never both) instead of visiting every node. | BST-003 | 9 problems | 1 problems |
+| `SK-RT-05` Trie / Prefix Tree | PDF subsection: Tries. Shared technique note for this skill group (general, not specific to this problem): Trie (Prefix Tree) — efficient prefix search and autocomplete in O(L) per query. | TRI-001 | 3 problems | 2 problems |
+| `SK-RT-06` Trie with Multiplicity | Trie with Multiplicity — extend a standard trie node with a count (or list) at each node or end-of-word marker to track how many times a word or prefix has been inserted, enabling frequency-aware prefix queries. | TRI-007 | 1 problems | 0 problems |
+
+## State Transition
+
+Define explicit states, transitions, and base cases, then choose an evaluation order that respects dependencies -- the discipline of dynamic programming.
+
+*17 skills, 103 problems.*
+
+| Skill | Description | Primary | Reinforcement | Challenge |
+|---|---|---|---|---|
+| `SK-ST-01` 2-D Dynamic Programming | 2-D DP — state is two indices (i, j); fill a table row by row. | DP-029 | 6 problems | 10 problems |
+| `SK-ST-02` Word-Break Dynamic Programming | Word-Break Dynamic Programming — dp[i] is true if the prefix of length i can be segmented into dictionary words: dp[i] is true when some dp[j] is true and s[j:i] is in the dictionary. | DP-003 | 1 problems | 0 problems |
+| `SK-ST-03` Decode Dynamic Programming | Decode Dynamic Programming — dp[i] is the number of ways to decode the prefix of length i, combining the ways from treating s[i-1] alone and s[i-2:i] as a pair, with '0' and two-digit validity as base-case constraints. | DP-004 | 1 problems | 0 problems |
+| `SK-ST-04` LIS Dynamic Programming with Bisect | Parametric Search — binary search on the answer space, validate with a feasibility function. | DP-005 | 1 problems | 0 problems |
+| `SK-ST-05` LIS on Ordered Envelopes | LIS on Ordered Envelopes — sort by one dimension (width ascending, height descending on ties) to reduce a 2-D nesting problem to a 1-D Longest Increasing Subsequence on the second dimension, then solve with patience sorting / bisect. | DP-006 | 1 problems | 0 problems |
+| `SK-ST-06` Weighted Interval Scheduling | Second weighted-interval-scheduling DP, more approachable than Job Scheduling. | DP-097 | 1 problems | 0 problems |
+| `SK-ST-07` Longest Increasing Subsequence Counting | Longest Increasing Subsequence Counting — for each index, track both the length of the longest increasing subsequence ending there and the number of subsequences achieving that length, combining counts from all valid predecessors. | DP-008 | 1 problems | 0 problems |
+| `SK-ST-08` Catalan Dynamic Programming | Catalan Dynamic Programming — dp[n] is the number of structurally distinct trees/structures of size n, computed by summing dp[i-1] * dp[n-i] over every possible split point i. Produces the Catalan number sequence. | DP-009 | 1 problems | 0 problems |
+| `SK-ST-09` Tree Dynamic Programming | Simpler tree-DP on-ramp that should really be solved before the harder Binary Tree Cameras already in this pattern. | DP-100 | 1 problems | 0 problems |
+| `SK-ST-10` LIS Counting with Range Queries | Segment Tree / Fenwick Tree — O(log n) range queries and point updates. Intentional revisit preserved from the PDF. | DP-011 | 1 problems | 0 problems |
+| `SK-ST-11` Pointer Dynamic Programming | PDF subsection: Two-Heap Pattern. Shared technique note for this skill group (general, not specific to this problem): Two Heaps — one max-heap and one min-heap to find the median dynamically. | DP-012 | 1 problems | 0 problems |
+| `SK-ST-12` 1-D Dynamic Programming | 1-D DP — state is a single index; transition from previous states. | DP-014 | 15 problems | 1 problems |
+| `SK-ST-13` Knapsack Dynamic Programming | PDF subsection: Knapsack Variants. Shared technique note for this skill group (general, not specific to this problem): 0/1 Knapsack / Unbounded Knapsack — classic DP on items with weight/value. | DP-044 | 8 problems | 1 problems |
+| `SK-ST-14` Interval / Range Dynamic Programming | PDF subsection: Interval / Range DP. Shared technique note for this skill group (general, not specific to this problem): Interval DP — solve subproblems over all intervals [i, j], merge results. | DP-055 | 1 problems | 7 problems |
+| `SK-ST-15` State Machine Dynamic Programming | PDF subsection: State-Machine DP (Stocks & Transactions). Shared technique note for this skill group (general, not specific to this problem): State Machine DP — model allowed states (holding/not holding) and transitions. | DP-065 | 3 problems | 6 problems |
+| `SK-ST-16` Bitmask Dynamic Programming | PDF subsection: Bitmask DP. Shared technique note for this skill group (general, not specific to this problem): Bitmask DP — represent subsets as bitmasks; ideal for small n (≤20). | DP-074 | 1 problems | 8 problems |
+| `SK-ST-17` Tree / Graph Dynamic Programming | Tree / Graph Dynamic Programming — compute a value at each node from its already-computed children (post-order traversal), e.g. height, diameter, or max path sum, combining child results at each parent. | DP-083 | 1 problems | 8 problems |
+
+## Graph Thinking
+
+Model problems as graphs, choose the right traversal or connectivity tool, and separate reachability/traversal correctness from path optimality.
+
+*9 skills, 71 problems.*
+
+| Skill | Description | Primary | Reinforcement | Challenge |
+|---|---|---|---|---|
+| `SK-GT-01` Queue / Deque / BFS | Monotonic Deque — maintain a deque for sliding window max/min in O(n). | QUE-003 | 8 problems | 4 problems |
+| `SK-GT-02` Grid BFS | Grid BFS — treat each grid cell as a graph node connected to its (usually 4-directional) neighbors, and run multi-source BFS from every initially 'active' cell simultaneously to compute the minimum steps for a state to propagate across the grid. | GRF-001 | 1 problems | 0 problems |
+| `SK-GT-03` Graph BFS | PDF subsection: BFS (Shortest Path / Level-order). Shared technique note for this skill group (general, not specific to this problem): BFS — explore nodes level by level; guarantees shortest path in unweighted graphs. | GRF-004 | 10 problems | 4 problems |
+| `SK-GT-04` Graph DFS / Union-Find | PDF subsection: DFS / Backtracking on Graphs. Shared technique note for this skill group (general, not specific to this problem): DFS with Visited Set — explore all paths; detect cycles and connected components. | GRF-017 | 9 problems | 0 problems |
+| `SK-GT-05` Topological Sort | PDF subsection: Topological Sort. Shared technique note for this skill group (general, not specific to this problem): Kahn's Algorithm / DFS Post-order — linear ordering of nodes in a DAG. | GRF-028 | 3 problems | 2 problems |
+| `SK-GT-06` Disjoint Set Union | PDF subsection: Union-Find (Disjoint Set Union). Shared technique note for this skill group (general, not specific to this problem): DSU with Path Compression + Union by Rank — near-O(1) amortised operations. | GRF-033 | 3 problems | 4 problems |
+| `SK-GT-07` Shortest Path Algorithms | PDF subsection: Shortest Path Algorithms. Shared technique note for this skill group (general, not specific to this problem): Dijkstra / Bellman-Ford / Floyd-Warshall — weighted shortest paths. | GRF-041 | 6 problems | 3 problems |
+| `SK-GT-08` Minimum Spanning Tree | PDF subsection: Minimum Spanning Tree. Shared technique note for this skill group (general, not specific to this problem): Kruskal's / Prim's — greedily build a spanning tree with minimum total edge weight. | GRF-051 | 1 problems | 3 problems |
+| `SK-GT-09` Grid DFS / Flood Fill | An Easy grid-DFS problem — softens the module's steep 2-Easy-out-of-56 difficulty cliff. | GRF-058 | 1 problems | 0 problems |
+
+## Query Processing
+
+Answer repeated queries efficiently using precomputed prefix structures or order-statistic heaps, instead of rescanning the input per query.
+
+*6 skills, 37 problems.*
+
+| Skill | Description | Primary | Reinforcement | Challenge |
+|---|---|---|---|---|
+| `SK-QP-01` Prefix Sum / Difference Array | Prefix Sum — precompute cumulative sums for O(1) range queries. | PFX-002 | 9 problems | 0 problems |
+| `SK-QP-02` Prefix Sum + Hash Map | HashMap — O(1) lookups to avoid nested loops; track frequency, index, or pairs. Intentional revisit preserved from the PDF. | PFX-011 | 2 problems | 0 problems |
+| `SK-QP-03` Weighted Prefix Sampling | Reservoir Sampling / Fisher-Yates — uniform random sampling in O(1) space. Intentional revisit preserved from the PDF. | PFX-014 | 1 problems | 0 problems |
+| `SK-QP-04` Heap Selection | Heap Selection — maintain a fixed-size min-heap (size k) of the largest elements seen so far; after processing all elements, the heap's minimum is the kth largest, avoiding a full O(n log n) sort. | HEP-001 | 1 problems | 0 problems |
+| `SK-QP-05` Top-K Heap | Min-Heap of size K — maintain the K largest elements efficiently. Intentional revisit preserved from the PDF. | HEP-003 | 8 problems | 1 problems |
+| `SK-QP-06` Two Heaps / Priority Queue | Two Heaps — one max-heap and one min-heap to find the median dynamically. | HEP-016 | 3 problems | 6 problems |
+
+## Pattern Discovery
+
+Generate the space of possibilities deliberately, prune aggressively using the problem's constraints, and recognize when a decision tree is the right model.
+
+*5 skills, 33 problems.*
+
+| Skill | Description | Primary | Reinforcement | Challenge |
+|---|---|---|---|---|
+| `SK-PD-01` Memoized DFS / Enumeration | Simpler enumeration-with-pruning on-ramp before the harder Word Break II already in this pattern. | REC-032 | 1 problems | 0 problems |
+| `SK-PD-02` Recursive Tree Construction | Recursive Tree Construction — for each possible root value, recursively generate every valid left-subtree and right-subtree shape, then combine each left/right pair under that root to enumerate all distinct trees. | REC-002 | 1 problems | 0 problems |
+| `SK-PD-03` Combination Backtracking | PDF subsection: Subsets & Combinations. Shared technique note for this skill group (general, not specific to this problem): Backtracking — explore all choices recursively; prune branches that violate constraints. | REC-003 | 9 problems | 0 problems |
+| `SK-PD-04` Permutation Backtracking | PDF subsection: Permutations. Shared technique note for this skill group (general, not specific to this problem): Permutation Backtracking — swap elements or use a visited array. | REC-013 | 4 problems | 5 problems |
+| `SK-PD-05` Constraint Backtracking | PDF subsection: Advanced Backtracking. Shared technique note for this skill group (general, not specific to this problem): Permutation Backtracking — swap elements or use a visited array. | REC-024 | 5 problems | 3 problems |
+
+## Mathematical Thinking
+
+Replace simulation with direct reasoning using number-theoretic or bitwise properties, and prove correctness algebraically rather than by example.
+
+*3 skills, 22 problems.*
+
+| Skill | Description | Primary | Reinforcement | Challenge |
+|---|---|---|---|---|
+| `SK-MT-01` Cycle Detection on State Space | Floyd's Cycle Detection — two pointers at different speeds to detect cycles and midpoints. Intentional revisit preserved from the PDF. | MAT-001 | 1 problems | 0 problems |
+| `SK-MT-02` Number Theory / Arithmetic | Number Theory — prime sieves, GCD/LCM, modular arithmetic, combinatorics. | MAT-003 | 9 problems | 0 problems |
+| `SK-MT-03` Bit Manipulation | PDF subsection: Bit Manipulation. Shared technique note for this skill group (general, not specific to this problem): Bit Tricks — XOR, AND/OR masks, Brian Kernighan's algorithm for O(1) bit operations. | MAT-012 | 9 problems | 0 problems |
+
+## Integration
+
+Compose multiple data structures into a durable system, support online updates, and reason about API guarantees under sustained use -- the terminal stage of the apprenticeship.
+
+*7 skills, 37 problems.*
+
+| Skill | Description | Primary | Reinforcement | Challenge |
+|---|---|---|---|---|
+| `SK-IN-01` O(1) Cache Design | O(1) Cache Design — combine a hash map (O(1) key lookup) with a doubly linked list (O(1) reordering/eviction) so both get and put run in O(1); the list tracks recency or frequency order for eviction. | DES-001 | 1 problems | 0 problems |
+| `SK-IN-02` Frequency-Aware Cache Design | Second recency/frequency-aware design problem, complementing LFU Cache. | DES-036 | 1 problems | 0 problems |
+| `SK-IN-03` Ordered Probabilistic Structure | Ordered Probabilistic Structure — build a multi-level linked structure where each node is randomly promoted to higher levels with fixed probability, giving expected O(log n) search/insert/delete without balanced-tree rebalancing logic. | DES-003 | 1 problems | 0 problems |
+| `SK-IN-04` Core Data-Structure Design | PDF subsection: Classic Design Problems. Shared technique note for this skill group (general, not specific to this problem): OOP + Right Data Structures — combine hash maps, heaps, doubly linked lists for O(1) ops. | DES-004 | 5 problems | 3 problems |
+| `SK-IN-05` Randomized Data Structure | PDF subsection: Randomized & Probabilistic Structures. Shared technique note for this skill group (general, not specific to this problem): Reservoir Sampling / Fisher-Yates — uniform random sampling in O(1) space. | DES-013 | 3 problems | 1 problems |
+| `SK-IN-06` Online / Streaming Design | Online Algorithms — process data one element at a time without looking back. | DES-018 | 7 problems | 1 problems |
+| `SK-IN-07` Advanced System Design | Advanced System Design — maintain a dynamic ordered set of occupied positions (a sorted structure or a heap of gaps) supporting online insert/remove operations while always answering the optimal-placement query efficiently. | DES-028 | 4 problems | 3 problems |
+

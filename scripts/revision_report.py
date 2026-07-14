@@ -18,7 +18,7 @@ from _shared import (
     open_revision_entries,
     parse_iso_date,
     problem_lookup,
-    weakest_modules,
+    weakest_skills,
 )
 
 
@@ -27,7 +27,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     parser = argparse.ArgumentParser(
         description=(
-            "Summarize today's revisions, overdue revisions, weakest solved modules, "
+            "Summarize today's revisions, overdue revisions, weakest solved skills, "
             "confidence trend, and interview-score trend."
         )
     )
@@ -75,7 +75,7 @@ def build_payload(state_date: date, state: Any) -> dict[str, Any]:
             {
                 **entry,
                 "title": problems[entry["problem"]]["title"],
-                "module": problems[entry["problem"]]["module"],
+                "skill": problems[entry["problem"]]["primary_skill"],
                 "stage": problems[entry["problem"]]["stage"],
             }
             for entry in sorted(
@@ -97,7 +97,7 @@ def build_payload(state_date: date, state: Any) -> dict[str, Any]:
         "date": state_date.isoformat(),
         "todays_revisions": enrich(todays),
         "overdue_revisions": enrich(overdue),
-        "weakest_modules": weakest_modules(state),
+        "weakest_skills": weakest_skills(state),
         "confidence_trend": confidence_trend(completed),
         "interview_score_trend": interview_trend(completed),
     }
@@ -111,7 +111,7 @@ def render_text(payload: dict[str, Any], today_only: bool) -> str:
     if payload["todays_revisions"]:
         for entry in payload["todays_revisions"]:
             lines.append(
-                f"- {entry['problem']} | {entry['title']} | {entry['module']} | "
+                f"- {entry['problem']} | {entry['title']} | {entry['skill']} | "
                 f"{entry['priority']} | {entry['reason']}"
             )
     else:
@@ -130,14 +130,14 @@ def render_text(payload: dict[str, Any], today_only: bool) -> str:
 
     if not today_only:
         lines.append("Weakest Modules")
-        if payload["weakest_modules"]:
-            for module in payload["weakest_modules"]:
+        if payload["weakest_skills"]:
+            for skill in payload["weakest_skills"]:
                 lines.append(
-                    f"- {module['module']} | score {module['average_weighted_thinking_score']:.2f} | "
-                    f"solved {module['solved_problems']}"
+                    f"- {skill['skill_name']} | score {skill['average_weighted_thinking_score']:.2f} | "
+                    f"solved {skill['solved_problems']}"
                 )
         else:
-            lines.append("- No solved modules yet")
+            lines.append("- No solved skills yet")
         lines.append("")
 
         confidence = payload["confidence_trend"]
