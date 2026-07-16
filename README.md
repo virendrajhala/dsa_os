@@ -20,12 +20,14 @@ python3 --version
    `make validate`
 2. Inspect the current dashboard.
    `make dashboard`
-3. Select the next problem.
+3. Open the full web dashboard.
+   `make web-dashboard`
+4. Select the next problem.
    `make next`
-4. Solve the problem using the case file template and constitution.
-5. Record the session or revision result.
+5. Solve the problem using the case file template and constitution.
+6. Record the session or revision result.
    `make progress ARGS="--problem-id OBS-001 ..."`
-6. Review revision pressure.
+7. Review revision pressure.
    `make revise`
 
 ## Workflow
@@ -37,7 +39,8 @@ The repository operates in a tight loop.
 3. `templates/case_file_template.md` captures the session thinking process.
 4. `scripts/update_progress.py` records a new solve or active-recall revision result, appends history, updates revision state, promotes stage when earned, and selects the next problem automatically.
 5. `scripts/revision_report.py` reports due active-recall revisions, quarterly maintenance, and trend data.
-6. `scripts/dashboard.py` gives a compact operating view for daily use.
+6. `scripts/dashboard.py` gives a compact console operating view for daily use.
+7. `scripts/serve_dashboard.py` serves the full browser dashboard from `web_dashboard/`.
 
 ## Repository Architecture
 
@@ -67,11 +70,12 @@ The repository keeps one source of truth per concern.
 Typical daily flow:
 
 1. `make dashboard`
-2. `make next`
-3. Open `templates/case_file_template.md`
-4. Solve the selected problem
-5. Record the session with `make progress ARGS="..."`
-6. Re-run `make dashboard`
+2. `make web-dashboard`
+3. `make next`
+4. Open `templates/case_file_template.md`
+5. Solve the selected problem
+6. Record the session with `make progress ARGS="..."`
+7. Re-run `make dashboard`
 
 Typical progress update command:
 
@@ -121,6 +125,7 @@ The repository ships with a Makefile.
 
 - `make validate`
 - `make dashboard`
+- `make web-dashboard`
 - `make next`
 - `make revise`
 - `make stats`
@@ -134,7 +139,12 @@ python3 scripts/next_problem.py --help
 python3 scripts/update_progress.py --help
 python3 scripts/revision_report.py --help
 python3 scripts/dashboard.py --help
+python3 scripts/serve_dashboard.py --help
 ```
+
+The browser dashboard is available at `http://127.0.0.1:8765/web_dashboard/`
+after running `make web-dashboard`. It reads the canonical repository files
+directly and does not mutate progress state.
 
 ## Contribution Guide
 

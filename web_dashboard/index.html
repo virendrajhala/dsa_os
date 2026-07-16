@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>DSA OS Dashboard</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar" aria-label="Dashboard navigation">
+        <div class="brand">
+          <div class="brand-mark">DS</div>
+          <div>
+            <h1>DSA OS</h1>
+            <p>Learning cockpit</p>
+          </div>
+        </div>
+        <nav class="nav-list">
+          <a href="#overview">Overview</a>
+          <a href="#stages">Stages</a>
+          <a href="#revisions">Revisions</a>
+          <a href="#skills">Skills</a>
+          <a href="#history">History</a>
+          <a href="#thinking">Thinking</a>
+        </nav>
+        <div class="source-card">
+          <span class="label">Source</span>
+          <strong>progress/progress.json</strong>
+          <small id="last-updated">Loading...</small>
+        </div>
+      </aside>
+
+      <main class="main">
+        <header class="topbar">
+          <div>
+            <p class="eyebrow">Developer dashboard</p>
+            <h2>DSA journey tracker</h2>
+          </div>
+          <div class="toolbar">
+            <input id="search" type="search" placeholder="Search problems, skills, notes" />
+            <select id="stage-filter" aria-label="Filter by stage">
+              <option value="">All stages</option>
+            </select>
+            <select id="status-filter" aria-label="Filter by status">
+              <option value="">All statuses</option>
+              <option value="completed">Completed</option>
+              <option value="active">Active revisions</option>
+              <option value="failed">Failed revisions</option>
+              <option value="mastered">Mastered revisions</option>
+              <option value="not_started">Not started</option>
+            </select>
+          </div>
+        </header>
+
+        <section id="overview" class="section">
+          <div class="metric-grid" id="metric-grid"></div>
+          <div class="panel-grid">
+            <section class="panel">
+              <div class="panel-head">
+                <div>
+                  <p class="eyebrow">Current work</p>
+                  <h3>Next action</h3>
+                </div>
+                <span class="pill" id="selection-mode">-</span>
+              </div>
+              <div id="next-action" class="next-action"></div>
+            </section>
+            <section class="panel">
+              <div class="panel-head">
+                <div>
+                  <p class="eyebrow">Score shape</p>
+                  <h3>Thinking dimensions</h3>
+                </div>
+              </div>
+              <div id="thinking-bars" class="bar-list"></div>
+            </section>
+          </div>
+        </section>
+
+        <section id="stages" class="section">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Curriculum map</p>
+              <h3>Stage progression</h3>
+            </div>
+          </div>
+          <div id="stage-board" class="stage-board"></div>
+        </section>
+
+        <section id="revisions" class="section two-column">
+          <section class="panel">
+            <div class="panel-head">
+              <div>
+                <p class="eyebrow">Spaced recall</p>
+                <h3>Revision pipeline</h3>
+              </div>
+            </div>
+            <div id="revision-lanes" class="revision-lanes"></div>
+          </section>
+          <section class="panel">
+            <div class="panel-head">
+              <div>
+                <p class="eyebrow">Calendar</p>
+                <h3>Upcoming due dates</h3>
+              </div>
+            </div>
+            <div id="revision-calendar" class="timeline"></div>
+          </section>
+        </section>
+
+        <section id="skills" class="section">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Mastery detail</p>
+              <h3>Skills and problem coverage</h3>
+            </div>
+          </div>
+          <div id="skill-grid" class="skill-grid"></div>
+        </section>
+
+        <section id="history" class="section">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Audit trail</p>
+              <h3>Problem history</h3>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Problem</th>
+                  <th>Stage</th>
+                  <th>Skill</th>
+                  <th>Completed</th>
+                  <th>Revision</th>
+                  <th>Confidence</th>
+                  <th>Hint</th>
+                  <th>Signal</th>
+                </tr>
+              </thead>
+              <tbody id="problem-table"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section id="thinking" class="section two-column">
+          <section class="panel">
+            <div class="panel-head">
+              <div>
+                <p class="eyebrow">Learner model</p>
+                <h3>Strengths and cautions</h3>
+              </div>
+            </div>
+            <div id="thinking-profile" class="stack"></div>
+          </section>
+          <section class="panel">
+            <div class="panel-head">
+              <div>
+                <p class="eyebrow">Permanent notes</p>
+                <h3>Lessons and mistakes</h3>
+              </div>
+            </div>
+            <div id="learning-notes" class="stack"></div>
+          </section>
+        </section>
+      </main>
+    </div>
+
+    <template id="metric-template">
+      <article class="metric-card">
+        <span class="metric-label"></span>
+        <strong class="metric-value"></strong>
+        <small class="metric-note"></small>
+      </article>
+    </template>
+
+    <dialog id="skill-modal" class="modal">
+      <div class="modal-shell">
+        <header class="modal-head">
+          <div>
+            <p class="eyebrow">Stage skills</p>
+            <h3 id="modal-title">Skills</h3>
+            <p id="modal-subtitle"></p>
+          </div>
+          <button id="modal-close" class="icon-button" type="button" aria-label="Close dialog">
+            ×
+          </button>
+        </header>
+        <div id="modal-body" class="modal-body"></div>
+      </div>
+    </dialog>
+
+    <script src="./app.js"></script>
+  </body>
+</html>
