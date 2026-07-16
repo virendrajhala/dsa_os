@@ -332,7 +332,7 @@
     "latest_thinking_score": {
       "understanding": 4,
       "examples": 4,
-      "brute_force": 3,
+      "brute_force": 4,
       "pattern_detection": 4,
       "algorithm_design": 4,
       "complexity_analysis": 4,
@@ -340,40 +340,40 @@
       "communication": 4
     },
     "latest_interview_score": {
-      "understanding": 9,
-      "communication": 9,
-      "algorithm": 9,
-      "coding": 9,
-      "complexity": 9
+      "understanding": 10,
+      "communication": 10,
+      "algorithm": 10,
+      "coding": 10,
+      "complexity": 10
     },
     "averages": {
-      "thinking_weighted": 3.18,
+      "thinking_weighted": 3.32,
       "thinking_dimensions": {
-        "understanding": 3.2,
-        "examples": 3.2,
-        "brute_force": 3.0,
-        "pattern_detection": 3.2,
-        "algorithm_design": 3.2,
-        "complexity_analysis": 3.2,
-        "implementation": 3.2,
-        "communication": 3.2
+        "understanding": 3.33,
+        "examples": 3.33,
+        "brute_force": 3.17,
+        "pattern_detection": 3.33,
+        "algorithm_design": 3.33,
+        "complexity_analysis": 3.33,
+        "implementation": 3.33,
+        "communication": 3.33
       },
-      "interview_average": 7.4,
+      "interview_average": 7.83,
       "interview_dimensions": {
-        "understanding": 7.4,
-        "communication": 7.4,
-        "algorithm": 7.4,
-        "coding": 7.4,
-        "complexity": 7.4
+        "understanding": 7.83,
+        "communication": 7.83,
+        "algorithm": 7.83,
+        "coding": 7.83,
+        "complexity": 7.83
       },
-      "confidence_before": 3.8,
-      "confidence_after": 8.2,
-      "solved_unique_problems": 5
+      "confidence_before": 3.67,
+      "confidence_after": 8.5,
+      "solved_unique_problems": 6
     },
     "stage_checks": {
       "Observation": {
-        "attempted": 5,
-        "passed": 5
+        "attempted": 6,
+        "passed": 6
       },
       "State Construction": {
         "attempted": 0,
