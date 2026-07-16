@@ -10,12 +10,13 @@ from datetime import date
 from typing import Any
 
 from _shared import (
-    REVISION_PRIORITY_ORDER,
     RepositoryError,
     confidence_trend,
     interview_trend,
     load_repository_state,
     open_revision_entries,
+    quarterly_maintenance_entries,
+    revision_due_entries,
     parse_iso_date,
     problem_lookup,
     weakest_skills,
@@ -27,7 +28,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     parser = argparse.ArgumentParser(
         description=(
-            "Summarize today's revisions, overdue revisions, weakest solved skills, "
+            "Summarize active-recall revisions, maintenance reviews, weakest solved skills, "
             "confidence trend, and interview-score trend."
         )
     )
@@ -43,7 +44,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--today-only",
         action="store_true",
-        help="Only print today's and overdue revision schedule entries.",
+        help="Only print today's and overdue revision entries.",
     )
     parser.add_argument(
         "--format",
@@ -61,14 +62,15 @@ def build_payload(state_date: date, state: Any) -> dict[str, Any]:
     all_open = open_revision_entries(state.progress)
     todays = [
         entry
-        for entry in all_open
-        if parse_iso_date(entry["date"], "revision_schedule.date") == state_date
+        for entry in revision_due_entries(state.progress, state_date)
+        if parse_iso_date(entry["date"], "revision.date") == state_date
     ]
     overdue = [
         entry
         for entry in all_open
-        if parse_iso_date(entry["date"], "revision_schedule.date") < state_date
+        if parse_iso_date(entry["date"], "revision.date") < state_date
     ]
+    maintenance = quarterly_maintenance_entries(state.progress, state_date)
 
     def enrich(entries: list[dict[str, Any]]) -> list[dict[str, Any]]:
         return [
@@ -76,13 +78,18 @@ def build_payload(state_date: date, state: Any) -> dict[str, Any]:
                 **entry,
                 "title": problems[entry["problem"]]["title"],
                 "skill": problems[entry["problem"]]["primary_skill"],
-                "stage": problems[entry["problem"]]["stage"],
+                "curriculum_stage": problems[entry["problem"]]["stage"],
+                "revision_stage": entry["stage"],
             }
             for entry in sorted(
                 entries,
                 key=lambda item: (
+                    {"reactivation": 0, "revision": 1, "quarterly_maintenance": 2}.get(
+                        str(item.get("kind")),
+                        3,
+                    ),
                     item["date"],
-                    REVISION_PRIORITY_ORDER.get(item["priority"], 999),
+                    int(item.get("stage", 0)),
                     item["problem"],
                 ),
             )
@@ -97,6 +104,7 @@ def build_payload(state_date: date, state: Any) -> dict[str, Any]:
         "date": state_date.isoformat(),
         "todays_revisions": enrich(todays),
         "overdue_revisions": enrich(overdue),
+        "quarterly_maintenance": enrich(maintenance),
         "weakest_skills": weakest_skills(state),
         "confidence_trend": confidence_trend(completed),
         "interview_score_trend": interview_trend(completed),
@@ -112,7 +120,8 @@ def render_text(payload: dict[str, Any], today_only: bool) -> str:
         for entry in payload["todays_revisions"]:
             lines.append(
                 f"- {entry['problem']} | {entry['title']} | {entry['skill']} | "
-                f"{entry['priority']} | {entry['reason']}"
+                f"{entry.get('kind', 'revision')} | {entry['status']} stage {entry['revision_stage']} | "
+                f"{entry['reason']}"
             )
     else:
         lines.append("- None")
@@ -122,7 +131,18 @@ def render_text(payload: dict[str, Any], today_only: bool) -> str:
     if payload["overdue_revisions"]:
         for entry in payload["overdue_revisions"]:
             lines.append(
-                f"- {entry['problem']} | {entry['date']} | {entry['priority']} | {entry['reason']}"
+                f"- {entry['problem']} | {entry['date']} | {entry.get('kind', 'revision')} | "
+                f"{entry['status']} stage {entry['revision_stage']} | {entry['reason']}"
+            )
+    else:
+        lines.append("- None")
+    lines.append("")
+
+    lines.append("Quarterly Maintenance")
+    if payload["quarterly_maintenance"]:
+        for entry in payload["quarterly_maintenance"]:
+            lines.append(
+                f"- {entry['problem']} | {entry['title']} | {entry['skill']} | quick recall"
             )
     else:
         lines.append("- None")

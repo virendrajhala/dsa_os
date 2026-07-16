@@ -19,12 +19,14 @@ from _shared import (
     SCORING_PATH,
     SKILLS_PATH,
     STAGES_PATH,
-    OPEN_REVISION_STATUSES,
-    REVISION_PRIORITY_ORDER,
+    REVISION_INTERVAL_DAYS,
+    REVISION_RESULTS,
+    REVISION_STATUSES,
     RepositoryError,
     RepositoryState,
     completed_records,
     load_json_file,
+    migrate_progress_payload,
     normalize_progress,
     open_revision_entries,
     parse_iso_date,
@@ -38,7 +40,6 @@ ALLOWED_DIFFICULTIES = {"Easy", "Medium", "Hard"}
 ALLOWED_IMPORTANCE = {"CORE", "COMMON", "SPECIALIZED", "NICHE"}
 ALLOWED_PROBLEM_ROLES = {"PRIMARY", "REINFORCEMENT", "CHALLENGE"}
 ALLOWED_PROBLEM_STATUSES = {"not_started", "active", "completed", "revision"}
-ALLOWED_REVISION_STATUSES = OPEN_REVISION_STATUSES | {"completed", "skipped", "cancelled"}
 
 REQUIRED_PROBLEM_FIELDS = {
     "id",
@@ -84,7 +85,6 @@ REQUIRED_PROGRESS_FIELDS = {
     "skill_progress",
     "stage_mastery",
     "competency_completion",
-    "revision_schedule",
     "thinking_profile",
     "scores",
     "notes",
@@ -101,9 +101,19 @@ REQUIRED_COMPLETION_FIELDS = {
     "main_mistake",
     "thinking_score",
     "interview_score",
-    "next_revision_date",
+    "revision",
 }
-REQUIRED_REVISION_FIELDS = {"problem", "date", "reason", "priority", "status"}
+REQUIRED_REVISION_FIELDS = {"status", "stage", "completed", "next_due", "history"}
+REQUIRED_REVISION_HISTORY_FIELDS = {
+    "date",
+    "result",
+    "stage",
+}
+REQUIRED_REVISION_RECALL_FIELDS = {
+    "confidence",
+    "hint_level",
+    "thinking_score",
+}
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -516,13 +526,25 @@ def validate_curriculum(
         add_error(errors, "scoring.json: `hint_levels` must be a non-empty object.")
 
     revision_policy = scoring.get("revision_policy", {})
-    priority_days = revision_policy.get("days_by_priority", {})
-    if not isinstance(priority_days, dict):
-        add_error(errors, "scoring.json: `revision_policy.days_by_priority` must be an object.")
+    intervals = revision_policy.get("successful_recall_intervals")
+    if not isinstance(intervals, dict):
+        add_error(errors, "scoring.json: `revision_policy.successful_recall_intervals` must be an object.")
     else:
-        for priority in REVISION_PRIORITY_ORDER:
-            if priority not in priority_days or not isinstance(priority_days[priority], int):
-                add_error(errors, f"scoring.json: revision priority `{priority}` must define integer review days.")
+        expected = {f"R{stage + 1}": days for stage, days in REVISION_INTERVAL_DAYS.items()}
+        for stage_name, days in expected.items():
+            if intervals.get(stage_name) != days:
+                add_error(
+                    errors,
+                    f"scoring.json: revision interval `{stage_name}` must be {days} days.",
+                )
+
+    revision_eval = scoring.get("revision_evaluation", {})
+    revision_dimensions = revision_eval.get("dimensions")
+    if not isinstance(revision_dimensions, dict) or not revision_dimensions:
+        add_error(errors, "scoring.json: `revision_evaluation.dimensions` must be a non-empty object.")
+    revision_scale = revision_eval.get("scale")
+    if not isinstance(revision_scale, dict):
+        add_error(errors, "scoring.json: `revision_evaluation.scale` must be an object.")
 
     thresholds = scoring.get("promotion_thresholds", {})
     if not isinstance(thresholds, dict):
@@ -630,11 +652,12 @@ def validate_progress_payload(
     thinking_max = float(scoring.get("scale", {}).get("maximum", 4))
     interview_min = float(scoring.get("interview_scale", {}).get("minimum", 0))
     interview_max = float(scoring.get("interview_scale", {}).get("maximum", 10))
+    revision_dimensions = set(scoring.get("revision_evaluation", {}).get("dimensions", {}))
+    revision_min = float(scoring.get("revision_evaluation", {}).get("scale", {}).get("minimum", 0))
+    revision_max = float(scoring.get("revision_evaluation", {}).get("scale", {}).get("maximum", 10))
 
     completion_records = completed_records(progress)
     completion_dates: list[str] = []
-    scheduled_pairs: Counter[tuple[str, str]] = Counter()
-    latest_open_pairs: Counter[tuple[str, str]] = Counter()
 
     for index, record in enumerate(completion_records, start=1):
         missing = sorted(REQUIRED_COMPLETION_FIELDS - record.keys())
@@ -689,74 +712,143 @@ def validate_progress_payload(
                 if not isinstance(value, (int, float)) or not interview_min <= float(value) <= interview_max:
                     add_error(errors, f"{label}: completion #{index} has out-of-range interview score `{dimension}`.")
 
-        next_revision_date = record.get("next_revision_date")
-        if not isinstance(next_revision_date, str):
-            add_error(errors, f"{label}: completion #{index} has invalid `next_revision_date`.")
+        revision = record.get("revision")
+        if not isinstance(revision, dict):
+            add_error(errors, f"{label}: completion #{index} `revision` must be an object.")
         else:
-            try:
-                next_revision = parse_iso_date(next_revision_date, f"{label}.completed[{index}].next_revision_date")
-                if isinstance(completed_at, str):
-                    solved_on = parse_iso_date(completed_at, f"{label}.completed[{index}].completed_at")
-                    if next_revision < solved_on:
-                        add_error(errors, f"{label}: completion #{index} schedules revision before completion date.")
-            except RepositoryError as exc:
-                add_error(errors, f"{label}: {exc}")
+            missing_revision = sorted(REQUIRED_REVISION_FIELDS - revision.keys())
+            if missing_revision:
+                add_error(
+                    errors,
+                    f"{label}: completion #{index} revision missing fields: {', '.join(missing_revision)}.",
+                )
+            status = revision.get("status")
+            stage = revision.get("stage")
+            if status not in REVISION_STATUSES:
+                add_error(errors, f"{label}: completion #{index} has invalid revision status `{status}`.")
+            if not isinstance(stage, int) or not 0 <= stage <= 5:
+                add_error(errors, f"{label}: completion #{index} revision stage must be 0..5.")
+            completed_revisions = revision.get("completed")
+            if not isinstance(completed_revisions, list):
+                add_error(errors, f"{label}: completion #{index} revision.completed must be a list.")
+            else:
+                if isinstance(stage, int) and len(completed_revisions) != stage:
+                    add_error(
+                        errors,
+                        f"{label}: completion #{index} revision.completed length must match stage.",
+                    )
+                for rev_date in completed_revisions:
+                    if not isinstance(rev_date, str):
+                        add_error(errors, f"{label}: completion #{index} revision.completed contains a non-date.")
+                        continue
+                    try:
+                        parse_iso_date(rev_date, f"{label}.completed[{index}].revision.completed")
+                    except RepositoryError as exc:
+                        add_error(errors, f"{label}: {exc}")
+            next_due = revision.get("next_due")
+            if status == "MASTERED":
+                if next_due is not None:
+                    add_error(errors, f"{label}: completion #{index} mastered revision must have next_due null.")
+                if stage != 5:
+                    add_error(errors, f"{label}: completion #{index} mastered revision must be stage 5.")
+                last_maintenance = revision.get("last_maintenance")
+                if last_maintenance is not None:
+                    if not isinstance(last_maintenance, str):
+                        add_error(
+                            errors,
+                            f"{label}: completion #{index} revision.last_maintenance must be a date or null.",
+                        )
+                    else:
+                        try:
+                            parse_iso_date(
+                                last_maintenance,
+                                f"{label}.completed[{index}].revision.last_maintenance",
+                            )
+                        except RepositoryError as exc:
+                            add_error(errors, f"{label}: {exc}")
+            elif not isinstance(next_due, str):
+                add_error(errors, f"{label}: completion #{index} active revision must have next_due date.")
+            else:
+                try:
+                    parse_iso_date(next_due, f"{label}.completed[{index}].revision.next_due")
+                except RepositoryError as exc:
+                    add_error(errors, f"{label}: {exc}")
+            reactivated_on = revision.get("reactivated_on")
+            if reactivated_on is not None:
+                if not isinstance(reactivated_on, str):
+                    add_error(
+                        errors,
+                        f"{label}: completion #{index} revision.reactivated_on must be a date or null.",
+                    )
+                else:
+                    try:
+                        parse_iso_date(
+                            reactivated_on,
+                            f"{label}.completed[{index}].revision.reactivated_on",
+                        )
+                    except RepositoryError as exc:
+                        add_error(errors, f"{label}: {exc}")
+            history = revision.get("history")
+            if not isinstance(history, list):
+                add_error(errors, f"{label}: completion #{index} revision.history must be a list.")
+            else:
+                for h_index, event in enumerate(history, start=1):
+                    if not isinstance(event, dict):
+                        add_error(errors, f"{label}: completion #{index} revision history #{h_index} must be an object.")
+                        continue
+                    missing_history = sorted(REQUIRED_REVISION_HISTORY_FIELDS - event.keys())
+                    if missing_history:
+                        add_error(
+                            errors,
+                            f"{label}: completion #{index} revision history #{h_index} missing fields: "
+                            + ", ".join(missing_history)
+                            + ".",
+                        )
+                        continue
+                    if event.get("result") not in REVISION_RESULTS:
+                        add_error(errors, f"{label}: completion #{index} revision history #{h_index} result must be PASS/FAIL/REACTIVATED.")
+                    if not isinstance(event.get("stage"), int) or not 0 <= event["stage"] <= 5:
+                        add_error(errors, f"{label}: completion #{index} revision history #{h_index} stage must be 0..5.")
+                    try:
+                        parse_iso_date(event["date"], f"{label}.completed[{index}].revision.history[{h_index}].date")
+                    except RepositoryError as exc:
+                        add_error(errors, f"{label}: {exc}")
+                    if event.get("result") == "REACTIVATED":
+                        if not isinstance(event.get("reason"), str) or not event["reason"].strip():
+                            add_error(
+                                errors,
+                                f"{label}: completion #{index} revision history #{h_index} reactivation requires reason.",
+                            )
+                        continue
+                    missing_recall = sorted(REQUIRED_REVISION_RECALL_FIELDS - event.keys())
+                    if missing_recall:
+                        add_error(
+                            errors,
+                            f"{label}: completion #{index} revision history #{h_index} missing recall fields: "
+                            + ", ".join(missing_recall)
+                            + ".",
+                        )
+                        continue
+                    if not isinstance(event.get("confidence"), int) or not 0 <= event["confidence"] <= 10:
+                        add_error(errors, f"{label}: completion #{index} revision history #{h_index} confidence must be 0..10.")
+                    if str(event.get("hint_level")) not in hint_levels:
+                        add_error(errors, f"{label}: completion #{index} revision history #{h_index} hint level is invalid.")
+                    rev_score = event.get("thinking_score")
+                    if not isinstance(rev_score, dict) or set(rev_score) != revision_dimensions:
+                        add_error(
+                            errors,
+                            f"{label}: completion #{index} revision history #{h_index} must define all revision-score dimensions.",
+                        )
+                    else:
+                        for dimension, value in rev_score.items():
+                            if not isinstance(value, (int, float)) or not revision_min <= float(value) <= revision_max:
+                                add_error(
+                                    errors,
+                                    f"{label}: completion #{index} revision history #{h_index} has out-of-range score `{dimension}`.",
+                                )
 
     if completion_dates != sorted(completion_dates):
         add_error(errors, f"{label}: completion records must be ordered by `completed_at`.")
-
-    revision_entries = progress.get("revision_schedule")
-    if not isinstance(revision_entries, list):
-        add_error(errors, f"{label}: `revision_schedule` must be a list.")
-        revision_entries = []
-
-    for index, entry in enumerate(revision_entries, start=1):
-        if not isinstance(entry, dict):
-            add_error(errors, f"{label}: revision entry #{index} must be an object.")
-            continue
-        missing = sorted(REQUIRED_REVISION_FIELDS - entry.keys())
-        if missing:
-            add_error(errors, f"{label}: revision entry #{index} missing fields: {', '.join(missing)}.")
-            continue
-
-        problem_id = entry.get("problem")
-        if problem_id not in problems:
-            add_error(errors, f"{label}: revision entry #{index} references missing problem `{problem_id}`.")
-
-        entry_date = entry.get("date")
-        if not isinstance(entry_date, str):
-            add_error(errors, f"{label}: revision entry #{index} has invalid `date`.")
-        else:
-            try:
-                parse_iso_date(entry_date, f"{label}.revision_schedule[{index}].date")
-            except RepositoryError as exc:
-                add_error(errors, f"{label}: {exc}")
-
-        reason = entry.get("reason")
-        if not isinstance(reason, str) or not reason.strip():
-            add_error(errors, f"{label}: revision entry #{index} must include non-empty `reason`.")
-
-        priority = entry.get("priority")
-        if priority not in REVISION_PRIORITY_ORDER:
-            add_error(errors, f"{label}: revision entry #{index} has invalid priority `{priority}`.")
-
-        status = entry.get("status")
-        if status not in ALLOWED_REVISION_STATUSES:
-            add_error(errors, f"{label}: revision entry #{index} has invalid status `{status}`.")
-
-        pair = (str(problem_id), str(entry_date))
-        scheduled_pairs[pair] += 1
-        if status in OPEN_REVISION_STATUSES:
-            latest_open_pairs[pair] += 1
-
-    duplicate_open_entries = [pair for pair, count in latest_open_pairs.items() if count > 1]
-    if duplicate_open_entries:
-        add_error(errors, f"{label}: duplicate open revision entries detected for {duplicate_open_entries[:5]}.")
-
-    for record in completion_records:
-        pair = (str(record.get("problem_id")), str(record.get("next_revision_date")))
-        if scheduled_pairs[pair] == 0:
-            add_error(errors, f"{label}: missing revision schedule entry for {pair[0]} on {pair[1]}.")
 
     for index, event in enumerate(progress.get("history", []), start=1):
         if not isinstance(event, dict):
@@ -817,12 +909,17 @@ def main() -> int:
         skills = load_json_file(SKILLS_PATH)
         scoring = load_json_file(SCORING_PATH)
         progress_payloads: list[tuple[str, dict[str, Any]]] = [
-            (str(Path(args.progress_file)), load_json_file(Path(args.progress_file))),
+            (
+                str(Path(args.progress_file)),
+                migrate_progress_payload(load_json_file(Path(args.progress_file))),
+            ),
         ]
         template_path = PROGRESS_TEMPLATE_PATH.resolve()
         live_path = Path(args.progress_file).resolve()
         if not args.skip_template_progress and template_path != live_path:
-            progress_payloads.append((str(template_path), load_json_file(template_path)))
+            progress_payloads.append(
+                (str(template_path), migrate_progress_payload(load_json_file(template_path)))
+            )
     except RepositoryError as exc:
         print(str(exc), file=sys.stderr)
         return 1

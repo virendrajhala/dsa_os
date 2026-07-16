@@ -176,23 +176,27 @@ Silence is acceptable while thinking. Vagueness is not.
 
 ## Revision Strategy
 
-The repository uses layered revision.
+The repository uses state-based spaced retrieval. Time passing only makes a
+revision due; it does not prove mastery.
 
-### Immediate Revision
+A problem becomes MASTERED only after five successful active-recall revisions:
 
-Triggered when the solve is incorrect or overly prompt-dependent.
+- R1 after 1 day: prevent immediate forgetting
+- R2 after 3 days: strengthen retrieval
+- R3 after 7 days: long-term strengthening
+- R4 after 21 days: consolidation
+- R5 after 60 days: durable long-horizon recall
 
-### Short-Horizon Revision
+A revision PASS requires the learner to recall the intuition, invariant,
+correctness argument, key decision conditions, algorithm, and implementation
+with minimal or no hints. A failed revision keeps the same stage and becomes
+due tomorrow.
 
-Triggered within a few sessions for problems with weak invariants or weak communication.
-
-### Pattern Revision
-
-Triggered when multiple problems in one pattern show the same failure mode.
-
-### Long-Horizon Revision
-
-Triggered after a stage transition to verify that older patterns still transfer.
+MASTERED problems leave normal revision scheduling. They return only when a
+related failure exposes weakness, the mentor detects a misconception, a
+dependency chain requires reinforcement, or quarterly maintenance selects them.
+Quarterly maintenance runs every 90 days over a small deterministic subset and
+uses quick recall checks; struggle restores the problem to ACTIVE at stage 3.
 
 Revision is not repetition for its own sake. Each return should have a narrow purpose:
 
@@ -230,7 +234,7 @@ The next problem is not chosen randomly.
 
 Priority order:
 
-1. due revision items
+1. due active-recall revision items
 2. unlocked problems in the current skill
 3. unlocked problems in the current stage
 4. the earliest unlocked dependency-safe problem in the curriculum

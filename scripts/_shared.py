@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 from dataclasses import dataclass
 from datetime import date, timedelta
@@ -20,13 +21,17 @@ SCORING_PATH = ROOT / "progress" / "scoring.json"
 PROGRESS_PATH = ROOT / "progress" / "progress.json"
 PROGRESS_TEMPLATE_PATH = ROOT / "progress" / "progress_template.json"
 
-REVISION_PRIORITY_ORDER = {
-    "critical": 0,
-    "high": 1,
-    "medium": 2,
-    "low": 3,
+REVISION_INTERVAL_DAYS = {
+    0: 1,   # R1 after the original solve.
+    1: 3,   # R2 after successful R1.
+    2: 7,   # R3 after successful R2.
+    3: 21,  # R4 after successful R3.
+    4: 60,  # R5 after successful R4.
 }
-OPEN_REVISION_STATUSES = {"scheduled"}
+REVISION_STATUSES = {"ACTIVE", "MASTERED", "FAILED"}
+REVISION_RESULTS = {"PASS", "FAIL", "REACTIVATED"}
+QUARTERLY_MAINTENANCE_DAYS = 90
+QUARTERLY_MAINTENANCE_LIMIT = 3
 THINKING_DIMENSION_LABELS = {
     "understanding": "Understanding",
     "examples": "Examples",
@@ -100,13 +105,15 @@ def load_repository_state(explicit_progress_path: str | None = None) -> Reposito
     """Load curriculum, graph, stages, skills, scoring, and progress state."""
 
     progress_path = resolve_progress_path(explicit_progress_path)
+    progress = load_json_file(progress_path)
+    migrate_progress_payload(progress)
     return RepositoryState(
         curriculum=load_json_file(CURRICULUM_PATH),
         graph=load_json_file(GRAPH_PATH),
         stages=load_json_file(STAGES_PATH),
         skills=load_json_file(SKILLS_PATH),
         scoring=load_json_file(SCORING_PATH),
-        progress=load_json_file(progress_path),
+        progress=progress,
         progress_path=progress_path,
     )
 
@@ -219,28 +226,181 @@ def last_completion_record(progress: JsonDict) -> JsonDict | None:
     return records[-1] if records else None
 
 
-def open_revision_entries(progress: JsonDict) -> list[JsonDict]:
-    """Return revision entries that are still actionable."""
+def revision_stage_label(stage: int) -> str:
+    """Return the next revision label for a completed revision stage count."""
 
-    entries = ensure_list(progress.get("revision_schedule"), "progress.revision_schedule")
-    return [
-        entry
-        for entry in entries
-        if isinstance(entry, dict) and entry.get("status") in OPEN_REVISION_STATUSES
+    return "MASTERED" if stage >= 5 else f"R{stage + 1}"
+
+
+def initial_revision_state(completed_on: date) -> JsonDict:
+    """Create revision state for a newly solved problem."""
+
+    return {
+        "status": "ACTIVE",
+        "stage": 0,
+        "completed": [],
+        "next_due": format_iso_date(completed_on + timedelta(days=REVISION_INTERVAL_DAYS[0])),
+        "history": [],
+    }
+
+
+def migrate_progress_payload(payload: JsonDict) -> JsonDict:
+    """Upgrade old date-queue progress payloads to per-problem revision state in memory."""
+
+    if int(payload.get("schema_version", 0) or 0) >= 6:
+        return payload
+
+    legacy_schedule = payload.pop("revision_schedule", [])
+    scheduled_by_problem: dict[str, list[JsonDict]] = {}
+    if isinstance(legacy_schedule, list):
+        for entry in legacy_schedule:
+            if isinstance(entry, dict) and isinstance(entry.get("problem"), str):
+                scheduled_by_problem.setdefault(entry["problem"], []).append(entry)
+
+    for record in completed_records(payload):
+        completed_at_raw = record.get("completed_at")
+        try:
+            completed_on = (
+                parse_iso_date(completed_at_raw, "completed_at")
+                if isinstance(completed_at_raw, str)
+                else date.today()
+            )
+        except RepositoryError:
+            completed_on = date.today()
+
+        if not isinstance(record.get("revision"), dict):
+            next_due = record.pop("next_revision_date", None)
+            scheduled_entries = scheduled_by_problem.get(str(record.get("problem_id")), [])
+            if not isinstance(next_due, str) and scheduled_entries:
+                next_due = scheduled_entries[-1].get("date")
+            if not isinstance(next_due, str):
+                next_due = format_iso_date(completed_on + timedelta(days=REVISION_INTERVAL_DAYS[0]))
+            record["revision"] = {
+                "status": "ACTIVE",
+                "stage": 0,
+                "completed": [],
+                "next_due": next_due,
+                "history": [],
+            }
+        else:
+            record.pop("next_revision_date", None)
+            record["revision"].setdefault("history", [])
+            record["revision"].setdefault("completed", [])
+
+    payload["schema_version"] = 6
+    return payload
+
+
+def revision_due_entries(progress: JsonDict, on_date: date) -> list[JsonDict]:
+    """Return active/failed revision states due on or before the given date."""
+
+    due_entries: list[JsonDict] = []
+    for record in latest_records_by_problem(progress).values():
+        revision = record.get("revision")
+        if not isinstance(revision, dict):
+            continue
+        if revision.get("status") not in {"ACTIVE", "FAILED"}:
+            continue
+        raw_date = revision.get("next_due")
+        if not isinstance(raw_date, str):
+            continue
+        if parse_iso_date(raw_date, "revision.next_due") <= on_date:
+            stage = int(revision.get("stage", 0))
+            is_reactivated = isinstance(revision.get("reactivated_on"), str)
+            due_entries.append(
+                {
+                    "problem": record["problem_id"],
+                    "date": raw_date,
+                    "status": revision["status"],
+                    "stage": stage,
+                    "next_stage": min(stage + 1, 5),
+                    "kind": "reactivation" if is_reactivated else "revision",
+                    "reason": (
+                        "Prerequisite reinforcement is due."
+                        if is_reactivated
+                        else
+                        f"{revision_stage_label(stage)} recall is due."
+                        if revision["status"] == "ACTIVE"
+                        else f"{revision_stage_label(stage)} previously failed and must be retried."
+                    ),
+                }
+            )
+    return due_entries
+
+
+def quarterly_maintenance_entries(progress: JsonDict, on_date: date) -> list[JsonDict]:
+    """Return a deterministic small subset of mastered problems due for maintenance."""
+
+    candidates: list[JsonDict] = []
+    for record in latest_records_by_problem(progress).values():
+        revision = record.get("revision")
+        if not isinstance(revision, dict) or revision.get("status") != "MASTERED":
+            continue
+        anchor = revision.get("last_maintenance")
+        completed = revision.get("completed")
+        if not isinstance(anchor, str):
+            if not isinstance(completed, list) or not completed:
+                continue
+            anchor = completed[-1]
+        if not isinstance(anchor, str):
+            continue
+        if parse_iso_date(anchor, "revision.maintenance_anchor") + timedelta(
+            days=QUARTERLY_MAINTENANCE_DAYS
+        ) > on_date:
+            continue
+        digest = hashlib.sha256(f"{on_date.isoformat()}:{record['problem_id']}".encode()).hexdigest()
+        candidates.append(
+            {
+                "problem": record["problem_id"],
+                "date": on_date.isoformat(),
+                "status": "MASTERED",
+                "stage": int(revision.get("stage", 5)),
+                "next_stage": 5,
+                "kind": "quarterly_maintenance",
+                "reason": "Quarterly maintenance recall is due.",
+                "rank": digest,
+            }
+        )
+    return sorted(candidates, key=lambda entry: (entry["rank"], entry["problem"]))[
+        :QUARTERLY_MAINTENANCE_LIMIT
     ]
 
 
-def open_revision_entries_due_on_or_before(progress: JsonDict, on_date: date) -> list[JsonDict]:
-    """Return actionable revision entries due on or before the given date."""
+def open_revision_entries(progress: JsonDict) -> list[JsonDict]:
+    """Return active revision states, including overdue and future entries."""
 
-    due_entries: list[JsonDict] = []
-    for entry in open_revision_entries(progress):
-        raw_date = entry.get("date")
-        if not isinstance(raw_date, str):
+    entries: list[JsonDict] = []
+    for record in latest_records_by_problem(progress).values():
+        revision = record.get("revision")
+        if not isinstance(revision, dict) or revision.get("status") not in {"ACTIVE", "FAILED"}:
             continue
-        if parse_iso_date(raw_date, "revision_schedule.date") <= on_date:
-            due_entries.append(entry)
-    return due_entries
+        next_due = revision.get("next_due")
+        if not isinstance(next_due, str):
+            continue
+        stage = int(revision.get("stage", 0))
+        is_reactivated = isinstance(revision.get("reactivated_on"), str)
+        entries.append(
+            {
+                "problem": record["problem_id"],
+                "date": next_due,
+                "status": revision["status"],
+                "stage": stage,
+                "next_stage": min(stage + 1, 5),
+                "kind": "reactivation" if is_reactivated else "revision",
+                "reason": (
+                    "Prerequisite reinforcement is scheduled."
+                    if is_reactivated
+                    else f"{revision_stage_label(stage)} recall is scheduled."
+                ),
+            }
+        )
+    return entries
+
+
+def open_revision_entries_due_on_or_before(progress: JsonDict, on_date: date) -> list[JsonDict]:
+    """Return actionable revision and maintenance entries due on or before the given date."""
+
+    return revision_due_entries(progress, on_date) + quarterly_maintenance_entries(progress, on_date)
 
 
 def weighted_thinking_score(record: JsonDict, scoring: JsonDict) -> float | None:
@@ -516,8 +676,12 @@ def select_next_problem(state: RepositoryState, on_date: date | None = None) -> 
         sorted_due = sorted(
             due_revisions,
             key=lambda entry: (
-                parse_iso_date(entry["date"], "revision_schedule.date"),
-                REVISION_PRIORITY_ORDER.get(str(entry.get("priority")), 999),
+                {"reactivation": 0, "revision": 1, "quarterly_maintenance": 2}.get(
+                    str(entry.get("kind")),
+                    3,
+                ),
+                parse_iso_date(entry["date"], "revision.date"),
+                int(entry.get("stage", 0)),
                 problem_order.get(str(entry.get("problem")), 10**9),
             ),
         )
@@ -525,16 +689,19 @@ def select_next_problem(state: RepositoryState, on_date: date | None = None) -> 
         chosen_problem = problems_by_id.get(str(chosen_entry["problem"]))
         if chosen_problem is None:
             raise RepositoryError(
-                f"Revision schedule references missing problem `{chosen_entry['problem']}`."
+                f"Revision state references missing problem `{chosen_entry['problem']}`."
             )
-        due_date = parse_iso_date(chosen_entry["date"], "revision_schedule.date")
-        reason = (
-            "Revision is overdue."
-            if due_date < today
-            else "Revision is due today and takes priority over new work."
-        )
+        due_date = parse_iso_date(chosen_entry["date"], "revision.date")
+        if chosen_entry.get("kind") == "quarterly_maintenance":
+            reason = "Quarterly maintenance recall is due and takes priority over new work."
+        elif chosen_entry.get("kind") == "reactivation":
+            reason = "Prerequisite reinforcement is due and takes priority over new work."
+        else:
+            reason = "Revision is overdue." if due_date < today else (
+                "Revision is due today and takes priority over new work."
+            )
         return SelectionResult(
-            mode="revision_due",
+            mode=str(chosen_entry.get("kind", "revision_due")),
             reason=reason,
             problem=chosen_problem,
             suggested_stage=chosen_problem.get("stage"),
@@ -612,88 +779,114 @@ def select_next_problem(state: RepositoryState, on_date: date | None = None) -> 
     )
 
 
-def revision_decision(
+def apply_revision_result(
     record: JsonDict,
-    scoring: JsonDict,
+    result: str,
     completed_on: date,
-) -> tuple[str, str, str]:
-    """Determine revision priority, due date, and reason for a solved problem."""
+    confidence: int,
+    hint_level: int,
+    revision_score: JsonDict,
+) -> JsonDict:
+    """Apply a PASS/FAIL revision result to a completion record's revision state."""
 
-    policy = scoring.get("revision_policy", {})
-    priority_days = policy.get("days_by_priority", {})
-    thresholds = policy.get("thresholds", {})
-    maintenance_reason = str(
-        policy.get("maintenance_reason", "Scheduled spaced revision after a stable solve.")
-    )
+    if result not in REVISION_RESULTS:
+        raise RepositoryError("Revision result must be PASS or FAIL.")
+    revision = record.get("revision")
+    if not isinstance(revision, dict):
+        completed_at = parse_iso_date(str(record["completed_at"]), "completed_at")
+        revision = initial_revision_state(completed_at)
+        record["revision"] = revision
 
-    weighted = weighted_thinking_score(record, scoring) or 0.0
-    interview_average = average_interview_score(record) or 0.0
-    hint_level = int(record["hint_level_used"])
-    confidence_after = int(record["confidence_after"])
-    confidence_before = int(record["confidence_before"])
-    confidence_delta = confidence_after - confidence_before
+    current_stage = int(revision.get("stage", 0))
+    prior_status = str(revision.get("status", "ACTIVE"))
+    maintenance = prior_status == "MASTERED"
+    attempted_stage = 5 if maintenance else min(current_stage + 1, 5)
+    event = {
+        "date": format_iso_date(completed_on),
+        "result": result,
+        "stage": attempted_stage,
+        "confidence": confidence,
+        "hint_level": hint_level,
+        "thinking_score": revision_score,
+    }
+    revision.setdefault("history", []).append(event)
 
-    def matches(priority: str) -> bool:
-        threshold = thresholds.get(priority, {})
-        if not isinstance(threshold, dict):
-            return False
-        if weighted <= float(threshold.get("max_weighted_thinking_score", -1)):
-            return True
-        if interview_average <= float(threshold.get("max_interview_average", -1)):
-            return True
-        if confidence_after <= int(threshold.get("max_confidence_after", -1)):
-            return True
-        if hint_level >= int(threshold.get("min_hint_level_used", 10**9)):
-            return True
-        if confidence_delta <= int(threshold.get("max_confidence_delta", -10**9)):
-            return True
-        return False
+    if maintenance:
+        if result == "PASS":
+            revision["status"] = "MASTERED"
+            revision["stage"] = 5
+            revision["next_due"] = None
+            revision["last_maintenance"] = format_iso_date(completed_on)
+            revision.pop("reactivated_on", None)
+        else:
+            revision["status"] = "ACTIVE"
+            revision["stage"] = 3
+            completed = revision.get("completed")
+            if isinstance(completed, list):
+                revision["completed"] = completed[:3]
+            else:
+                revision["completed"] = []
+            revision["next_due"] = format_iso_date(completed_on + timedelta(days=1))
+            revision.pop("last_maintenance", None)
+            revision.pop("reactivated_on", None)
+        return event
 
-    for candidate in ("critical", "high", "medium"):
-        if matches(candidate):
-            priority = candidate
-            break
+    if result == "PASS":
+        revision.setdefault("completed", []).append(format_iso_date(completed_on))
+        revision["stage"] = attempted_stage
+        if attempted_stage >= 5:
+            revision["status"] = "MASTERED"
+            revision["next_due"] = None
+            revision["last_maintenance"] = format_iso_date(completed_on)
+            revision.pop("reactivated_on", None)
+        else:
+            revision["status"] = "ACTIVE"
+            revision["next_due"] = format_iso_date(
+                completed_on + timedelta(days=REVISION_INTERVAL_DAYS[attempted_stage])
+            )
+            revision.pop("reactivated_on", None)
     else:
-        priority = "low"
-
-    reasons: list[str] = []
-    if weighted <= float(thresholds.get(priority, {}).get("max_weighted_thinking_score", -1)):
-        reasons.append(f"weighted thinking score {weighted:.2f}")
-    if interview_average <= float(thresholds.get(priority, {}).get("max_interview_average", -1)):
-        reasons.append(f"interview average {interview_average:.2f}")
-    if confidence_after <= int(thresholds.get(priority, {}).get("max_confidence_after", -1)):
-        reasons.append(f"post-session confidence {confidence_after}")
-    if hint_level >= int(thresholds.get(priority, {}).get("min_hint_level_used", 10**9)):
-        reasons.append(f"hint level {hint_level}")
-    if confidence_delta <= int(thresholds.get(priority, {}).get("max_confidence_delta", -10**9)):
-        reasons.append(f"confidence delta {confidence_delta}")
-
-    reason = (
-        f"Follow-up needed due to {', '.join(reasons)}; revisit main mistake: {record['main_mistake']}"
-        if reasons
-        else maintenance_reason
-    )
-    days_until_revision = int(priority_days.get(priority, 14))
-    next_revision_date = completed_on + timedelta(days=days_until_revision)
-    return priority, format_iso_date(next_revision_date), reason
+        revision["status"] = "FAILED"
+        revision["stage"] = current_stage
+        revision["next_due"] = format_iso_date(completed_on + timedelta(days=1))
+        revision.pop("last_maintenance", None)
+        revision.pop("reactivated_on", None)
+    return event
 
 
-def close_open_revision_entries(
-    progress: JsonDict,
-    problem_id: str,
-) -> int:
-    """Mark scheduled revisions for a problem as completed."""
+def reactivate_revision(
+    record: JsonDict,
+    activated_on: date,
+    reason: str,
+) -> JsonDict:
+    """Schedule a problem for prerequisite/concept reinforcement."""
 
-    closed = 0
-    entries = ensure_list(progress.get("revision_schedule"), "progress.revision_schedule")
-    for entry in entries:
-        if not isinstance(entry, dict):
-            continue
-        if entry.get("problem") != problem_id or entry.get("status") not in OPEN_REVISION_STATUSES:
-            continue
-        entry["status"] = "completed"
-        closed += 1
-    return closed
+    revision = record.get("revision")
+    if not isinstance(revision, dict):
+        completed_at = parse_iso_date(str(record["completed_at"]), "completed_at")
+        revision = initial_revision_state(completed_at)
+        record["revision"] = revision
+
+    prior_status = str(revision.get("status", "ACTIVE"))
+    prior_stage = int(revision.get("stage", 0))
+    new_stage = 3 if prior_status == "MASTERED" else min(prior_stage, 3)
+    completed = revision.get("completed")
+    revision["status"] = "ACTIVE"
+    revision["stage"] = new_stage
+    revision["completed"] = completed[:new_stage] if isinstance(completed, list) else []
+    revision["next_due"] = format_iso_date(activated_on)
+    revision["reactivated_on"] = format_iso_date(activated_on)
+    revision.pop("last_maintenance", None)
+    event = {
+        "date": format_iso_date(activated_on),
+        "result": "REACTIVATED",
+        "stage": new_stage,
+        "reason": reason,
+        "prior_status": prior_status,
+        "prior_stage": prior_stage,
+    }
+    revision.setdefault("history", []).append(event)
+    return event
 
 
 def append_history_event(progress: JsonDict, event: JsonDict) -> None:

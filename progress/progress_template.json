@@ -1,5 +1,5 @@
 {
-  "schema_version": 5,
+  "schema_version": 6,
   "last_updated": null,
   "current_stage": "Observation",
   "current_problem": null,
@@ -708,7 +708,6 @@
       }
     }
   },
-  "revision_schedule": [],
   "notes": [],
   "history": []
 }

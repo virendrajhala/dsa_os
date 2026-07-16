@@ -87,6 +87,13 @@ Paste or link the final implementation here.
 
 ## Revision
 
-- Next Revision Date:
-- Revision Reason:
-- Revision Priority:
+- Revision Status:
+- Revision Stage:
+- Next Due:
+- Revision Result (PASS/FAIL):
+- Concept Recall (0-10):
+- Invariant Recall (0-10):
+- Algorithm Reconstruction (0-10):
+- Implementation (0-10):
+- Hint Dependency (0-10):
+- Confidence (0-10):

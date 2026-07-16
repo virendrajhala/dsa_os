@@ -1,6 +1,6 @@
 {
-  "schema_version": 5,
-  "last_updated": "2026-07-15",
+  "schema_version": 6,
+  "last_updated": "2026-07-16",
   "current_stage": "Observation",
   "current_problem": "OBS-007",
   "completed": [
@@ -30,7 +30,34 @@
         "coding": 7,
         "complexity": 7
       },
-      "next_revision_date": "2026-07-16"
+      "revision": {
+        "status": "ACTIVE",
+        "stage": 2,
+        "completed": [
+          "2026-07-13",
+          "2026-07-16"
+        ],
+        "next_due": "2026-07-23",
+        "history": [
+          {
+            "date": "2026-07-16",
+            "result": "PASS",
+            "stage": 2,
+            "confidence": 9,
+            "hint_level": 1,
+            "thinking_score": {
+              "concept_recall": 9,
+              "invariant_recall": 9,
+              "algorithm_reconstruction": 9,
+              "implementation": 8,
+              "hint_dependency": 9,
+              "confidence": 9
+            },
+            "notes": "Successful active recall of Kadane's algorithm. Learner independently explained negative-prefix discard, restart intuition, correctness proof, and the non-empty subarray invariant. Initialization misconception for all-negative arrays was corrected during revision.",
+            "misconception_corrected": "runningSum = 0 and maxSum = 0 breaks the non-empty subarray invariant for all-negative inputs."
+          }
+        ]
+      }
     },
     {
       "problem_id": "OBS-002",
@@ -58,7 +85,13 @@
         "coding": 7,
         "complexity": 7
       },
-      "next_revision_date": "2026-07-17"
+      "revision": {
+        "status": "ACTIVE",
+        "stage": 0,
+        "completed": [],
+        "next_due": "2026-07-17",
+        "history": []
+      }
     },
     {
       "problem_id": "OBS-003",
@@ -86,7 +119,13 @@
         "coding": 7,
         "complexity": 7
       },
-      "next_revision_date": "2026-07-18"
+      "revision": {
+        "status": "ACTIVE",
+        "stage": 0,
+        "completed": [],
+        "next_due": "2026-07-18",
+        "history": []
+      }
     },
     {
       "problem_id": "OBS-004",
@@ -114,7 +153,13 @@
         "coding": 7,
         "complexity": 7
       },
-      "next_revision_date": "2026-07-19"
+      "revision": {
+        "status": "ACTIVE",
+        "stage": 0,
+        "completed": [],
+        "next_due": "2026-07-19",
+        "history": []
+      }
     },
     {
       "problem_id": "OBS-005",
@@ -142,7 +187,13 @@
         "coding": 9,
         "complexity": 9
       },
-      "next_revision_date": "2026-07-21"
+      "revision": {
+        "status": "ACTIVE",
+        "stage": 0,
+        "completed": [],
+        "next_due": "2026-07-21",
+        "history": []
+      }
     },
     {
       "problem_id": "OBS-006",
@@ -170,51 +221,13 @@
         "coding": 10,
         "complexity": 10
       },
-      "next_revision_date": "2026-07-22"
-    }
-  ],
-  "revision_schedule": [
-    {
-      "problem": "OBS-001",
-      "date": "2026-07-16",
-      "reason": "Follow-up needed due to weighted thinking score 3.00, interview average 7.00, post-session confidence 8, hint level 2; revisit main mistake: None recorded in the original session log.",
-      "priority": "medium",
-      "status": "scheduled"
-    },
-    {
-      "problem": "OBS-002",
-      "date": "2026-07-17",
-      "reason": "Follow-up needed due to weighted thinking score 3.00, interview average 7.00, post-session confidence 8, hint level 2; revisit main mistake: Initially focused on implementation before identifying the minimal state.",
-      "priority": "medium",
-      "status": "scheduled"
-    },
-    {
-      "problem": "OBS-003",
-      "date": "2026-07-18",
-      "reason": "Follow-up needed due to weighted thinking score 3.00, interview average 7.00, post-session confidence 8, hint level 2; revisit main mistake: Introduced an unnecessary runningMaxProfit variable.",
-      "priority": "medium",
-      "status": "scheduled"
-    },
-    {
-      "problem": "OBS-004",
-      "date": "2026-07-19",
-      "reason": "Follow-up needed due to weighted thinking score 3.00, interview average 7.00, post-session confidence 8, hint level 2; revisit main mistake: Initially attempted to reuse the single-transaction approach before recognizing the changed constraint.",
-      "priority": "medium",
-      "status": "scheduled"
-    },
-    {
-      "problem": "OBS-005",
-      "date": "2026-07-21",
-      "reason": "Revisit invariant discovery, proof of state compression, and justification for tracking only the leftmost good index.",
-      "priority": "medium",
-      "status": "scheduled"
-    },
-    {
-      "problem": "OBS-006",
-      "date": "2026-07-22",
-      "reason": "Revisit frontier expansion reasoning, the distinction between current frontier and next frontier, proof of greedy correctness, why currentEnd and farthest represent different regions, and why the last index is excluded from scanning.",
-      "priority": "medium",
-      "status": "scheduled"
+      "revision": {
+        "status": "ACTIVE",
+        "stage": 0,
+        "completed": [],
+        "next_due": "2026-07-22",
+        "history": []
+      }
     }
   ],
   "thinking_profile": {
@@ -230,14 +243,18 @@
       "Thinks in terms of reachable frontiers instead of individual states after guided discovery.",
       "Continuously validates invariants by constructing counterexamples.",
       "Questions implementation details until every variable has a mathematical meaning.",
-      "Comfortable deriving greedy algorithms from exploration boundaries rather than memorizing formulas."
+      "Comfortable deriving greedy algorithms from exploration boundaries rather than memorizing formulas.",
+      "Strengthened algorithm-invariant reasoning through Kadane's runningSum interpretation.",
+      "Strengthened greedy reasoning by proving why a negative prefix can be safely discarded.",
+      "Strengthened correctness-proof discipline by connecting restart decisions to previous running sum state."
     ],
     "gaps": [
       "Initially optimizes implementation before proving correctness",
       "Should separate correctness proofs from efficiency arguments",
       "Can derive the correct state abstraction but spends significant time proving whether the state can be compressed.",
       "Occasionally redesigns initialization before verifying that loop invariants and edge cases are preserved.",
-      "Sometimes reasons about regions using current position instead of the current reachable frontier before formalizing the invariant."
+      "Sometimes reasons about regions using current position instead of the current reachable frontier before formalizing the invariant.",
+      "Must validate initialization against invariant requirements and edge cases, especially all-negative inputs."
     ],
     "common_failures": [
       "May change initialization before questioning loop boundaries",
@@ -245,13 +262,14 @@
       "Initially assumes every discovered valid state must be preserved before questioning whether some states dominate others.",
       "May prematurely redesign initialization before proving equivalence with the original invariant.",
       "Initially confuses exploration boundaries with launch positions.",
-      "Initially interprets greedy algorithms as path-selection rather than frontier expansion."
+      "Initially interprets greedy algorithms as path-selection rather than frontier expansion.",
+      "May initialize tracked state to a convenient neutral value before verifying that the value represents a valid candidate under the invariant."
     ],
     "preferred_patterns": [
       "State transition reasoning",
       "Running max/min state preservation"
     ],
-    "notes": "Student now consistently challenges every implementation detail until it is backed by an invariant. Continue emphasizing proof-based derivation instead of implementation-first reasoning."
+    "notes": "Student now consistently challenges every implementation detail until it is backed by an invariant. Continue emphasizing proof-based derivation instead of implementation-first reasoning. OBS-001 R2 showed improved state interpretation and proof discipline; continue checking that initialization values satisfy edge-case invariants."
   },
   "history": [
     {
@@ -261,10 +279,10 @@
       "mode": "new_problem",
       "stage_before": "Foundational",
       "stage_after": "Foundational",
-      "closed_revisions": 0,
-      "scheduled_revision_date": "2026-07-16",
-      "scheduled_revision_priority": "medium",
-      "next_problem": null
+      "next_problem": null,
+      "revision_next_due": "2026-07-16",
+      "revision_status": "ACTIVE",
+      "revision_stage": 0
     },
     {
       "timestamp": "2026-07-10",
@@ -273,10 +291,10 @@
       "mode": "new_problem",
       "stage_before": "Foundational",
       "stage_after": "Foundational",
-      "closed_revisions": 0,
-      "scheduled_revision_date": "2026-07-17",
-      "scheduled_revision_priority": "medium",
-      "next_problem": null
+      "next_problem": null,
+      "revision_next_due": "2026-07-17",
+      "revision_status": "ACTIVE",
+      "revision_stage": 0
     },
     {
       "timestamp": "2026-07-11",
@@ -285,10 +303,10 @@
       "mode": "new_problem",
       "stage_before": "Foundational",
       "stage_after": "Foundational",
-      "closed_revisions": 0,
-      "scheduled_revision_date": "2026-07-18",
-      "scheduled_revision_priority": "medium",
-      "next_problem": null
+      "next_problem": null,
+      "revision_next_due": "2026-07-18",
+      "revision_status": "ACTIVE",
+      "revision_stage": 0
     },
     {
       "timestamp": "2026-07-12",
@@ -297,10 +315,10 @@
       "mode": "new_problem",
       "stage_before": "Foundational",
       "stage_after": "Foundational",
-      "closed_revisions": 0,
-      "scheduled_revision_date": "2026-07-19",
-      "scheduled_revision_priority": "medium",
-      "next_problem": null
+      "next_problem": null,
+      "revision_next_due": "2026-07-19",
+      "revision_status": "ACTIVE",
+      "revision_stage": 0
     },
     {
       "timestamp": "2026-07-14",
@@ -309,10 +327,10 @@
       "mode": "new_problem",
       "stage_before": "Observation",
       "stage_after": "Observation",
-      "closed_revisions": 0,
-      "scheduled_revision_date": "2026-07-21",
-      "scheduled_revision_priority": "medium",
-      "next_problem": "OBS-006"
+      "next_problem": "OBS-006",
+      "revision_next_due": "2026-07-21",
+      "revision_status": "ACTIVE",
+      "revision_stage": 0
     },
     {
       "timestamp": "2026-07-15",
@@ -321,10 +339,21 @@
       "mode": "new_problem",
       "stage_before": "Observation",
       "stage_after": "Observation",
-      "closed_revisions": 0,
-      "scheduled_revision_date": "2026-07-22",
-      "scheduled_revision_priority": "medium",
-      "next_problem": "OBS-007"
+      "next_problem": "OBS-007",
+      "revision_next_due": "2026-07-22",
+      "revision_status": "ACTIVE",
+      "revision_stage": 0
+    },
+    {
+      "timestamp": "2026-07-16",
+      "event": "revision_recorded",
+      "problem_id": "OBS-001",
+      "mode": "revision",
+      "revision_result": "PASS",
+      "revision_stage": 2,
+      "revision_status": "ACTIVE",
+      "next_due": "2026-07-23",
+      "summary": "R2 successful active recall. Initialization misconception corrected; no remaining conceptual gaps recorded."
     }
   ],
   "notes": [],
@@ -1044,6 +1073,16 @@
     "percent": 2.22
   },
   "lessons_learned": {
+    "OBS-001": {
+      "revision_stage": "R2",
+      "date": "2026-07-16",
+      "core_mental_model": "Kadane's algorithm tracks the maximum-sum non-empty subarray ending at the current index and discards a previous prefix only when that prefix is negative.",
+      "primary_invariant": "runningSum always represents a real, non-empty subarray ending at the current index.",
+      "major_breakthrough": "Restart decisions depend on the previous running sum: if runningSum < 0, then FutureSum > FutureSum + runningSum.",
+      "implementation_lesson": "Initialization values must themselves satisfy the algorithm invariant. Initializing with `0` breaks the invariant because `0` may not correspond to any valid non-empty subarray. Initializing with the first element guarantees every tracked value represents a real subarray throughout execution.",
+      "edge_case_learned": "All-negative arrays expose invalid neutral initialization for non-empty subarray problems.",
+      "interview_takeaway": "Before using a neutral initial value, verify that it is a valid candidate under the problem constraints and loop invariant."
+    },
     "OBS-006": {
       "core_mental_model": "A greedy solution does not always choose the next action. Sometimes it repeatedly expands the reachable frontier.",
       "primary_invariant": "currentRegionEnd represents the boundary of the currently explorable region, while farthestReachableIndex represents the boundary discovered for the next explorable region.",

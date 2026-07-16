@@ -111,40 +111,46 @@
     }
   },
   "revision_policy": {
-    "days_by_priority": {
-      "critical": 2,
-      "high": 4,
-      "medium": 7,
-      "low": 14
+    "description": "Revision progression is state-based: a problem is mastered only after five successful active-recall revisions. Time passing only makes a revision due; it never advances mastery.",
+    "successful_recall_intervals": {
+      "R1": 1,
+      "R2": 3,
+      "R3": 7,
+      "R4": 21,
+      "R5": 60
     },
-    "thresholds": {
-      "critical": {
-        "max_weighted_thinking_score": 1.9,
-        "max_interview_average": 4.9,
-        "max_confidence_after": 4,
-        "min_hint_level_used": 5,
-        "max_confidence_delta": 0
-      },
-      "high": {
-        "max_weighted_thinking_score": 2.5,
-        "max_interview_average": 6.4,
-        "max_confidence_after": 6,
-        "min_hint_level_used": 3,
-        "max_confidence_delta": 1
-      },
-      "medium": {
-        "max_weighted_thinking_score": 3.1,
-        "max_interview_average": 7.9,
-        "max_confidence_after": 8,
-        "min_hint_level_used": 1,
-        "max_confidence_delta": 2
+    "mastered_after_stage": 5,
+    "failure_retry_days": 1,
+    "quarterly_maintenance_days": 90,
+    "quarterly_maintenance_sample_size": 3,
+    "failure_effect": "A failed revision does not advance stage. It is retried the next day at the same stage.",
+    "maintenance_failure_effect": "A failed quarterly maintenance check restores the problem to ACTIVE at stage 3."
+  },
+  "revision_evaluation": {
+    "scale": {
+      "minimum": 0,
+      "maximum": 10,
+      "pass_minimum": 7,
+      "labels": {
+        "0": "Could not recall the concept.",
+        "7": "Passable active recall with minimal prompting.",
+        "10": "Independent, precise, implementation-ready recall."
       }
     },
-    "maintenance_reason": "Scheduled spaced revision after a stable solve."
+    "dimensions": {
+      "concept_recall": "Explains the intuition without being led to the pattern.",
+      "invariant_recall": "States the invariant or correctness lever precisely.",
+      "algorithm_reconstruction": "Reconstructs the algorithm from the invariant.",
+      "implementation": "Writes or describes an implementation that preserves the invariant.",
+      "hint_dependency": "Requires minimal or no hints during recall.",
+      "confidence": "Reports stable confidence after recall."
+    },
+    "pass_rule": "A revision counts only when intuition, invariant, correctness argument, decision conditions, algorithm reconstruction, and implementation are all satisfactory with minimal or no hints."
   },
   "revision_triggers": [
-    "Any thinking dimension scored 1 or below should create a near-term revision.",
-    "Any hard problem with weighted thinking score below 2.8 should return to the revision schedule.",
+    "Any failed active recall keeps the same revision stage and schedules the problem for tomorrow.",
+    "Failure on a later problem caused by an earlier concept should restore that prerequisite problem to ACTIVE revision.",
+    "Quarterly maintenance struggles should restore a mastered problem to ACTIVE at stage 3.",
     "Repeated misses on the same pattern should update thinking_profile.gaps."
   ],
   "skill_mastery": {

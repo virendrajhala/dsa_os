@@ -23,7 +23,7 @@ python3 --version
 3. Select the next problem.
    `make next`
 4. Solve the problem using the case file template and constitution.
-5. Record the session.
+5. Record the session or revision result.
    `make progress ARGS="--problem-id OBS-001 ..."`
 6. Review revision pressure.
    `make revise`
@@ -35,8 +35,8 @@ The repository operates in a tight loop.
 1. `scripts/validate_curriculum.py` checks curriculum, dependency, stage, scoring, and progress integrity.
 2. `scripts/next_problem.py` selects the next dependency-safe task using revision urgency, skill continuity, and stage order.
 3. `templates/case_file_template.md` captures the session thinking process.
-4. `scripts/update_progress.py` records the solve, appends history, rotates the revision schedule, promotes stage when earned, and selects the next problem automatically.
-5. `scripts/revision_report.py` reports revision pressure and trend data.
+4. `scripts/update_progress.py` records a new solve or active-recall revision result, appends history, updates revision state, promotes stage when earned, and selects the next problem automatically.
+5. `scripts/revision_report.py` reports due active-recall revisions, quarterly maintenance, and trend data.
 6. `scripts/dashboard.py` gives a compact operating view for daily use.
 
 ## Repository Architecture
@@ -54,7 +54,7 @@ The repository keeps one source of truth per concern.
 - `progress/progress_template.json`
   A resettable seed file with the same schema as the live progress file.
 - `progress/scoring.json`
-  Thinking rubric, interview rubric, promotion thresholds, hint levels, and revision policy.
+  Thinking rubric, interview rubric, revision recall rubric, promotion thresholds, hint levels, and revision policy.
 - `docs/DSA_OS_MASTER.md`
   The constitution: philosophy, rules, thinking pipeline, revision model, and scoring logic.
 - `mentor/mentor_protocol.md`
@@ -101,14 +101,19 @@ make progress ARGS="\
 
 ## Revision Workflow
 
-Revisions are scheduled, not implied.
+Revisions are state-based active recall, not passive date checks.
 
-- Every solve records `next_revision_date` in `progress/progress.json`.
-- `revision_schedule` stores `problem`, `date`, `reason`, `priority`, and `status`.
-- `scripts/next_problem.py` prioritizes due revisions before new work.
-- `scripts/revision_report.py` separates today's revisions from overdue revisions.
+- Every solve records a per-problem `revision` object in `progress/progress.json`.
+- A problem becomes mastered only after five successful recall stages: R1 after 1 day, R2 after 3 days, R3 after 7 days, R4 after 21 days, and R5 after 60 days.
+- A revision only advances when the learner recalls the intuition, invariant, correctness argument, key decision conditions, algorithm, and implementation with minimal or no hints.
+- Failed revisions do not advance. They keep the same stage and become due again tomorrow.
+- `scripts/next_problem.py` prioritizes due ACTIVE/FAILED revisions before new work.
+- MASTERED problems leave normal revision scheduling and enter deterministic quarterly maintenance every 90 days.
+- If a later problem exposes a weak prerequisite, `scripts/update_progress.py --reactivate-problem PROBLEM_ID` restores that prerequisite to ACTIVE revision; MASTERED prerequisites restart at stage 3.
 
-The revision schedule is the authoritative source for follow-up work. It replaces the old queue model.
+This is spaced retrieval: elapsed time makes a recall attempt due, but only successful recall changes mastery state.
+
+Older progress files using `revision_schedule` and `next_revision_date` are migrated automatically by the scripts into the schema-version-6 per-problem `revision` state.
 
 ## Developer Experience
 

@@ -12,10 +12,10 @@ Attach the repo zip and send:
 
 That's it. From here the agent should, on its own:
 - run `validate_curriculum.py` first and stop if it fails
-- check for a due revision and work that instead of new material if one exists
+- check for a due active-recall revision and work that instead of new material if one exists
 - pick today's problem via `next_problem.py`
 - run the mentor's question sequence (Restatement → Examples → Brute Force → Repeated Work → Invariant → Proof → Algorithm → Code → Review → Retrospective) — one question at a time, no early pattern/algorithm reveals
-- at the end, ask you in one short batch for the few things only you can report honestly: time taken, hint level, confidence before/after, thinking-score self-assessment
+- at the end, ask you in one short batch for the few things only you can report honestly: time taken, hint level, confidence before/after, thinking-score self-assessment, and for revisions the PASS/FAIL recall dimensions
 - run `update_progress.py` itself with those numbers and tell you the new stage
 - remind you once to download the updated `progress.json` (chat sessions only — skip if the repo lives on a persistent disk)
 
@@ -24,7 +24,7 @@ That's it. From here the agent should, on its own:
 1. **Answer the mentor's questions honestly** — restate the problem in your own words, build real examples, propose a real brute force, etc. Don't let it skip ahead; if it names the pattern or algorithm early, tell it to stop and follow the protocol.
 2. **Give honest self-assessment numbers** when it asks at the end, and **download `progress.json`** if reminded.
 
-Everything else — which script runs when, filling the case file, computing your stage, scheduling revisions — is the agent's job, not yours.
+Everything else — which script runs when, filling the case file, computing your stage, advancing or retrying revision state — is the agent's job, not yours.
 
 ## If something looks wrong
 

@@ -12,6 +12,14 @@
       "title": "Change initialization before questioning iteration",
       "symptom": "Counterexample leads to changing initial state immediately.",
       "fix": "Inspect loop boundaries, recurrence, initialization, and return value separately."
+    },
+    {
+      "id": "M003",
+      "title": "Initialize with invalid neutral value",
+      "symptom": "Uses a convenient neutral value even when the invariant requires every tracked value to represent a real candidate.",
+      "fix": "Before choosing initial values, verify that each initialized state satisfies the invariant and survives edge cases such as all-negative arrays.",
+      "source_problem": "OBS-001",
+      "corrected_on": "2026-07-16"
     }
   ]
 }

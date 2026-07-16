@@ -71,7 +71,8 @@ def render_text(selection: SelectionResult) -> str:
         lines.append(
             "Revision: "
             f"{selection.revision_entry['date']} / "
-            f"{selection.revision_entry['priority']} / "
+            f"{selection.revision_entry.get('kind', 'revision')} / "
+            f"stage {selection.revision_entry['stage']} / "
             f"{selection.revision_entry['status']}"
         )
     return "\n".join(lines)
