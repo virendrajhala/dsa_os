@@ -1153,9 +1153,7 @@
     const mastered = summaries.filter((item) => item.mastered);
     const inProgress = summaries.filter((item) => !item.mastered && item.solved > 0);
     const untouched = summaries.filter((item) => !item.mastered && item.solved === 0);
-    const recommended = [...inProgress, ...untouched].sort(
-      (a, b) => b.progress - a.progress || b.total - a.total || a.name.localeCompare(b.name),
-    )[0];
+    const recommended = recommendedSkillSummary(summaries, [...inProgress, ...untouched]);
 
     const workbench = document.createElement("div");
     workbench.className = "skill-workbench";
@@ -1194,6 +1192,21 @@
         <small>${note}</small>
       </article>
     `;
+  }
+
+  function recommendedSkillSummary(allSummaries, openSummaries) {
+    const currentProblemId = state.datasets.progress.current_problem;
+    const currentProblem = currentProblemId ? state.problemsById.get(currentProblemId) : null;
+    if (currentProblem) {
+      const currentSkill = allSummaries.find((summary) => summary.id === currentProblem.primary_skill);
+      if (currentSkill) return currentSkill;
+    }
+    const orderMap = skillCurriculumOrder();
+    return [...openSummaries].sort((a, b) => {
+      const byOrder = (orderMap.get(a.id) ?? 9999) - (orderMap.get(b.id) ?? 9999);
+      if (byOrder !== 0) return byOrder;
+      return b.progress - a.progress || a.name.localeCompare(b.name);
+    })[0];
   }
 
   function skillSummary(skillId) {
@@ -1454,6 +1467,8 @@
     renderWeaknessLab();
     renderProblemTable();
     renderSkills();
+    renderThinkingProfile();
+    renderLearningNotes();
   }
 
   function renderProblemTable() {
@@ -1583,6 +1598,33 @@
       body.append(lessonCard);
     }
 
+    if (record?.session_summary) {
+      body.append(detailObjectCard("Session summary", record.session_summary));
+    }
+    if (record?.variable_semantics) {
+      body.append(detailObjectCard("Variable semantics", record.variable_semantics));
+    }
+    if (Array.isArray(record?.conceptual_discoveries) && record.conceptual_discoveries.length) {
+      body.append(detailListCard("Conceptual discoveries", record.conceptual_discoveries));
+    }
+    if (Array.isArray(record?.implementation_discoveries) && record.implementation_discoveries.length) {
+      body.append(detailListCard("Implementation discoveries", record.implementation_discoveries));
+    }
+    if (record?.revision_material) {
+      const revisionMaterial = document.createElement("article");
+      revisionMaterial.className = "note-card";
+      revisionMaterial.innerHTML = `
+        <h4>Revision material</h4>
+        <p>${record.revision_material.focus || "Verify reasoning before syntax."}</p>
+        <ul>
+          ${(record.revision_material.questions || [])
+            .map((question) => `<li>${question}</li>`)
+            .join("")}
+        </ul>
+      `;
+      body.append(revisionMaterial);
+    }
+
     const history = revision.history || [];
     if (history.length) {
       const historyCard = document.createElement("article");
@@ -1602,6 +1644,30 @@
     }
 
     showModal();
+  }
+
+  function detailObjectCard(title, values) {
+    const card = document.createElement("article");
+    card.className = "note-card";
+    card.innerHTML = `
+      <h4>${title}</h4>
+      <ul>
+        ${Object.entries(values)
+          .map(([key, value]) => `<li><strong>${key.replaceAll("_", " ")}:</strong> ${value}</li>`)
+          .join("")}
+      </ul>
+    `;
+    return card;
+  }
+
+  function detailListCard(title, values) {
+    const card = document.createElement("article");
+    card.className = "note-card";
+    card.innerHTML = `
+      <h4>${title}</h4>
+      <ul>${values.map((value) => `<li>${value}</li>`).join("")}</ul>
+    `;
+    return card;
   }
 
   function edgeCaseCard() {
@@ -1650,21 +1716,38 @@
   function renderLearningNotes() {
     const target = $("#learning-notes");
     target.replaceChildren();
+    const { query } = currentFilters();
     const lessons = state.datasets.progress.lessons_learned || {};
-    Object.entries(lessons)
-      .slice(-4)
+    const lessonEntries = Object.entries(lessons).filter(([, lesson]) => {
+      if (!query) return true;
+      return Object.values(lesson)
+        .filter((value) => typeof value === "string")
+        .join(" ")
+        .toLowerCase()
+        .includes(query);
+    });
+    lessonEntries
+      .slice(query ? 0 : -4)
       .forEach(([problemId, lesson]) => {
         const card = document.createElement("article");
         card.className = "note-card";
         card.innerHTML = `
           <h4>${problemId}</h4>
-          <p>${lesson.implementation_lesson || lesson.interview_takeaway || lesson.core_mental_model || "No lesson text."}</p>
+          <p>${lesson.major_breakthrough || lesson.implementation_lesson || lesson.interview_takeaway || lesson.core_mental_model || "No lesson text."}</p>
         `;
         target.append(card);
       });
 
     const mistakes = state.datasets.mistakes.entries || [];
-    mistakes.slice(-4).forEach((mistake) => {
+    const visibleMistakes = mistakes.filter((mistake) => {
+      if (!query) return true;
+      return Object.values(mistake)
+        .filter((value) => typeof value === "string")
+        .join(" ")
+        .toLowerCase()
+        .includes(query);
+    });
+    visibleMistakes.slice(query ? 0 : -4).forEach((mistake) => {
       const card = document.createElement("article");
       card.className = "note-card";
       card.innerHTML = `
@@ -1673,6 +1756,9 @@
       `;
       target.append(card);
     });
+    if (!target.children.length) {
+      target.append(empty("No learning notes match the current search."));
+    }
   }
 
   function renderAnalytics() {

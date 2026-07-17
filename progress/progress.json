@@ -2,7 +2,7 @@
   "schema_version": 7,
   "last_updated": "2026-07-17",
   "current_stage": "Observation",
-  "current_problem": "OBS-007",
+  "current_problem": "OBS-008",
   "completed": [
     {
       "problem_id": "OBS-001",
@@ -282,6 +282,92 @@
       },
       "algorithm_thinking_score": 10.0,
       "implementation_engineering_score": 10.0
+    },
+    {
+      "problem_id": "OBS-007",
+      "completed_at": "2026-07-17",
+      "time_taken_minutes": 90,
+      "hint_level_used": 3,
+      "confidence_before": 3,
+      "confidence_after": 10,
+      "thinking_breakthrough": "Realized tankBalance is candidate-relative state: it represents net fuel accumulated from the current startCandidate to the current scan index, not fuel accumulated from index 0.",
+      "main_mistake": "Initially treated tankBalance as global fuel, expected the scan to restart after failure, and assumed changing startCandidate meant changing the loop variable.",
+      "thinking_score": {
+        "understanding": 4,
+        "examples": 4,
+        "brute_force": 4,
+        "pattern_detection": 4,
+        "algorithm_design": 4,
+        "complexity_analysis": 4,
+        "implementation": 4,
+        "communication": 4
+      },
+      "algorithm_thinking_score": 10.0,
+      "implementation_engineering_score": 10.0,
+      "interview_score": {
+        "understanding": 10,
+        "communication": 10,
+        "algorithm": 10,
+        "coding": 10,
+        "complexity": 10
+      },
+      "revision": {
+        "status": "ACTIVE",
+        "stage": 0,
+        "completed": [],
+        "next_due": "2026-07-18",
+        "history": []
+      },
+      "session_summary": {
+        "pattern": "Greedy + Invariant Scan",
+        "difficulty": "Medium",
+        "completion": "Successful",
+        "solution": "Derived independently",
+        "hints": "Conceptual guidance only",
+        "algorithmic_correction": "None",
+        "implementation_correction": "None",
+        "review": "Production review only"
+      },
+      "conceptual_discoveries": [
+        "local greedy state",
+        "global feasibility",
+        "greedy elimination proof",
+        "candidate replacement",
+        "single-pass scan",
+        "hypothesis-based reasoning"
+      ],
+      "implementation_discoveries": [
+        "scan pointer and candidate pointer are different concepts",
+        "scan never restarts",
+        "candidate changes independently",
+        "tankBalance belongs to the current hypothesis",
+        "resetting tankBalance is changing state semantics, not discarding information",
+        "final decision depends on global totals rather than local tankBalance"
+      ],
+      "variable_semantics": {
+        "startCandidate": "Current hypothesis for the starting station.",
+        "tankBalance": "Accumulated net fuel from startCandidate to the current scan index.",
+        "totalGasAccumulation": "Global available fuel across all stations.",
+        "totalGasConsumption": "Global required fuel across all travel edges."
+      },
+      "revision_material": {
+        "focus": "Verify reasoning before syntax.",
+        "questions": [
+          "What does tankBalance represent?",
+          "Why is tankBalance reset?",
+          "Why doesn't the loop restart?",
+          "Why is startCandidate only a hypothesis?",
+          "Why can failed candidates be discarded?",
+          "Why are global totals maintained separately?"
+        ],
+        "evaluation_order": [
+          "candidate-relative state",
+          "local failure condition",
+          "greedy elimination proof",
+          "global feasibility",
+          "implementation blueprint"
+        ]
+      }
     }
   ],
   "thinking_profile": {
@@ -302,14 +388,18 @@
       "Strengthened greedy reasoning by proving why a negative prefix can be safely discarded.",
       "Strengthened correctness-proof discipline by connecting restart decisions to previous running sum state.",
       "Strong algorithm reasoning and state-design intuition during Maximum Product Subarray recall.",
-      "Learns concepts deeply enough to reconstruct transitions instead of memorizing code templates."
+      "Learns concepts deeply enough to reconstruct transitions instead of memorizing code templates.",
+      "Strengthened greedy reasoning through candidate elimination proof in Gas Station.",
+      "Understands candidate-relative state and separates local hypothesis state from global feasibility.",
+      "Improved implementation engineering by assigning precise responsibilities to scan pointer, candidate pointer, local tank balance, and global totals.",
+      "Maps greedy proofs directly into implementation decisions without restarting the scan."
     ],
     "gaps": [
       "Initially optimizes implementation before proving correctness",
       "Should separate correctness proofs from efficiency arguments",
       "Can derive the correct state abstraction but spends significant time proving whether the state can be compressed.",
       "Occasionally redesigns initialization before verifying that loop invariants and edge cases are preserved.",
-      "Sometimes reasons about regions using current position instead of the current reachable frontier before formalizing the invariant.",
+      "Previously reasoned about regions using current position instead of the active state owner; OBS-007 showed meaningful improvement in separating observation pointer from hypothesis state.",
       "Must validate initialization against invariant requirements and edge cases, especially all-negative inputs.",
       "Implementation Engineering is the current improvement area: derive initialization, loop boundaries, update ordering, global answer ownership, and return value from the state definition before coding."
     ],
@@ -318,7 +408,7 @@
       "Tends to reason with sign combinations before identifying the minimum state required",
       "Initially assumes every discovered valid state must be preserved before questioning whether some states dominate others.",
       "May prematurely redesign initialization before proving equivalence with the original invariant.",
-      "Initially confuses exploration boundaries with launch positions.",
+      "Previously confused exploration boundaries with launch positions; OBS-007 showed improvement by separating scan pointer from hypothesis pointer.",
       "Initially interprets greedy algorithms as path-selection rather than frontier expansion.",
       "May initialize tracked state to a convenient neutral value before verifying that the value represents a valid candidate under the invariant.",
       "May mix local DP state with the final answer variable when translating a known algorithm into code.",
@@ -326,9 +416,13 @@
     ],
     "preferred_patterns": [
       "State transition reasoning",
-      "Running max/min state preservation"
+      "Running max/min state preservation",
+      "Greedy candidate elimination",
+      "Candidate-relative state",
+      "Observation vs hypothesis separation",
+      "Proof-driven implementation"
     ],
-    "notes": "Student shows strong algorithm reasoning, good invariant recognition, strong state-design intuition, and deep concept learning instead of memorization. OBS-001 R2 showed improved state interpretation and proof discipline. OBS-002 R1 clarified that the main current gap is Implementation Engineering: the learner can derive the correct algorithm but needs to derive initialization, loop boundaries, update ordering, global answer ownership, and return value from the state definition before coding."
+    "notes": "Student shows strong algorithm reasoning, good invariant recognition, strong state-design intuition, and deep concept learning instead of memorization. OBS-001 R2 showed improved state interpretation and proof discipline. OBS-002 R1 clarified that the main current gap is Implementation Engineering: the learner can derive the correct algorithm but needs to derive initialization, loop boundaries, update ordering, global answer ownership, and return value from the state definition before coding. OBS-007 strengthened greedy reasoning, candidate-relative state modelling, observation-vs-hypothesis separation, and proof-to-implementation mapping."
   },
   "history": [
     {
@@ -425,6 +519,26 @@
       "next_due": "2026-07-20",
       "next_problem": "OBS-007",
       "summary": "R1 successful active recall. Concept, state, transition, complexity, and code recall were verified; remaining issues were Implementation Engineering corrections only."
+    },
+    {
+      "timestamp": "2026-07-17",
+      "event": "problem_completed",
+      "problem_id": "OBS-007",
+      "mode": "new_problem",
+      "stage_before": "Observation",
+      "stage_after": "Observation",
+      "revision_result": null,
+      "revision_stage": 0,
+      "revision_status": "ACTIVE",
+      "next_due": "2026-07-18",
+      "reactivated_problems": [],
+      "next_problem": "OBS-008",
+      "summary": "OBS-007 completed. Major breakthrough: tankBalance is candidate-relative state, not global fuel. Implementation breakthrough: scan pointer and startCandidate are separate; candidate changes do not restart the scan. Interview breakthrough: local greedy elimination must be paired with global feasibility. Key invariant: negative tankBalance eliminates every candidate in the failed segment. Reusable pattern: greedy hypothesis scan.",
+      "conceptual_breakthrough": "Candidate-relative tankBalance resolved the Gas Station confusion.",
+      "implementation_breakthrough": "Changing startCandidate changes the hypothesis; resetting tankBalance changes local state ownership while the scan continues.",
+      "interview_breakthrough": "Explain local elimination and global feasibility as separate proof obligations.",
+      "key_invariant": "tankBalance is the net fuel from startCandidate to the current scan index.",
+      "reusable_pattern": "Greedy hypothesis scan: observation pointer, hypothesis pointer, candidate-relative state, failure condition, semantic reset, global feasibility."
     }
   ],
   "notes": [
@@ -433,6 +547,18 @@
       "type": "mentor_observation",
       "problem_id": "OBS-002",
       "note": "The learner should no longer jump directly from intuition to coding. Before every coding exercise, the mentor should require completion of the Implementation Blueprint covering state, initialization, loop boundaries, previous state, global answer, and return value. Only then should coding begin."
+    },
+    {
+      "date": "2026-07-17",
+      "type": "mentor_observation",
+      "problem_id": "OBS-007",
+      "note": "The learner resolved Gas Station by redefining tankBalance as candidate-relative state rather than global fuel. Future greedy sessions should ask the learner to separate observation pointer, hypothesis pointer, local state, and global feasibility before coding."
+    },
+    {
+      "date": "2026-07-17",
+      "type": "revision_focus",
+      "problem_id": "OBS-007",
+      "note": "Future OBS-007 revision should verify: tankBalance meaning, reset reason, why the loop does not restart, why startCandidate is only a hypothesis, why failed candidates are discarded, and why global totals are maintained separately."
     }
   ],
   "scores": {
@@ -454,33 +580,33 @@
       "complexity": 10
     },
     "averages": {
-      "thinking_weighted": 3.32,
+      "thinking_weighted": 3.41,
       "thinking_dimensions": {
-        "understanding": 3.33,
-        "examples": 3.33,
-        "brute_force": 3.17,
-        "pattern_detection": 3.33,
-        "algorithm_design": 3.33,
-        "complexity_analysis": 3.33,
-        "implementation": 3.33,
-        "communication": 3.33
+        "understanding": 3.43,
+        "examples": 3.43,
+        "brute_force": 3.29,
+        "pattern_detection": 3.43,
+        "algorithm_design": 3.43,
+        "complexity_analysis": 3.43,
+        "implementation": 3.43,
+        "communication": 3.43
       },
-      "interview_average": 7.83,
+      "interview_average": 8.14,
       "interview_dimensions": {
-        "understanding": 7.83,
-        "communication": 7.83,
-        "algorithm": 7.83,
-        "coding": 7.83,
-        "complexity": 7.83
+        "understanding": 8.14,
+        "communication": 8.14,
+        "algorithm": 8.14,
+        "coding": 8.14,
+        "complexity": 8.14
       },
-      "confidence_before": 3.67,
-      "confidence_after": 8.5,
-      "solved_unique_problems": 6
+      "confidence_before": 3.57,
+      "confidence_after": 8.71,
+      "solved_unique_problems": 7
     },
     "stage_checks": {
       "Observation": {
-        "attempted": 6,
-        "passed": 6
+        "attempted": 7,
+        "passed": 7
       },
       "State Construction": {
         "attempted": 0,
@@ -1178,6 +1304,15 @@
       "implementation_lesson": "Implementation details must be derived from the state definition: initialize with nums[0], start the loop after the initialized index, preserve prevMax and prevMin before mutation, update globalMax immediately after computing runningMax, and return globalMax rather than local DP state.",
       "edge_case_learned": "Negative values and single-element arrays expose invalid initialization and missing global-answer maintenance.",
       "interview_takeaway": "Before coding DP state transitions, complete the Implementation Blueprint so initialization, loop bounds, previous-state preservation, answer ownership, and return value are explicit."
+    },
+    "OBS-007": {
+      "date": "2026-07-17",
+      "core_mental_model": "Gas Station is a hypothesis scan: startCandidate is the current hypothesis, while tankBalance measures only the net fuel accumulated under that hypothesis.",
+      "primary_invariant": "At every scan index, tankBalance is the net gas-cost balance from startCandidate through the current station. If it becomes negative, every station from the old candidate through the current index is eliminated as a valid start.",
+      "major_breakthrough": "tankBalance does not represent fuel accumulated from index 0. It represents candidate-relative fuel from the current startCandidate to the current index.",
+      "implementation_lesson": "The scan pointer keeps moving forward even when the candidate changes. Updating startCandidate changes the hypothesis; resetting tankBalance changes the meaning of the local state to belong to the new hypothesis.",
+      "edge_case_learned": "Local tankBalance cannot decide final feasibility. The global gas and cost totals are still required to return -1 when total gas is insufficient.",
+      "interview_takeaway": "Separate local candidate elimination from global feasibility, then let the proof drive the implementation variables."
     }
   },
   "weaknesses_detected": {
@@ -1192,23 +1327,40 @@
       "Initially attempted to understand the algorithm through concrete jump paths rather than reachable regions.",
       "Required formal justification for every variable before internalizing the greedy invariant.",
       "Initially proposed alternative initialization without considering loop invariant preservation."
+    ],
+    "OBS-007": [
+      "Resolved: initially treated tankBalance as global fuel instead of candidate-relative fuel.",
+      "Resolved: initially expected the loop to restart after a failed candidate.",
+      "Resolved: initially tied candidate replacement to changing the scan pointer.",
+      "Resolved: needed to separate local tankBalance reasoning from global total feasibility."
     ]
   },
   "personal_playbook": [
     "When solving greedy problems, first identify what state grows after every decision. If that state is a frontier or region rather than an individual position, reason about expanding boundaries instead of selecting explicit paths.",
-    "Before coding any understood algorithm, complete the Implementation Blueprint: state, initialization, loop boundaries, previous-state needs, global answer ownership, and return value."
+    "Before coding any understood algorithm, complete the Implementation Blueprint: state, initialization, loop boundaries, previous-state needs, global answer ownership, and return value.",
+    "Greedy hypothesis scan pattern: identify the observation pointer, identify the hypothesis pointer, define the maintained state, define the invariant, define the failure condition, decide when the hypothesis changes, decide whether the maintained state changes meaning, reset state only when its semantic meaning changes, and separate local reasoning from global feasibility.",
+    "State variables should be named and initialized from their semantic responsibility before writing update equations."
   ],
   "implementation_engineering": {
-    "score": 8.33,
+    "score": 10.0,
     "strengths": [
       "State definition",
       "DP recurrence",
       "Previous-state preservation",
-      "Complexity recall"
+      "Complexity recall",
+      "Variable semantic modelling",
+      "Observation pointer and hypothesis pointer separation",
+      "State reset reasoning",
+      "Proof-driven implementation",
+      "Candidate-relative state ownership",
+      "Scan pointer vs hypothesis pointer separation",
+      "Local state reset semantics",
+      "Global feasibility separation",
+      "Proof-to-implementation mapping",
+      "Single-pass greedy engineering"
     ],
     "weaknesses": [
       "Initialization",
-      "Loop boundaries",
       "Global answer maintenance",
       "Update ordering"
     ],
@@ -1218,7 +1370,10 @@
       "Mixed local DP state with final answer"
     ],
     "improvement_notes": [
-      "The learner consistently derives correct algorithms but occasionally loses marks while translating the algorithm into code. Future sessions should require an Implementation Blueprint before coding."
+      "The learner consistently derives correct algorithms but occasionally loses marks while translating the algorithm into code. Future sessions should require an Implementation Blueprint before coding.",
+      "For greedy scans, define whether each variable is local to the current hypothesis or global to feasibility before coding.",
+      "For greedy problems, resetting a variable must mean its semantic owner changed, not simply that the code pattern says reset.",
+      "Keep local hypothesis state separate from global feasibility state in the Implementation Blueprint."
     ]
   }
 }
