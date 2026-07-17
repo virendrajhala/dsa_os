@@ -29,6 +29,8 @@ python3 --version
    `make progress ARGS="--problem-id OBS-001 ..."`
 7. Review revision pressure.
    `make revise`
+8. Generate a weakness-targeted practice plan.
+   `make weakness`
 
 ## Workflow
 
@@ -41,6 +43,7 @@ The repository operates in a tight loop.
 5. `scripts/revision_report.py` reports due active-recall revisions, quarterly maintenance, and trend data.
 6. `scripts/dashboard.py` gives a compact console operating view for daily use.
 7. `scripts/serve_dashboard.py` serves the full browser dashboard from `web_dashboard/`.
+8. `scripts/weakness_lab.py` accumulates learner weaknesses and generates targeted practice questions.
 
 ## Repository Architecture
 
@@ -76,6 +79,7 @@ Typical daily flow:
 5. Solve the selected problem
 6. Record the session with `make progress ARGS="..."`
 7. Re-run `make dashboard`
+8. Run `make weakness` when you want focused practice for repeated mistakes.
 
 Typical progress update command:
 
@@ -129,6 +133,7 @@ The repository ships with a Makefile.
 - `make next`
 - `make revise`
 - `make stats`
+- `make weakness`
 - `make progress ARGS="..."`
 
 Each Python CLI includes help output:
@@ -140,6 +145,7 @@ python3 scripts/update_progress.py --help
 python3 scripts/revision_report.py --help
 python3 scripts/dashboard.py --help
 python3 scripts/serve_dashboard.py --help
+python3 scripts/weakness_lab.py --help
 ```
 
 The browser dashboard is available at `http://127.0.0.1:8765/web_dashboard/`

@@ -1,6 +1,6 @@
 PYTHON ?= python3
 
-.PHONY: validate dashboard web-dashboard next revise stats progress
+.PHONY: validate dashboard web-dashboard next revise stats weakness progress
 
 validate:
 	$(PYTHON) scripts/validate_curriculum.py
@@ -19,6 +19,9 @@ revise:
 
 stats:
 	$(PYTHON) scripts/revision_report.py
+
+weakness:
+	$(PYTHON) scripts/weakness_lab.py $(if $(ARGS),$(ARGS),)
 
 progress:
 	$(PYTHON) scripts/update_progress.py $(if $(ARGS),$(ARGS),--help)
