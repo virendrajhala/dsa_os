@@ -14,8 +14,8 @@ That's it. From here the agent should, on its own:
 - run `validate_curriculum.py` first and stop if it fails
 - check for a due active-recall revision and work that instead of new material if one exists
 - pick today's problem via `next_problem.py`
-- run the mentor's question sequence (Restatement → Examples → Brute Force → Repeated Work → Invariant → Proof → Algorithm → Code → Review → Retrospective) — one question at a time, no early pattern/algorithm reveals
-- at the end, ask you in one short batch for the few things only you can report honestly: time taken, hint level, confidence before/after, thinking-score self-assessment, and for revisions the PASS/FAIL recall dimensions
+- run the mentor's question sequence (Restatement → Examples → Brute Force → Repeated Work → Invariant → Proof → Algorithm → Implementation Blueprint → Code → Review → Retrospective) — one question at a time, no early pattern/algorithm reveals, and no code before the blueprint
+- at the end, ask you in one short batch for the few things only you can report honestly: time taken, hint level, confidence before/after, thinking-score self-assessment, independent Algorithm Thinking score, independent Implementation Engineering score, and for revisions the PASS/FAIL recall dimensions
 - run `update_progress.py` itself with those numbers and tell you the new stage
 - remind you once to download the updated `progress.json` (chat sessions only — skip if the repo lives on a persistent disk)
 
@@ -30,4 +30,4 @@ Everything else — which script runs when, filling the case file, computing you
 
 - Validation fails → the agent should stop and tell you exactly what's inconsistent. Don't let it push through a broken repo.
 - It asks *you* to run a command → that's a bug in this session; point it back to `boot_instructions/instructions.txt` PHASE 0.
-- Unsure which mentor protocol file is authoritative → there's only one: `mentor/mentor_protocol.md`. It's self-documenting on this — it explicitly states it replaced and superseded the old `enhanced_mentor_protocol.md` and `mentor_protocol_updated.md` files, which no longer exist in this repo.
+- Unsure which mentor protocol file is authoritative → use `mentor/mentor_protocol.md`. `mentor/enhanced_mentor_protocol.md` is only a backward-compatibility pointer for older prompts.

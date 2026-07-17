@@ -82,6 +82,7 @@ def build_payload(reference_date: date, state: Any) -> dict[str, Any]:
         round(mean(confidence["recent_values"]), 2) if confidence["recent_values"] else 0.0
     )
     due_revisions = open_revision_entries_due_on_or_before(state.progress, reference_date)
+    implementation_engineering = state.progress.get("implementation_engineering", {})
 
     return {
         "current_stage": state.progress.get("current_stage"),
@@ -90,6 +91,12 @@ def build_payload(reference_date: date, state: Any) -> dict[str, Any]:
         "total_problems": len(state.curriculum["problems"]),
         "revision_due": len(due_revisions),
         "current_confidence": current_confidence,
+        "implementation_engineering_score": (
+            float(implementation_engineering.get("score", 0))
+            if isinstance(implementation_engineering, dict)
+            and isinstance(implementation_engineering.get("score", 0), (int, float))
+            else 0.0
+        ),
         "weakest_skill": weakest_skill,
         "strongest_skill": strongest_skill,
         "todays_problem": next_problem["id"] if next_problem else None,
@@ -110,6 +117,7 @@ def render_text(payload: dict[str, Any]) -> str:
         f"Completed          {payload['completed']} / {payload['total_problems']}",
         f"Revision Due       {payload['revision_due']}",
         f"Current Confidence {payload['current_confidence']:.2f}",
+        f"Implementation Eng {payload['implementation_engineering_score']:.2f}",
         f"Weakest Skill      {payload['weakest_skill'] or 'None'}",
         f"Strongest Skill    {payload['strongest_skill'] or 'None'}",
         f"Today's Problem    {payload['todays_problem'] or 'None'}",

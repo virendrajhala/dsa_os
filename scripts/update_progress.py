@@ -50,6 +50,7 @@ def build_parser() -> argparse.ArgumentParser:
             "--thinking-score brute_force=3 --thinking-score pattern_detection=4 "
             "--thinking-score algorithm_design=3 --thinking-score complexity_analysis=3 "
             "--thinking-score implementation=3 --thinking-score communication=4 "
+            "--algorithm-thinking-score 7.5 --implementation-engineering-score 7.5 "
             "--interview-score understanding=7 --interview-score communication=8 "
             "--interview-score algorithm=7 --interview-score coding=7 --interview-score complexity=8\n\n"
             "Revision example:\n"
@@ -63,10 +64,12 @@ def build_parser() -> argparse.ArgumentParser:
             "--thinking-score brute_force=3 --thinking-score pattern_detection=3 "
             "--thinking-score algorithm_design=3 --thinking-score complexity_analysis=3 "
             "--thinking-score implementation=3 --thinking-score communication=3 "
+            "--algorithm-thinking-score 8 --implementation-engineering-score 8 "
             "--interview-score understanding=8 --interview-score communication=8 "
             "--interview-score algorithm=8 --interview-score coding=8 --interview-score complexity=8 "
             "--revision-score concept_recall=9 --revision-score invariant_recall=8 "
             "--revision-score algorithm_reconstruction=8 --revision-score implementation=8 "
+            "--revision-score implementation_blueprint=8 --revision-score code_from_memory=8 "
             "--revision-score hint_dependency=9 --revision-score confidence=8\n\n"
             "Prerequisite reinforcement example:\n"
             "  Add to a normal progress command: --reactivate-problem OBS-005 "
@@ -134,6 +137,40 @@ def build_parser() -> argparse.ArgumentParser:
         default=[],
         metavar="DIMENSION=VALUE",
         help="Interview-rubric score entry. Repeat once per dimension.",
+    )
+    parser.add_argument(
+        "--algorithm-thinking-score",
+        type=float,
+        help="Independent Algorithm Thinking score on a 0-10 scale.",
+    )
+    parser.add_argument(
+        "--implementation-engineering-score",
+        type=float,
+        help="Independent Implementation Engineering score on a 0-10 scale.",
+    )
+    parser.add_argument(
+        "--implementation-error",
+        action="append",
+        default=[],
+        help="Implementation Engineering error to append to progress tracking.",
+    )
+    parser.add_argument(
+        "--implementation-strength",
+        action="append",
+        default=[],
+        help="Implementation Engineering strength to append to progress tracking.",
+    )
+    parser.add_argument(
+        "--implementation-weakness",
+        action="append",
+        default=[],
+        help="Implementation Engineering weakness to append to progress tracking.",
+    )
+    parser.add_argument(
+        "--implementation-note",
+        action="append",
+        default=[],
+        help="Implementation Engineering improvement note to append to progress tracking.",
     )
     parser.add_argument(
         "--revision-result",
@@ -238,6 +275,67 @@ def render_text(payload: dict[str, Any]) -> str:
     return "\n".join(lines)
 
 
+def fallback_algorithm_score(thinking_score: dict[str, float]) -> float:
+    """Derive a backward-compatible 0-10 algorithm score from the old rubric."""
+
+    dimensions = [
+        "understanding",
+        "examples",
+        "brute_force",
+        "pattern_detection",
+        "algorithm_design",
+        "complexity_analysis",
+    ]
+    values = [float(thinking_score.get(dimension, 0)) for dimension in dimensions]
+    return round((sum(values) / len(values)) * 2.5, 2) if values else 0.0
+
+
+def fallback_implementation_score(thinking_score: dict[str, float]) -> float:
+    """Derive a backward-compatible 0-10 implementation score from the old rubric."""
+
+    return round(float(thinking_score.get("implementation", 0)) * 2.5, 2)
+
+
+def validate_zero_to_ten(value: float | None, label: str) -> float | None:
+    """Validate an optional 0-10 score."""
+
+    if value is None:
+        return None
+    if not 0 <= value <= 10:
+        raise RepositoryError(f"`{label}` must be between 0 and 10.")
+    return round(float(value), 2)
+
+
+def update_implementation_engineering(progress: dict[str, Any], args: argparse.Namespace) -> None:
+    """Append implementation engineering observations to top-level progress state."""
+
+    section = progress.setdefault(
+        "implementation_engineering",
+        {
+            "score": 0,
+            "strengths": [],
+            "weaknesses": [],
+            "common_errors": [],
+            "improvement_notes": [],
+        },
+    )
+    score = validate_zero_to_ten(args.implementation_engineering_score, "--implementation-engineering-score")
+    if score is not None:
+        section["score"] = score
+    section.setdefault("strengths", []).extend(
+        item.strip() for item in args.implementation_strength if item.strip()
+    )
+    section.setdefault("weaknesses", []).extend(
+        item.strip() for item in args.implementation_weakness if item.strip()
+    )
+    section.setdefault("common_errors", []).extend(
+        item.strip() for item in args.implementation_error if item.strip()
+    )
+    section.setdefault("improvement_notes", []).extend(
+        item.strip() for item in args.implementation_note if item.strip()
+    )
+
+
 def main() -> int:
     """Run the CLI."""
 
@@ -261,6 +359,14 @@ def main() -> int:
             raise RepositoryError("`--hint-level-used` must be between 0 and 7.")
         if not 0 <= args.confidence_before <= 10 or not 0 <= args.confidence_after <= 10:
             raise RepositoryError("Confidence values must be between 0 and 10.")
+        algorithm_thinking_score = validate_zero_to_ten(
+            args.algorithm_thinking_score,
+            "--algorithm-thinking-score",
+        )
+        implementation_engineering_score = validate_zero_to_ten(
+            args.implementation_engineering_score,
+            "--implementation-engineering-score",
+        )
         if not args.thinking_breakthrough.strip():
             raise RepositoryError("`--thinking-breakthrough` must not be empty.")
         if not args.main_mistake.strip():
@@ -283,6 +389,10 @@ def main() -> int:
             maximum=float(state.scoring["interview_scale"]["maximum"]),
             label="interview score",
         )
+        if algorithm_thinking_score is None:
+            algorithm_thinking_score = fallback_algorithm_score(thinking_score)
+        if implementation_engineering_score is None:
+            implementation_engineering_score = fallback_implementation_score(thinking_score)
         revision_score: dict[str, Any] = {}
         if args.revision_result:
             revision_score = parse_score_block(
@@ -316,6 +426,8 @@ def main() -> int:
                 hint_level=args.hint_level_used,
                 revision_score=revision_score,
             )
+            revision_event["algorithm_thinking_score"] = algorithm_thinking_score
+            revision_event["implementation_engineering_score"] = implementation_engineering_score
             solve_mode = "revision"
         else:
             solve_mode = "new_problem"
@@ -331,6 +443,8 @@ def main() -> int:
                 "thinking_breakthrough": args.thinking_breakthrough.strip(),
                 "main_mistake": args.main_mistake.strip(),
                 "thinking_score": thinking_score,
+                "algorithm_thinking_score": algorithm_thinking_score,
+                "implementation_engineering_score": implementation_engineering_score,
                 "interview_score": interview_score,
                 "revision": initial_revision_state(completed_on),
             }
@@ -362,6 +476,7 @@ def main() -> int:
 
         if args.note:
             progress.setdefault("notes", []).extend(note for note in args.note if note.strip())
+        update_implementation_engineering(progress, args)
 
         progress["last_updated"] = format_iso_date(completed_on)
         normalize_progress(state, progress)

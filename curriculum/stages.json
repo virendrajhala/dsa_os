@@ -33,11 +33,13 @@
         "Restates a problem's input, output, and constraints without losing edge cases.",
         "Builds at least two worked examples before proposing an approach.",
         "Produces a correct brute-force baseline and names its time/space complexity.",
-        "Identifies which repeated work in the brute force an invariant could eliminate."
+        "Identifies which repeated work in the brute force an invariant could eliminate.",
+        "Completes the Implementation Blueprint before coding in this stage: state, initialization, loop bounds, previous-state needs, answer maintenance, and return value."
       ],
       "mastery_criteria": [
         "All skills in this stage reach skill mastery (see knowledge/skills.json).",
-        "Can estimate required complexity directly from stated constraints (e.g. n <= 10^5 implies O(n log n)) without being told."
+        "Can estimate required complexity directly from stated constraints (e.g. n <= 10^5 implies O(n log n)) without being told.",
+        "Demonstrates Implementation Engineering for this stage by deriving initialization, loop boundaries, update ordering, and return value from the state definition rather than memorized code."
       ],
       "common_failure_modes": [
         "Jumping to a remembered pattern name before simulating a single example.",
@@ -62,11 +64,13 @@
       "exit_requirements": [
         "Chooses between a hash map, frequency array, or pointer structure based on what needs to be looked up or mutated, not by habit.",
         "Explains what invariant the constructed state preserves as the scan progresses.",
-        "Draws pointer state (next/prev links) before writing pointer-mutation code."
+        "Draws pointer state (next/prev links) before writing pointer-mutation code.",
+        "Completes the Implementation Blueprint before coding in this stage: state, initialization, loop bounds, previous-state needs, answer maintenance, and return value."
       ],
       "mastery_criteria": [
         "All skills in this stage reach skill mastery.",
-        "Can justify why a chosen state representation is sufficient, i.e. why nothing outside it needs to be tracked."
+        "Can justify why a chosen state representation is sufficient, i.e. why nothing outside it needs to be tracked.",
+        "Demonstrates Implementation Engineering for this stage by deriving initialization, loop boundaries, update ordering, and return value from the state definition rather than memorized code."
       ],
       "common_failure_modes": [
         "Rebuilding a hash map inside a loop instead of maintaining it incrementally.",
@@ -91,11 +95,13 @@
       "exit_requirements": [
         "Identifies the moving boundary or invariant that controls a window or pointer scan before coding it.",
         "Chooses between pointer movement, window expansion/contraction, and monotonic-stack maintenance without prompting.",
-        "Explains, for every push/pop or pointer move, why the discarded element can never be the answer again."
+        "Explains, for every push/pop or pointer move, why the discarded element can never be the answer again.",
+        "Completes the Implementation Blueprint before coding in this stage: state, initialization, loop bounds, previous-state needs, answer maintenance, and return value."
       ],
       "mastery_criteria": [
         "All skills in this stage reach skill mastery.",
-        "Can prove amortized linear time for a monotonic-stack or two-pointer solution rather than asserting it."
+        "Can prove amortized linear time for a monotonic-stack or two-pointer solution rather than asserting it.",
+        "Demonstrates Implementation Engineering for this stage by deriving initialization, loop boundaries, update ordering, and return value from the state definition rather than memorized code."
       ],
       "common_failure_modes": [
         "Shrinking or growing a window without a clear exit condition, causing off-by-one bugs.",
@@ -119,11 +125,13 @@
       "exit_requirements": [
         "Justifies when sorting first is worth its cost versus scanning unsorted.",
         "Writes a monotonic feasibility check (`can(x)`) before binary-searching an answer space.",
-        "Distinguishes searching a sorted array from binary-searching an abstract answer space."
+        "Distinguishes searching a sorted array from binary-searching an abstract answer space.",
+        "Completes the Implementation Blueprint before coding in this stage: state, initialization, loop bounds, previous-state needs, answer maintenance, and return value."
       ],
       "mastery_criteria": [
         "All skills in this stage reach skill mastery.",
-        "Can identify, from a problem statement alone, whether the answer space is monotonic and therefore binary-searchable."
+        "Can identify, from a problem statement alone, whether the answer space is monotonic and therefore binary-searchable.",
+        "Demonstrates Implementation Engineering for this stage by deriving initialization, loop boundaries, update ordering, and return value from the state definition rather than memorized code."
       ],
       "common_failure_modes": [
         "Binary-searching a value space that is not actually monotonic.",
@@ -145,11 +153,13 @@
       "exit_requirements": [
         "States the greedy rule explicitly before implementing it.",
         "Defends the greedy choice with an exchange argument or a concrete counterexample search, not intuition alone.",
-        "Can name a similar-looking problem where the same greedy rule fails, and explain why."
+        "Can name a similar-looking problem where the same greedy rule fails, and explain why.",
+        "Completes the Implementation Blueprint before coding in this stage: state, initialization, loop bounds, previous-state needs, answer maintenance, and return value."
       ],
       "mastery_criteria": [
         "All skills in this stage reach skill mastery.",
-        "Produces a correctness argument (exchange or matroid-style reasoning) for at least one non-trivial greedy solution without being prompted."
+        "Produces a correctness argument (exchange or matroid-style reasoning) for at least one non-trivial greedy solution without being prompted.",
+        "Demonstrates Implementation Engineering for this stage by deriving initialization, loop boundaries, update ordering, and return value from the state definition rather than memorized code."
       ],
       "common_failure_modes": [
         "Assuming a greedy choice is correct because it works on the first example.",
@@ -179,11 +189,13 @@
       "exit_requirements": [
         "Chooses between a sweep-line, interval-merge, or range-structure (Fenwick/segment tree) approach based on whether updates are one-shot or online.",
         "Explains what a segment/Fenwick tree node represents at each level before coding it.",
-        "Handles interval-boundary edge cases (touching vs. overlapping) explicitly."
+        "Handles interval-boundary edge cases (touching vs. overlapping) explicitly.",
+        "Completes the Implementation Blueprint before coding in this stage: state, initialization, loop bounds, previous-state needs, answer maintenance, and return value."
       ],
       "mastery_criteria": [
         "All skills in this stage reach skill mastery.",
-        "Can implement a range-update/range-query structure and justify its complexity without referencing memorized code."
+        "Can implement a range-update/range-query structure and justify its complexity without referencing memorized code.",
+        "Demonstrates Implementation Engineering for this stage by deriving initialization, loop boundaries, update ordering, and return value from the state definition rather than memorized code."
       ],
       "common_failure_modes": [
         "Treating touching intervals as overlapping (or vice versa) without checking the problem's definition.",
@@ -208,11 +220,13 @@
       "exit_requirements": [
         "States the recursive contract (what a call returns and assumes about its subcalls) before traversing.",
         "Separates traversal order (pre/in/post/level) from the business logic applied at each node.",
-        "Uses BST ordering or trie prefix structure to prune search work instead of visiting every node."
+        "Uses BST ordering or trie prefix structure to prune search work instead of visiting every node.",
+        "Completes the Implementation Blueprint before coding in this stage: state, initialization, loop bounds, previous-state needs, answer maintenance, and return value."
       ],
       "mastery_criteria": [
         "All skills in this stage reach skill mastery.",
-        "Can convert a recursive tree solution to an iterative one (explicit stack/queue) when asked, without losing correctness."
+        "Can convert a recursive tree solution to an iterative one (explicit stack/queue) when asked, without losing correctness.",
+        "Demonstrates Implementation Engineering for this stage by deriving initialization, loop boundaries, update ordering, and return value from the state definition rather than memorized code."
       ],
       "common_failure_modes": [
         "Mutating shared state across recursive calls without restoring it (missing backtrack/undo).",
@@ -249,11 +263,13 @@
         "Defines state, transition, and base cases in words before writing a recurrence.",
         "Explains why greedy or local reasoning fails on the same problem family, when relevant.",
         "Chooses an evaluation order (top-down memoization vs. bottom-up table) that guarantees dependencies are already solved.",
-        "Reduces state dimensionality only after the correct recurrence is established."
+        "Reduces state dimensionality only after the correct recurrence is established.",
+        "Completes the Implementation Blueprint before coding in this stage: state, initialization, loop bounds, previous-state needs, answer maintenance, and return value."
       ],
       "mastery_criteria": [
         "All skills in this stage reach skill mastery.",
-        "Can derive a DP recurrence for a novel problem from the recursive brute force, without pattern-matching to a memorized template."
+        "Can derive a DP recurrence for a novel problem from the recursive brute force, without pattern-matching to a memorized template.",
+        "Demonstrates Implementation Engineering for this stage by deriving initialization, loop boundaries, update ordering, and return value from the state definition rather than memorized code."
       ],
       "common_failure_modes": [
         "Writing a memo table before the recurrence is proven correct on paper.",
@@ -281,11 +297,13 @@
       "exit_requirements": [
         "Defines nodes, edges, and visited state explicitly before choosing an algorithm.",
         "Chooses between BFS, DFS, Union-Find, topological sort, and shortest-path algorithms with a stated reason.",
-        "Explains the difference between 'a path exists' (traversal) and 'this is the best path' (optimization)."
+        "Explains the difference between 'a path exists' (traversal) and 'this is the best path' (optimization).",
+        "Completes the Implementation Blueprint before coding in this stage: state, initialization, loop bounds, previous-state needs, answer maintenance, and return value."
       ],
       "mastery_criteria": [
         "All skills in this stage reach skill mastery.",
-        "Can pick the correct shortest-path algorithm (BFS/Dijkstra/Bellman-Ford) based on edge-weight properties stated in the problem."
+        "Can pick the correct shortest-path algorithm (BFS/Dijkstra/Bellman-Ford) based on edge-weight properties stated in the problem.",
+        "Demonstrates Implementation Engineering for this stage by deriving initialization, loop boundaries, update ordering, and return value from the state definition rather than memorized code."
       ],
       "common_failure_modes": [
         "Revisiting nodes without correct visited-state tracking, causing infinite loops or wrong counts.",
@@ -310,11 +328,13 @@
       "exit_requirements": [
         "Uses prefix sums or prefix-hash combinations to convert repeated range queries into O(1) or amortized-constant checks.",
         "Chooses between a single heap, two heaps, or top-k heap based on what statistic the query needs.",
-        "States what invariant a heap maintains (e.g. 'the smaller half is a max-heap') before coding it."
+        "States what invariant a heap maintains (e.g. 'the smaller half is a max-heap') before coding it.",
+        "Completes the Implementation Blueprint before coding in this stage: state, initialization, loop bounds, previous-state needs, answer maintenance, and return value."
       ],
       "mastery_criteria": [
         "All skills in this stage reach skill mastery.",
-        "Can design an online query-answering structure (heap- or prefix-based) for a novel streaming problem."
+        "Can design an online query-answering structure (heap- or prefix-based) for a novel streaming problem.",
+        "Demonstrates Implementation Engineering for this stage by deriving initialization, loop boundaries, update ordering, and return value from the state definition rather than memorized code."
       ],
       "common_failure_modes": [
         "Recomputing a prefix sum per query instead of precomputing once.",
@@ -338,11 +358,13 @@
       "exit_requirements": [
         "Defines the decision tree (choices at each node, and what closes a branch) before recursing.",
         "Prunes branches using problem constraints rather than generating everything and filtering afterward.",
-        "Distinguishes combination, permutation, and constraint-satisfaction backtracking by what they hold fixed (order, uniqueness, or feasibility)."
+        "Distinguishes combination, permutation, and constraint-satisfaction backtracking by what they hold fixed (order, uniqueness, or feasibility).",
+        "Completes the Implementation Blueprint before coding in this stage: state, initialization, loop bounds, previous-state needs, answer maintenance, and return value."
       ],
       "mastery_criteria": [
         "All skills in this stage reach skill mastery.",
-        "Can add memoization to a backtracking solution when subproblems repeat, and explain what makes a state cacheable."
+        "Can add memoization to a backtracking solution when subproblems repeat, and explain what makes a state cacheable.",
+        "Demonstrates Implementation Engineering for this stage by deriving initialization, loop boundaries, update ordering, and return value from the state definition rather than memorized code."
       ],
       "common_failure_modes": [
         "Forgetting to undo a choice (state, visited-set) before backtracking, corrupting later branches.",
@@ -364,11 +386,13 @@
       "exit_requirements": [
         "States the number-theoretic or bit-level property being exploited before writing code.",
         "Distinguishes problems that need exact arithmetic reasoning from ones that only look numeric on the surface.",
-        "Verifies an arithmetic shortcut against brute force on small cases before trusting it."
+        "Verifies an arithmetic shortcut against brute force on small cases before trusting it.",
+        "Completes the Implementation Blueprint before coding in this stage: state, initialization, loop bounds, previous-state needs, answer maintenance, and return value."
       ],
       "mastery_criteria": [
         "All skills in this stage reach skill mastery.",
-        "Can prove (not just test) a closed-form or bitwise identity used in a solution."
+        "Can prove (not just test) a closed-form or bitwise identity used in a solution.",
+        "Demonstrates Implementation Engineering for this stage by deriving initialization, loop boundaries, update ordering, and return value from the state definition rather than memorized code."
       ],
       "common_failure_modes": [
         "Integer overflow or sign-bit mistakes when reasoning about bit manipulation.",
@@ -394,11 +418,13 @@
       "exit_requirements": [
         "Chooses storage, indexing, and update rules as part of the design, not as an afterthought bolted onto a working prototype.",
         "Keeps interface guarantees (e.g. O(1) amortized) aligned with the actual operational complexity under sustained use.",
-        "Explains the tradeoff between a simpler implementation and one with stronger asymptotic guarantees, and picks deliberately."
+        "Explains the tradeoff between a simpler implementation and one with stronger asymptotic guarantees, and picks deliberately.",
+        "Completes the Implementation Blueprint before coding in this stage: state, initialization, loop bounds, previous-state needs, answer maintenance, and return value."
       ],
       "mastery_criteria": [
         "All skills in this stage reach skill mastery.",
-        "Can design a system (e.g. an LRU cache, rate limiter, or streaming median service) end-to-end and defend every data-structure choice against an alternative."
+        "Can design a system (e.g. an LRU cache, rate limiter, or streaming median service) end-to-end and defend every data-structure choice against an alternative.",
+        "Demonstrates Implementation Engineering for this stage by deriving initialization, loop boundaries, update ordering, and return value from the state definition rather than memorized code."
       ],
       "common_failure_modes": [
         "Optimizing one operation (e.g. insert) while silently degrading another (e.g. lookup) below its stated guarantee.",

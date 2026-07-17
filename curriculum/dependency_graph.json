@@ -1,6 +1,6 @@
 {
   "schema_version": 3,
-  "note": "skill_dependencies is the source of truth (see knowledge/skills.json). problem_dependencies is generated automatically: a skill's primary validation problem depends on the primary validation problems of its prerequisite skills; every reinforcement/challenge problem depends on its own skill's primary validation problem.",
+  "note": "skill_dependencies is the source of truth (see knowledge/skills.json). problem_dependencies is generated automatically: a skill's primary validation problem depends on the primary validation problems of its prerequisite skills; every reinforcement/challenge problem depends on its own skill's primary validation problem. Global skill dependencies are cross-cutting mentor requirements and do not add curriculum stages or problem-order blockers.",
   "stage_order": [
     "Observation",
     "State Construction",
@@ -106,7 +106,8 @@
     "SK-IN-04",
     "SK-IN-05",
     "SK-IN-06",
-    "SK-IN-07"
+    "SK-IN-07",
+    "SK-IE-00"
   ],
   "skill_dependencies": {
     "SK-OB-01": [],
@@ -376,7 +377,8 @@
     ],
     "SK-IN-07": [
       "SK-IN-06"
-    ]
+    ],
+    "SK-IE-00": []
   },
   "problem_dependencies": {
     "CPX-001": [],
@@ -2047,6 +2049,14 @@
     ],
     "DES-033": [
       "DES-028"
+    ]
+  },
+  "global_skill_dependencies": {
+    "Medium": [
+      "SK-IE-00"
+    ],
+    "Hard": [
+      "SK-IE-00"
     ]
   }
 }

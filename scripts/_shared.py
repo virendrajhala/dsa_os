@@ -42,6 +42,13 @@ THINKING_DIMENSION_LABELS = {
     "implementation": "Implementation",
     "communication": "Communication",
 }
+IMPLEMENTATION_ENGINEERING_DEFAULT = {
+    "score": 0,
+    "strengths": [],
+    "weaknesses": [],
+    "common_errors": [],
+    "improvement_notes": [],
+}
 
 JsonDict = dict[str, Any]
 
@@ -170,6 +177,12 @@ def skill_lookup(skills: JsonDict) -> dict[str, JsonDict]:
     return data
 
 
+def is_global_skill(skill: JsonDict) -> bool:
+    """Return whether a skill is a cross-cutting competency, not a stage skill."""
+
+    return skill.get("scope") == "global"
+
+
 def problem_dependencies_map(graph: JsonDict) -> dict[str, list[str]]:
     """Return the auto-generated problem-level dependency map."""
 
@@ -247,10 +260,8 @@ def initial_revision_state(completed_on: date) -> JsonDict:
 def migrate_progress_payload(payload: JsonDict) -> JsonDict:
     """Upgrade old date-queue progress payloads to per-problem revision state in memory."""
 
-    if int(payload.get("schema_version", 0) or 0) >= 6:
-        return payload
-
-    legacy_schedule = payload.pop("revision_schedule", [])
+    schema_version = int(payload.get("schema_version", 0) or 0)
+    legacy_schedule = payload.pop("revision_schedule", []) if schema_version < 6 else []
     scheduled_by_problem: dict[str, list[JsonDict]] = {}
     if isinstance(legacy_schedule, list):
         for entry in legacy_schedule:
@@ -287,7 +298,43 @@ def migrate_progress_payload(payload: JsonDict) -> JsonDict:
             record["revision"].setdefault("history", [])
             record["revision"].setdefault("completed", [])
 
-    payload["schema_version"] = 6
+        for event in record.get("revision", {}).get("history", []):
+            if not isinstance(event, dict):
+                continue
+            rev_score = event.get("thinking_score")
+            if isinstance(rev_score, dict):
+                rev_score.setdefault("implementation_blueprint", rev_score.get("implementation", 0))
+                rev_score.setdefault("code_from_memory", rev_score.get("implementation", 0))
+
+        if "algorithm_thinking_score" not in record:
+            score = weighted_thinking_score(record, {"weights": {
+                "understanding": 0.18,
+                "examples": 0.12,
+                "brute_force": 0.12,
+                "pattern_detection": 0.24,
+                "algorithm_design": 0.24,
+                "complexity_analysis": 0.10,
+            }})
+            record["algorithm_thinking_score"] = round((score or 0) * 2.5, 2)
+        if "implementation_engineering_score" not in record:
+            impl_score = record.get("thinking_score", {}).get("implementation")
+            record["implementation_engineering_score"] = (
+                round(float(impl_score) * 2.5, 2)
+                if isinstance(impl_score, (int, float))
+                else 0
+            )
+
+    implementation_engineering = payload.get("implementation_engineering")
+    if not isinstance(implementation_engineering, dict):
+        implementation_engineering = {}
+        payload["implementation_engineering"] = implementation_engineering
+    for key, default_value in IMPLEMENTATION_ENGINEERING_DEFAULT.items():
+        if key == "score":
+            if not isinstance(implementation_engineering.get(key), (int, float)):
+                implementation_engineering[key] = default_value
+        elif not isinstance(implementation_engineering.get(key), list):
+            implementation_engineering[key] = list(default_value)
+    payload["schema_version"] = 7
     return payload
 
 
@@ -455,6 +502,8 @@ def compute_skill_progress(
 
     skill_progress: dict[str, JsonDict] = {}
     for skill_id, skill in skill_lookup(skills).items():
+        if is_global_skill(skill):
+            continue
         primary = skill.get("primary_validation_problem")
         reinforcement = skill.get("reinforcement_problems", [])
         primary_record = latest_by_problem.get(primary)
@@ -801,10 +850,12 @@ def apply_revision_result(
     prior_status = str(revision.get("status", "ACTIVE"))
     maintenance = prior_status == "MASTERED"
     attempted_stage = 5 if maintenance else min(current_stage + 1, 5)
+    event_stage = attempted_stage if result == "PASS" else (3 if maintenance else current_stage)
     event = {
         "date": format_iso_date(completed_on),
         "result": result,
-        "stage": attempted_stage,
+        "stage": event_stage,
+        "attempted_stage": attempted_stage,
         "confidence": confidence,
         "hint_level": hint_level,
         "thinking_score": revision_score,

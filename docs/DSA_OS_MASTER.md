@@ -14,6 +14,7 @@ The mission is to build durable reasoning:
 - invariant discovery
 - pattern selection
 - complexity judgment
+- implementation engineering
 - clear communication
 
 Every artifact in this repository should reinforce those behaviors.
@@ -45,7 +46,8 @@ The curriculum follows six principles.
 - Challenge vague language.
 - Ask for invariants, not intuition alone.
 - Ask for complexity only after the algorithm is concrete.
-- Do not let code begin before the data flow is stable.
+- Do not let code begin before the Implementation Blueprint is complete.
+- Separate algorithm knowledge errors from implementation engineering errors.
 - Update progress after every session.
 
 ## Student Rules
@@ -77,9 +79,12 @@ Use the same mental pipeline every time.
    Describe the algorithm step by step with state changes.
 7. Analyze
    Defend time and space complexity.
-8. Implement
+8. Implementation Blueprint
+   Derive state, initialization, loop bounds, previous-state needs, answer
+   maintenance, and return value before code.
+9. Implement
    Translate the plan without changing the plan.
-9. Reflect
+10. Reflect
    Record what unlocked the problem and what almost caused failure.
 
 ## Hint System
@@ -121,9 +126,40 @@ Each session follows the same operating sequence.
 7. Name the pattern.
 8. Design the optimized algorithm.
 9. Analyze complexity.
-10. Implement.
-11. Explain the solution as if in an interview.
-12. Score the session and update progress.
+10. Complete the Implementation Blueprint.
+11. Implement.
+12. Review code in the mandatory post-code order.
+13. Explain the solution as if in an interview.
+14. Score Algorithm Thinking and Implementation Engineering separately, then update progress.
+
+## Implementation Engineering
+
+Implementation Engineering is a global core competency, not a curriculum
+stage. It is the ability to translate an understood algorithm into bug-free
+code by deriving initialization, loop boundaries, state ownership, update
+ordering, previous-state preservation, global answer maintenance, and return
+value from the state definition.
+
+Before any code, the learner must answer:
+
+- State: what does every variable represent?
+- Initialization: what are the initial values and why are they correct?
+- Loop: where does it start, where does it end, and why?
+- Previous State: do old values need preservation and why?
+- Answer: is the state itself the answer, or is a global answer maintained?
+- Return: what exactly is returned?
+
+After code, review in this order:
+
+1. Algorithm correctness
+2. State correctness
+3. Initialization correctness
+4. Loop boundary correctness
+5. Update ordering correctness
+6. Global answer maintenance
+7. Edge cases
+8. Time complexity
+9. Space complexity
 
 ## Problem Solving Pipeline
 
@@ -160,6 +196,7 @@ Use this pipeline when the difficulty spikes.
 - List the state.
 - List the transitions.
 - List the exit condition.
+- Complete the Implementation Blueprint.
 - Then write code.
 
 ## Interview Communication Rules
@@ -187,10 +224,11 @@ A problem becomes MASTERED only after five successful active-recall revisions:
 - R4 after 21 days: consolidation
 - R5 after 60 days: durable long-horizon recall
 
-A revision PASS requires the learner to recall the intuition, invariant,
-correctness argument, key decision conditions, algorithm, and implementation
-with minimal or no hints. A failed revision keeps the same stage and becomes
-due tomorrow.
+A revision PASS requires pattern recall, state recall, transition recall,
+complexity recall, implementation blueprint, code from memory, dry run, edge
+cases, and interview discussion with minimal or no hints. A revision cannot
+pass without code from memory. A failed revision keeps the same stage and
+becomes due tomorrow.
 
 MASTERED problems leave normal revision scheduling. They return only when a
 related failure exposes weakness, the mentor detects a misconception, a
@@ -217,6 +255,16 @@ Scores are recorded per dimension on a `0-4` scale.
 - `complexity_analysis`: precision of time and space reasoning
 - `implementation`: execution quality after the plan was fixed
 - `communication`: clarity, structure, and interview readiness
+
+Every coding session also records two independent `0-10` scores:
+
+- Algorithm Thinking: pattern recognition, state design, transition, and
+  complexity.
+- Implementation Engineering: initialization, loop bounds, previous-state
+  handling, update ordering, answer maintenance, return value, and edge cases.
+
+Never combine these scores. An initialization or loop-boundary miss is an
+Implementation Engineering gap unless the underlying algorithm was also wrong.
 
 Interpretation:
 

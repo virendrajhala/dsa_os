@@ -270,6 +270,7 @@
     const latestConfidence = confidenceAfter.at(-1) || 0;
     const avgConfidence = avg(confidenceAfter);
     const competency = progress.competency_completion || {};
+    const implementationEngineering = progress.implementation_engineering || {};
 
     const metrics = [
       {
@@ -301,6 +302,11 @@
         label: "Weighted thinking",
         value: `${(progress.scores?.averages?.thinking_weighted || 0).toFixed(2)} / ${scoring.scale?.maximum || 4}`,
         note: "Weighted average across completed problems",
+      },
+      {
+        label: "Implementation eng",
+        value: `${Number(implementationEngineering.score || 0).toFixed(1)} / 10`,
+        note: `${implementationEngineering.common_errors?.length || 0} recorded implementation errors`,
       },
       {
         label: "Interview score",
@@ -1536,6 +1542,8 @@
         [
           ["Completed", record?.completed_at || "Not yet"],
           ["Confidence", record ? `${record.confidence_before} -> ${record.confidence_after}` : "-"],
+          ["Algorithm Thinking", record?.algorithm_thinking_score != null ? `${record.algorithm_thinking_score} / 10` : "-"],
+          ["Implementation Engineering", record?.implementation_engineering_score != null ? `${record.implementation_engineering_score} / 10` : "-"],
           ["Hint level", record?.hint_level_used ?? "-"],
           ["Time", record?.time_taken_minutes ? `${record.time_taken_minutes} min` : "-"],
         ],
@@ -1814,7 +1822,12 @@
     const averages = state.datasets.progress.scores?.averages || {};
     const thinkingMax = scoring.scale?.maximum || 4;
     const interviewMax = scoring.interview_scale?.maximum || 10;
+    const completed = [...state.completedById.values()];
+    const algorithmAvg = avg(completed.map((record) => record.algorithm_thinking_score));
+    const implementationAvg = avg(completed.map((record) => record.implementation_engineering_score));
     const dimensions = [
+      ["Algorithm Thinking", algorithmAvg || 0, 10],
+      ["Implementation Eng", implementationAvg || 0, 10],
       ["Thinking", averages.thinking_weighted || 0, thinkingMax],
       ["Interview", averages.interview_average || 0, interviewMax],
       ["Confidence before", averages.confidence_before || 0, 10],

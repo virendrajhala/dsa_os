@@ -143,9 +143,11 @@
       "algorithm_reconstruction": "Reconstructs the algorithm from the invariant.",
       "implementation": "Writes or describes an implementation that preserves the invariant.",
       "hint_dependency": "Requires minimal or no hints during recall.",
-      "confidence": "Reports stable confidence after recall."
+      "confidence": "Reports stable confidence after recall.",
+      "implementation_blueprint": "Explains state, initialization, loop bounds, previous-state needs, answer maintenance, and return value before coding.",
+      "code_from_memory": "Writes correct implementation from memory before the revision can pass."
     },
-    "pass_rule": "A revision counts only when intuition, invariant, correctness argument, decision conditions, algorithm reconstruction, and implementation are all satisfactory with minimal or no hints."
+    "pass_rule": "A revision counts only when pattern, state, transition, complexity, implementation blueprint, code from memory, dry run, edge cases, and interview discussion are all satisfactory with minimal or no hints."
   },
   "revision_triggers": [
     "Any failed active recall keeps the same revision stage and schedules the problem for tomorrow.",
@@ -160,5 +162,41 @@
   },
   "stage_mastery": {
     "description": "A stage is mastered once every skill in that stage (see curriculum/stages.json `skills`) is mastered."
+  },
+  "algorithm_thinking": {
+    "scale": {
+      "minimum": 0,
+      "maximum": 10
+    },
+    "description": "Independent session score for algorithm discovery and reasoning. Never mix with implementation engineering mistakes.",
+    "dimensions": {
+      "pattern_recognition": "Identifies the relevant invariant or reasoning family.",
+      "state_design": "Defines the right state, invariant, or data representation.",
+      "transition": "Derives the recurrence, greedy decision, or update rule correctly.",
+      "complexity": "Explains time and space from the algorithm structure."
+    }
+  },
+  "implementation_engineering": {
+    "scale": {
+      "minimum": 0,
+      "maximum": 10
+    },
+    "description": "Independent session score for translating a known algorithm into correct code.",
+    "dimensions": {
+      "initialization": "Initial values satisfy the state definition, including index 0.",
+      "loop_bounds": "Loop start, end, direction, and inclusivity are correct.",
+      "previous_state": "Previous values are preserved when an update depends on old state.",
+      "update_ordering": "State variables update in an order that preserves the invariant.",
+      "answer_maintenance": "Global/local answer ownership and update point are correct.",
+      "return_value": "The returned variable exactly matches the problem requirement.",
+      "edge_cases": "Code is dry-run against boundary and adversarial cases."
+    }
+  },
+  "error_taxonomy": {
+    "A": "Pattern Selection Error",
+    "B": "State Design Error",
+    "C": "Transition Error",
+    "D": "Implementation Engineering Error",
+    "E": "Language/Syntax Error"
   }
 }

@@ -54,17 +54,44 @@
 - Space:
 - Dominant operation:
 
+## Implementation Blueprint
+
+- State: What does every variable represent?
+- Initialization: Initial values and why they satisfy the state definition:
+- Loop: Start, end, direction, and why:
+- Previous State: Needed? Why?
+- Answer: Local or global? Update where?
+- Return: What exactly is returned?
+
 ## Code
 
 ```text
 Paste or link the final implementation here.
 ```
 
+## Post-Code Review
+
+- Algorithm correctness (0-10):
+- State correctness (0-10):
+- Initialization correctness (0-10):
+- Loop boundary correctness (0-10):
+- Update ordering correctness (0-10):
+- Global answer maintenance (0-10):
+- Edge cases (0-10):
+- Time complexity (0-10):
+- Space complexity (0-10):
+- Error category (A/B/C/D/E):
+
 ## Reflection
 
 - Thinking breakthrough:
 - Main mistake:
 - What would I look for faster next time?
+
+## Independent Scores (0-10)
+
+- Algorithm Thinking:
+- Implementation Engineering:
 
 ## Thinking Score (0-4)
 
@@ -94,6 +121,8 @@ Paste or link the final implementation here.
 - Concept Recall (0-10):
 - Invariant Recall (0-10):
 - Algorithm Reconstruction (0-10):
+- Implementation Blueprint (0-10):
+- Code From Memory (0-10):
 - Implementation (0-10):
 - Hint Dependency (0-10):
 - Confidence (0-10):

@@ -85,6 +85,7 @@ REQUIRED_PROGRESS_FIELDS = {
     "skill_progress",
     "stage_mastery",
     "competency_completion",
+    "implementation_engineering",
     "thinking_profile",
     "scores",
     "notes",
@@ -100,6 +101,8 @@ REQUIRED_COMPLETION_FIELDS = {
     "thinking_breakthrough",
     "main_mistake",
     "thinking_score",
+    "algorithm_thinking_score",
+    "implementation_engineering_score",
     "interview_score",
     "revision",
 }
@@ -283,7 +286,21 @@ def validate_curriculum(
     if set(skill_order) != set(skill_defs):
         add_error(errors, "knowledge/skills.json: `skill_order` and `skills` keys must match exactly.")
 
+    global_skill_ids = {
+        skill_id
+        for skill_id in skill_order
+        if isinstance(skill_defs.get(skill_id), dict)
+        and skill_defs[skill_id].get("scope") == "global"
+    }
+
     for skill_id in skill_order:
+        if skill_id in global_skill_ids:
+            if stage_skill_occurrences[skill_id] != 0:
+                add_error(
+                    errors,
+                    f"global skill `{skill_id}` must not appear in any stage `skills` list.",
+                )
+            continue
         if stage_skill_occurrences[skill_id] != 1:
             add_error(
                 errors,
@@ -298,12 +315,28 @@ def validate_curriculum(
         if not isinstance(skill, dict):
             add_error(errors, f"knowledge/skills.json: skill `{skill_id}` must be an object.")
             continue
-        missing = sorted(REQUIRED_SKILL_FIELDS - skill.keys())
+        required_fields = (
+            {"id", "name", "description", "scope", "subskills", "required_for_difficulties"}
+            if skill_id in global_skill_ids
+            else REQUIRED_SKILL_FIELDS
+        )
+        missing = sorted(required_fields - skill.keys())
         if missing:
             add_error(errors, f"knowledge/skills.json: skill `{skill_id}` missing fields: {', '.join(missing)}.")
             continue
         if not SKILL_ID_RE.match(skill_id):
             add_error(errors, f"knowledge/skills.json: skill id `{skill_id}` has an unexpected format.")
+        if skill_id in global_skill_ids:
+            if skill.get("stage") is not None:
+                add_error(errors, f"knowledge/skills.json: global skill `{skill_id}` must have `stage: null`.")
+            if not isinstance(skill.get("subskills"), list) or not skill["subskills"]:
+                add_error(errors, f"knowledge/skills.json: global skill `{skill_id}` must define non-empty subskills.")
+            if skill.get("required_for_difficulties") != ["Medium", "Hard"]:
+                add_error(
+                    errors,
+                    f"knowledge/skills.json: global skill `{skill_id}` must be required for Medium and Hard problems.",
+                )
+            continue
         if skill["stage"] not in stage_defs:
             add_error(errors, f"knowledge/skills.json: skill `{skill_id}` references unknown stage `{skill['stage']}`.")
         if not isinstance(skill["description"], str) or not skill["description"].strip():
@@ -348,7 +381,7 @@ def validate_curriculum(
         if not isinstance(deps, list):
             add_error(errors, f"dependency_graph.json: `skill_dependencies.{skill_id}` must be a list.")
             continue
-        if len(deps) > 1:
+        if skill_id not in global_skill_ids and len(deps) > 1:
             add_error(
                 errors,
                 f"dependency_graph.json: skill `{skill_id}` has {len(deps)} prerequisites; the frozen "
@@ -374,6 +407,12 @@ def validate_curriculum(
         orphan_skills = sorted(set(skill_order) - reachable_skills)
         if orphan_skills:
             add_error(errors, "dependency_graph.json: orphan skills detected (unreachable from any root): " + ", ".join(orphan_skills[:10]) + ".")
+
+    global_skill_dependencies = graph.get("global_skill_dependencies")
+    if not isinstance(global_skill_dependencies, dict):
+        add_error(errors, "dependency_graph.json: `global_skill_dependencies` must be an object.")
+    elif global_skill_dependencies.get("Medium") != ["SK-IE-00"] or global_skill_dependencies.get("Hard") != ["SK-IE-00"]:
+        add_error(errors, "dependency_graph.json: Medium and Hard problems must depend on global skill `SK-IE-00`.")
 
     # -- per-problem validation ------------------------------------------------------
     problem_ids: list[str] = []
@@ -546,6 +585,22 @@ def validate_curriculum(
     if not isinstance(revision_scale, dict):
         add_error(errors, "scoring.json: `revision_evaluation.scale` must be an object.")
 
+    for section_name in ("algorithm_thinking", "implementation_engineering"):
+        section = scoring.get(section_name)
+        if not isinstance(section, dict):
+            add_error(errors, f"scoring.json: `{section_name}` must be an object.")
+            continue
+        scale = section.get("scale")
+        dimensions = section.get("dimensions")
+        if not isinstance(scale, dict) or scale.get("minimum") != 0 or scale.get("maximum") != 10:
+            add_error(errors, f"scoring.json: `{section_name}.scale` must be 0..10.")
+        if not isinstance(dimensions, dict) or not dimensions:
+            add_error(errors, f"scoring.json: `{section_name}.dimensions` must be a non-empty object.")
+
+    taxonomy = scoring.get("error_taxonomy")
+    if not isinstance(taxonomy, dict) or set(taxonomy) != {"A", "B", "C", "D", "E"}:
+        add_error(errors, "scoring.json: `error_taxonomy` must define categories A through E.")
+
     thresholds = scoring.get("promotion_thresholds", {})
     if not isinstance(thresholds, dict):
         add_error(errors, "scoring.json: `promotion_thresholds` must be an object.")
@@ -645,6 +700,17 @@ def validate_progress_payload(
     if not isinstance(competency_completion, dict) or "percent" not in competency_completion:
         add_error(errors, f"{label}: `competency_completion` must be an object with a `percent` field.")
 
+    implementation_engineering = progress.get("implementation_engineering")
+    if not isinstance(implementation_engineering, dict):
+        add_error(errors, f"{label}: `implementation_engineering` must be an object.")
+    else:
+        for field in ("strengths", "weaknesses", "common_errors", "improvement_notes"):
+            if not isinstance(implementation_engineering.get(field), list):
+                add_error(errors, f"{label}: `implementation_engineering.{field}` must be a list.")
+        score = implementation_engineering.get("score")
+        if not isinstance(score, (int, float)) or not 0 <= float(score) <= 10:
+            add_error(errors, f"{label}: `implementation_engineering.score` must be 0..10.")
+
     hint_levels = scoring.get("hint_levels", {})
     thinking_dimensions = set(scoring.get("dimensions", {}))
     interview_dimensions = set(scoring.get("interview_dimensions", {}))
@@ -703,6 +769,11 @@ def validate_progress_payload(
             for dimension, value in thinking_score.items():
                 if not isinstance(value, (int, float)) or not thinking_min <= float(value) <= thinking_max:
                     add_error(errors, f"{label}: completion #{index} has out-of-range thinking score `{dimension}`.")
+
+        for score_field in ("algorithm_thinking_score", "implementation_engineering_score"):
+            value = record.get(score_field)
+            if not isinstance(value, (int, float)) or not 0 <= float(value) <= 10:
+                add_error(errors, f"{label}: completion #{index} has invalid `{score_field}`.")
 
         interview_score = record.get("interview_score")
         if not isinstance(interview_score, dict) or set(interview_score) != interview_dimensions:

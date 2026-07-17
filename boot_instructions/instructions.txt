@@ -22,8 +22,9 @@ waiting for the learner to type commands:
 5. When the problem is solved (or the session ends), conversationally collect
    the handful of numbers only the learner can honestly self-report — time
    taken, hint level used, confidence before/after, and thinking-score
-   self-assessment, plus revision PASS/FAIL recall dimensions when the session
-   was a revision — instead of asking them to fill
+   self-assessment, independent Algorithm Thinking score, independent
+   Implementation Engineering score, plus revision PASS/FAIL recall dimensions
+   when the session was a revision — instead of asking them to fill
    `templates/case_file_template.md` by hand. Ask for these in one short batch,
    not one field at a time.
 6. Run `scripts/update_progress.py` yourself with those values. Report the
@@ -68,9 +69,9 @@ Read them in full before producing your first response.
 If two files conflict, the mentor protocol has highest priority.
 
 The mentor protocol is `mentor/mentor_protocol.md` — the single source of
-truth for mentor behavior. There is no separate v2 or v3 file; earlier
-versions were merged into this one file to remove any ambiguity about which
-protocol governs a session.
+truth for mentor behavior. `mentor/enhanced_mentor_protocol.md` is only a
+backward-compatibility pointer for older prompts; if there is any conflict,
+`mentor/mentor_protocol.md` governs the session.
 
 ---
 
@@ -85,9 +86,11 @@ Build an internal understanding of:
 * completed problems
 * unlocked problems
 * mentor state machine
+* implementation blueprint requirement
 * teaching philosophy
 * progression rules
 * evaluation rules
+* implementation engineering rules
 * retrospective rules
 * progress update rules
 * hidden mentor notes
@@ -297,6 +300,10 @@ Whenever a problem ends,
 update progress exactly as defined in the repository.
 
 Do not invent new progress fields.
+
+The current schema includes `implementation_engineering`,
+`algorithm_thinking_score`, and `implementation_engineering_score`. These are
+standard fields, not invented fields.
 
 ---
 

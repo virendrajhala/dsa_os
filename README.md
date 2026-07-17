@@ -60,11 +60,14 @@ The repository keeps one source of truth per concern.
 - `progress/progress_template.json`
   A resettable seed file with the same schema as the live progress file.
 - `progress/scoring.json`
-  Thinking rubric, interview rubric, revision recall rubric, promotion thresholds, hint levels, and revision policy.
+  Thinking rubric, independent implementation engineering rubric, interview rubric, revision recall rubric, promotion thresholds, hint levels, and revision policy.
 - `docs/DSA_OS_MASTER.md`
   The constitution: philosophy, rules, thinking pipeline, revision model, and scoring logic.
 - `mentor/mentor_protocol.md`
   The operational protocol for guided sessions.
+- `mentor/error_taxonomy.md`
+  Mandatory mistake taxonomy for separating algorithm knowledge errors from
+  implementation translation errors.
 - `scripts/`
   Operational tooling for validation, next selection, progress updates, reports, and dashboard output.
 
@@ -100,6 +103,8 @@ make progress ARGS="\
   --thinking-score complexity_analysis=3 \
   --thinking-score implementation=3 \
   --thinking-score communication=4 \
+  --algorithm-thinking-score 7.5 \
+  --implementation-engineering-score 7.5 \
   --interview-score understanding=7 \
   --interview-score communication=8 \
   --interview-score algorithm=7 \
@@ -113,7 +118,10 @@ Revisions are state-based active recall, not passive date checks.
 
 - Every solve records a per-problem `revision` object in `progress/progress.json`.
 - A problem becomes mastered only after five successful recall stages: R1 after 1 day, R2 after 3 days, R3 after 7 days, R4 after 21 days, and R5 after 60 days.
-- A revision only advances when the learner recalls the intuition, invariant, correctness argument, key decision conditions, algorithm, and implementation with minimal or no hints.
+- A revision only advances when the learner completes pattern recall, state
+  recall, transition recall, complexity recall, implementation blueprint, code
+  from memory, dry run, edge cases, and interview discussion with minimal or no
+  hints.
 - Failed revisions do not advance. They keep the same stage and become due again tomorrow.
 - `scripts/next_problem.py` prioritizes due ACTIVE/FAILED revisions before new work.
 - MASTERED problems leave normal revision scheduling and enter deterministic quarterly maintenance every 90 days.
@@ -121,7 +129,31 @@ Revisions are state-based active recall, not passive date checks.
 
 This is spaced retrieval: elapsed time makes a recall attempt due, but only successful recall changes mastery state.
 
-Older progress files using `revision_schedule` and `next_revision_date` are migrated automatically by the scripts into the schema-version-6 per-problem `revision` state.
+Older progress files using `revision_schedule` and `next_revision_date` are migrated automatically by the scripts into the schema-version-7 progress schema.
+
+## Implementation Engineering
+
+Implementation Engineering is a global core competency, not a new curriculum
+stage. It applies inside every stage and every mentor session.
+
+Before writing any code, the learner must complete the Implementation
+Blueprint:
+
+- State: what every variable represents.
+- Initialization: initial values and why they satisfy the state definition.
+- Loop: start, end, direction, and why.
+- Previous state: whether old values must be preserved.
+- Answer: local/global ownership and update point.
+- Return: exact returned value.
+
+Every coding session records two independent 0-10 scores:
+
+- Algorithm Thinking: pattern recognition, state design, transition, complexity.
+- Implementation Engineering: initialization, loop bounds, previous-state
+  handling, update ordering, answer maintenance, return value, edge cases.
+
+Implementation mistakes update `progress.implementation_engineering` and must
+not reduce Algorithm Thinking unless the root cause is actually algorithmic.
 
 ## Developer Experience
 

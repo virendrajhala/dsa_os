@@ -1,6 +1,6 @@
 {
-  "schema_version": 6,
-  "last_updated": "2026-07-16",
+  "schema_version": 7,
+  "last_updated": "2026-07-17",
   "current_stage": "Observation",
   "current_problem": "OBS-007",
   "completed": [
@@ -51,13 +51,19 @@
               "algorithm_reconstruction": 9,
               "implementation": 8,
               "hint_dependency": 9,
-              "confidence": 9
+              "confidence": 9,
+              "implementation_blueprint": 8,
+              "code_from_memory": 8
             },
             "notes": "Successful active recall of Kadane's algorithm. Learner independently explained negative-prefix discard, restart intuition, correctness proof, and the non-empty subarray invariant. Initialization misconception for all-negative arrays was corrected during revision.",
-            "misconception_corrected": "runningSum = 0 and maxSum = 0 breaks the non-empty subarray invariant for all-negative inputs."
+            "misconception_corrected": "runningSum = 0 and maxSum = 0 breaks the non-empty subarray invariant for all-negative inputs.",
+            "algorithm_thinking_score": 7.5,
+            "implementation_engineering_score": 7.5
           }
         ]
-      }
+      },
+      "algorithm_thinking_score": 7.5,
+      "implementation_engineering_score": 7.5
     },
     {
       "problem_id": "OBS-002",
@@ -87,11 +93,51 @@
       },
       "revision": {
         "status": "ACTIVE",
-        "stage": 0,
-        "completed": [],
-        "next_due": "2026-07-17",
-        "history": []
-      }
+        "stage": 1,
+        "completed": [
+          "2026-07-17"
+        ],
+        "next_due": "2026-07-20",
+        "history": [
+          {
+            "date": "2026-07-17",
+            "result": "PASS",
+            "stage": 1,
+            "attempted_stage": 1,
+            "confidence": 9,
+            "hint_level": 2,
+            "thinking_score": {
+              "concept_recall": 9,
+              "invariant_recall": 9,
+              "algorithm_reconstruction": 9,
+              "implementation": 7,
+              "hint_dependency": 8,
+              "confidence": 9,
+              "implementation_blueprint": 7,
+              "code_from_memory": 7
+            },
+            "notes": "Successful R1 active recall for Maximum Product Subarray. Learner recalled why both runningMax and runningMin are required, defined the DP state, reconstructed transitions, preserved previous state conceptually, and stated O(n) time and O(1) space. Code recall needed implementation corrections around initialization, global answer maintenance, update location, and minor syntax, but the algorithm understanding was complete.",
+            "verified": [
+              "concept_recall",
+              "state_recall",
+              "transition_recall",
+              "complexity_recall",
+              "code_recall"
+            ],
+            "error_classification": "Implementation Engineering",
+            "implementation_corrections": [
+              "Replaced Integer.MIN_VALUE / Integer.MAX_VALUE initialization with nums[0].",
+              "Used prevMax and prevMin after preserving previous state.",
+              "Maintained globalMax separately from runningMax.",
+              "Identified that globalMax must be updated immediately after computing the new runningMax."
+            ],
+            "algorithm_thinking_score": 9.0,
+            "implementation_engineering_score": 7.0
+          }
+        ]
+      },
+      "algorithm_thinking_score": 7.5,
+      "implementation_engineering_score": 7.5
     },
     {
       "problem_id": "OBS-003",
@@ -125,7 +171,9 @@
         "completed": [],
         "next_due": "2026-07-18",
         "history": []
-      }
+      },
+      "algorithm_thinking_score": 7.5,
+      "implementation_engineering_score": 7.5
     },
     {
       "problem_id": "OBS-004",
@@ -159,7 +207,9 @@
         "completed": [],
         "next_due": "2026-07-19",
         "history": []
-      }
+      },
+      "algorithm_thinking_score": 7.5,
+      "implementation_engineering_score": 7.5
     },
     {
       "problem_id": "OBS-005",
@@ -193,7 +243,9 @@
         "completed": [],
         "next_due": "2026-07-21",
         "history": []
-      }
+      },
+      "algorithm_thinking_score": 9.58,
+      "implementation_engineering_score": 10.0
     },
     {
       "problem_id": "OBS-006",
@@ -227,7 +279,9 @@
         "completed": [],
         "next_due": "2026-07-22",
         "history": []
-      }
+      },
+      "algorithm_thinking_score": 10.0,
+      "implementation_engineering_score": 10.0
     }
   ],
   "thinking_profile": {
@@ -246,7 +300,9 @@
       "Comfortable deriving greedy algorithms from exploration boundaries rather than memorizing formulas.",
       "Strengthened algorithm-invariant reasoning through Kadane's runningSum interpretation.",
       "Strengthened greedy reasoning by proving why a negative prefix can be safely discarded.",
-      "Strengthened correctness-proof discipline by connecting restart decisions to previous running sum state."
+      "Strengthened correctness-proof discipline by connecting restart decisions to previous running sum state.",
+      "Strong algorithm reasoning and state-design intuition during Maximum Product Subarray recall.",
+      "Learns concepts deeply enough to reconstruct transitions instead of memorizing code templates."
     ],
     "gaps": [
       "Initially optimizes implementation before proving correctness",
@@ -254,7 +310,8 @@
       "Can derive the correct state abstraction but spends significant time proving whether the state can be compressed.",
       "Occasionally redesigns initialization before verifying that loop invariants and edge cases are preserved.",
       "Sometimes reasons about regions using current position instead of the current reachable frontier before formalizing the invariant.",
-      "Must validate initialization against invariant requirements and edge cases, especially all-negative inputs."
+      "Must validate initialization against invariant requirements and edge cases, especially all-negative inputs.",
+      "Implementation Engineering is the current improvement area: derive initialization, loop boundaries, update ordering, global answer ownership, and return value from the state definition before coding."
     ],
     "common_failures": [
       "May change initialization before questioning loop boundaries",
@@ -263,13 +320,15 @@
       "May prematurely redesign initialization before proving equivalence with the original invariant.",
       "Initially confuses exploration boundaries with launch positions.",
       "Initially interprets greedy algorithms as path-selection rather than frontier expansion.",
-      "May initialize tracked state to a convenient neutral value before verifying that the value represents a valid candidate under the invariant."
+      "May initialize tracked state to a convenient neutral value before verifying that the value represents a valid candidate under the invariant.",
+      "May mix local DP state with the final answer variable when translating a known algorithm into code.",
+      "May place global answer updates after the loop instead of immediately after the state transition that creates a new candidate."
     ],
     "preferred_patterns": [
       "State transition reasoning",
       "Running max/min state preservation"
     ],
-    "notes": "Student now consistently challenges every implementation detail until it is backed by an invariant. Continue emphasizing proof-based derivation instead of implementation-first reasoning. OBS-001 R2 showed improved state interpretation and proof discipline; continue checking that initialization values satisfy edge-case invariants."
+    "notes": "Student shows strong algorithm reasoning, good invariant recognition, strong state-design intuition, and deep concept learning instead of memorization. OBS-001 R2 showed improved state interpretation and proof discipline. OBS-002 R1 clarified that the main current gap is Implementation Engineering: the learner can derive the correct algorithm but needs to derive initialization, loop boundaries, update ordering, global answer ownership, and return value from the state definition before coding."
   },
   "history": [
     {
@@ -354,9 +413,28 @@
       "revision_status": "ACTIVE",
       "next_due": "2026-07-23",
       "summary": "R2 successful active recall. Initialization misconception corrected; no remaining conceptual gaps recorded."
+    },
+    {
+      "timestamp": "2026-07-17",
+      "event": "revision_recorded",
+      "problem_id": "OBS-002",
+      "mode": "revision",
+      "revision_result": "PASS",
+      "revision_stage": 1,
+      "revision_status": "ACTIVE",
+      "next_due": "2026-07-20",
+      "next_problem": "OBS-007",
+      "summary": "R1 successful active recall. Concept, state, transition, complexity, and code recall were verified; remaining issues were Implementation Engineering corrections only."
     }
   ],
-  "notes": [],
+  "notes": [
+    {
+      "date": "2026-07-17",
+      "type": "mentor_observation",
+      "problem_id": "OBS-002",
+      "note": "The learner should no longer jump directly from intuition to coding. Before every coding exercise, the mentor should require completion of the Implementation Blueprint covering state, initialization, loop boundaries, previous state, global answer, and return value. Only then should coding begin."
+    }
+  ],
   "scores": {
     "latest_thinking_score": {
       "understanding": 4,
@@ -1090,9 +1168,26 @@
       "implementation_lesson": "The loop iterates over launch positions, not landing positions. The last index is a destination, so it is intentionally excluded from exploration.",
       "edge_case_learned": "Initialization and loop boundaries are coupled. Changing one requires re-establishing the algorithm's invariant and validating all edge cases.",
       "interview_takeaway": "When a greedy solution feels unintuitive, first identify what state is expanding. In Jump Game II, the expanding state is not the current index-it is the reachable frontier."
+    },
+    "OBS-002": {
+      "revision_stage": "R1",
+      "date": "2026-07-17",
+      "core_mental_model": "Maximum Product Subarray requires tracking both runningMax and runningMin because multiplying by a negative value can swap the best and worst product states.",
+      "primary_invariant": "After processing index i, runningMax is the maximum product of a non-empty subarray ending at i and runningMin is the minimum product of a non-empty subarray ending at i.",
+      "major_breakthrough": "The learner's algorithm discovery is strong; the main weakness is translating a known state transition into correct code.",
+      "implementation_lesson": "Implementation details must be derived from the state definition: initialize with nums[0], start the loop after the initialized index, preserve prevMax and prevMin before mutation, update globalMax immediately after computing runningMax, and return globalMax rather than local DP state.",
+      "edge_case_learned": "Negative values and single-element arrays expose invalid initialization and missing global-answer maintenance.",
+      "interview_takeaway": "Before coding DP state transitions, complete the Implementation Blueprint so initialization, loop bounds, previous-state preservation, answer ownership, and return value are explicit."
     }
   },
   "weaknesses_detected": {
+    "OBS-002": [
+      "Incorrect initialization using Integer.MIN_VALUE / Integer.MAX_VALUE instead of values that satisfy the state invariant.",
+      "Forgot to use preserved prevMax / prevMin values after storing them.",
+      "Returned local runningMax instead of maintaining and returning a global answer.",
+      "Placed globalMax update outside the loop instead of immediately after computing each new runningMax.",
+      "Minor syntax omissions during code recall."
+    ],
     "OBS-006": [
       "Initially attempted to understand the algorithm through concrete jump paths rather than reachable regions.",
       "Required formal justification for every variable before internalizing the greedy invariant.",
@@ -1100,6 +1195,30 @@
     ]
   },
   "personal_playbook": [
-    "When solving greedy problems, first identify what state grows after every decision. If that state is a frontier or region rather than an individual position, reason about expanding boundaries instead of selecting explicit paths."
-  ]
+    "When solving greedy problems, first identify what state grows after every decision. If that state is a frontier or region rather than an individual position, reason about expanding boundaries instead of selecting explicit paths.",
+    "Before coding any understood algorithm, complete the Implementation Blueprint: state, initialization, loop boundaries, previous-state needs, global answer ownership, and return value."
+  ],
+  "implementation_engineering": {
+    "score": 8.33,
+    "strengths": [
+      "State definition",
+      "DP recurrence",
+      "Previous-state preservation",
+      "Complexity recall"
+    ],
+    "weaknesses": [
+      "Initialization",
+      "Loop boundaries",
+      "Global answer maintenance",
+      "Update ordering"
+    ],
+    "common_errors": [
+      "Initial values derived incorrectly",
+      "Forgot global answer update location",
+      "Mixed local DP state with final answer"
+    ],
+    "improvement_notes": [
+      "The learner consistently derives correct algorithms but occasionally loses marks while translating the algorithm into code. Future sessions should require an Implementation Blueprint before coding."
+    ]
+  }
 }

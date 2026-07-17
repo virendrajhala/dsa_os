@@ -1,5 +1,5 @@
 {
-  "schema_version": 6,
+  "schema_version": 7,
   "last_updated": null,
   "current_stage": "Observation",
   "current_problem": null,
@@ -709,5 +709,12 @@
     }
   },
   "notes": [],
-  "history": []
+  "history": [],
+  "implementation_engineering": {
+    "score": 0,
+    "strengths": [],
+    "weaknesses": [],
+    "common_errors": [],
+    "improvement_notes": []
+  }
 }

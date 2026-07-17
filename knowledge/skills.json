@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "source_of_truth": true,
-  "note": "Every skill's prerequisite is the single skill immediately before it in skill_order (stage order, then discovery order within the stage). This is an intentionally linear v1 dependency chain: it guarantees no cycles, no orphan skills, and that each curriculum transition introduces exactly one new reasoning model. Reviewers may add extra cross-links later (e.g. a skill drawing on two prior skills) as long as the graph stays acyclic and topologically consistent with stage_order.",
+  "note": "Every skill's prerequisite is the single skill immediately before it in skill_order (stage order, then discovery order within the stage). This is an intentionally linear v1 dependency chain: it guarantees no cycles, no orphan skills, and that each curriculum transition introduces exactly one new reasoning model. Reviewers may add extra cross-links later (e.g. a skill drawing on two prior skills) as long as the graph stays acyclic and topologically consistent with stage_order. Implementation Engineering is a global core competency, not a curriculum stage; it applies to every stage and is required for Medium and Hard problems.",
   "skill_order": [
     "SK-OB-01",
     "SK-OB-02",
@@ -92,7 +92,8 @@
     "SK-IN-04",
     "SK-IN-05",
     "SK-IN-06",
-    "SK-IN-07"
+    "SK-IN-07",
+    "SK-IE-00"
   ],
   "skills": {
     "SK-OB-01": {
@@ -1767,6 +1768,33 @@
         "DES-030",
         "DES-033"
       ]
+    },
+    "SK-IE-00": {
+      "id": "SK-IE-00",
+      "name": "Implementation Engineering",
+      "description": "The ability to correctly translate an understood algorithm into bug-free code by determining initialization, loop boundaries, state ownership, update ordering, previous-state preservation, and return value without relying on memorized implementations.",
+      "scope": "global",
+      "stage": null,
+      "required_for_difficulties": [
+        "Medium",
+        "Hard"
+      ],
+      "subskills": [
+        "State initialization",
+        "Loop boundaries",
+        "Loop direction",
+        "State ownership",
+        "Previous state preservation",
+        "Update ordering",
+        "Global answer maintenance",
+        "Return variable selection",
+        "Off-by-one detection",
+        "Edge-case driven coding"
+      ],
+      "prerequisites": [],
+      "primary_validation_problem": null,
+      "reinforcement_problems": [],
+      "challenge_problems": []
     }
   }
 }
