@@ -249,10 +249,47 @@
       },
       "revision": {
         "status": "ACTIVE",
-        "stage": 0,
-        "completed": [],
-        "next_due": "2026-07-19",
-        "history": []
+        "stage": 1,
+        "completed": [
+          "2026-07-19"
+        ],
+        "next_due": "2026-07-22",
+        "history": [
+          {
+            "date": "2026-07-19",
+            "result": "PASS",
+            "stage": 1,
+            "attempted_stage": 1,
+            "confidence": 9,
+            "hint_level": 2,
+            "thinking_score": {
+              "concept_recall": 9,
+              "invariant_recall": 9,
+              "algorithm_reconstruction": 9,
+              "implementation": 9,
+              "hint_dependency": 8,
+              "confidence": 9,
+              "implementation_blueprint": 9,
+              "code_from_memory": 9
+            },
+            "notes": "Successful R1 active recall completed in 5 minutes. The learner recalled why unlimited transactions remove the minPrice state, derived the positive-adjacent-difference rule, explained the loop boundary required by prices[i + 1], wrote the Java implementation from memory, and passed a dry run with O(n) time and O(1) space.",
+            "verified": [
+              "concept_recall",
+              "invariant_recall",
+              "algorithm_reconstruction",
+              "greedy_optimality",
+              "loop_boundaries",
+              "edge_cases",
+              "implementation_blueprint",
+              "code_from_memory",
+              "dry_run",
+              "complexity_recall"
+            ],
+            "error_classification": "None",
+            "algorithm_thinking_score": 9.0,
+            "implementation_engineering_score": 9.0
+          }
+        ]
       },
       "algorithm_thinking_score": 7.5,
       "implementation_engineering_score": 7.5
@@ -644,6 +681,17 @@
       "revision_status": "ACTIVE",
       "next_due": "2026-07-22",
       "summary": "R1 successful active recall. The learner reconstructed the candidate-elimination proof, global feasibility condition, candidate-relative running balance, state derivation, implementation, and dry run from first principles."
+    },
+    {
+      "timestamp": "2026-07-19",
+      "event": "revision_recorded",
+      "problem_id": "OBS-004",
+      "mode": "revision",
+      "revision_result": "PASS",
+      "revision_stage": 1,
+      "revision_status": "ACTIVE",
+      "next_due": "2026-07-22",
+      "summary": "R1 successful active recall in 5 minutes. The learner explained why unlimited transactions remove the historical-minimum state, reconstructed the positive-adjacent-difference rule and its optimality, wrote the Java implementation from memory, and passed a dry run."
     }
   ],
   "notes": [
@@ -676,6 +724,12 @@
       "type": "mentor_observation",
       "problem_id": "OBS-007",
       "note": "The learner reconstructed the candidate-elimination proof rather than treating it as a heuristic, kept candidate-relative running balance separate from global feasibility, and derived the implementation state before coding. Future sessions should preserve this reconstruction-first approach and explicitly distinguish intermediate state from the returned answer."
+    },
+    {
+      "date": "2026-07-19",
+      "type": "mentor_observation",
+      "problem_id": "OBS-004",
+      "note": "The learner correctly used the changed transaction constraint to decide that historical minPrice state is unnecessary. They separated accumulated profit from decision state, justified the prices[i + 1] loop boundary, and explained why summing every positive adjacent difference is optimal."
     }
   ],
   "scores": {
@@ -1414,6 +1468,16 @@
       "edge_case_learned": "Empty input is outside the LeetCode constraint; a single price correctly returns 0, and the initialized first price remains a valid prefix minimum.",
       "interview_takeaway": "Use the reusable linear-scan pattern: Maintain past state -> Use past state -> Update state. Distinguish mathematical correctness from the update order that most clearly communicates the invariant."
     },
+    "OBS-004": {
+      "revision_stage": "R1",
+      "date": "2026-07-19",
+      "core_mental_model": "With unlimited transactions, profit is an accumulated answer rather than decision state. Capture every positive adjacent price increase; each downward movement ends the current transaction before the next rise begins.",
+      "primary_invariant": "After processing pair (i, i + 1), maxProfit equals the sum of all positive adjacent differences seen so far. No historical minimum is needed because future decisions do not depend on a single earlier purchase price.",
+      "major_breakthrough": "The learner used the changed transaction constraint to determine which historical state is no longer required, instead of carrying minPrice from Stock I by habit.",
+      "implementation_lesson": "Start at index 0 and continue while i < prices.length - 1 because each iteration reads prices[i + 1]. These natural loop boundaries safely handle empty and single-element arrays without special-case branches.",
+      "edge_case_learned": "An empty or one-element array executes no pair comparison and returns the initial accumulated profit of 0.",
+      "interview_takeaway": "When constraints change, re-derive the decision state. Maintain state only when future decisions need it; keep the accumulated answer separate from that state."
+    },
     "OBS-006": {
       "core_mental_model": "A greedy solution does not always choose the next action. Sometimes it repeatedly expands the reachable frontier.",
       "primary_invariant": "currentRegionEnd represents the boundary of the currently explorable region, while farthestReachableIndex represents the boundary discovered for the next explorable region.",
@@ -1458,6 +1522,12 @@
       "Resolved: uncertainty about loop boundaries.",
       "Resolved: confusion regarding why larger previous values can be safely discarded."
     ],
+    "OBS-004": [
+      "Resolved: carrying unnecessary historical state from the single-transaction variant.",
+      "Resolved: conflating accumulated profit with algorithm decision state.",
+      "Resolved: relying on memorized loop boundaries instead of deriving them from prices[i + 1].",
+      "Resolved: lacking a clear optimality explanation for the positive-difference greedy rule."
+    ],
     "OBS-006": [
       "Initially attempted to understand the algorithm through concrete jump paths rather than reachable regions.",
       "Required formal justification for every variable before internalizing the greedy invariant.",
@@ -1476,7 +1546,8 @@
     "Greedy hypothesis scan pattern: identify the observation pointer, identify the hypothesis pointer, define the maintained state, define the invariant, define the failure condition, decide when the hypothesis changes, decide whether the maintained state changes meaning, reset state only when its semantic meaning changes, and separate local reasoning from global feasibility.",
     "State variables should be named and initialized from their semantic responsibility before writing update equations.",
     "For a linear scan, state exactly what information from the processed prefix future decisions need. Maintain that past summary, use it against the current item, then update it for the future. Prove why discarded past values are dominated.",
-    "For candidate-elimination scans, prove the failed segment impossible before advancing the candidate. Keep candidate-relative state separate from global feasibility, and derive implementation variables from those proof obligations."
+    "For candidate-elimination scans, prove the failed segment impossible before advancing the candidate. Keep candidate-relative state separate from global feasibility, and derive implementation variables from those proof obligations.",
+    "When a constraint changes, re-derive whether historical decision state is still needed. Keep an accumulated answer separate from decision state, and derive loop bounds from every indexed access."
   ],
   "implementation_engineering": {
     "score": 10.0,
@@ -1502,7 +1573,10 @@
       "Implementation justification",
       "Candidate elimination proof construction",
       "Reconstruction-first state derivation",
-      "Intermediate-state versus return-value reasoning"
+      "Intermediate-state versus return-value reasoning",
+      "Constraint-driven state selection",
+      "Adjacent-difference greedy reasoning",
+      "Loop-boundary derivation"
     ],
     "weaknesses": [
       "Initialization",
@@ -1520,7 +1594,8 @@
       "For greedy problems, resetting a variable must mean its semantic owner changed, not simply that the code pattern says reset.",
       "Keep local hypothesis state separate from global feasibility state in the Implementation Blueprint.",
       "OBS-003 revision confirmed that the learner can justify initialization, loop boundaries, update order, and the dominance proof for a past-state greedy scan without hints.",
-      "OBS-007 R1 confirmed correct reconstruction, state derivation, implementation from memory, and dry-run validation for the candidate-elimination scan."
+      "OBS-007 R1 confirmed correct reconstruction, state derivation, implementation from memory, and dry-run validation for the candidate-elimination scan.",
+      "OBS-004 R1 confirmed that the learner can derive state necessity from constraints, justify adjacency-based greedy accumulation, and implement safe loop bounds from the indexed access."
     ]
   }
 }
