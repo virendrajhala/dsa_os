@@ -1,6 +1,6 @@
 {
   "schema_version": 7,
-  "last_updated": "2026-07-17",
+  "last_updated": "2026-07-19",
   "current_stage": "Observation",
   "current_problem": "OBS-008",
   "completed": [
@@ -167,10 +167,56 @@
       },
       "revision": {
         "status": "ACTIVE",
-        "stage": 0,
-        "completed": [],
-        "next_due": "2026-07-18",
-        "history": []
+        "stage": 1,
+        "completed": [
+          "2026-07-19"
+        ],
+        "next_due": "2026-07-22",
+        "history": [
+          {
+            "date": "2026-07-19",
+            "result": "PASS",
+            "stage": 1,
+            "attempted_stage": 1,
+            "confidence": 10,
+            "hint_level": 0,
+            "thinking_score": {
+              "concept_recall": 10,
+              "invariant_recall": 10,
+              "algorithm_reconstruction": 10,
+              "implementation": 10,
+              "hint_dependency": 10,
+              "confidence": 10,
+              "implementation_blueprint": 10,
+              "code_from_memory": 10
+            },
+            "notes": "Successful R1 active recall with complete conceptual mastery and an independent optimal implementation. The learner recalled the statement without hints; derived and proved the minPrice greedy invariant; validated initialization, boundary cases, dry run, O(n) time, and O(1) space. They distinguished correctness from engineering readability when comparing update orders.",
+            "verified": [
+              "problem_statement_recall",
+              "concept_recall",
+              "state_recall",
+              "invariant_recall",
+              "algorithm_reconstruction",
+              "correctness_proof",
+              "initialization_reasoning",
+              "boundary_conditions",
+              "dry_run",
+              "implementation_blueprint",
+              "code_from_memory",
+              "complexity_recall"
+            ],
+            "error_classification": "None",
+            "resolved_weaknesses": [
+              "Confusion about update order.",
+              "Lack of proof for greedy correctness.",
+              "Uncertainty regarding initialization.",
+              "Uncertainty about loop boundaries.",
+              "Confusion regarding why larger previous values can be safely discarded."
+            ],
+            "algorithm_thinking_score": 10.0,
+            "implementation_engineering_score": 10.0
+          }
+        ]
       },
       "algorithm_thinking_score": 7.5,
       "implementation_engineering_score": 7.5
@@ -539,6 +585,17 @@
       "interview_breakthrough": "Explain local elimination and global feasibility as separate proof obligations.",
       "key_invariant": "tankBalance is the net fuel from startCandidate to the current scan index.",
       "reusable_pattern": "Greedy hypothesis scan: observation pointer, hypothesis pointer, candidate-relative state, failure condition, semantic reset, global feasibility."
+    },
+    {
+      "timestamp": "2026-07-19",
+      "event": "revision_recorded",
+      "problem_id": "OBS-003",
+      "mode": "revision",
+      "revision_result": "PASS",
+      "revision_stage": 1,
+      "revision_status": "ACTIVE",
+      "next_due": "2026-07-22",
+      "summary": "R1 successful active recall with complete conceptual mastery. The learner independently derived and proved the minPrice invariant, implemented the O(n)/O(1) solution correctly, and justified initialization, loop bounds, boundary cases, and both valid update orders."
     }
   ],
   "notes": [
@@ -559,6 +616,12 @@
       "type": "revision_focus",
       "problem_id": "OBS-007",
       "note": "Future OBS-007 revision should verify: tankBalance meaning, reset reason, why the loop does not restart, why startCandidate is only a hypothesis, why failed candidates are discarded, and why global totals are maintained separately."
+    },
+    {
+      "date": "2026-07-19",
+      "type": "mentor_observation",
+      "problem_id": "OBS-003",
+      "note": "The learner independently derived the invariant rather than recalling a memorized solution, proved why only the minimum previous price matters, and correctly reasoned about update order. They understood that both update orders are correct, while using past state before updating it communicates cleaner engineering intent. Reuse the abstraction `Maintain past state -> Use past state -> Update state` in Gas Station, Kadane's Algorithm, Jump Game, Prefix Sum, and HashMap prefix-state problems."
     }
   ],
   "scores": {
@@ -1287,6 +1350,16 @@
       "edge_case_learned": "All-negative arrays expose invalid neutral initialization for non-empty subarray problems.",
       "interview_takeaway": "Before using a neutral initial value, verify that it is a valid candidate under the problem constraints and loop invariant."
     },
+    "OBS-003": {
+      "revision_stage": "R1",
+      "date": "2026-07-19",
+      "core_mental_model": "For each current price, only the smallest price in the already processed prefix can maximize a one-transaction profit. Maintain that past summary, use it to evaluate the current price, then update it for future prices.",
+      "primary_invariant": "Before processing prices[i], minPrice is the minimum value in prices[0..i-1]. The current index consumes that past state before minPrice is prepared for later indices.",
+      "major_breakthrough": "The learner independently derived the greedy invariant and proved that any larger previous price is dominated by minPrice for every future sale price.",
+      "implementation_lesson": "Initialize maxProfit to 0 and minPrice to prices[0]. Starting at i = 1 avoids reprocessing the initialized value; starting at i = 0 is also correct because the self-profit is 0. Computing profit before updating minPrice makes the past-state invariant and engineering intent explicit, though updating minPrice first is also correct because prices[i] - prices[i] = 0 cannot reduce maxProfit.",
+      "edge_case_learned": "Empty input is outside the LeetCode constraint; a single price correctly returns 0, and the initialized first price remains a valid prefix minimum.",
+      "interview_takeaway": "Use the reusable linear-scan pattern: Maintain past state -> Use past state -> Update state. Distinguish mathematical correctness from the update order that most clearly communicates the invariant."
+    },
     "OBS-006": {
       "core_mental_model": "A greedy solution does not always choose the next action. Sometimes it repeatedly expands the reachable frontier.",
       "primary_invariant": "currentRegionEnd represents the boundary of the currently explorable region, while farthestReachableIndex represents the boundary discovered for the next explorable region.",
@@ -1323,6 +1396,13 @@
       "Placed globalMax update outside the loop instead of immediately after computing each new runningMax.",
       "Minor syntax omissions during code recall."
     ],
+    "OBS-003": [
+      "Resolved: confusion about update order.",
+      "Resolved: lack of proof for greedy correctness.",
+      "Resolved: uncertainty regarding initialization.",
+      "Resolved: uncertainty about loop boundaries.",
+      "Resolved: confusion regarding why larger previous values can be safely discarded."
+    ],
     "OBS-006": [
       "Initially attempted to understand the algorithm through concrete jump paths rather than reachable regions.",
       "Required formal justification for every variable before internalizing the greedy invariant.",
@@ -1339,7 +1419,8 @@
     "When solving greedy problems, first identify what state grows after every decision. If that state is a frontier or region rather than an individual position, reason about expanding boundaries instead of selecting explicit paths.",
     "Before coding any understood algorithm, complete the Implementation Blueprint: state, initialization, loop boundaries, previous-state needs, global answer ownership, and return value.",
     "Greedy hypothesis scan pattern: identify the observation pointer, identify the hypothesis pointer, define the maintained state, define the invariant, define the failure condition, decide when the hypothesis changes, decide whether the maintained state changes meaning, reset state only when its semantic meaning changes, and separate local reasoning from global feasibility.",
-    "State variables should be named and initialized from their semantic responsibility before writing update equations."
+    "State variables should be named and initialized from their semantic responsibility before writing update equations.",
+    "For a linear scan, state exactly what information from the processed prefix future decisions need. Maintain that past summary, use it against the current item, then update it for the future. Prove why discarded past values are dominated."
   ],
   "implementation_engineering": {
     "score": 10.0,
@@ -1357,7 +1438,12 @@
       "Local state reset semantics",
       "Global feasibility separation",
       "Proof-to-implementation mapping",
-      "Single-pass greedy engineering"
+      "Single-pass greedy engineering",
+      "Greedy invariant reasoning",
+      "Past-state summarization",
+      "One-pass linear scan reasoning",
+      "Boundary-condition reasoning",
+      "Implementation justification"
     ],
     "weaknesses": [
       "Initialization",
@@ -1373,7 +1459,8 @@
       "The learner consistently derives correct algorithms but occasionally loses marks while translating the algorithm into code. Future sessions should require an Implementation Blueprint before coding.",
       "For greedy scans, define whether each variable is local to the current hypothesis or global to feasibility before coding.",
       "For greedy problems, resetting a variable must mean its semantic owner changed, not simply that the code pattern says reset.",
-      "Keep local hypothesis state separate from global feasibility state in the Implementation Blueprint."
+      "Keep local hypothesis state separate from global feasibility state in the Implementation Blueprint.",
+      "OBS-003 revision confirmed that the learner can justify initialization, loop boundaries, update order, and the dominance proof for a past-state greedy scan without hints."
     ]
   }
 }
