@@ -359,10 +359,47 @@
       },
       "revision": {
         "status": "ACTIVE",
-        "stage": 0,
-        "completed": [],
-        "next_due": "2026-07-18",
-        "history": []
+        "stage": 1,
+        "completed": [
+          "2026-07-19"
+        ],
+        "next_due": "2026-07-22",
+        "history": [
+          {
+            "date": "2026-07-19",
+            "result": "PASS",
+            "stage": 1,
+            "attempted_stage": 1,
+            "confidence": 9,
+            "hint_level": 2,
+            "thinking_score": {
+              "concept_recall": 10,
+              "invariant_recall": 10,
+              "algorithm_reconstruction": 10,
+              "implementation": 10,
+              "hint_dependency": 2,
+              "confidence": 9,
+              "implementation_blueprint": 10,
+              "code_from_memory": 10
+            },
+            "notes": "Successful R1 active recall. The learner reconstructed the complete solution from first principles, re-derived the candidate-elimination proof and global feasibility condition, identified the required implementation state before coding, wrote the implementation from memory, and passed a dry run. The session also covered temporary startCandidate == n and the optional single-totalBalance optimization.",
+            "verified": [
+              "concept_recall",
+              "invariant_recall",
+              "algorithm_reconstruction",
+              "candidate_elimination_proof",
+              "global_feasibility",
+              "candidate_transition",
+              "candidate_relative_state",
+              "implementation_blueprint",
+              "code_from_memory",
+              "dry_run"
+            ],
+            "error_classification": "None",
+            "algorithm_thinking_score": 10.0,
+            "implementation_engineering_score": 10.0
+          }
+        ]
       },
       "session_summary": {
         "pattern": "Greedy + Invariant Scan",
@@ -596,6 +633,17 @@
       "revision_status": "ACTIVE",
       "next_due": "2026-07-22",
       "summary": "R1 successful active recall with complete conceptual mastery. The learner independently derived and proved the minPrice invariant, implemented the O(n)/O(1) solution correctly, and justified initialization, loop bounds, boundary cases, and both valid update orders."
+    },
+    {
+      "timestamp": "2026-07-19",
+      "event": "revision_recorded",
+      "problem_id": "OBS-007",
+      "mode": "revision",
+      "revision_result": "PASS",
+      "revision_stage": 1,
+      "revision_status": "ACTIVE",
+      "next_due": "2026-07-22",
+      "summary": "R1 successful active recall. The learner reconstructed the candidate-elimination proof, global feasibility condition, candidate-relative running balance, state derivation, implementation, and dry run from first principles."
     }
   ],
   "notes": [
@@ -622,6 +670,12 @@
       "type": "mentor_observation",
       "problem_id": "OBS-003",
       "note": "The learner independently derived the invariant rather than recalling a memorized solution, proved why only the minimum previous price matters, and correctly reasoned about update order. They understood that both update orders are correct, while using past state before updating it communicates cleaner engineering intent. Reuse the abstraction `Maintain past state -> Use past state -> Update state` in Gas Station, Kadane's Algorithm, Jump Game, Prefix Sum, and HashMap prefix-state problems."
+    },
+    {
+      "date": "2026-07-19",
+      "type": "mentor_observation",
+      "problem_id": "OBS-007",
+      "note": "The learner reconstructed the candidate-elimination proof rather than treating it as a heuristic, kept candidate-relative running balance separate from global feasibility, and derived the implementation state before coding. Future sessions should preserve this reconstruction-first approach and explicitly distinguish intermediate state from the returned answer."
     }
   ],
   "scores": {
@@ -1379,13 +1433,14 @@
       "interview_takeaway": "Before coding DP state transitions, complete the Implementation Blueprint so initialization, loop bounds, previous-state preservation, answer ownership, and return value are explicit."
     },
     "OBS-007": {
-      "date": "2026-07-17",
-      "core_mental_model": "Gas Station is a hypothesis scan: startCandidate is the current hypothesis, while tankBalance measures only the net fuel accumulated under that hypothesis.",
-      "primary_invariant": "At every scan index, tankBalance is the net gas-cost balance from startCandidate through the current station. If it becomes negative, every station from the old candidate through the current index is eliminated as a valid start.",
-      "major_breakthrough": "tankBalance does not represent fuel accumulated from index 0. It represents candidate-relative fuel from the current startCandidate to the current index.",
-      "implementation_lesson": "The scan pointer keeps moving forward even when the candidate changes. Updating startCandidate changes the hypothesis; resetting tankBalance changes the meaning of the local state to belong to the new hypothesis.",
-      "edge_case_learned": "Local tankBalance cannot decide final feasibility. The global gas and cost totals are still required to return -1 when total gas is insufficient.",
-      "interview_takeaway": "Separate local candidate elimination from global feasibility, then let the proof drive the implementation variables."
+      "revision_stage": "R1",
+      "date": "2026-07-19",
+      "core_mental_model": "Gas Station is a candidate-elimination scan: startCandidate is the current hypothesis, tankBalance belongs only to that candidate, and global feasibility is a separate condition.",
+      "primary_invariant": "Before the first negative tankBalance from candidate S through index i, every prefix from S is non-negative. When balance(S, i) becomes negative, balance(k, i) is negative for every k in [S, i], so each is eliminated.",
+      "major_breakthrough": "The learner reconstructed the mathematical candidate-elimination proof from first principles and independently derived the required implementation state.",
+      "implementation_lesson": "The scan pointer keeps moving forward when the candidate changes; resetting tankBalance starts a new candidate-relative state. startCandidate can temporarily equal n after the final transition, but total feasibility guarantees that value is not returned. Separate total available and total consumed are equivalent to one totalBalance accumulator.",
+      "edge_case_learned": "Local tankBalance evaluates one candidate, while totalGas >= totalCost determines whether any full traversal exists. The final candidate transition may create an intermediate sentinel state without creating an invalid return value.",
+      "interview_takeaway": "Reconstruct the proof, derive the state from it, then implement. Keep local candidate feasibility separate from global feasibility and explain why eliminated candidates are mathematically dominated."
     }
   },
   "weaknesses_detected": {
@@ -1420,7 +1475,8 @@
     "Before coding any understood algorithm, complete the Implementation Blueprint: state, initialization, loop boundaries, previous-state needs, global answer ownership, and return value.",
     "Greedy hypothesis scan pattern: identify the observation pointer, identify the hypothesis pointer, define the maintained state, define the invariant, define the failure condition, decide when the hypothesis changes, decide whether the maintained state changes meaning, reset state only when its semantic meaning changes, and separate local reasoning from global feasibility.",
     "State variables should be named and initialized from their semantic responsibility before writing update equations.",
-    "For a linear scan, state exactly what information from the processed prefix future decisions need. Maintain that past summary, use it against the current item, then update it for the future. Prove why discarded past values are dominated."
+    "For a linear scan, state exactly what information from the processed prefix future decisions need. Maintain that past summary, use it against the current item, then update it for the future. Prove why discarded past values are dominated.",
+    "For candidate-elimination scans, prove the failed segment impossible before advancing the candidate. Keep candidate-relative state separate from global feasibility, and derive implementation variables from those proof obligations."
   ],
   "implementation_engineering": {
     "score": 10.0,
@@ -1443,7 +1499,10 @@
       "Past-state summarization",
       "One-pass linear scan reasoning",
       "Boundary-condition reasoning",
-      "Implementation justification"
+      "Implementation justification",
+      "Candidate elimination proof construction",
+      "Reconstruction-first state derivation",
+      "Intermediate-state versus return-value reasoning"
     ],
     "weaknesses": [
       "Initialization",
@@ -1460,7 +1519,8 @@
       "For greedy scans, define whether each variable is local to the current hypothesis or global to feasibility before coding.",
       "For greedy problems, resetting a variable must mean its semantic owner changed, not simply that the code pattern says reset.",
       "Keep local hypothesis state separate from global feasibility state in the Implementation Blueprint.",
-      "OBS-003 revision confirmed that the learner can justify initialization, loop boundaries, update order, and the dominance proof for a past-state greedy scan without hints."
+      "OBS-003 revision confirmed that the learner can justify initialization, loop boundaries, update order, and the dominance proof for a past-state greedy scan without hints.",
+      "OBS-007 R1 confirmed correct reconstruction, state derivation, implementation from memory, and dry-run validation for the candidate-elimination scan."
     ]
   }
 }
