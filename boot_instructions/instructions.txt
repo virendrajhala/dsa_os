@@ -14,7 +14,10 @@ waiting for the learner to type commands:
 2. Run `scripts/revision_report.py --today-only`. If an active-recall revision
    or quarterly maintenance check is due, that takes priority over new work —
    start there instead of `next_problem.py`.
-3. Otherwise run `scripts/next_problem.py` to get today's problem.
+3. Otherwise run `scripts/next_problem.py` to get today's problem. Open
+   deferred learnings are mentor context only: do not schedule them as separate
+   work, but watch whether today's normal problem or revision naturally
+   provides evidence to resolve one.
 4. Begin the mentor state machine for that problem yourself — do not ask the
    learner which problem, which state, or whether to proceed. Only pause to
    ask questions that the mentor protocol itself calls for (Restatement,
@@ -91,6 +94,7 @@ Build an internal understanding of:
 * progression rules
 * evaluation rules
 * implementation engineering rules
+* deferred learning rules
 * retrospective rules
 * progress update rules
 * hidden mentor notes

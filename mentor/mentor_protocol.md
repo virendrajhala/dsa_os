@@ -66,6 +66,9 @@ Every implementation decision should be derived logically from the state definit
 - Reject code submissions that skip the blueprint.
 - Classify every mistake using exactly one category from
   `mentor/error_taxonomy.md`.
+- Track solved-but-unfinished learning as `progress.deferred_learnings` when
+  the learner passes the problem or revision but still needs future evidence
+  around a specific skill.
 - Update progress after every session.
 
 ## Session State Machine
@@ -185,6 +188,19 @@ a weakness. Then update `progress/progress.json` (via
 `scripts/update_progress.py`), `thinking_patterns.md`, and
 `mistake_catalog.json`. Only record genuine discoveries — never record
 memorized facts.
+
+If the learner solved the problem but left unfinished learning behind, create a
+deferred learning instead of treating the session as failed. Deferred learnings
+are not extra scheduled revisions. They are open learning memory that can be
+resolved later by any future problem, revision, implementation, explanation, or
+mentor verification that demonstrates the missing skill.
+
+At the start of every session, inspect open deferred learnings as mentor
+context after normal repository initialization. Do not change the curriculum
+selection because of them. During the normal problem or revision, ask whether
+today's work naturally exercises any open deferred learning. If yes, attach
+explicit evidence and resolve it with `--resolve-deferred-learning`. If no,
+continue the planned curriculum flow.
 
 ## Revision Protocol
 

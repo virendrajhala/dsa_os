@@ -229,6 +229,42 @@
     );
   }
 
+  function deferredLearningEntries() {
+    return Array.isArray(state.datasets.progress.deferred_learnings)
+      ? state.datasets.progress.deferred_learnings
+      : [];
+  }
+
+  function openDeferredLearnings() {
+    return deferredLearningEntries().filter((entry) => entry.status === "OPEN");
+  }
+
+  function deferredLearningMatchesQuery(entry, query) {
+    if (!query) return true;
+    const origin = state.problemsById.get(entry.origin_problem) || {};
+    const resolved = entry.resolved_by_problem
+      ? state.problemsById.get(entry.resolved_by_problem) || {}
+      : {};
+    const haystack = [
+      entry.id,
+      entry.origin_problem,
+      origin.title,
+      entry.resolved_by_problem,
+      resolved.title,
+      entry.skill,
+      skillMeta(entry.skill).name,
+      entry.category,
+      entry.description,
+      entry.evidence,
+      entry.priority,
+      entry.status,
+    ]
+      .filter(Boolean)
+      .join(" ")
+      .toLowerCase();
+    return haystack.includes(query);
+  }
+
   function nextAction() {
     const due = dueEntries();
     if (due.length) {
@@ -271,6 +307,7 @@
     const avgConfidence = avg(confidenceAfter);
     const competency = progress.competency_completion || {};
     const implementationEngineering = progress.implementation_engineering || {};
+    const openDeferred = openDeferredLearnings();
 
     const metrics = [
       {
@@ -292,6 +329,11 @@
         label: "Revision load",
         value: `${dueEntries().length} due`,
         note: `${activeRevisions} active, ${failedRevisions} failed, ${masteredRevisions} mastered`,
+      },
+      {
+        label: "Deferred learning",
+        value: `${openDeferred.length} open`,
+        note: "Tracked as future evidence opportunities, not scheduled tasks",
       },
       {
         label: "Confidence",
@@ -639,6 +681,139 @@
     routineButton.addEventListener("click", openRoutineModal);
     plan.append(routineButton);
     target.append(plan);
+  }
+
+  function renderDeferredLearnings() {
+    const target = $("#deferred-grid");
+    target.replaceChildren();
+    const { query } = currentFilters();
+    const entries = deferredLearningEntries().filter((entry) =>
+      deferredLearningMatchesQuery(entry, query),
+    );
+    const open = entries.filter((entry) => entry.status === "OPEN");
+    const resolved = entries.filter((entry) => entry.status === "RESOLVED");
+
+    const summary = document.createElement("article");
+    summary.className = "prep-card wide";
+    summary.innerHTML = `
+      <div class="section-head">
+        <div>
+          <h4>Unfinished learning memory</h4>
+          <span class="small-muted">The curriculum still drives the next problem. These close only when future evidence appears naturally.</span>
+        </div>
+        <span class="pill warn">${open.length} open</span>
+      </div>
+      <p>Use this section to remember solved-problem learning that is worth strengthening later, without forcing extra revision sessions.</p>
+    `;
+    target.append(summary);
+
+    if (!entries.length) {
+      const emptyCard = document.createElement("article");
+      emptyCard.className = "prep-card";
+      emptyCard.append(empty("No deferred learnings match the current filters."));
+      target.append(emptyCard);
+      return;
+    }
+
+    open
+      .sort((a, b) => {
+        const priorityOrder = { HIGH: 0, MEDIUM: 1, LOW: 2 };
+        return (
+          (priorityOrder[a.priority] ?? 3) - (priorityOrder[b.priority] ?? 3) ||
+          String(a.created_on).localeCompare(String(b.created_on)) ||
+          String(a.id).localeCompare(String(b.id))
+        );
+      })
+      .forEach((entry) => target.append(buildDeferredLearningCard(entry)));
+
+    if (resolved.length) {
+      const resolvedCard = document.createElement("article");
+      resolvedCard.className = "prep-card wide";
+      resolvedCard.innerHTML = `
+        <div class="section-head">
+          <h4>Resolved by future evidence</h4>
+          <span class="pill good">${resolved.length}</span>
+        </div>
+        <p>These were closed by later problems, revisions, or mentor verification.</p>
+      `;
+      const button = document.createElement("button");
+      button.className = "stage-skill-open";
+      button.type = "button";
+      button.textContent = "View resolved evidence";
+      button.addEventListener("click", () => openDeferredListModal("Resolved deferred learnings", resolved));
+      resolvedCard.append(button);
+      target.append(resolvedCard);
+    }
+  }
+
+  function buildDeferredLearningCard(entry) {
+    const origin = state.problemsById.get(entry.origin_problem);
+    const card = document.createElement("article");
+    card.className = "prep-card";
+    card.innerHTML = `
+      <div class="section-head">
+        <div>
+          <h4>${entry.id} · ${entry.category.replaceAll("_", " ")}</h4>
+          <span class="small-muted">${entry.origin_problem}${origin ? ` - ${origin.title}` : ""}</span>
+        </div>
+        <span class="pill ${entry.priority === "HIGH" ? "bad" : entry.priority === "MEDIUM" ? "warn" : ""}">${entry.priority}</span>
+      </div>
+      <p>${entry.description}</p>
+      <div class="meta-row">
+        <span class="pill">${skillTitle(entry.skill)}</span>
+        <span class="pill">${entry.created_on}</span>
+      </div>
+    `;
+    const actions = document.createElement("div");
+    actions.className = "meta-row";
+    if (origin) {
+      const originButton = document.createElement("button");
+      originButton.className = "stage-skill-open";
+      originButton.type = "button";
+      originButton.textContent = `Open ${entry.origin_problem}`;
+      originButton.addEventListener("click", () => openProblemModal(entry.origin_problem));
+      actions.append(originButton);
+    }
+    const skillButton = document.createElement("button");
+    skillButton.className = "stage-skill-open";
+    skillButton.type = "button";
+    skillButton.textContent = "View skill";
+    skillButton.addEventListener("click", () => openSingleSkillModal(entry.skill));
+    actions.append(skillButton);
+    card.append(actions);
+    return card;
+  }
+
+  function openDeferredListModal(title, entries) {
+    const body = setModal(title, `${entries.length} deferred learning${entries.length === 1 ? "" : "s"}`, "Deferred learning");
+    const list = document.createElement("div");
+    list.className = "mistake-list single";
+    entries.forEach((entry) => {
+      const origin = state.problemsById.get(entry.origin_problem);
+      const resolvedBy = entry.resolved_by_problem
+        ? state.problemsById.get(entry.resolved_by_problem)
+        : null;
+      const node = document.createElement("article");
+      node.className = "mistake-item";
+      node.innerHTML = `
+        <strong>${entry.id} · ${entry.category.replaceAll("_", " ")}</strong>
+        <p>${entry.description}</p>
+        <small>Origin: ${entry.origin_problem}${origin ? ` - ${origin.title}` : ""}</small>
+        ${entry.evidence ? `<small>Evidence: ${entry.evidence}</small>` : ""}
+        ${resolvedBy ? `<small>Resolved by: ${entry.resolved_by_problem} - ${resolvedBy.title}</small>` : ""}
+      `;
+      if (origin) {
+        const button = document.createElement("button");
+        button.className = "mini-button";
+        button.type = "button";
+        button.textContent = `Open ${entry.origin_problem}`;
+        button.addEventListener("click", () => openProblemModal(entry.origin_problem));
+        node.append(button);
+      }
+      list.append(node);
+    });
+    body.append(list);
+    showModal();
   }
 
   function renderEdgeCases() {
@@ -1365,6 +1540,9 @@
     if (!query) return true;
     const record = state.completedById.get(problem.id);
     const lesson = state.datasets.progress.lessons_learned?.[problem.id] || {};
+    const deferredForProblem = deferredLearningEntries().filter(
+      (entry) => entry.origin_problem === problem.id || entry.resolved_by_problem === problem.id,
+    );
     const haystack = [
       problem.id,
       problem.title,
@@ -1383,6 +1561,12 @@
       lesson.primary_invariant,
       lesson.implementation_lesson,
       lesson.interview_takeaway,
+      ...deferredForProblem.flatMap((entry) => [
+        entry.id,
+        entry.category,
+        entry.description,
+        entry.evidence,
+      ]),
     ]
       .filter(Boolean)
       .join(" ")
@@ -1465,6 +1649,7 @@
     });
     renderStages();
     renderWeaknessLab();
+    renderDeferredLearnings();
     renderProblemTable();
     renderSkills();
     renderThinkingProfile();
@@ -1530,6 +1715,9 @@
     const record = state.completedById.get(problemId);
     const revision = record?.revision || {};
     const lesson = state.datasets.progress.lessons_learned?.[problemId];
+    const deferredForProblem = deferredLearningEntries().filter(
+      (entry) => entry.origin_problem === problemId || entry.resolved_by_problem === problemId,
+    );
     const body = setModal(
       `${problem.id} - ${problem.title}`,
       `${problem.stage} · ${skillLabel(problem.primary_skill)} · ${problem.difficulty}${problem.original_number ? ` · LeetCode ${problem.original_number}` : ""}`,
@@ -1623,6 +1811,23 @@
         </ul>
       `;
       body.append(revisionMaterial);
+    }
+
+    if (deferredForProblem.length) {
+      const deferredCard = document.createElement("article");
+      deferredCard.className = "note-card";
+      deferredCard.innerHTML = `
+        <h4>Deferred learnings</h4>
+        <ul>
+          ${deferredForProblem
+            .map(
+              (entry) =>
+                `<li><strong>${entry.id} · ${entry.status}:</strong> ${entry.description}${entry.evidence ? ` Evidence: ${entry.evidence}` : ""}</li>`,
+            )
+            .join("")}
+        </ul>
+      `;
+      body.append(deferredCard);
     }
 
     const history = revision.history || [];
@@ -1781,6 +1986,7 @@
     const timeAverage = avg(completed.map((record) => record.time_taken_minutes));
     const activeRevisions = revisions.filter((entry) => entry.status === "ACTIVE").length;
     const dueNow = dueEntries().length;
+    const openDeferred = openDeferredLearnings();
     const masteredTopics = masteredSkills
       .map(([skillId]) => skillTitle(skillId))
       .slice(0, 8);
@@ -1849,6 +2055,15 @@
         ["Completed days", `${uniqueSolvedDays(completed).length}`],
         ]),
         ["performance"],
+      ],
+      [
+        analyticsSignalCard("Deferred learning loop", [
+        ["Open", openDeferred.length],
+        ["Resolved", deferredLearningEntries().filter((entry) => entry.status === "RESOLVED").length],
+        ["High priority", openDeferred.filter((entry) => entry.priority === "HIGH").length],
+        ["Evidence linked", deferredLearningEntries().filter((entry) => entry.evidence).length],
+        ]),
+        ["retention", "risks"],
       ],
       [analyticsFocusCard(), ["risks"]],
     ];
@@ -2249,6 +2464,7 @@
     renderNextAction();
     renderThinkingBars();
     renderWeaknessLab();
+    renderDeferredLearnings();
     renderEdgeCases();
     renderStages();
     renderRevisionLanes();

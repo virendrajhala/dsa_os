@@ -40,7 +40,7 @@ The repository operates in a tight loop.
 2. `scripts/next_problem.py` selects the next dependency-safe task using revision urgency, skill continuity, and stage order.
 3. `templates/case_file_template.md` captures the session thinking process.
 4. `scripts/update_progress.py` records a new solve or active-recall revision result, appends history, updates revision state, promotes stage when earned, and selects the next problem automatically.
-5. `scripts/revision_report.py` reports due active-recall revisions, quarterly maintenance, and trend data.
+5. `scripts/revision_report.py` reports due active-recall revisions, quarterly maintenance, open deferred learnings, and trend data.
 6. `scripts/dashboard.py` gives a compact console operating view for daily use.
 7. `scripts/serve_dashboard.py` serves the full browser dashboard from `web_dashboard/`.
 8. `scripts/weakness_lab.py` accumulates learner weaknesses and generates targeted practice questions.
@@ -129,7 +129,35 @@ Revisions are state-based active recall, not passive date checks.
 
 This is spaced retrieval: elapsed time makes a recall attempt due, but only successful recall changes mastery state.
 
-Older progress files using `revision_schedule` and `next_revision_date` are migrated automatically by the scripts into the schema-version-7 progress schema.
+Older progress files using `revision_schedule` and `next_revision_date` are migrated automatically by the scripts into the current progress schema.
+
+## Deferred Learnings
+
+Some sessions pass while leaving a specific learning unfinished: boundary
+reasoning, initialization, proof, optimization intuition, implementation
+engineering, or interview explanation. These are recorded as
+`progress.deferred_learnings`, not as failures.
+
+Deferred learnings keep only minimal normalized state: id, origin problem,
+origin revision stage when applicable, skill, category, description, priority,
+status, and resolution evidence. They do not change problem order and they are
+not a scheduler priority. The normal curriculum continues; the mentor watches
+future problems and revisions for natural evidence that closes the open item.
+
+Examples:
+
+```bash
+python3 scripts/update_progress.py ... \
+  --deferred-learning "boundary_conditions=Loop boundary reasoning needs one more future proof." \
+  --deferred-learning-priority MEDIUM
+
+python3 scripts/update_progress.py ... \
+  --resolve-deferred-learning DL-001 \
+  --deferred-learning-evidence "Correctly derived loop boundaries on GRE-006 without hints."
+```
+
+Older progress files without `deferred_learnings` are migrated automatically by
+the scripts into the schema-version-8 progress schema.
 
 ## Implementation Engineering
 

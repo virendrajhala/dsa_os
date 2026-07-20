@@ -10,11 +10,14 @@ from datetime import date
 from typing import Any
 
 from _shared import (
+    DEFERRED_LEARNING_CATEGORIES,
+    DEFERRED_LEARNING_PRIORITIES,
     RepositoryError,
     append_history_event,
     apply_revision_result,
     completed_problem_ids,
     current_problem_id,
+    create_deferred_learning,
     format_iso_date,
     initial_revision_state,
     latest_records_by_problem,
@@ -23,6 +26,7 @@ from _shared import (
     parse_iso_date,
     problem_lookup,
     reactivate_revision,
+    resolve_deferred_learning,
     save_json_file,
     select_next_problem,
 )
@@ -197,6 +201,37 @@ def build_parser() -> argparse.ArgumentParser:
         help="Reason attached to any --reactivate-problem revision history event.",
     )
     parser.add_argument(
+        "--deferred-learning",
+        action="append",
+        default=[],
+        metavar="CATEGORY=DESCRIPTION",
+        help=(
+            "Create an open deferred learning for this session. Repeatable. "
+            f"Categories: {', '.join(sorted(DEFERRED_LEARNING_CATEGORIES))}."
+        ),
+    )
+    parser.add_argument(
+        "--deferred-learning-priority",
+        choices=("LOW", "MEDIUM", "HIGH"),
+        default="MEDIUM",
+        help="Priority for any created deferred learning. Defaults to MEDIUM.",
+    )
+    parser.add_argument(
+        "--deferred-learning-skill",
+        help="Skill id for any created deferred learning. Defaults to the problem's primary skill.",
+    )
+    parser.add_argument(
+        "--resolve-deferred-learning",
+        action="append",
+        default=[],
+        metavar="DL_ID",
+        help="Resolve an existing deferred learning with evidence from this session. Repeatable.",
+    )
+    parser.add_argument(
+        "--deferred-learning-evidence",
+        help="Evidence used when resolving deferred learnings.",
+    )
+    parser.add_argument(
         "--note",
         action="append",
         default=[],
@@ -261,6 +296,10 @@ def render_text(payload: dict[str, Any]) -> str:
         ]
         for entry in payload["reactivated_problems"]:
             lines.append(f"Reactivated: {entry['problem_id']} stage {entry['revision_stage']}")
+        for entry in payload["deferred_learnings_created"]:
+            lines.append(f"Deferred learning opened: {entry['id']} ({entry['category']})")
+        for entry in payload["deferred_learnings_resolved"]:
+            lines.append(f"Deferred learning resolved: {entry['id']} by {entry['resolved_by_problem']}")
         return "\n".join(lines)
 
     lines = [
@@ -272,7 +311,22 @@ def render_text(payload: dict[str, Any]) -> str:
     ]
     for entry in payload["reactivated_problems"]:
         lines.append(f"Reactivated: {entry['problem_id']} stage {entry['revision_stage']}")
+    for entry in payload["deferred_learnings_created"]:
+        lines.append(f"Deferred learning opened: {entry['id']} ({entry['category']})")
+    for entry in payload["deferred_learnings_resolved"]:
+        lines.append(f"Deferred learning resolved: {entry['id']} by {entry['resolved_by_problem']}")
     return "\n".join(lines)
+
+
+def parse_deferred_learning(entry: str) -> tuple[str, str]:
+    """Parse CATEGORY=DESCRIPTION into a deferred learning tuple."""
+
+    if "=" not in entry:
+        raise RepositoryError(
+            f"Invalid deferred learning `{entry}`. Use CATEGORY=DESCRIPTION."
+        )
+    category, description = entry.split("=", 1)
+    return category.strip(), description.strip()
 
 
 def fallback_algorithm_score(thinking_score: dict[str, float]) -> float:
@@ -352,6 +406,13 @@ def main() -> int:
             raise RepositoryError("No problem id provided and no active current problem is set.")
         if problem_id not in problems:
             raise RepositoryError(f"Unknown problem id `{problem_id}`.")
+        deferred_learning_skill = args.deferred_learning_skill or problems[problem_id].get("primary_skill")
+        if deferred_learning_skill not in state.skills.get("skills", {}):
+            raise RepositoryError(f"Unknown deferred learning skill `{deferred_learning_skill}`.")
+        if args.resolve_deferred_learning and not args.deferred_learning_evidence:
+            raise RepositoryError(
+                "`--resolve-deferred-learning` requires `--deferred-learning-evidence`."
+            )
 
         if args.time_taken_minutes <= 0:
             raise RepositoryError("`--time-taken-minutes` must be greater than zero.")
@@ -474,6 +535,39 @@ def main() -> int:
                 }
             )
 
+        deferred_created: list[dict[str, Any]] = []
+        origin_revision_stage = (
+            revision_event["attempted_stage"]
+            if isinstance(revision_event, dict)
+            else None
+        )
+        for raw_learning in args.deferred_learning:
+            category, description = parse_deferred_learning(raw_learning)
+            deferred_created.append(
+                create_deferred_learning(
+                    progress,
+                    origin_problem=problem_id,
+                    origin_revision_stage=origin_revision_stage,
+                    skill=str(deferred_learning_skill),
+                    category=category,
+                    description=description,
+                    priority=args.deferred_learning_priority,
+                    created_on=completed_on,
+                )
+            )
+
+        deferred_resolved: list[dict[str, Any]] = []
+        for learning_id in args.resolve_deferred_learning:
+            deferred_resolved.append(
+                resolve_deferred_learning(
+                    progress,
+                    learning_id=learning_id,
+                    resolved_on=completed_on,
+                    resolved_by_problem=problem_id,
+                    evidence=args.deferred_learning_evidence or "",
+                )
+            )
+
         if args.note:
             progress.setdefault("notes", []).extend(note for note in args.note if note.strip())
         update_implementation_engineering(progress, args)
@@ -502,6 +596,8 @@ def main() -> int:
                 "revision_status": completion_record["revision"]["status"],
                 "next_due": completion_record["revision"]["next_due"],
                 "reactivated_problems": reactivated,
+                "deferred_learnings_created": [entry["id"] for entry in deferred_created],
+                "deferred_learnings_resolved": [entry["id"] for entry in deferred_resolved],
                 "next_problem": next_problem_id,
             },
         )
@@ -524,6 +620,8 @@ def main() -> int:
             "revision_result": args.revision_result,
             "revision": completion_record["revision"],
             "reactivated_problems": reactivated,
+            "deferred_learnings_created": deferred_created,
+            "deferred_learnings_resolved": deferred_resolved,
             "stage_before": stage_before,
             "stage_after": stage_after,
             "next_problem": next_problem_id,

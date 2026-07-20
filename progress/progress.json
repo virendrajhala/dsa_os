@@ -1,5 +1,5 @@
 {
-  "schema_version": 7,
+  "schema_version": 8,
   "last_updated": "2026-07-20",
   "current_stage": "Observation",
   "current_problem": "OBS-008",
@@ -1449,6 +1449,7 @@
       "mastered": false
     }
   },
+  "deferred_learnings": [],
   "mastered_skills": [
     "SK-OB-03",
     "SK-OB-04"

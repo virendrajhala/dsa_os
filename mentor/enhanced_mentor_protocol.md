@@ -95,3 +95,10 @@ Every revision session must contain:
 
 A revision cannot be marked complete until the learner successfully writes code
 from memory.
+
+## Deferred Learning Compatibility Note
+
+If a solve or revision passes but leaves a narrow learning unfinished, record it
+as `progress.deferred_learnings`. Deferred learnings are not scheduler
+priorities and do not force the originating problem to be reopened. They close
+only when later work naturally provides explicit evidence.

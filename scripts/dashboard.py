@@ -17,6 +17,7 @@ from _shared import (
     confidence_trend,
     current_problem_id,
     load_repository_state,
+    open_deferred_learnings,
     open_revision_entries_due_on_or_before,
     problem_lookup,
     select_next_problem,
@@ -83,6 +84,7 @@ def build_payload(reference_date: date, state: Any) -> dict[str, Any]:
     )
     due_revisions = open_revision_entries_due_on_or_before(state.progress, reference_date)
     implementation_engineering = state.progress.get("implementation_engineering", {})
+    deferred_learnings = open_deferred_learnings(state.progress)
 
     return {
         "current_stage": state.progress.get("current_stage"),
@@ -90,6 +92,7 @@ def build_payload(reference_date: date, state: Any) -> dict[str, Any]:
         "completed": len(completed_ids),
         "total_problems": len(state.curriculum["problems"]),
         "revision_due": len(due_revisions),
+        "open_deferred_learnings": len(deferred_learnings),
         "current_confidence": current_confidence,
         "implementation_engineering_score": (
             float(implementation_engineering.get("score", 0))
@@ -116,6 +119,7 @@ def render_text(payload: dict[str, Any]) -> str:
         f"Current Skill      {payload['current_skill'] or 'None'}",
         f"Completed          {payload['completed']} / {payload['total_problems']}",
         f"Revision Due       {payload['revision_due']}",
+        f"Deferred Learning  {payload['open_deferred_learnings']} open",
         f"Current Confidence {payload['current_confidence']:.2f}",
         f"Implementation Eng {payload['implementation_engineering_score']:.2f}",
         f"Weakest Skill      {payload['weakest_skill'] or 'None'}",

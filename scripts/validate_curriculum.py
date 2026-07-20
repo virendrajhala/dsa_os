@@ -13,6 +13,9 @@ from typing import Any
 
 from _shared import (
     CURRICULUM_PATH,
+    DEFERRED_LEARNING_CATEGORIES,
+    DEFERRED_LEARNING_PRIORITIES,
+    DEFERRED_LEARNING_STATUSES,
     GRAPH_PATH,
     PROGRESS_PATH,
     PROGRESS_TEMPLATE_PATH,
@@ -90,6 +93,7 @@ REQUIRED_PROGRESS_FIELDS = {
     "scores",
     "notes",
     "history",
+    "deferred_learnings",
 }
 REQUIRED_COMPLETION_FIELDS = {
     "problem_id",
@@ -116,6 +120,20 @@ REQUIRED_REVISION_RECALL_FIELDS = {
     "confidence",
     "hint_level",
     "thinking_score",
+}
+REQUIRED_DEFERRED_LEARNING_FIELDS = {
+    "id",
+    "origin_problem",
+    "origin_revision_stage",
+    "skill",
+    "category",
+    "description",
+    "priority",
+    "status",
+    "created_on",
+    "resolved_on",
+    "resolved_by_problem",
+    "evidence",
 }
 
 
@@ -710,6 +728,105 @@ def validate_progress_payload(
         score = implementation_engineering.get("score")
         if not isinstance(score, (int, float)) or not 0 <= float(score) <= 10:
             add_error(errors, f"{label}: `implementation_engineering.score` must be 0..10.")
+
+    deferred_learning_ids: set[str] = set()
+    deferred_learnings = progress.get("deferred_learnings")
+    if not isinstance(deferred_learnings, list):
+        add_error(errors, f"{label}: `deferred_learnings` must be a list.")
+    else:
+        for index, entry in enumerate(deferred_learnings, start=1):
+            if not isinstance(entry, dict):
+                add_error(errors, f"{label}: deferred learning #{index} must be an object.")
+                continue
+            missing = sorted(REQUIRED_DEFERRED_LEARNING_FIELDS - entry.keys())
+            if missing:
+                add_error(
+                    errors,
+                    f"{label}: deferred learning #{index} missing fields: {', '.join(missing)}.",
+                )
+                continue
+            learning_id = entry.get("id")
+            if not isinstance(learning_id, str) or not re.match(r"^DL-\d{3}$", learning_id):
+                add_error(errors, f"{label}: deferred learning #{index} has invalid id `{learning_id}`.")
+            elif learning_id in deferred_learning_ids:
+                add_error(errors, f"{label}: duplicate deferred learning id `{learning_id}`.")
+            else:
+                deferred_learning_ids.add(learning_id)
+
+            origin_problem = entry.get("origin_problem")
+            if origin_problem not in problems:
+                add_error(
+                    errors,
+                    f"{label}: deferred learning `{learning_id}` references missing origin problem `{origin_problem}`.",
+                )
+            resolved_by_problem = entry.get("resolved_by_problem")
+            if resolved_by_problem is not None and resolved_by_problem not in problems:
+                add_error(
+                    errors,
+                    f"{label}: deferred learning `{learning_id}` references missing resolved-by problem `{resolved_by_problem}`.",
+                )
+
+            skill = entry.get("skill")
+            if skill not in skill_defs:
+                add_error(
+                    errors,
+                    f"{label}: deferred learning `{learning_id}` references unknown skill `{skill}`.",
+                )
+            if entry.get("category") not in DEFERRED_LEARNING_CATEGORIES:
+                add_error(
+                    errors,
+                    f"{label}: deferred learning `{learning_id}` has invalid category `{entry.get('category')}`.",
+                )
+            if entry.get("priority") not in DEFERRED_LEARNING_PRIORITIES:
+                add_error(
+                    errors,
+                    f"{label}: deferred learning `{learning_id}` has invalid priority `{entry.get('priority')}`.",
+                )
+            status = entry.get("status")
+            if status not in DEFERRED_LEARNING_STATUSES:
+                add_error(
+                    errors,
+                    f"{label}: deferred learning `{learning_id}` has invalid status `{status}`.",
+                )
+            if not isinstance(entry.get("description"), str) or not entry["description"].strip():
+                add_error(errors, f"{label}: deferred learning `{learning_id}` must have a description.")
+            origin_revision_stage = entry.get("origin_revision_stage")
+            if origin_revision_stage is not None and (
+                not isinstance(origin_revision_stage, int) or not 0 <= origin_revision_stage <= 5
+            ):
+                add_error(
+                    errors,
+                    f"{label}: deferred learning `{learning_id}` origin_revision_stage must be null or 0..5.",
+                )
+            for field in ("created_on", "resolved_on"):
+                raw_date = entry.get(field)
+                if raw_date is None:
+                    continue
+                if not isinstance(raw_date, str):
+                    add_error(errors, f"{label}: deferred learning `{learning_id}` `{field}` must be null or YYYY-MM-DD.")
+                    continue
+                try:
+                    parse_iso_date(raw_date, f"{label}.deferred_learnings[{learning_id}].{field}")
+                except RepositoryError as exc:
+                    add_error(errors, f"{label}: {exc}")
+            if status == "OPEN":
+                for field in ("resolved_on", "resolved_by_problem", "evidence"):
+                    if entry.get(field) is not None:
+                        add_error(
+                            errors,
+                            f"{label}: open deferred learning `{learning_id}` must have `{field}: null`.",
+                        )
+            elif status == "RESOLVED":
+                if not entry.get("resolved_on") or not entry.get("resolved_by_problem"):
+                    add_error(
+                        errors,
+                        f"{label}: resolved deferred learning `{learning_id}` requires resolved_on and resolved_by_problem.",
+                    )
+                if not isinstance(entry.get("evidence"), str) or not entry["evidence"].strip():
+                    add_error(
+                        errors,
+                        f"{label}: resolved deferred learning `{learning_id}` requires evidence.",
+                    )
 
     hint_levels = scoring.get("hint_levels", {})
     thinking_dimensions = set(scoring.get("dimensions", {}))

@@ -88,6 +88,21 @@ Paste or link the final implementation here.
 - Main mistake:
 - What would I look for faster next time?
 
+## Deferred Learnings
+
+Create only if the problem/revision passed but a narrow learning still needs
+future evidence.
+
+- Open deferred learning:
+  - Category:
+  - Skill:
+  - Description:
+  - Priority:
+- Resolved deferred learning:
+  - ID:
+  - Resolved by problem/revision:
+  - Evidence:
+
 ## Independent Scores (0-10)
 
 - Algorithm Thinking:

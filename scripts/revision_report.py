@@ -14,11 +14,13 @@ from _shared import (
     confidence_trend,
     interview_trend,
     load_repository_state,
+    open_deferred_learnings,
     open_revision_entries,
     quarterly_maintenance_entries,
     revision_due_entries,
     parse_iso_date,
     problem_lookup,
+    skill_lookup,
     weakest_skills,
 )
 
@@ -59,6 +61,7 @@ def build_payload(state_date: date, state: Any) -> dict[str, Any]:
     """Build the report payload."""
 
     problems = problem_lookup(state.curriculum)
+    skills = skill_lookup(state.skills)
     all_open = open_revision_entries(state.progress)
     todays = [
         entry
@@ -100,11 +103,30 @@ def build_payload(state_date: date, state: Any) -> dict[str, Any]:
         for record in state.progress.get("completed", [])
         if isinstance(record, dict)
     ]
+    deferred = []
+    for entry in open_deferred_learnings(state.progress):
+        origin = problems.get(str(entry.get("origin_problem")), {})
+        skill_id = str(entry.get("skill"))
+        deferred.append(
+            {
+                **entry,
+                "origin_title": origin.get("title", entry.get("origin_problem")),
+                "skill_name": skills.get(skill_id, {}).get("name", skill_id),
+            }
+        )
     return {
         "date": state_date.isoformat(),
         "todays_revisions": enrich(todays),
         "overdue_revisions": enrich(overdue),
         "quarterly_maintenance": enrich(maintenance),
+        "open_deferred_learnings": sorted(
+            deferred,
+            key=lambda entry: (
+                {"HIGH": 0, "MEDIUM": 1, "LOW": 2}.get(str(entry.get("priority")), 3),
+                str(entry.get("created_on")),
+                str(entry.get("id")),
+            ),
+        ),
         "weakest_skills": weakest_skills(state),
         "confidence_trend": confidence_trend(completed),
         "interview_score_trend": interview_trend(completed),
@@ -158,6 +180,17 @@ def render_text(payload: dict[str, Any], today_only: bool) -> str:
                 )
         else:
             lines.append("- No solved skills yet")
+        lines.append("")
+
+        lines.append("Open Deferred Learnings")
+        if payload["open_deferred_learnings"]:
+            for entry in payload["open_deferred_learnings"]:
+                lines.append(
+                    f"- {entry['id']} | {entry['priority']} | {entry['category']} | "
+                    f"{entry['origin_problem']} {entry['origin_title']} | {entry['description']}"
+                )
+        else:
+            lines.append("- None")
         lines.append("")
 
         confidence = payload["confidence_trend"]

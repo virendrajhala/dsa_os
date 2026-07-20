@@ -243,6 +243,22 @@ Revision is not repetition for its own sake. Each return should have a narrow pu
 - remove prompts
 - improve implementation hygiene
 
+## Deferred Learning
+
+A passed solve or revision can still leave unfinished learning. That is not a
+failure. It should be recorded as a deferred learning when the learner solved
+the problem but still needs future evidence for a narrow skill such as
+initialization, loop boundaries, invariant proof, optimization intuition,
+implementation engineering, complexity derivation, pattern recognition, or
+interview communication.
+
+Deferred learnings live in `progress.deferred_learnings`. They reference the
+origin problem, skill, category, priority, status, and explicit resolution
+evidence. They do not create extra revision sessions and they do not interrupt
+the curriculum scheduler. The mentor checks them as context and resolves them
+opportunistically when a later problem, revision, explanation, implementation,
+or mentor verification naturally proves the learning is now stable.
+
 ## Scoring Rubric
 
 Scores are recorded per dimension on a `0-4` scale.
@@ -286,6 +302,10 @@ Priority order:
 2. unlocked problems in the current skill
 3. unlocked problems in the current stage
 4. the earliest unlocked dependency-safe problem in the curriculum
+
+Open deferred learnings are deliberately absent from this priority list. They
+enrich mentor observation during the selected work; they do not select work by
+themselves.
 
 Selection rules:
 

@@ -49,6 +49,20 @@ IMPLEMENTATION_ENGINEERING_DEFAULT = {
     "common_errors": [],
     "improvement_notes": [],
 }
+DEFERRED_LEARNING_STATUSES = {"OPEN", "RESOLVED"}
+DEFERRED_LEARNING_PRIORITIES = {"LOW", "MEDIUM", "HIGH"}
+DEFERRED_LEARNING_CATEGORIES = {
+    "implementation_engineering",
+    "invariant_reasoning",
+    "proof",
+    "boundary_conditions",
+    "initialization",
+    "optimization",
+    "complexity",
+    "pattern_recognition",
+    "interview_communication",
+    "language_syntax",
+}
 
 JsonDict = dict[str, Any]
 
@@ -225,6 +239,118 @@ def completed_problem_ids(progress: JsonDict) -> set[str]:
     return set(latest_records_by_problem(progress))
 
 
+def deferred_learning_entries(progress: JsonDict) -> list[JsonDict]:
+    """Return deferred learning entries in append order."""
+
+    entries = progress.setdefault("deferred_learnings", [])
+    if not isinstance(entries, list):
+        raise RepositoryError("`progress.deferred_learnings` must be a list.")
+    for index, entry in enumerate(entries, start=1):
+        if not isinstance(entry, dict):
+            raise RepositoryError(
+                f"`progress.deferred_learnings[{index}]` must be an object."
+            )
+    return entries
+
+
+def open_deferred_learnings(progress: JsonDict) -> list[JsonDict]:
+    """Return unresolved deferred learning entries."""
+
+    return [
+        entry
+        for entry in deferred_learning_entries(progress)
+        if entry.get("status") == "OPEN"
+    ]
+
+
+def next_deferred_learning_id(progress: JsonDict) -> str:
+    """Return the next deterministic deferred learning id."""
+
+    max_id = 0
+    for entry in deferred_learning_entries(progress):
+        raw_id = entry.get("id")
+        if not isinstance(raw_id, str) or not raw_id.startswith("DL-"):
+            continue
+        try:
+            max_id = max(max_id, int(raw_id.removeprefix("DL-")))
+        except ValueError:
+            continue
+    return f"DL-{max_id + 1:03d}"
+
+
+def create_deferred_learning(
+    progress: JsonDict,
+    *,
+    origin_problem: str,
+    origin_revision_stage: int | None,
+    skill: str,
+    category: str,
+    description: str,
+    priority: str,
+    created_on: date,
+) -> JsonDict:
+    """Append an open deferred learning entry to progress state."""
+
+    category = category.strip()
+    priority = priority.strip().upper()
+    description = description.strip()
+    if category not in DEFERRED_LEARNING_CATEGORIES:
+        raise RepositoryError(
+            f"Unknown deferred learning category `{category}`. "
+            f"Allowed: {', '.join(sorted(DEFERRED_LEARNING_CATEGORIES))}."
+        )
+    if priority not in DEFERRED_LEARNING_PRIORITIES:
+        raise RepositoryError(
+            f"Unknown deferred learning priority `{priority}`. "
+            f"Allowed: {', '.join(sorted(DEFERRED_LEARNING_PRIORITIES))}."
+        )
+    if not description:
+        raise RepositoryError("Deferred learning description must not be empty.")
+
+    entry = {
+        "id": next_deferred_learning_id(progress),
+        "origin_problem": origin_problem,
+        "origin_revision_stage": origin_revision_stage,
+        "skill": skill,
+        "category": category,
+        "description": description,
+        "priority": priority,
+        "status": "OPEN",
+        "created_on": format_iso_date(created_on),
+        "resolved_on": None,
+        "resolved_by_problem": None,
+        "evidence": None,
+    }
+    deferred_learning_entries(progress).append(entry)
+    return entry
+
+
+def resolve_deferred_learning(
+    progress: JsonDict,
+    *,
+    learning_id: str,
+    resolved_on: date,
+    resolved_by_problem: str,
+    evidence: str,
+) -> JsonDict:
+    """Resolve a deferred learning with explicit future evidence."""
+
+    evidence = evidence.strip()
+    if not evidence:
+        raise RepositoryError("Resolving deferred learning requires non-empty evidence.")
+    for entry in deferred_learning_entries(progress):
+        if entry.get("id") != learning_id:
+            continue
+        if entry.get("status") == "RESOLVED":
+            raise RepositoryError(f"Deferred learning `{learning_id}` is already resolved.")
+        entry["status"] = "RESOLVED"
+        entry["resolved_on"] = format_iso_date(resolved_on)
+        entry["resolved_by_problem"] = resolved_by_problem
+        entry["evidence"] = evidence
+        return entry
+    raise RepositoryError(f"Unknown deferred learning id `{learning_id}`.")
+
+
 def current_problem_id(progress: JsonDict) -> str | None:
     """Return the active current problem id if present."""
 
@@ -334,7 +460,9 @@ def migrate_progress_payload(payload: JsonDict) -> JsonDict:
                 implementation_engineering[key] = default_value
         elif not isinstance(implementation_engineering.get(key), list):
             implementation_engineering[key] = list(default_value)
-    payload["schema_version"] = 7
+    if not isinstance(payload.get("deferred_learnings"), list):
+        payload["deferred_learnings"] = []
+    payload["schema_version"] = 8
     return payload
 
 
