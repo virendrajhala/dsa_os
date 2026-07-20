@@ -1,6 +1,6 @@
 {
   "schema_version": 7,
-  "last_updated": "2026-07-19",
+  "last_updated": "2026-07-20",
   "current_stage": "Observation",
   "current_problem": "OBS-008",
   "completed": [
@@ -93,11 +93,12 @@
       },
       "revision": {
         "status": "ACTIVE",
-        "stage": 1,
+        "stage": 2,
         "completed": [
-          "2026-07-17"
+          "2026-07-17",
+          "2026-07-20"
         ],
-        "next_due": "2026-07-20",
+        "next_due": "2026-07-27",
         "history": [
           {
             "date": "2026-07-17",
@@ -133,6 +134,51 @@
             ],
             "algorithm_thinking_score": 9.0,
             "implementation_engineering_score": 7.0
+          },
+          {
+            "date": "2026-07-20",
+            "result": "PASS",
+            "stage": 2,
+            "attempted_stage": 2,
+            "confidence": 10,
+            "hint_level": 0,
+            "thinking_score": {
+              "concept_recall": 10,
+              "invariant_recall": 10,
+              "algorithm_reconstruction": 10,
+              "implementation": 10,
+              "hint_dependency": 10,
+              "confidence": 10,
+              "implementation_blueprint": 10,
+              "code_from_memory": 10
+            },
+            "algorithm_thinking_score": 10.0,
+            "implementation_engineering_score": 10.0,
+            "notes": "Successful R2 active recall for Maximum Product Subarray. The learner recalled the intuition, runningMax/runningMin state definitions, sign-flip behavior, zero handling, transition equations, previous-state preservation, O(n) time, O(1) space, and reproduced the implementation from memory without hints. Dry run completed successfully. No mistakes or weaknesses were found during this revision.",
+            "verified": [
+              "concept_recall",
+              "state_recall",
+              "transition_recall",
+              "complexity_recall",
+              "implementation_blueprint",
+              "code_from_memory",
+              "dry_run",
+              "edge_cases",
+              "interview_discussion"
+            ],
+            "strengths_reinforced": [
+              "Correctly identified why both maximum and minimum products must be carried.",
+              "Correctly handled negative number sign flips.",
+              "Correctly handled zeros by allowing restart through the current element.",
+              "Remembered that runningMax and runningMin represent products of subarrays ending at the current index.",
+              "Correctly stored previous runningMax before updating runningMin.",
+              "Recalled O(n) time and O(1) space solution from memory."
+            ],
+            "mistakes": "None.",
+            "weaknesses_found": "None during this revision.",
+            "dry_run": "Completed successfully.",
+            "implementation_recall": "Solved completely from memory without looking at previous solution.",
+            "active_recall_result": "Successful."
           }
         ]
       },
@@ -512,7 +558,8 @@
       "Strengthened greedy reasoning through candidate elimination proof in Gas Station.",
       "Understands candidate-relative state and separates local hypothesis state from global feasibility.",
       "Improved implementation engineering by assigning precise responsibilities to scan pointer, candidate pointer, local tank balance, and global totals.",
-      "Maps greedy proofs directly into implementation decisions without restarting the scan."
+      "Maps greedy proofs directly into implementation decisions without restarting the scan.",
+      "Reproduced Maximum Product Subarray from memory with correct state, transition, previous-state preservation, implementation, dry run, and complexity recall."
     ],
     "gaps": [
       "Initially optimizes implementation before proving correctness",
@@ -542,7 +589,7 @@
       "Observation vs hypothesis separation",
       "Proof-driven implementation"
     ],
-    "notes": "Student shows strong algorithm reasoning, good invariant recognition, strong state-design intuition, and deep concept learning instead of memorization. OBS-001 R2 showed improved state interpretation and proof discipline. OBS-002 R1 clarified that the main current gap is Implementation Engineering: the learner can derive the correct algorithm but needs to derive initialization, loop boundaries, update ordering, global answer ownership, and return value from the state definition before coding. OBS-007 strengthened greedy reasoning, candidate-relative state modelling, observation-vs-hypothesis separation, and proof-to-implementation mapping."
+    "notes": "Student shows strong algorithm reasoning, good invariant recognition, strong state-design intuition, and deep concept learning instead of memorization. OBS-001 R2 showed improved state interpretation and proof discipline. OBS-002 R1 clarified that the main current gap is Implementation Engineering: the learner can derive the correct algorithm but needs to derive initialization, loop boundaries, update ordering, global answer ownership, and return value from the state definition before coding. OBS-007 strengthened greedy reasoning, candidate-relative state modelling, observation-vs-hypothesis separation, and proof-to-implementation mapping. OBS-002 R2 showed the previous implementation gap did not recur: the learner reproduced the algorithm and implementation from memory with no hints and no mistakes."
   },
   "history": [
     {
@@ -692,6 +739,31 @@
       "revision_status": "ACTIVE",
       "next_due": "2026-07-22",
       "summary": "R1 successful active recall in 5 minutes. The learner explained why unlimited transactions remove the historical-minimum state, reconstructed the positive-adjacent-difference rule and its optimality, wrote the Java implementation from memory, and passed a dry run."
+    },
+    {
+      "timestamp": "2026-07-20",
+      "event": "revision_recorded",
+      "problem_id": "OBS-002",
+      "mode": "revision",
+      "stage_before": "Observation",
+      "stage_after": "Observation",
+      "revision_result": "PASS",
+      "revision_stage": 2,
+      "revision_status": "ACTIVE",
+      "next_due": "2026-07-27",
+      "reactivated_problems": [],
+      "next_problem": "OBS-008",
+      "summary": "R2 successful active recall in 20 minutes. The learner reproduced Maximum Product Subarray from memory with excellent concept, algorithm, implementation, dry-run, and complexity recall. No hints, mistakes, or weaknesses were recorded.",
+      "revision_type": "R2",
+      "dry_run": "Completed successfully.",
+      "implementation": "Solved completely from memory without looking at previous solution.",
+      "strengths_reinforced": [
+        "runningMax/runningMin state definitions",
+        "negative sign-flip handling",
+        "zero restart through current element",
+        "previous runningMax preservation before runningMin update",
+        "O(n) time and O(1) space recall"
+      ]
     }
   ],
   "notes": [
@@ -730,6 +802,12 @@
       "type": "mentor_observation",
       "problem_id": "OBS-004",
       "note": "The learner correctly used the changed transaction constraint to decide that historical minPrice state is unnecessary. They separated accumulated profit from decision state, justified the prices[i + 1] loop boundary, and explained why summing every positive adjacent difference is optimal."
+    },
+    {
+      "date": "2026-07-20",
+      "type": "mentor_observation",
+      "problem_id": "OBS-002",
+      "note": "R2 active recall confirmed long-term strengthening for Maximum Product Subarray. The learner independently recalled why both runningMax and runningMin are needed, handled negative sign flips and zeros, preserved previous runningMax before updating runningMin, wrote the implementation from memory, dry-ran it successfully, and recalled O(n) time with O(1) space. No hints, mistakes, or weaknesses were observed."
     }
   ],
   "scores": {
@@ -1487,14 +1565,14 @@
       "interview_takeaway": "When a greedy solution feels unintuitive, first identify what state is expanding. In Jump Game II, the expanding state is not the current index-it is the reachable frontier."
     },
     "OBS-002": {
-      "revision_stage": "R1",
-      "date": "2026-07-17",
+      "revision_stage": "R2",
+      "date": "2026-07-20",
       "core_mental_model": "Maximum Product Subarray requires tracking both runningMax and runningMin because multiplying by a negative value can swap the best and worst product states.",
       "primary_invariant": "After processing index i, runningMax is the maximum product of a non-empty subarray ending at i and runningMin is the minimum product of a non-empty subarray ending at i.",
-      "major_breakthrough": "The learner's algorithm discovery is strong; the main weakness is translating a known state transition into correct code.",
-      "implementation_lesson": "Implementation details must be derived from the state definition: initialize with nums[0], start the loop after the initialized index, preserve prevMax and prevMin before mutation, update globalMax immediately after computing runningMax, and return globalMax rather than local DP state.",
+      "major_breakthrough": "R2 active recall showed the problem has transitioned from understanding toward long-term memory: the learner reproduced the intuition, invariant, transitions, implementation, dry run, and complexity from memory without hints.",
+      "implementation_lesson": "Implementation details now follow from the state definition: initialize with nums[0], start after the initialized index, preserve prevMax and prevMin before mutation, update globalMax immediately after computing runningMax, and return globalMax rather than local DP state.",
       "edge_case_learned": "Negative values and single-element arrays expose invalid initialization and missing global-answer maintenance.",
-      "interview_takeaway": "Before coding DP state transitions, complete the Implementation Blueprint so initialization, loop bounds, previous-state preservation, answer ownership, and return value are explicit."
+      "interview_takeaway": "For product-state DP, explicitly explain why both extremes are carried, how negative sign flips swap roles, how zero permits restart through the current element, and why previous runningMax must be saved before updating runningMin."
     },
     "OBS-007": {
       "revision_stage": "R1",
@@ -1513,7 +1591,8 @@
       "Forgot to use preserved prevMax / prevMin values after storing them.",
       "Returned local runningMax instead of maintaining and returning a global answer.",
       "Placed globalMax update outside the loop instead of immediately after computing each new runningMax.",
-      "Minor syntax omissions during code recall."
+      "Minor syntax omissions during code recall.",
+      "Resolved in R2: no initialization, previous-state, global-answer, update-ordering, syntax, dry-run, or complexity weakness appeared during the 2026-07-20 active recall."
     ],
     "OBS-003": [
       "Resolved: confusion about update order.",
@@ -1576,7 +1655,11 @@
       "Intermediate-state versus return-value reasoning",
       "Constraint-driven state selection",
       "Adjacent-difference greedy reasoning",
-      "Loop-boundary derivation"
+      "Loop-boundary derivation",
+      "Negative sign-flip state reasoning",
+      "Zero restart handling",
+      "Product DP previous-state preservation",
+      "Code-from-memory recall"
     ],
     "weaknesses": [
       "Initialization",
@@ -1595,7 +1678,8 @@
       "Keep local hypothesis state separate from global feasibility state in the Implementation Blueprint.",
       "OBS-003 revision confirmed that the learner can justify initialization, loop boundaries, update order, and the dominance proof for a past-state greedy scan without hints.",
       "OBS-007 R1 confirmed correct reconstruction, state derivation, implementation from memory, and dry-run validation for the candidate-elimination scan.",
-      "OBS-004 R1 confirmed that the learner can derive state necessity from constraints, justify adjacency-based greedy accumulation, and implement safe loop bounds from the indexed access."
+      "OBS-004 R1 confirmed that the learner can derive state necessity from constraints, justify adjacency-based greedy accumulation, and implement safe loop bounds from the indexed access.",
+      "OBS-002 R2 confirmed that the learner can reproduce product-DP state definitions, previous-state preservation, global answer maintenance, dry run, and O(n)/O(1) implementation from memory without hints."
     ]
   }
 }
