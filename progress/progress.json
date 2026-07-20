@@ -2,7 +2,7 @@
   "schema_version": 8,
   "last_updated": "2026-07-20",
   "current_stage": "Observation",
-  "current_problem": "OBS-008",
+  "current_problem": "CPX-001",
   "completed": [
     {
       "problem_id": "OBS-001",
@@ -534,6 +534,85 @@
           "implementation blueprint"
         ]
       }
+    },
+    {
+      "problem_id": "OBS-008",
+      "completed_at": "2026-07-20",
+      "time_taken_minutes": 90,
+      "hint_level_used": 3,
+      "confidence_before": 4,
+      "confidence_after": 10,
+      "thinking_breakthrough": "Realized Candy requires satisfying two independent adjacent constraints with directional passes: left-to-right handles the left neighbor, right-to-left handles the right neighbor, and the minimum valid final assignment takes the maximum requirement at each index.",
+      "main_mistake": "Initially considered satisfying one directional neighbor constraint, but identified that one-pass greedy decisions are insufficient because the opposite neighbor constraint can force a larger assignment.",
+      "thinking_score": {
+        "understanding": 4,
+        "examples": 4,
+        "brute_force": 4,
+        "pattern_detection": 4,
+        "algorithm_design": 4,
+        "complexity_analysis": 4,
+        "implementation": 4,
+        "communication": 4
+      },
+      "algorithm_thinking_score": 10.0,
+      "implementation_engineering_score": 10.0,
+      "interview_score": {
+        "understanding": 10,
+        "communication": 10,
+        "algorithm": 10,
+        "coding": 10,
+        "complexity": 10
+      },
+      "revision": {
+        "status": "ACTIVE",
+        "stage": 0,
+        "completed": [],
+        "next_due": "2026-07-21",
+        "history": []
+      },
+      "session_summary": {
+        "pattern": "Bidirectional constraint satisfaction",
+        "difficulty": "Hard",
+        "completion": "Successful",
+        "solution": "Standard O(n) time and O(n) extra-space two-pass greedy solution fully understood.",
+        "hints": "Conceptual guidance only",
+        "algorithmic_correction": "None for the standard solution.",
+        "implementation_correction": "None recorded.",
+        "deferred_optimization": "The O(1) extra-space optimization exists but was intentionally not studied or derived in this session."
+      },
+      "conceptual_discoveries": [
+        "one directional neighbor constraint is insufficient",
+        "left-to-right pass satisfies the left-neighbor constraint",
+        "right-to-left pass satisfies the right-neighbor constraint",
+        "both adjacent constraints must hold simultaneously",
+        "max-merging directional assignments preserves both constraints",
+        "max-merging produces the minimum valid standard assignment"
+      ],
+      "implementation_discoveries": [
+        "each directional pass has one responsibility",
+        "the final candy count for each child is the maximum of the two directional requirements",
+        "standard implementation uses O(n) extra space for directional assignment state"
+      ],
+      "revision_material": {
+        "focus": "Verify the standard O(n) time and O(n) extra-space two-pass greedy construction.",
+        "questions": [
+          "Why does a one-pass left-to-right solution fail?",
+          "What constraint does the left-to-right pass satisfy?",
+          "What constraint does the right-to-left pass satisfy?",
+          "Why do we take the maximum of the two directional assignments?",
+          "Why is the max-merged assignment minimum while satisfying both constraints?",
+          "What is the standard time and space complexity?"
+        ],
+        "evaluation_order": [
+          "left-neighbor constraint",
+          "right-neighbor constraint",
+          "directional pass responsibility",
+          "max-merge correctness",
+          "minimum assignment proof",
+          "standard complexity"
+        ],
+        "deferred_scope": "Do not require the O(1) extra-space optimization for normal revision pass/fail until the open deferred learning is naturally resolved."
+      }
     }
   ],
   "thinking_profile": {
@@ -559,7 +638,8 @@
       "Understands candidate-relative state and separates local hypothesis state from global feasibility.",
       "Improved implementation engineering by assigning precise responsibilities to scan pointer, candidate pointer, local tank balance, and global totals.",
       "Maps greedy proofs directly into implementation decisions without restarting the scan.",
-      "Reproduced Maximum Product Subarray from memory with correct state, transition, previous-state preservation, implementation, dry run, and complexity recall."
+      "Reproduced Maximum Product Subarray from memory with correct state, transition, previous-state preservation, implementation, dry run, and complexity recall.",
+      "Mastered the standard Candy two-pass greedy construction by separating independent adjacent constraints and max-merging directional assignments."
     ],
     "gaps": [
       "Initially optimizes implementation before proving correctness",
@@ -587,9 +667,10 @@
       "Greedy candidate elimination",
       "Candidate-relative state",
       "Observation vs hypothesis separation",
-      "Proof-driven implementation"
+      "Proof-driven implementation",
+      "Bidirectional constraint satisfaction"
     ],
-    "notes": "Student shows strong algorithm reasoning, good invariant recognition, strong state-design intuition, and deep concept learning instead of memorization. OBS-001 R2 showed improved state interpretation and proof discipline. OBS-002 R1 clarified that the main current gap is Implementation Engineering: the learner can derive the correct algorithm but needs to derive initialization, loop boundaries, update ordering, global answer ownership, and return value from the state definition before coding. OBS-007 strengthened greedy reasoning, candidate-relative state modelling, observation-vs-hypothesis separation, and proof-to-implementation mapping. OBS-002 R2 showed the previous implementation gap did not recur: the learner reproduced the algorithm and implementation from memory with no hints and no mistakes."
+    "notes": "Student shows strong algorithm reasoning, good invariant recognition, strong state-design intuition, and deep concept learning instead of memorization. OBS-001 R2 showed improved state interpretation and proof discipline. OBS-002 R1 clarified that the main current gap is Implementation Engineering: the learner can derive the correct algorithm but needs to derive initialization, loop boundaries, update ordering, global answer ownership, and return value from the state definition before coding. OBS-007 strengthened greedy reasoning, candidate-relative state modelling, observation-vs-hypothesis separation, and proof-to-implementation mapping. OBS-002 R2 showed the previous implementation gap did not recur: the learner reproduced the algorithm and implementation from memory with no hints and no mistakes. OBS-008 confirmed mastery of the standard O(n) time and O(n) extra-space Candy solution; the O(1) space optimization is intentionally deferred as an open learning item, not a weakness or failure."
   },
   "history": [
     {
@@ -764,6 +845,25 @@
         "previous runningMax preservation before runningMin update",
         "O(n) time and O(1) space recall"
       ]
+    },
+    {
+      "timestamp": "2026-07-20",
+      "event": "problem_completed",
+      "problem_id": "OBS-008",
+      "mode": "new_problem",
+      "stage_before": "Observation",
+      "stage_after": "Observation",
+      "revision_result": null,
+      "revision_stage": 0,
+      "revision_status": "ACTIVE",
+      "next_due": "2026-07-21",
+      "reactivated_problems": [],
+      "deferred_learnings_created": [
+        "DL-001"
+      ],
+      "deferred_learnings_resolved": [],
+      "next_problem": "CPX-001",
+      "summary": "OBS-008 completed. The learner mastered the standard O(n) time and O(n) extra-space two-pass greedy solution for Candy by separating left-neighbor and right-neighbor constraints and taking the maximum directional assignment. The O(1) extra-space optimization was intentionally deferred as DL-001 and is not treated as a failure."
     }
   ],
   "notes": [
@@ -829,33 +929,33 @@
       "complexity": 10
     },
     "averages": {
-      "thinking_weighted": 3.41,
+      "thinking_weighted": 3.49,
       "thinking_dimensions": {
-        "understanding": 3.43,
-        "examples": 3.43,
-        "brute_force": 3.29,
-        "pattern_detection": 3.43,
-        "algorithm_design": 3.43,
-        "complexity_analysis": 3.43,
-        "implementation": 3.43,
-        "communication": 3.43
+        "understanding": 3.5,
+        "examples": 3.5,
+        "brute_force": 3.38,
+        "pattern_detection": 3.5,
+        "algorithm_design": 3.5,
+        "complexity_analysis": 3.5,
+        "implementation": 3.5,
+        "communication": 3.5
       },
-      "interview_average": 8.14,
+      "interview_average": 8.38,
       "interview_dimensions": {
-        "understanding": 8.14,
-        "communication": 8.14,
-        "algorithm": 8.14,
-        "coding": 8.14,
-        "complexity": 8.14
+        "understanding": 8.38,
+        "communication": 8.38,
+        "algorithm": 8.38,
+        "coding": 8.38,
+        "complexity": 8.38
       },
-      "confidence_before": 3.57,
-      "confidence_after": 8.71,
-      "solved_unique_problems": 7
+      "confidence_before": 3.62,
+      "confidence_after": 8.88,
+      "solved_unique_problems": 8
     },
     "stage_checks": {
       "Observation": {
-        "attempted": 7,
-        "passed": 7
+        "attempted": 8,
+        "passed": 8
       },
       "State Construction": {
         "attempted": 0,
@@ -1449,7 +1549,22 @@
       "mastered": false
     }
   },
-  "deferred_learnings": [],
+  "deferred_learnings": [
+    {
+      "id": "DL-001",
+      "origin_problem": "OBS-008",
+      "origin_revision_stage": null,
+      "skill": "SK-OB-04",
+      "category": "optimization",
+      "description": "The standard O(n) extra-space two-pass solution is fully understood and implemented. The O(1) extra-space optimization for Candy was intentionally deferred. The learner is aware that the optimization exists but has not yet derived or internalized its construction or correctness. This should not affect completion of the current revision and should not be treated as a failure. Revisit naturally when an appropriate future problem or optimization-focused revision provides the necessary context.",
+      "priority": "LOW",
+      "status": "OPEN",
+      "created_on": "2026-07-20",
+      "resolved_on": null,
+      "resolved_by_problem": null,
+      "evidence": null
+    }
+  ],
   "mastered_skills": [
     "SK-OB-03",
     "SK-OB-04"
@@ -1584,6 +1699,15 @@
       "implementation_lesson": "The scan pointer keeps moving forward when the candidate changes; resetting tankBalance starts a new candidate-relative state. startCandidate can temporarily equal n after the final transition, but total feasibility guarantees that value is not returned. Separate total available and total consumed are equivalent to one totalBalance accumulator.",
       "edge_case_learned": "Local tankBalance evaluates one candidate, while totalGas >= totalCost determines whether any full traversal exists. The final candidate transition may create an intermediate sentinel state without creating an invalid return value.",
       "interview_takeaway": "Reconstruct the proof, derive the state from it, then implement. Keep local candidate feasibility separate from global feasibility and explain why eliminated candidates are mathematically dominated."
+    },
+    "OBS-008": {
+      "date": "2026-07-20",
+      "core_mental_model": "Candy is a bidirectional constraint-satisfaction problem: one pass can satisfy only one adjacent direction, so the standard solution computes both directional requirements and keeps the maximum at every index.",
+      "primary_invariant": "After the left-to-right pass, every child with a higher rating than the left neighbor has more candies than that left neighbor. After the right-to-left pass and max merge, every child also satisfies the right-neighbor constraint without breaking the left-neighbor constraint.",
+      "major_breakthrough": "The learner realized that local greedy decisions from one direction are insufficient because the opposite adjacent constraint is independent and can force a larger assignment.",
+      "implementation_lesson": "Each directional pass owns one constraint. The final answer is the sum of max(leftRequirement[i], rightRequirement[i]) for each child in the standard O(n) extra-space implementation.",
+      "edge_case_learned": "Peaks, valleys, equal ratings, increasing runs, and decreasing runs expose why both directional constraints must be evaluated independently.",
+      "interview_takeaway": "Explain the standard O(n)/O(n) solution as two independent constraint passes plus a max merge. Mention that O(1) space optimization exists but was intentionally deferred and is not part of the current mastered scope."
     }
   },
   "weaknesses_detected": {
@@ -1627,7 +1751,8 @@
     "State variables should be named and initialized from their semantic responsibility before writing update equations.",
     "For a linear scan, state exactly what information from the processed prefix future decisions need. Maintain that past summary, use it against the current item, then update it for the future. Prove why discarded past values are dominated.",
     "For candidate-elimination scans, prove the failed segment impossible before advancing the candidate. Keep candidate-relative state separate from global feasibility, and derive implementation variables from those proof obligations.",
-    "When a constraint changes, re-derive whether historical decision state is still needed. Keep an accumulated answer separate from decision state, and derive loop bounds from every indexed access."
+    "When a constraint changes, re-derive whether historical decision state is still needed. Keep an accumulated answer separate from decision state, and derive loop bounds from every indexed access.",
+    "For bidirectional adjacent constraints, assign each pass one direction of responsibility, then merge requirements with max so satisfying the second direction does not break the first."
   ],
   "implementation_engineering": {
     "score": 10.0,
@@ -1660,7 +1785,11 @@
       "Negative sign-flip state reasoning",
       "Zero restart handling",
       "Product DP previous-state preservation",
-      "Code-from-memory recall"
+      "Code-from-memory recall",
+      "Two-pass constraint modelling",
+      "Directional pass responsibility",
+      "Max-merge answer construction",
+      "O(n) greedy construction reasoning"
     ],
     "weaknesses": [
       "Initialization",
@@ -1680,7 +1809,8 @@
       "OBS-003 revision confirmed that the learner can justify initialization, loop boundaries, update order, and the dominance proof for a past-state greedy scan without hints.",
       "OBS-007 R1 confirmed correct reconstruction, state derivation, implementation from memory, and dry-run validation for the candidate-elimination scan.",
       "OBS-004 R1 confirmed that the learner can derive state necessity from constraints, justify adjacency-based greedy accumulation, and implement safe loop bounds from the indexed access.",
-      "OBS-002 R2 confirmed that the learner can reproduce product-DP state definitions, previous-state preservation, global answer maintenance, dry run, and O(n)/O(1) implementation from memory without hints."
+      "OBS-002 R2 confirmed that the learner can reproduce product-DP state definitions, previous-state preservation, global answer maintenance, dry run, and O(n)/O(1) implementation from memory without hints.",
+      "OBS-008 confirmed that the learner can derive two directional passes from independent adjacent constraints and explain why max-merging the two directional assignments is the minimum valid distribution."
     ]
   }
 }

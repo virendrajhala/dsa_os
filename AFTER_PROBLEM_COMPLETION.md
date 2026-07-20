@@ -6,19 +6,57 @@ session is considered finished.
 
 ## 1. Capture Session Facts
 
-Collect only facts that cannot be recomputed by scripts:
+Collect only facts that cannot be recomputed by scripts. A problem should not
+be marked solved until the required quantitative and qualitative fields below
+are available.
+
+### Required Quantitative Fields
 
 - problem id
 - session type: new problem or revision
 - time taken
 - hint level used
 - confidence before and after
-- thinking breakthrough
-- main mistake or misconception
 - Algorithm Thinking score
 - Implementation Engineering score
 - interview score dimensions
 - revision recall dimensions, if this was a revision
+
+For a new problem completion, `scripts/update_progress.py` requires:
+
+- `--problem-id`
+- `--time-taken-minutes`
+- `--hint-level-used`
+- `--confidence-before`
+- `--confidence-after`
+- every `--thinking-score` dimension
+- every `--interview-score` dimension
+- `--algorithm-thinking-score`
+- `--implementation-engineering-score`
+
+For a revision completion, also provide:
+
+- `--revision-result`
+- every `--revision-score` dimension
+
+### Required Qualitative Fields
+
+- thinking breakthrough
+- main mistake or misconception
+- whether the solution was independently derived or hint-dependent
+- core mental model learned
+- primary invariant or correctness reason
+- implementation lesson, if any
+- edge case learned, if any
+- interview takeaway
+- implementation engineering observations, if any
+- deferred learning, if a solved problem still leaves a narrow topic unfinished
+- pattern evidence, if the problem reinforces or introduces a transferable
+  thinking model
+
+Do not invent qualitative fields. If no mistake, implementation correction,
+weakness, or deferred learning was observed, record that accurately or leave
+the relevant optional section unchanged according to the existing schema.
 
 ## 2. Update Learner State
 

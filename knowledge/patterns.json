@@ -9,7 +9,8 @@
     "PAT-004",
     "PAT-005",
     "PAT-006",
-    "PAT-007"
+    "PAT-007",
+    "PAT-008"
   ],
   "patterns": {
     "PAT-001": {
@@ -40,7 +41,8 @@
         "PAT-002",
         "PAT-003",
         "PAT-004",
-        "PAT-007"
+        "PAT-007",
+        "PAT-008"
       ],
       "contrast_with": [
         "Memorized implementation template",
@@ -256,6 +258,42 @@
         "Restarting the scan pointer instead of changing only the candidate",
         "Confusing local tank balance with global feasibility",
         "Knowing the update rule without the elimination proof"
+      ]
+    },
+    "PAT-008": {
+      "id": "PAT-008",
+      "name": "Bidirectional Constraint Satisfaction",
+      "idea_family": "Constraint propagation",
+      "mental_model": "When local validity depends on both left and right neighbors, let each directional pass satisfy one side of the constraint and merge the strongest requirement at each position.",
+      "recognition_signals": [
+        "Each element is constrained by adjacent neighbors on both sides",
+        "A left-to-right greedy pass satisfies only the left-neighbor relation",
+        "A right-to-left pass is needed to satisfy the opposite relation",
+        "The final value must preserve both directional requirements"
+      ],
+      "core_invariant": "After each directional pass, all constraints facing that direction are satisfied; taking the maximum per index preserves both directional lower bounds while keeping the standard assignment minimal.",
+      "proof_idea": "Each child must receive at least the amount required by the left constraint and at least the amount required by the right constraint. The maximum of those two lower bounds is therefore necessary, and assigning exactly that maximum is sufficient.",
+      "complexity_reasoning": "Each pass scans the array once and the merge/sum scans once, so the standard construction is O(n) time with O(n) extra space.",
+      "appears_in": [
+        "OBS-008"
+      ],
+      "skills": [
+        "SK-OB-04",
+        "SK-IE-00"
+      ],
+      "related_patterns": [
+        "PAT-001",
+        "PAT-006"
+      ],
+      "contrast_with": [
+        "Single-pass greedy choice",
+        "Reachability frontier",
+        "Greedy candidate elimination"
+      ],
+      "common_mistakes": [
+        "Assuming the first directional pass is globally sufficient",
+        "Overwriting one directional requirement with the other instead of taking the maximum",
+        "Treating the O(1) space optimization as required before mastering the standard two-pass proof"
       ]
     }
   }
