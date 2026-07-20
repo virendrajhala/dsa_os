@@ -314,10 +314,27 @@ Selection rules:
 - Hard variants should follow a stable solve of the easier base family.
 - Revisited problems from the source should stay in the system because they measure transfer, not memory.
 
+## Knowledge Layer
+
+Stable curriculum-level concepts live under `knowledge/`. Learner-specific
+state lives under `progress/`. This boundary must stay clear.
+
+- `knowledge/skills.json` defines abilities trained by the curriculum.
+- `knowledge/patterns.json` defines transferable thinking models used for
+  recognition, proof, contrast, and cross-problem transfer.
+
+Patterns are not another algorithm catalog. A new pattern should be created
+only when it represents a genuinely new transferable way of thinking; otherwise
+link the problem to an existing pattern. Pattern entries should explain the
+mental model, recognition signals, core invariant, proof idea, complexity
+reasoning, contrasts, and common mistakes.
+
 ## Repository Discipline
 
 - Keep `original_number` unchanged forever.
 - Keep generated IDs stable once they are published.
+- Keep knowledge-layer artifacts stable and separate from learner progress.
+- Add new patterns rarely; prefer reusing or enriching existing patterns.
 - Change the dependency graph only with a deliberate curriculum reason.
 - Run validation after any structural edit.
 - Treat the repository as an operating system, not a notebook.

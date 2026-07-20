@@ -5,8 +5,9 @@
     curriculum: "../curriculum/curriculum.json",
     stages: "../curriculum/stages.json",
     skills: "../knowledge/skills.json",
+    patternIndex: "../knowledge/patterns.json",
     mistakes: "../mistake_catalog.json",
-    patterns: "../thinking_patterns.md",
+    thinkingPatterns: "../thinking_patterns.md",
   };
 
   const state = {
@@ -14,6 +15,7 @@
     problemsById: new Map(),
     completedById: new Map(),
     skillsById: new Map(),
+    patternsById: new Map(),
     filteredProblems: [],
     analyticsView: "acquisition",
   };
@@ -144,19 +146,30 @@
   }
 
   async function loadData() {
-    const [progress, scoring, curriculum, stages, skills, mistakes, patterns] = await Promise.all([
+    const [progress, scoring, curriculum, stages, skills, patternIndex, mistakes, thinkingPatterns] = await Promise.all([
       fetchJson(DATA.progress),
       fetchJson(DATA.scoring),
       fetchJson(DATA.curriculum),
       fetchJson(DATA.stages),
       fetchJson(DATA.skills),
+      fetchJson(DATA.patternIndex),
       fetchJson(DATA.mistakes),
-      fetchText(DATA.patterns),
+      fetchText(DATA.thinkingPatterns),
     ]);
 
-    state.datasets = { progress, scoring, curriculum, stages, skills, mistakes, patterns };
+    state.datasets = {
+      progress,
+      scoring,
+      curriculum,
+      stages,
+      skills,
+      patternIndex,
+      mistakes,
+      thinkingPatterns,
+    };
     state.problemsById = new Map(curriculum.problems.map((problem) => [problem.id, problem]));
     state.skillsById = new Map(Object.entries(skills.skills || {}));
+    state.patternsById = new Map(Object.entries(patternIndex.patterns || {}));
     state.completedById = new Map(
       progress.completed
         .filter((record) => record && record.problem_id)
@@ -177,6 +190,55 @@
   function skillLabel(skillId) {
     const skill = skillMeta(skillId);
     return skill.name ? `${skill.name} (${skillId})` : skillId;
+  }
+
+  function patternEntries() {
+    const index = state.datasets.patternIndex || {};
+    const patterns = index.patterns || {};
+    const order = Array.isArray(index.pattern_order) ? index.pattern_order : Object.keys(patterns);
+    return order
+      .map((patternId) => patterns[patternId])
+      .filter((pattern) => pattern && pattern.id);
+  }
+
+  function patternsForProblem(problemId) {
+    return patternEntries().filter((pattern) =>
+      Array.isArray(pattern.appears_in) && pattern.appears_in.includes(problemId),
+    );
+  }
+
+  function patternsForSkill(skillId) {
+    return patternEntries().filter((pattern) =>
+      Array.isArray(pattern.skills) && pattern.skills.includes(skillId),
+    );
+  }
+
+  function patternMatchesQuery(pattern, query) {
+    if (!query) return true;
+    const problems = (pattern.appears_in || [])
+      .map((problemId) => state.problemsById.get(problemId)?.title || problemId)
+      .join(" ");
+    const skills = (pattern.skills || [])
+      .map((skillId) => `${skillId} ${skillTitle(skillId)}`)
+      .join(" ");
+    const haystack = [
+      pattern.id,
+      pattern.name,
+      pattern.idea_family,
+      pattern.mental_model,
+      pattern.core_invariant,
+      pattern.proof_idea,
+      pattern.complexity_reasoning,
+      problems,
+      skills,
+      ...(pattern.recognition_signals || []),
+      ...(pattern.contrast_with || []),
+      ...(pattern.common_mistakes || []),
+    ]
+      .filter(Boolean)
+      .join(" ")
+      .toLowerCase();
+    return haystack.includes(query);
   }
 
   function buildStageOptions() {
@@ -1162,6 +1224,10 @@
       </div>
     `;
     body.append(intro, buildSkillDetailRow(skillId));
+    const skillPatterns = patternsForSkill(skillId);
+    if (skillPatterns.length) {
+      body.append(patternListCard("Linked patterns", skillPatterns));
+    }
     showModal();
   }
 
@@ -1519,6 +1585,179 @@
     return row;
   }
 
+  function renderPatterns() {
+    const target = $("#pattern-grid");
+    target.replaceChildren();
+    const { query, stage: selectedStage } = currentFilters();
+    const visiblePatterns = patternEntries().filter((pattern) => {
+      if (!patternMatchesQuery(pattern, query)) return false;
+      if (!selectedStage) return true;
+      return (pattern.appears_in || []).some(
+        (problemId) => state.problemsById.get(problemId)?.stage === selectedStage,
+      );
+    });
+
+    if (!visiblePatterns.length) {
+      target.append(empty("No patterns match the current filters."));
+      return;
+    }
+
+    const workbench = document.createElement("div");
+    workbench.className = "skill-workbench";
+    const solvedPatternCount = visiblePatterns.filter((pattern) =>
+      (pattern.appears_in || []).some((problemId) => state.completedById.has(problemId)),
+    ).length;
+    workbench.innerHTML = `
+      <div class="skill-summary-strip">
+        ${skillSummaryStat("Visible patterns", visiblePatterns.length, selectedStage || "all stages")}
+        ${skillSummaryStat("Seen in solved work", solvedPatternCount, "linked to completed problems")}
+        ${skillSummaryStat("Knowledge layer", "stable", "not learner state")}
+        ${skillSummaryStat("Scheduler impact", "none", "mentor context only")}
+      </div>
+    `;
+
+    const lanes = document.createElement("div");
+    lanes.className = "skill-lanes";
+    const byFamily = new Map();
+    visiblePatterns.forEach((pattern) => {
+      const family = pattern.idea_family || "Other";
+      if (!byFamily.has(family)) byFamily.set(family, []);
+      byFamily.get(family).push(pattern);
+    });
+    [...byFamily.entries()].forEach(([family, patterns]) => {
+      const lane = document.createElement("section");
+      lane.className = "skill-lane";
+      lane.innerHTML = `
+        <div class="section-head">
+          <div>
+            <h4>${family}</h4>
+            <p>Reusable recognition models, not algorithm labels.</p>
+          </div>
+          <span class="pill">${patterns.length}</span>
+        </div>
+      `;
+      const list = document.createElement("div");
+      list.className = "skill-row-list";
+      patterns.forEach((pattern) => list.append(buildPatternCompactRow(pattern)));
+      lane.append(list);
+      lanes.append(lane);
+    });
+    workbench.append(lanes);
+    target.append(workbench);
+  }
+
+  function buildPatternCompactRow(pattern) {
+    const row = document.createElement("button");
+    row.className = "skill-compact-row";
+    row.type = "button";
+    const solved = (pattern.appears_in || []).filter((problemId) => state.completedById.has(problemId));
+    row.innerHTML = `
+      <div>
+        <strong>${pattern.name}</strong>
+        <span>${pattern.id}</span>
+      </div>
+      <div class="skill-row-progress">
+        <span>${solved.length}/${(pattern.appears_in || []).length} linked problems solved</span>
+        <div class="progress-track"><span style="width: ${(pattern.appears_in || []).length ? Math.round((solved.length / pattern.appears_in.length) * 100) : 0}%"></span></div>
+      </div>
+      <div class="skill-row-next">
+        <span>${pattern.idea_family || "Conceptual pattern"}</span>
+        <small>${(pattern.recognition_signals || []).length} recognition signals</small>
+      </div>
+    `;
+    row.addEventListener("click", () => openPatternModal(pattern.id));
+    return row;
+  }
+
+  function openPatternModal(patternId) {
+    const pattern = state.patternsById.get(patternId);
+    if (!pattern) return;
+    const body = setModal(
+      pattern.name,
+      `${pattern.id} · ${pattern.idea_family || "Knowledge layer"}`,
+      "Pattern detail",
+    );
+    const intro = document.createElement("div");
+    intro.className = "modal-intro";
+    intro.innerHTML = `
+      <p>${pattern.mental_model || "No mental model recorded."}</p>
+      <div class="meta-row">
+        <span class="pill">knowledge layer</span>
+        <span class="pill">${(pattern.appears_in || []).length} problems</span>
+        <span class="pill">${(pattern.skills || []).length} skills</span>
+      </div>
+    `;
+    body.append(intro);
+
+    body.append(
+      detailListCard("Recognition signals", pattern.recognition_signals || []),
+      detailCard("Reasoning", [
+        ["Core invariant", pattern.core_invariant || "-"],
+        ["Proof idea", pattern.proof_idea || "-"],
+        ["Complexity reasoning", pattern.complexity_reasoning || "-"],
+      ]),
+      detailListCard("Contrast with", pattern.contrast_with || []),
+      detailListCard("Common mistakes", pattern.common_mistakes || []),
+      buildProblemGroup(
+        "Appears in",
+        (pattern.appears_in || [])
+          .map((problemId) => state.problemsById.get(problemId))
+          .filter(Boolean),
+        "",
+      ),
+    );
+
+    const skillsCard = document.createElement("article");
+    skillsCard.className = "note-card";
+    skillsCard.innerHTML = `<h4>Linked skills</h4>`;
+    const skillButtons = document.createElement("div");
+    skillButtons.className = "problem-chip-list";
+    (pattern.skills || []).forEach((skillId) => {
+      const button = document.createElement("button");
+      button.className = "problem-chip";
+      button.type = "button";
+      button.innerHTML = `
+        <strong>${skillTitle(skillId)}</strong>
+        <span>${skillId}</span>
+        <small>${skillMeta(skillId).description || ""}</small>
+      `;
+      button.addEventListener("click", () => openSingleSkillModal(skillId));
+      skillButtons.append(button);
+    });
+    skillsCard.append(skillButtons);
+    body.append(skillsCard);
+
+    const related = (pattern.related_patterns || [])
+      .map((relatedId) => state.patternsById.get(relatedId))
+      .filter(Boolean);
+    if (related.length) {
+      body.append(patternListCard("Related patterns", related));
+    }
+    showModal();
+  }
+
+  function patternListCard(title, patterns) {
+    const card = document.createElement("article");
+    card.className = "note-card";
+    card.innerHTML = `<h4>${title}</h4>`;
+    const list = document.createElement("div");
+    list.className = "problem-chip-list";
+    patterns.forEach((pattern) => {
+      const button = document.createElement("button");
+      button.className = "problem-chip";
+      button.type = "button";
+      button.innerHTML = `
+        <strong>${pattern.name}</strong>
+        <span>${pattern.id}</span>
+        <small>${pattern.idea_family || "Knowledge layer"}</small>
+      `;
+      button.addEventListener("click", () => openPatternModal(pattern.id));
+      list.append(button);
+    });
+    card.append(list);
+    return card;
+  }
+
   function problemStatus(problem) {
     const record = state.completedById.get(problem.id);
     if (!record) return "not_started";
@@ -1543,6 +1782,7 @@
     const deferredForProblem = deferredLearningEntries().filter(
       (entry) => entry.origin_problem === problem.id || entry.resolved_by_problem === problem.id,
     );
+    const problemPatterns = patternsForProblem(problem.id);
     const haystack = [
       problem.id,
       problem.title,
@@ -1567,6 +1807,13 @@
         entry.description,
         entry.evidence,
       ]),
+      ...problemPatterns.flatMap((pattern) => [
+        pattern.id,
+        pattern.name,
+        pattern.idea_family,
+        pattern.mental_model,
+        pattern.core_invariant,
+      ]),
     ]
       .filter(Boolean)
       .join(" ")
@@ -1579,6 +1826,9 @@
     if (skillId.toLowerCase().includes(query)) return true;
     const skill = skillMeta(skillId);
     if (`${skill.name || ""} ${skill.description || ""}`.toLowerCase().includes(query)) {
+      return true;
+    }
+    if (patternsForSkill(skillId).some((pattern) => patternMatchesQuery(pattern, query))) {
       return true;
     }
     return state.datasets.curriculum.problems
@@ -1652,6 +1902,7 @@
     renderDeferredLearnings();
     renderProblemTable();
     renderSkills();
+    renderPatterns();
     renderThinkingProfile();
     renderLearningNotes();
   }
@@ -1718,6 +1969,7 @@
     const deferredForProblem = deferredLearningEntries().filter(
       (entry) => entry.origin_problem === problemId || entry.resolved_by_problem === problemId,
     );
+    const problemPatterns = patternsForProblem(problemId);
     const body = setModal(
       `${problem.id} - ${problem.title}`,
       `${problem.stage} · ${skillLabel(problem.primary_skill)} · ${problem.difficulty}${problem.original_number ? ` · LeetCode ${problem.original_number}` : ""}`,
@@ -1828,6 +2080,10 @@
         </ul>
       `;
       body.append(deferredCard);
+    }
+
+    if (problemPatterns.length) {
+      body.append(patternListCard("Linked patterns", problemPatterns));
     }
 
     const history = revision.history || [];
@@ -2470,6 +2726,7 @@
     renderRevisionLanes();
     renderRevisionCalendar();
     renderSkills();
+    renderPatterns();
     renderProblemTable();
     renderThinkingProfile();
     renderLearningNotes();

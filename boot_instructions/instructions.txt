@@ -56,6 +56,8 @@ Especially inspect:
 * curriculum/ (curriculum.json, dependency_graph.json, stages.json — stage
   definitions live inside curriculum/stages.json, there is no separate stages/
   directory)
+* knowledge/ (skills.json and patterns.json — stable curriculum-level
+  knowledge, not learner state)
 * progress/
 * docs/
 * templates/
@@ -95,6 +97,7 @@ Build an internal understanding of:
 * evaluation rules
 * implementation engineering rules
 * deferred learning rules
+* knowledge-layer pattern rules
 * retrospective rules
 * progress update rules
 * hidden mentor notes

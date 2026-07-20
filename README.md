@@ -59,6 +59,9 @@ The repository keeps one source of truth per concern.
   The live learner state.
 - `progress/progress_template.json`
   A resettable seed file with the same schema as the live progress file.
+- `knowledge/patterns.json`
+  Stable knowledge-layer index of transferable thinking models, recognition
+  signals, proof ideas, contrasts, and linked problems/skills.
 - `progress/scoring.json`
   Thinking rubric, independent implementation engineering rubric, interview rubric, revision recall rubric, promotion thresholds, hint levels, and revision policy.
 - `docs/DSA_OS_MASTER.md`
@@ -183,6 +186,20 @@ Every coding session records two independent 0-10 scores:
 Implementation mistakes update `progress.implementation_engineering` and must
 not reduce Algorithm Thinking unless the root cause is actually algorithmic.
 
+## Knowledge Layer
+
+The `knowledge/` directory stores stable curriculum-level concepts, not
+learner-specific state.
+
+- `knowledge/skills.json`: abilities the curriculum trains.
+- `knowledge/patterns.json`: transferable recognition models that connect
+  problems to reusable mental models, proof ideas, complexity reasoning,
+  contrasts, and common mistakes.
+
+Patterns are conceptual, not algorithm-name tags. Prefer names such as
+`Greedy Candidate Elimination`, `Reachability Frontier`, `Prefix Extremum`,
+or `Two Competing States` over problem names or memorized technique labels.
+
 ## Developer Experience
 
 The repository ships with a Makefile.
@@ -219,6 +236,8 @@ This repository is meant to stay stable.
 - Do not change the philosophy casually.
 - Do not change the dependency order without a genuine curriculum inconsistency.
 - Keep `original_number` unchanged forever.
+- New problems may reference existing patterns. New patterns should be rare
+  and require a genuinely new transferable way of thinking.
 - Run `make validate` after every data or script change.
 - Treat `progress/progress.json` as live state and `progress/progress_template.json` as the reset source.
 - Prefer additive, source-preserving fixes over broad rewrites.

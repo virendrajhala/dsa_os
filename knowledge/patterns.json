@@ -1,0 +1,262 @@
+{
+  "schema_version": 1,
+  "source_of_truth": true,
+  "note": "Stable knowledge-layer artifact for transferable thinking models. Patterns are conceptual recognition models, not algorithm-name tags and not learner progress. New patterns should be rare and require a genuinely new transferable way of thinking; otherwise link new problems to an existing pattern.",
+  "pattern_order": [
+    "PAT-001",
+    "PAT-002",
+    "PAT-003",
+    "PAT-004",
+    "PAT-005",
+    "PAT-006",
+    "PAT-007"
+  ],
+  "patterns": {
+    "PAT-001": {
+      "id": "PAT-001",
+      "name": "Maintaining an Invariant",
+      "idea_family": "Maintaining stable truth",
+      "mental_model": "Define what a running state means after each processed element, then make every update preserve that meaning.",
+      "recognition_signals": [
+        "A running variable must mean something precise after each index",
+        "Correctness depends on what remains true after every update",
+        "The implementation can be derived from the state definition"
+      ],
+      "core_invariant": "After processing index i, each tracked state exactly represents the best valid value for the subproblem ending at or observed through i.",
+      "proof_idea": "Prove the invariant is true at initialization, then show each update preserves it for the next index.",
+      "complexity_reasoning": "Each element is processed once and each update is constant work, so the scan is linear with constant auxiliary state.",
+      "appears_in": [
+        "OBS-001",
+        "OBS-002",
+        "OBS-003",
+        "OBS-007"
+      ],
+      "skills": [
+        "SK-OB-03",
+        "SK-OB-04",
+        "SK-IE-00"
+      ],
+      "related_patterns": [
+        "PAT-002",
+        "PAT-003",
+        "PAT-004",
+        "PAT-007"
+      ],
+      "contrast_with": [
+        "Memorized implementation template",
+        "Brute-force enumeration"
+      ],
+      "common_mistakes": [
+        "Using an initial value that does not satisfy the invariant",
+        "Updating a variable before preserving the previous state it depends on",
+        "Explaining intuition without stating the maintained truth"
+      ]
+    },
+    "PAT-002": {
+      "id": "PAT-002",
+      "name": "Running Extremum Reset",
+      "idea_family": "Tracking extremes",
+      "mental_model": "Carry a running best value only while it helps future choices; when the carried state becomes harmful, restart from the current element.",
+      "recognition_signals": [
+        "A contiguous segment can be extended or restarted",
+        "A negative or worse prefix can only hurt future results",
+        "The answer may occur before the final index"
+      ],
+      "core_invariant": "The running state is the best non-empty value ending at the current index, while the global answer is the best value seen anywhere so far.",
+      "proof_idea": "At each index the optimal ending segment either extends the previous optimal ending segment or starts at the current element; no other segment ending here is better.",
+      "complexity_reasoning": "The recurrence compares a constant number of choices per index, so the pass is O(n) with O(1) extra space.",
+      "appears_in": [
+        "OBS-001"
+      ],
+      "skills": [
+        "SK-OB-03",
+        "SK-IE-00"
+      ],
+      "related_patterns": [
+        "PAT-001",
+        "PAT-003"
+      ],
+      "contrast_with": [
+        "Prefix accumulation",
+        "Greedy candidate elimination"
+      ],
+      "common_mistakes": [
+        "Initializing with zero when the answer must be a real non-empty segment",
+        "Returning the running state instead of the global answer",
+        "Restarting based on the current value instead of the previous carried state"
+      ]
+    },
+    "PAT-003": {
+      "id": "PAT-003",
+      "name": "Two Competing States",
+      "idea_family": "Tracking extremes",
+      "mental_model": "When a future operation can flip best and worst, carry both extremes because either can become the answer later.",
+      "recognition_signals": [
+        "Negative values or sign flips change which state is useful",
+        "Only tracking the current best loses information",
+        "The transition needs values from before the update"
+      ],
+      "core_invariant": "At each index, runningMax and runningMin are the maximum and minimum products of non-empty subarrays ending at that index.",
+      "proof_idea": "The next product can come from the current value, the previous maximum, or the previous minimum; a negative multiplier can swap the roles.",
+      "complexity_reasoning": "Each index evaluates a fixed set of candidates and stores only two running states plus the answer.",
+      "appears_in": [
+        "OBS-002"
+      ],
+      "skills": [
+        "SK-OB-03",
+        "SK-IE-00"
+      ],
+      "related_patterns": [
+        "PAT-001",
+        "PAT-002"
+      ],
+      "contrast_with": [
+        "Single running maximum",
+        "Prefix minimum"
+      ],
+      "common_mistakes": [
+        "Forgetting to preserve previous runningMax before updating runningMin",
+        "Initializing with artificial infinities instead of the first real element",
+        "Returning local runningMax instead of maintaining globalMax"
+      ]
+    },
+    "PAT-004": {
+      "id": "PAT-004",
+      "name": "Prefix Extremum",
+      "idea_family": "Accumulating prefix information",
+      "mental_model": "For each current value, only the best historical prefix candidate matters; all worse historical candidates can be ignored.",
+      "recognition_signals": [
+        "A decision compares the current value with something seen earlier",
+        "Only one historical minimum or maximum affects all future answers",
+        "The order constraint forbids using future values"
+      ],
+      "core_invariant": "The prefix extremum stores the best eligible historical value before or at the current decision point.",
+      "proof_idea": "If one historical candidate is worse than another for every possible future value, it can never produce a better answer.",
+      "complexity_reasoning": "The best historical value is updated once per index, replacing the nested scan with one pass.",
+      "appears_in": [
+        "OBS-003"
+      ],
+      "skills": [
+        "SK-OB-04",
+        "SK-IE-00"
+      ],
+      "related_patterns": [
+        "PAT-001",
+        "PAT-005"
+      ],
+      "contrast_with": [
+        "Running extremum reset",
+        "Two competing states"
+      ],
+      "common_mistakes": [
+        "Tracking an unnecessary running answer state",
+        "Updating the historical value after using an invalid future relation",
+        "Missing that order is part of the invariant"
+      ]
+    },
+    "PAT-005": {
+      "id": "PAT-005",
+      "name": "Local Gain Accumulation",
+      "idea_family": "Local optimality",
+      "mental_model": "When every positive adjacent improvement can be independently captured, summing local gains equals the best global result.",
+      "recognition_signals": [
+        "Multiple non-overlapping opportunities can all be taken",
+        "Only positive adjacent changes matter",
+        "A global valley-to-peak move decomposes into local positive steps"
+      ],
+      "core_invariant": "The accumulated answer equals the sum of all profitable local transitions observed so far.",
+      "proof_idea": "Any increasing run's total profit is exactly the sum of its positive adjacent differences, so taking each local rise loses nothing.",
+      "complexity_reasoning": "Each adjacent pair is inspected once and no historical state beyond the answer is needed.",
+      "appears_in": [
+        "OBS-004"
+      ],
+      "skills": [
+        "SK-OB-04",
+        "SK-IE-00"
+      ],
+      "related_patterns": [
+        "PAT-004"
+      ],
+      "contrast_with": [
+        "Single-transaction prefix minimum",
+        "Greedy candidate elimination"
+      ],
+      "common_mistakes": [
+        "Reusing the single-transaction invariant after the constraint changes",
+        "Looking for one best buy/sell pair when all local gains can be taken",
+        "Overcomplicating with unnecessary state"
+      ]
+    },
+    "PAT-006": {
+      "id": "PAT-006",
+      "name": "Reachability Frontier",
+      "idea_family": "Growing a region",
+      "mental_model": "Track the farthest reachable frontier while scanning; a new index is useful only if it expands the known reachable region.",
+      "recognition_signals": [
+        "Each index offers reach or coverage into the future",
+        "The question asks whether or how fast a target can be reached",
+        "Brute force repeats reachability checks from overlapping ranges"
+      ],
+      "core_invariant": "After scanning an eligible region, the frontier is the farthest index reachable using the decisions allowed so far.",
+      "proof_idea": "All positions up to the current frontier are reachable, so the best next extension is the maximum reach among positions inside that region.",
+      "complexity_reasoning": "The scan pointer advances monotonically and each index contributes to the frontier at most once.",
+      "appears_in": [
+        "OBS-005",
+        "OBS-006"
+      ],
+      "skills": [
+        "SK-OB-04",
+        "SK-IE-00"
+      ],
+      "related_patterns": [
+        "PAT-001",
+        "PAT-007"
+      ],
+      "contrast_with": [
+        "Breadth-first search over explicit states",
+        "Dynamic programming over every prior index"
+      ],
+      "common_mistakes": [
+        "Confusing the scan pointer with the reachability frontier",
+        "Not proving why skipped intermediate choices remain covered",
+        "Updating the step boundary at the wrong time"
+      ]
+    },
+    "PAT-007": {
+      "id": "PAT-007",
+      "name": "Greedy Candidate Elimination",
+      "idea_family": "Discarding impossible candidates",
+      "mental_model": "If one candidate fails after carrying the strongest possible local state, every candidate inside that failed segment is also invalid.",
+      "recognition_signals": [
+        "Need to choose one starting point or candidate",
+        "A failed candidate invalidates a whole range",
+        "Brute force retries overlapping candidate ranges",
+        "Local feasibility and global feasibility are separate questions"
+      ],
+      "core_invariant": "Once cumulative deficit becomes negative, no index inside that failed segment can be a valid starting candidate.",
+      "proof_idea": "Show that an intermediate candidate starts with no more useful balance than the failed candidate had before the failure point, so it must also fail before or at that point.",
+      "complexity_reasoning": "The scan never restarts; each index is observed once while candidate changes only update the hypothesis state.",
+      "appears_in": [
+        "OBS-007"
+      ],
+      "skills": [
+        "SK-OB-04",
+        "SK-IE-00"
+      ],
+      "related_patterns": [
+        "PAT-001",
+        "PAT-006"
+      ],
+      "contrast_with": [
+        "Sliding Window",
+        "Running Extremum Reset",
+        "Reachability Frontier"
+      ],
+      "common_mistakes": [
+        "Restarting the scan pointer instead of changing only the candidate",
+        "Confusing local tank balance with global feasibility",
+        "Knowing the update rule without the elimination proof"
+      ]
+    }
+  }
+}

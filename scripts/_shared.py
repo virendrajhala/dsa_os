@@ -17,6 +17,7 @@ CURRICULUM_PATH = ROOT / "curriculum" / "curriculum.json"
 GRAPH_PATH = ROOT / "curriculum" / "dependency_graph.json"
 STAGES_PATH = ROOT / "curriculum" / "stages.json"
 SKILLS_PATH = ROOT / "knowledge" / "skills.json"
+PATTERNS_PATH = ROOT / "knowledge" / "patterns.json"
 SCORING_PATH = ROOT / "progress" / "scoring.json"
 PROGRESS_PATH = ROOT / "progress" / "progress.json"
 PROGRESS_TEMPLATE_PATH = ROOT / "progress" / "progress_template.json"
@@ -79,6 +80,7 @@ class RepositoryState:
     graph: JsonDict
     stages: JsonDict
     skills: JsonDict
+    patterns: JsonDict
     scoring: JsonDict
     progress: JsonDict
     progress_path: Path
@@ -133,6 +135,7 @@ def load_repository_state(explicit_progress_path: str | None = None) -> Reposito
         graph=load_json_file(GRAPH_PATH),
         stages=load_json_file(STAGES_PATH),
         skills=load_json_file(SKILLS_PATH),
+        patterns=load_json_file(PATTERNS_PATH),
         scoring=load_json_file(SCORING_PATH),
         progress=progress,
         progress_path=progress_path,

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate curriculum, skills, dependency graph, stages, scoring, and progress integrity."""
+"""Validate curriculum, knowledge, dependency graph, stages, scoring, and progress integrity."""
 
 from __future__ import annotations
 
@@ -17,6 +17,7 @@ from _shared import (
     DEFERRED_LEARNING_PRIORITIES,
     DEFERRED_LEARNING_STATUSES,
     GRAPH_PATH,
+    PATTERNS_PATH,
     PROGRESS_PATH,
     PROGRESS_TEMPLATE_PATH,
     SCORING_PATH,
@@ -39,6 +40,7 @@ from _shared import (
 
 ID_RE = re.compile(r"^[A-Z]{2,3}-\d{3}$")
 SKILL_ID_RE = re.compile(r"^SK-[A-Z]{2}-\d{2}$")
+PATTERN_ID_RE = re.compile(r"^PAT-\d{3}$")
 ALLOWED_DIFFICULTIES = {"Easy", "Medium", "Hard"}
 ALLOWED_IMPORTANCE = {"CORE", "COMMON", "SPECIALIZED", "NICHE"}
 ALLOWED_PROBLEM_ROLES = {"PRIMARY", "REINFORCEMENT", "CHALLENGE"}
@@ -135,13 +137,26 @@ REQUIRED_DEFERRED_LEARNING_FIELDS = {
     "resolved_by_problem",
     "evidence",
 }
+REQUIRED_PATTERN_FIELDS = {
+    "id",
+    "name",
+    "idea_family",
+    "mental_model",
+    "recognition_signals",
+    "core_invariant",
+    "appears_in",
+    "skills",
+    "related_patterns",
+    "contrast_with",
+    "common_mistakes",
+}
 
 
 def build_parser() -> argparse.ArgumentParser:
     """Create the CLI parser."""
 
     parser = argparse.ArgumentParser(
-        description="Run integrity checks across curriculum, skills, dependency, stages, scoring, and progress files."
+        description="Run integrity checks across curriculum, knowledge, dependency, stages, scoring, and progress files."
     )
     parser.add_argument(
         "--progress-file",
@@ -633,6 +648,113 @@ def validate_curriculum(
     return errors, warnings
 
 
+def validate_patterns(
+    patterns: dict[str, Any],
+    curriculum: dict[str, Any],
+    skills: dict[str, Any],
+) -> tuple[list[str], list[str]]:
+    """Validate knowledge/patterns.json as stable curriculum knowledge."""
+
+    errors: list[str] = []
+    warnings: list[str] = []
+    pattern_order = patterns.get("pattern_order")
+    pattern_defs = patterns.get("patterns")
+    problems = problem_lookup(curriculum)
+    skill_defs = skills.get("skills", {})
+
+    if not isinstance(pattern_order, list) or not pattern_order:
+        add_error(errors, "knowledge/patterns.json: `pattern_order` must be a non-empty list.")
+        pattern_order = []
+    if not isinstance(pattern_defs, dict) or not pattern_defs:
+        add_error(errors, "knowledge/patterns.json: `patterns` must be a non-empty object.")
+        pattern_defs = {}
+    if len(pattern_order) != len(set(pattern_order)):
+        add_error(errors, "knowledge/patterns.json: `pattern_order` contains duplicates.")
+    if set(pattern_order) != set(pattern_defs):
+        add_error(errors, "knowledge/patterns.json: `pattern_order` and `patterns` keys must match exactly.")
+
+    names: Counter[str] = Counter()
+    usage_counts: Counter[str] = Counter()
+    for pattern_id in pattern_order:
+        if not isinstance(pattern_id, str) or not PATTERN_ID_RE.match(pattern_id):
+            add_error(errors, f"knowledge/patterns.json: invalid pattern id `{pattern_id}`.")
+            continue
+        pattern = pattern_defs.get(pattern_id)
+        if not isinstance(pattern, dict):
+            add_error(errors, f"knowledge/patterns.json: pattern `{pattern_id}` must be an object.")
+            continue
+        missing = sorted(REQUIRED_PATTERN_FIELDS - pattern.keys())
+        if missing:
+            add_error(errors, f"knowledge/patterns.json: pattern `{pattern_id}` missing fields: {', '.join(missing)}.")
+            continue
+        if pattern.get("id") != pattern_id:
+            add_error(errors, f"knowledge/patterns.json: pattern `{pattern_id}` must have matching `id`.")
+
+        name = pattern.get("name")
+        if not isinstance(name, str) or not name.strip():
+            add_error(errors, f"knowledge/patterns.json: pattern `{pattern_id}` must have a non-empty name.")
+        else:
+            names[name.strip().lower()] += 1
+
+        for text_field in (
+            "idea_family",
+            "mental_model",
+            "core_invariant",
+            "proof_idea",
+            "complexity_reasoning",
+        ):
+            if text_field in pattern and (
+                not isinstance(pattern.get(text_field), str) or not pattern[text_field].strip()
+            ):
+                add_error(errors, f"knowledge/patterns.json: pattern `{pattern_id}` `{text_field}` must be non-empty text.")
+
+        for list_field in (
+            "recognition_signals",
+            "appears_in",
+            "skills",
+            "related_patterns",
+            "contrast_with",
+            "common_mistakes",
+        ):
+            values = pattern.get(list_field)
+            if not isinstance(values, list):
+                add_error(errors, f"knowledge/patterns.json: pattern `{pattern_id}` `{list_field}` must be a list.")
+                continue
+            if list_field in {"recognition_signals", "appears_in", "skills", "contrast_with"} and not values:
+                add_error(errors, f"knowledge/patterns.json: pattern `{pattern_id}` `{list_field}` must not be empty.")
+            if len(values) != len(set(str(value) for value in values)):
+                add_error(errors, f"knowledge/patterns.json: pattern `{pattern_id}` `{list_field}` contains duplicates.")
+            for value in values:
+                if not isinstance(value, str) or not value.strip():
+                    add_error(errors, f"knowledge/patterns.json: pattern `{pattern_id}` `{list_field}` contains a blank value.")
+
+        for problem_id in pattern.get("appears_in", []):
+            if problem_id not in problems:
+                add_error(errors, f"knowledge/patterns.json: pattern `{pattern_id}` references missing problem `{problem_id}`.")
+            else:
+                usage_counts[problem_id] += 1
+        for skill_id in pattern.get("skills", []):
+            if skill_id not in skill_defs:
+                add_error(errors, f"knowledge/patterns.json: pattern `{pattern_id}` references missing skill `{skill_id}`.")
+        for related_id in pattern.get("related_patterns", []):
+            if related_id == pattern_id:
+                add_error(errors, f"knowledge/patterns.json: pattern `{pattern_id}` cannot relate to itself.")
+            elif related_id not in pattern_defs:
+                add_error(errors, f"knowledge/patterns.json: pattern `{pattern_id}` references missing related pattern `{related_id}`.")
+
+    duplicate_names = sorted(name for name, count in names.items() if count > 1)
+    if duplicate_names:
+        add_error(errors, "knowledge/patterns.json: duplicate pattern names: " + ", ".join(duplicate_names) + ".")
+
+    if len(pattern_order) > 100:
+        add_warning(
+            warnings,
+            "knowledge/patterns.json: pattern count is high; verify this is still a conceptual index, not an algorithm catalog.",
+        )
+
+    return errors, warnings
+
+
 def validate_progress_payload(
     label: str,
     progress: dict[str, Any],
@@ -1068,6 +1190,7 @@ def validate_progress_payload(
                 graph=graph,
                 stages=stages,
                 skills=skills,
+                patterns={},
                 scoring=scoring,
                 progress=expected_progress,
                 progress_path=Path(label),
@@ -1095,6 +1218,7 @@ def main() -> int:
         graph = load_json_file(GRAPH_PATH)
         stages = load_json_file(STAGES_PATH)
         skills = load_json_file(SKILLS_PATH)
+        patterns = load_json_file(PATTERNS_PATH)
         scoring = load_json_file(SCORING_PATH)
         progress_payloads: list[tuple[str, dict[str, Any]]] = [
             (
@@ -1113,6 +1237,9 @@ def main() -> int:
         return 1
 
     errors, warnings = validate_curriculum(curriculum, graph, stages, skills, scoring)
+    pattern_errors, pattern_warnings = validate_patterns(patterns, curriculum, skills)
+    errors.extend(pattern_errors)
+    warnings.extend(pattern_warnings)
     for label, payload in progress_payloads:
         progress_errors, progress_warnings = validate_progress_payload(
             label=label,
@@ -1139,6 +1266,7 @@ def main() -> int:
     print("Validation passed.")
     print(f"- Problems: {len(curriculum['problems'])}")
     print(f"- Skills: {len(skills['skill_order'])}")
+    print(f"- Patterns: {len(patterns['pattern_order'])}")
     print(f"- Stages: {len(stages['stage_order'])}")
     print(f"- Progress files: {len(progress_payloads)}")
     if warnings:

@@ -69,6 +69,9 @@ Every implementation decision should be derived logically from the state definit
 - Track solved-but-unfinished learning as `progress.deferred_learnings` when
   the learner passes the problem or revision but still needs future evidence
   around a specific skill.
+- Use `knowledge/patterns.json` as the stable cross-problem knowledge layer for
+  recognition models, but never reveal a linked pattern before the protocol
+  allows pattern discussion.
 - Update progress after every session.
 
 ## Session State Machine
@@ -201,6 +204,12 @@ selection because of them. During the normal problem or revision, ask whether
 today's work naturally exercises any open deferred learning. If yes, attach
 explicit evidence and resolve it with `--resolve-deferred-learning`. If no,
 continue the planned curriculum flow.
+
+When a genuinely new transferable thinking model emerges, update
+`knowledge/patterns.json`. Prefer linking the problem to an existing pattern
+over creating a narrow new one. Pattern entries are curriculum knowledge, not
+learner progress, and should capture recognition signals, contrasts, proof
+idea, and complexity reasoning.
 
 ## Revision Protocol
 
