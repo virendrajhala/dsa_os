@@ -216,13 +216,12 @@ Silence is acceptable while thinking. Vagueness is not.
 The repository uses state-based spaced retrieval. Time passing only makes a
 revision due; it does not prove mastery.
 
-A problem becomes MASTERED only after five successful active-recall revisions:
+A problem becomes MASTERED only after four successful active-recall revisions:
 
-- R1 after 1 day: prevent immediate forgetting
-- R2 after 3 days: strengthen retrieval
-- R3 after 7 days: long-term strengthening
-- R4 after 21 days: consolidation
-- R5 after 60 days: durable long-horizon recall
+- R1 after 3 days: prevent immediate forgetting with a minimum buffer
+- R2 after 7 days: strengthen retrieval
+- R3 after 21 days: long-term strengthening
+- R4 after 60 days: durable long-horizon recall
 
 A revision PASS requires pattern recall, state recall, transition recall,
 complexity recall, implementation blueprint, code from memory, dry run, edge

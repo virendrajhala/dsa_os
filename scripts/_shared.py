@@ -23,11 +23,10 @@ PROGRESS_PATH = ROOT / "progress" / "progress.json"
 PROGRESS_TEMPLATE_PATH = ROOT / "progress" / "progress_template.json"
 
 REVISION_INTERVAL_DAYS = {
-    0: 1,   # R1 after the original solve.
-    1: 3,   # R2 after successful R1.
-    2: 7,   # R3 after successful R2.
-    3: 21,  # R4 after successful R3.
-    4: 60,  # R5 after successful R4.
+    0: 3,   # R1 after the original solve.
+    1: 7,   # R2 after successful R1.
+    2: 21,  # R3 after successful R2.
+    3: 60,  # R4 after successful R3.
 }
 REVISION_STATUSES = {"ACTIVE", "MASTERED", "FAILED"}
 REVISION_RESULTS = {"PASS", "FAIL", "REACTIVATED"}

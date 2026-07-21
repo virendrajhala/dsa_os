@@ -1,8 +1,8 @@
 {
   "schema_version": 8,
-  "last_updated": "2026-07-20",
+  "last_updated": "2026-07-21",
   "current_stage": "Observation",
-  "current_problem": "CPX-001",
+  "current_problem": "OBS-005",
   "completed": [
     {
       "problem_id": "OBS-001",
@@ -37,7 +37,7 @@
           "2026-07-13",
           "2026-07-16"
         ],
-        "next_due": "2026-07-23",
+        "next_due": "2026-08-06",
         "history": [
           {
             "date": "2026-07-16",
@@ -98,7 +98,7 @@
           "2026-07-17",
           "2026-07-20"
         ],
-        "next_due": "2026-07-27",
+        "next_due": "2026-08-10",
         "history": [
           {
             "date": "2026-07-17",
@@ -217,7 +217,7 @@
         "completed": [
           "2026-07-19"
         ],
-        "next_due": "2026-07-22",
+        "next_due": "2026-07-26",
         "history": [
           {
             "date": "2026-07-19",
@@ -299,7 +299,7 @@
         "completed": [
           "2026-07-19"
         ],
-        "next_due": "2026-07-22",
+        "next_due": "2026-07-26",
         "history": [
           {
             "date": "2026-07-19",
@@ -370,7 +370,7 @@
         "status": "ACTIVE",
         "stage": 0,
         "completed": [],
-        "next_due": "2026-07-21",
+        "next_due": "2026-07-17",
         "history": []
       },
       "algorithm_thinking_score": 9.58,
@@ -406,7 +406,7 @@
         "status": "ACTIVE",
         "stage": 0,
         "completed": [],
-        "next_due": "2026-07-22",
+        "next_due": "2026-07-18",
         "history": []
       },
       "algorithm_thinking_score": 10.0,
@@ -446,7 +446,7 @@
         "completed": [
           "2026-07-19"
         ],
-        "next_due": "2026-07-22",
+        "next_due": "2026-07-26",
         "history": [
           {
             "date": "2026-07-19",
@@ -567,7 +567,7 @@
         "status": "ACTIVE",
         "stage": 0,
         "completed": [],
-        "next_due": "2026-07-21",
+        "next_due": "2026-07-23",
         "history": []
       },
       "session_summary": {
@@ -613,6 +613,42 @@
         ],
         "deferred_scope": "Do not require the O(1) extra-space optimization for normal revision pass/fail until the open deferred learning is naturally resolved."
       }
+    },
+    {
+      "problem_id": "CPX-001",
+      "completed_at": "2026-07-21",
+      "time_taken_minutes": 20,
+      "hint_level_used": 2,
+      "confidence_before": 8,
+      "confidence_after": 10,
+      "thinking_breakthrough": "Reframed pair-search into missing-partner search: for each element, compute requiredPartner = target - currentElement and replace repeated linear searches with constant-time lookup.",
+      "main_mistake": "Initially focused on searching for the partner rather than identifying the repeated query that should drive the data-structure choice.",
+      "thinking_score": {
+        "understanding": 4,
+        "examples": 4,
+        "brute_force": 4,
+        "pattern_detection": 4,
+        "algorithm_design": 4,
+        "complexity_analysis": 4,
+        "implementation": 4,
+        "communication": 4
+      },
+      "algorithm_thinking_score": 9.0,
+      "implementation_engineering_score": 9.0,
+      "interview_score": {
+        "understanding": 10,
+        "communication": 10,
+        "algorithm": 9,
+        "coding": 10,
+        "complexity": 10
+      },
+      "revision": {
+        "status": "ACTIVE",
+        "stage": 0,
+        "completed": [],
+        "next_due": "2026-07-24",
+        "history": []
+      }
     }
   ],
   "thinking_profile": {
@@ -639,7 +675,10 @@
       "Improved implementation engineering by assigning precise responsibilities to scan pointer, candidate pointer, local tank balance, and global totals.",
       "Maps greedy proofs directly into implementation decisions without restarting the scan.",
       "Reproduced Maximum Product Subarray from memory with correct state, transition, previous-state preservation, implementation, dry run, and complexity recall.",
-      "Mastered the standard Candy two-pass greedy construction by separating independent adjacent constraints and max-merging directional assignments."
+      "Mastered the standard Candy two-pass greedy construction by separating independent adjacent constraints and max-merging directional assignments.",
+      "Derived HashMap state from the repeated missing-partner query in CPX-001.",
+      "Explained HashMap complexity by separating iteration count from average lookup/update cost.",
+      "Used search-before-insertion to preserve the processed-prefix invariant and avoid self-matching."
     ],
     "gaps": [
       "Initially optimizes implementation before proving correctness",
@@ -668,9 +707,10 @@
       "Candidate-relative state",
       "Observation vs hypothesis separation",
       "Proof-driven implementation",
-      "Bidirectional constraint satisfaction"
+      "Bidirectional constraint satisfaction",
+      "Repeated query -> required state -> minimal data structure"
     ],
-    "notes": "Student shows strong algorithm reasoning, good invariant recognition, strong state-design intuition, and deep concept learning instead of memorization. OBS-001 R2 showed improved state interpretation and proof discipline. OBS-002 R1 clarified that the main current gap is Implementation Engineering: the learner can derive the correct algorithm but needs to derive initialization, loop boundaries, update ordering, global answer ownership, and return value from the state definition before coding. OBS-007 strengthened greedy reasoning, candidate-relative state modelling, observation-vs-hypothesis separation, and proof-to-implementation mapping. OBS-002 R2 showed the previous implementation gap did not recur: the learner reproduced the algorithm and implementation from memory with no hints and no mistakes. OBS-008 confirmed mastery of the standard O(n) time and O(n) extra-space Candy solution; the O(1) space optimization is intentionally deferred as an open learning item, not a weakness or failure."
+    "notes": "Student shows strong algorithm reasoning, good invariant recognition, strong state-design intuition, and deep concept learning instead of memorization. OBS-001 R2 showed improved state interpretation and proof discipline. OBS-002 R1 clarified that the main current gap is Implementation Engineering: the learner can derive the correct algorithm but needs to derive initialization, loop boundaries, update ordering, global answer ownership, and return value from the state definition before coding. OBS-007 strengthened greedy reasoning, candidate-relative state modelling, observation-vs-hypothesis separation, and proof-to-implementation mapping. OBS-002 R2 showed the previous implementation gap did not recur: the learner reproduced the algorithm and implementation from memory with no hints and no mistakes. OBS-008 confirmed mastery of the standard O(n) time and O(n) extra-space Candy solution; the O(1) space optimization is intentionally deferred as an open learning item, not a weakness or failure. CPX-001 strengthened lookup-state construction: the learner derived value-to-index storage from the repeated missing-partner query and justified search-before-insertion."
   },
   "history": [
     {
@@ -681,7 +721,7 @@
       "stage_before": "Foundational",
       "stage_after": "Foundational",
       "next_problem": null,
-      "revision_next_due": "2026-07-16",
+      "revision_next_due": "2026-08-06",
       "revision_status": "ACTIVE",
       "revision_stage": 0
     },
@@ -693,7 +733,7 @@
       "stage_before": "Foundational",
       "stage_after": "Foundational",
       "next_problem": null,
-      "revision_next_due": "2026-07-17",
+      "revision_next_due": "2026-08-10",
       "revision_status": "ACTIVE",
       "revision_stage": 0
     },
@@ -705,7 +745,7 @@
       "stage_before": "Foundational",
       "stage_after": "Foundational",
       "next_problem": null,
-      "revision_next_due": "2026-07-18",
+      "revision_next_due": "2026-07-26",
       "revision_status": "ACTIVE",
       "revision_stage": 0
     },
@@ -717,7 +757,7 @@
       "stage_before": "Foundational",
       "stage_after": "Foundational",
       "next_problem": null,
-      "revision_next_due": "2026-07-19",
+      "revision_next_due": "2026-07-26",
       "revision_status": "ACTIVE",
       "revision_stage": 0
     },
@@ -729,7 +769,7 @@
       "stage_before": "Observation",
       "stage_after": "Observation",
       "next_problem": "OBS-006",
-      "revision_next_due": "2026-07-21",
+      "revision_next_due": "2026-07-17",
       "revision_status": "ACTIVE",
       "revision_stage": 0
     },
@@ -741,7 +781,7 @@
       "stage_before": "Observation",
       "stage_after": "Observation",
       "next_problem": "OBS-007",
-      "revision_next_due": "2026-07-22",
+      "revision_next_due": "2026-07-18",
       "revision_status": "ACTIVE",
       "revision_stage": 0
     },
@@ -753,7 +793,7 @@
       "revision_result": "PASS",
       "revision_stage": 2,
       "revision_status": "ACTIVE",
-      "next_due": "2026-07-23",
+      "next_due": "2026-08-06",
       "summary": "R2 successful active recall. Initialization misconception corrected; no remaining conceptual gaps recorded."
     },
     {
@@ -764,7 +804,7 @@
       "revision_result": "PASS",
       "revision_stage": 1,
       "revision_status": "ACTIVE",
-      "next_due": "2026-07-20",
+      "next_due": "2026-08-10",
       "next_problem": "OBS-007",
       "summary": "R1 successful active recall. Concept, state, transition, complexity, and code recall were verified; remaining issues were Implementation Engineering corrections only."
     },
@@ -778,7 +818,7 @@
       "revision_result": null,
       "revision_stage": 0,
       "revision_status": "ACTIVE",
-      "next_due": "2026-07-18",
+      "next_due": "2026-07-26",
       "reactivated_problems": [],
       "next_problem": "OBS-008",
       "summary": "OBS-007 completed. Major breakthrough: tankBalance is candidate-relative state, not global fuel. Implementation breakthrough: scan pointer and startCandidate are separate; candidate changes do not restart the scan. Interview breakthrough: local greedy elimination must be paired with global feasibility. Key invariant: negative tankBalance eliminates every candidate in the failed segment. Reusable pattern: greedy hypothesis scan.",
@@ -796,7 +836,7 @@
       "revision_result": "PASS",
       "revision_stage": 1,
       "revision_status": "ACTIVE",
-      "next_due": "2026-07-22",
+      "next_due": "2026-07-26",
       "summary": "R1 successful active recall with complete conceptual mastery. The learner independently derived and proved the minPrice invariant, implemented the O(n)/O(1) solution correctly, and justified initialization, loop bounds, boundary cases, and both valid update orders."
     },
     {
@@ -807,7 +847,7 @@
       "revision_result": "PASS",
       "revision_stage": 1,
       "revision_status": "ACTIVE",
-      "next_due": "2026-07-22",
+      "next_due": "2026-07-26",
       "summary": "R1 successful active recall. The learner reconstructed the candidate-elimination proof, global feasibility condition, candidate-relative running balance, state derivation, implementation, and dry run from first principles."
     },
     {
@@ -818,7 +858,7 @@
       "revision_result": "PASS",
       "revision_stage": 1,
       "revision_status": "ACTIVE",
-      "next_due": "2026-07-22",
+      "next_due": "2026-07-26",
       "summary": "R1 successful active recall in 5 minutes. The learner explained why unlimited transactions remove the historical-minimum state, reconstructed the positive-adjacent-difference rule and its optimality, wrote the Java implementation from memory, and passed a dry run."
     },
     {
@@ -831,7 +871,7 @@
       "revision_result": "PASS",
       "revision_stage": 2,
       "revision_status": "ACTIVE",
-      "next_due": "2026-07-27",
+      "next_due": "2026-08-10",
       "reactivated_problems": [],
       "next_problem": "OBS-008",
       "summary": "R2 successful active recall in 20 minutes. The learner reproduced Maximum Product Subarray from memory with excellent concept, algorithm, implementation, dry-run, and complexity recall. No hints, mistakes, or weaknesses were recorded.",
@@ -856,7 +896,7 @@
       "revision_result": null,
       "revision_stage": 0,
       "revision_status": "ACTIVE",
-      "next_due": "2026-07-21",
+      "next_due": "2026-07-23",
       "reactivated_problems": [],
       "deferred_learnings_created": [
         "DL-001"
@@ -864,6 +904,24 @@
       "deferred_learnings_resolved": [],
       "next_problem": "CPX-001",
       "summary": "OBS-008 completed. The learner mastered the standard O(n) time and O(n) extra-space two-pass greedy solution for Candy by separating left-neighbor and right-neighbor constraints and taking the maximum directional assignment. The O(1) extra-space optimization was intentionally deferred as DL-001 and is not treated as a failure."
+    },
+    {
+      "timestamp": "2026-07-21",
+      "event": "problem_completed",
+      "problem_id": "CPX-001",
+      "mode": "new_problem",
+      "stage_before": "Observation",
+      "stage_after": "Observation",
+      "revision_result": null,
+      "revision_stage": 0,
+      "revision_status": "ACTIVE",
+      "next_due": "2026-07-24",
+      "reactivated_problems": [],
+      "deferred_learnings_created": [
+        "DL-002"
+      ],
+      "deferred_learnings_resolved": [],
+      "next_problem": "OBS-005"
     }
   ],
   "notes": [
@@ -924,38 +982,38 @@
     "latest_interview_score": {
       "understanding": 10,
       "communication": 10,
-      "algorithm": 10,
+      "algorithm": 9,
       "coding": 10,
       "complexity": 10
     },
     "averages": {
-      "thinking_weighted": 3.49,
+      "thinking_weighted": 3.54,
       "thinking_dimensions": {
-        "understanding": 3.5,
-        "examples": 3.5,
-        "brute_force": 3.38,
-        "pattern_detection": 3.5,
-        "algorithm_design": 3.5,
-        "complexity_analysis": 3.5,
-        "implementation": 3.5,
-        "communication": 3.5
+        "understanding": 3.56,
+        "examples": 3.56,
+        "brute_force": 3.44,
+        "pattern_detection": 3.56,
+        "algorithm_design": 3.56,
+        "complexity_analysis": 3.56,
+        "implementation": 3.56,
+        "communication": 3.56
       },
-      "interview_average": 8.38,
+      "interview_average": 8.53,
       "interview_dimensions": {
-        "understanding": 8.38,
-        "communication": 8.38,
-        "algorithm": 8.38,
-        "coding": 8.38,
-        "complexity": 8.38
+        "understanding": 8.56,
+        "communication": 8.56,
+        "algorithm": 8.44,
+        "coding": 8.56,
+        "complexity": 8.56
       },
-      "confidence_before": 3.62,
-      "confidence_after": 8.88,
-      "solved_unique_problems": 8
+      "confidence_before": 4.11,
+      "confidence_after": 9.0,
+      "solved_unique_problems": 9
     },
     "stage_checks": {
       "Observation": {
-        "attempted": 8,
-        "passed": 8
+        "attempted": 9,
+        "passed": 9
       },
       "State Construction": {
         "attempted": 0,
@@ -1009,8 +1067,8 @@
   },
   "skill_progress": {
     "SK-OB-01": {
-      "primary_solved": false,
-      "primary_weighted_score": null,
+      "primary_solved": true,
+      "primary_weighted_score": 4.0,
       "reinforcement_attempted": false,
       "mastered": false
     },
@@ -1563,6 +1621,20 @@
       "resolved_on": null,
       "resolved_by_problem": null,
       "evidence": null
+    },
+    {
+      "id": "DL-002",
+      "origin_problem": "CPX-001",
+      "origin_revision_stage": null,
+      "skill": "SK-OB-01",
+      "category": "pattern_recognition",
+      "description": "Continue building intuition for recognizing HashMap pattern triggers across new problems.",
+      "priority": "MEDIUM",
+      "status": "OPEN",
+      "created_on": "2026-07-21",
+      "resolved_on": null,
+      "resolved_by_problem": null,
+      "evidence": null
     }
   ],
   "mastered_skills": [
@@ -1708,6 +1780,15 @@
       "implementation_lesson": "Each directional pass owns one constraint. The final answer is the sum of max(leftRequirement[i], rightRequirement[i]) for each child in the standard O(n) extra-space implementation.",
       "edge_case_learned": "Peaks, valleys, equal ratings, increasing runs, and decreasing runs expose why both directional constraints must be evaluated independently.",
       "interview_takeaway": "Explain the standard O(n)/O(n) solution as two independent constraint passes plus a max merge. Mention that O(1) space optimization exists but was intentionally deferred and is not part of the current mastered scope."
+    },
+    "CPX-001": {
+      "date": "2026-07-21",
+      "core_mental_model": "Repeated queries about previously processed values often indicate that a HashMap or HashSet should be considered. For Two Sum, reframe pair-search into missing-partner search: requiredPartner = target - currentElement.",
+      "primary_invariant": "Before processing index i, the HashMap contains every value encountered from indices 0..i-1 mapped to its index. Therefore, if the required partner already exists in the processed portion, it can be found in average O(1).",
+      "major_breakthrough": "The learner stopped thinking about repeatedly searching for a pair and instead identified the repeated query: Have I already seen the required partner? This directly determined the needed state and data structure.",
+      "implementation_lesson": "Choose the HashMap key based on the repeated query. Since the repeated query is whether a value has already been seen, store value -> index. Search before insertion so the current element never matches itself.",
+      "edge_case_learned": "Search before insertion prevents the current element from matching itself when target equals currentElement * 2.",
+      "interview_takeaway": "Explain O(n) complexity by separating n iterations from O(1) average HashMap operations per iteration."
     }
   },
   "weaknesses_detected": {
@@ -1752,10 +1833,11 @@
     "For a linear scan, state exactly what information from the processed prefix future decisions need. Maintain that past summary, use it against the current item, then update it for the future. Prove why discarded past values are dominated.",
     "For candidate-elimination scans, prove the failed segment impossible before advancing the candidate. Keep candidate-relative state separate from global feasibility, and derive implementation variables from those proof obligations.",
     "When a constraint changes, re-derive whether historical decision state is still needed. Keep an accumulated answer separate from decision state, and derive loop bounds from every indexed access.",
-    "For bidirectional adjacent constraints, assign each pass one direction of responsibility, then merge requirements with max so satisfying the second direction does not break the first."
+    "For bidirectional adjacent constraints, assign each pass one direction of responsibility, then merge requirements with max so satisfying the second direction does not break the first.",
+    "For lookup problems, identify the repeated query first, then derive the required state and choose the smallest data structure that answers that query instantly. Search before insertion when the current item must not be allowed to match itself."
   ],
   "implementation_engineering": {
-    "score": 10.0,
+    "score": 9.0,
     "strengths": [
       "State definition",
       "DP recurrence",
@@ -1789,7 +1871,10 @@
       "Two-pass constraint modelling",
       "Directional pass responsibility",
       "Max-merge answer construction",
-      "O(n) greedy construction reasoning"
+      "O(n) greedy construction reasoning",
+      "HashMap state selection from repeated query",
+      "Search-before-insertion invariant",
+      "Average O(1) lookup reasoning"
     ],
     "weaknesses": [
       "Initialization",
@@ -1810,7 +1895,8 @@
       "OBS-007 R1 confirmed correct reconstruction, state derivation, implementation from memory, and dry-run validation for the candidate-elimination scan.",
       "OBS-004 R1 confirmed that the learner can derive state necessity from constraints, justify adjacency-based greedy accumulation, and implement safe loop bounds from the indexed access.",
       "OBS-002 R2 confirmed that the learner can reproduce product-DP state definitions, previous-state preservation, global answer maintenance, dry run, and O(n)/O(1) implementation from memory without hints.",
-      "OBS-008 confirmed that the learner can derive two directional passes from independent adjacent constraints and explain why max-merging the two directional assignments is the minimum valid distribution."
+      "OBS-008 confirmed that the learner can derive two directional passes from independent adjacent constraints and explain why max-merging the two directional assignments is the minimum valid distribution.",
+      "CPX-001 confirmed the learner can derive value-to-index HashMap state from the repeated query: Have I already seen this required partner?"
     ]
   }
 }

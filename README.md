@@ -120,7 +120,7 @@ make progress ARGS="\
 Revisions are state-based active recall, not passive date checks.
 
 - Every solve records a per-problem `revision` object in `progress/progress.json`.
-- A problem becomes mastered only after five successful recall stages: R1 after 1 day, R2 after 3 days, R3 after 7 days, R4 after 21 days, and R5 after 60 days.
+- A problem becomes mastered only after four successful recall stages: R1 after 3 days, R2 after 7 days, R3 after 21 days, and R4 after 60 days.
 - A revision only advances when the learner completes pattern recall, state
   recall, transition recall, complexity recall, implementation blueprint, code
   from memory, dry run, edge cases, and interview discussion with minimal or no

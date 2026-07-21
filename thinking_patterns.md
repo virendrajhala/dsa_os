@@ -66,3 +66,29 @@ Common mistakes:
 
 Problems:
 - OBS-001 Maximum Subarray
+
+---
+
+## Pattern 004
+Pattern: Repeated Query -> Required State -> Minimal Data Structure
+
+Trigger:
+Brute force repeatedly searches for information that could be remembered.
+
+Invariant:
+Before processing the current item, the lookup structure contains exactly the
+processed information needed to answer the repeated query.
+
+Proof:
+If each decision only needs an existence, index, count, or grouping question
+over previously processed values, then storing the minimum state that answers
+that question preserves correctness while removing the repeated scan.
+
+Common mistakes:
+- Choosing a HashMap or HashSet before naming the repeated query.
+- Searching after insertion when the current item must not match itself.
+- Explaining O(n) without separating the number of iterations from the lookup
+  cost per iteration.
+
+Problems:
+- CPX-001 Two Sum

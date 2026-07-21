@@ -111,15 +111,14 @@
     }
   },
   "revision_policy": {
-    "description": "Revision progression is state-based: a problem is mastered only after five successful active-recall revisions. Time passing only makes a revision due; it never advances mastery.",
+    "description": "Revision progression is state-based: a problem is mastered only after four successful active-recall revisions. Time passing only makes a revision due; it never advances mastery.",
     "successful_recall_intervals": {
-      "R1": 1,
-      "R2": 3,
-      "R3": 7,
-      "R4": 21,
-      "R5": 60
+      "R1": 3,
+      "R2": 7,
+      "R3": 21,
+      "R4": 60
     },
-    "mastered_after_stage": 5,
+    "mastered_after_stage": 4,
     "failure_retry_days": 1,
     "quarterly_maintenance_days": 90,
     "quarterly_maintenance_sample_size": 3,

@@ -217,13 +217,12 @@ Before every session, run the revision report and prefer due ACTIVE or FAILED
 revisions over new work. A revision is an active-recall interview, not a
 date-based reread.
 
-A problem is mastered only after five successful recall stages:
+A problem is mastered only after four successful recall stages:
 
-- R1: 1 day after the original solve
-- R2: 3 days after successful R1
-- R3: 7 days after successful R2
-- R4: 21 days after successful R3
-- R5: 60 days after successful R4
+- R1: 3 days after the original solve
+- R2: 7 days after successful R1
+- R3: 21 days after successful R2
+- R4: 60 days after successful R3
 
 During revision, evaluate exactly these recall gates:
 
@@ -240,7 +239,7 @@ During revision, evaluate exactly these recall gates:
 The revision result is PASS only if all gates are satisfied. A revision cannot
 be marked complete until the learner successfully writes code from memory. If
 any gate fails, the result is FAIL. Failed revisions do not advance stage; they
-are scheduled for tomorrow at the same stage. After R5 passes, the problem
+are scheduled for tomorrow at the same stage. After R4 passes, the problem
 becomes MASTERED and leaves normal revision scheduling.
 
 MASTERED problems may return only for a failed related problem, a detected
