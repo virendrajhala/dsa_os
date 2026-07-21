@@ -597,6 +597,18 @@ def validate_curriculum(
     if not isinstance(hint_levels, dict) or not hint_levels:
         add_error(errors, "scoring.json: `hint_levels` must be a non-empty object.")
 
+    hint_mastery_discount = scoring.get("hint_mastery_discount")
+    if not isinstance(hint_mastery_discount, dict) or not hint_mastery_discount:
+        add_error(errors, "scoring.json: `hint_mastery_discount` must be a non-empty object.")
+    elif isinstance(hint_levels, dict):
+        for hint_level in hint_levels:
+            weight = hint_mastery_discount.get(hint_level)
+            if not isinstance(weight, (int, float)) or isinstance(weight, bool) or not (0 <= weight <= 1):
+                add_error(
+                    errors,
+                    f"scoring.json: `hint_mastery_discount.{hint_level}` must be a number between 0 and 1.",
+                )
+
     revision_policy = scoring.get("revision_policy", {})
     intervals = revision_policy.get("successful_recall_intervals")
     if not isinstance(intervals, dict):

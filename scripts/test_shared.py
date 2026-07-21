@@ -9,11 +9,82 @@ from __future__ import annotations
 import unittest
 from datetime import date
 
-from _shared import apply_revision_result, revision_stage_label
+from _shared import apply_revision_result, compute_skill_progress, revision_stage_label
 
 
 def _record(problem_id: str = "TEST-001", completed_at: str = "2026-01-01") -> dict:
     return {"problem_id": problem_id, "completed_at": completed_at}
+
+
+def _completion(problem_id: str, hint_level_used: int | None, thinking_score: dict | None) -> dict:
+    record = {"problem_id": problem_id, "completed_at": "2026-01-01"}
+    if hint_level_used is not None:
+        record["hint_level_used"] = hint_level_used
+    if thinking_score is not None:
+        record["thinking_score"] = thinking_score
+    return record
+
+
+_SCORING = {
+    "weights": {"understanding": 0.5, "algorithm_design": 0.5},
+    "skill_mastery": {"minimum_primary_weighted_score": 2.6, "require_reinforcement_attempt": True},
+    "hint_mastery_discount": {"0": 1, "1": 1, "2": 1, "3": 0.5, "4": 0.5, "5": 0, "6": 0, "7": 0},
+}
+
+_SKILLS = {
+    "skills": {
+        "SK-TEST": {
+            "scope": "stage",
+            "primary_validation_problem": "PRIMARY-001",
+            "reinforcement_problems": ["REINFORCE-001"],
+        }
+    }
+}
+
+
+def _progress(*completions: dict) -> dict:
+    return {"completed": list(completions)}
+
+
+class ComputeSkillProgressHintDiscountTests(unittest.TestCase):
+    """F6: hint_level_used discounts whether a solve counts toward mastery."""
+
+    FULL_SCORE = {"understanding": 4, "algorithm_design": 4}  # weighted 4.0, well above the 2.6 bar
+
+    def test_hint_6_primary_solve_stays_unmastered(self):
+        progress = _progress(
+            _completion("PRIMARY-001", hint_level_used=6, thinking_score=self.FULL_SCORE),
+            _completion("REINFORCE-001", hint_level_used=0, thinking_score=self.FULL_SCORE),
+        )
+        result = compute_skill_progress({}, _SKILLS, _SCORING, progress)
+        self.assertFalse(result["SK-TEST"]["mastered"])
+
+    def test_hint_3_primary_solve_counts_at_half_weight_and_fails_bar(self):
+        # weighted score 4.0 * 0.5 discount = 2.0, below the 2.6 bar.
+        progress = _progress(
+            _completion("PRIMARY-001", hint_level_used=3, thinking_score=self.FULL_SCORE),
+            _completion("REINFORCE-001", hint_level_used=0, thinking_score=self.FULL_SCORE),
+        )
+        result = compute_skill_progress({}, _SKILLS, _SCORING, progress)
+        self.assertEqual(result["SK-TEST"]["primary_weighted_score"], 2.0)
+        self.assertFalse(result["SK-TEST"]["mastered"])
+
+    def test_hint_0_primary_solve_counts_at_full_weight_and_masters(self):
+        progress = _progress(
+            _completion("PRIMARY-001", hint_level_used=0, thinking_score=self.FULL_SCORE),
+            _completion("REINFORCE-001", hint_level_used=0, thinking_score=self.FULL_SCORE),
+        )
+        result = compute_skill_progress({}, _SKILLS, _SCORING, progress)
+        self.assertEqual(result["SK-TEST"]["primary_weighted_score"], 4.0)
+        self.assertTrue(result["SK-TEST"]["mastered"])
+
+    def test_no_numeric_thinking_score_does_not_pass_the_bar(self):
+        progress = _progress(
+            _completion("PRIMARY-001", hint_level_used=0, thinking_score=None),
+            _completion("REINFORCE-001", hint_level_used=0, thinking_score=self.FULL_SCORE),
+        )
+        result = compute_skill_progress({}, _SKILLS, _SCORING, progress)
+        self.assertFalse(result["SK-TEST"]["mastered"])
 
 
 class ApplyRevisionResultTests(unittest.TestCase):

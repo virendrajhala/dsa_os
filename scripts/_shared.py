@@ -596,6 +596,24 @@ def weighted_thinking_score(record: JsonDict, scoring: JsonDict) -> float | None
         return None
 
 
+def hint_mastery_weight(hint_level: object, scoring: JsonDict) -> float:
+    """Return the mastery-evidence weight for a completion's hint_level_used.
+
+    Read from `scoring.json`'s `hint_mastery_discount` map (keyed by hint
+    level as a string) so the discount table lives in one place. Unknown or
+    missing hint levels default to full weight (1.0) rather than silently
+    zeroing out older records that predate this field.
+    """
+
+    discounts = scoring.get("hint_mastery_discount")
+    if not isinstance(discounts, dict):
+        return 1.0
+    try:
+        return float(discounts.get(str(int(hint_level)), 1.0))
+    except (TypeError, ValueError):
+        return 1.0
+
+
 def average_interview_score(record: JsonDict) -> float | None:
     """Calculate the average interview score for a completion record."""
 
@@ -623,6 +641,12 @@ def compute_skill_progress(
     A skill is mastered when its primary validation problem is solved at or
     above `scoring.skill_mastery.minimum_primary_weighted_score` AND at least
     one reinforcement problem for that skill has been completed.
+
+    The primary problem's weighted thinking score is discounted by how much
+    hinting it took (`scoring.hint_mastery_discount`, keyed by
+    `hint_level_used`): hint 0-2 counts at full weight, hint 3-4 at half
+    weight, hint 5+ at zero weight (an attempt only, never mastery). A
+    completion with no numeric thinking score never passes the bar.
     """
 
     latest_by_problem = latest_records_by_problem(progress)
@@ -638,10 +662,15 @@ def compute_skill_progress(
         reinforcement = skill.get("reinforcement_problems", [])
         primary_record = latest_by_problem.get(primary)
         primary_solved = primary_record is not None
-        primary_score = weighted_thinking_score(primary_record, scoring) if primary_record else None
-        # If no numeric score was recorded, treat any recorded completion as
-        # provisionally passing so early/manual progress logs still register.
-        primary_meets_bar = primary_solved and (primary_score is None or primary_score >= min_primary_score)
+        raw_primary_score = weighted_thinking_score(primary_record, scoring) if primary_record else None
+        # A completion with no numeric thinking score does NOT pass the bar
+        # (no more "provisionally passing" leniency).
+        if raw_primary_score is None:
+            primary_score = None
+        else:
+            weight = hint_mastery_weight(primary_record.get("hint_level_used"), scoring)
+            primary_score = round(raw_primary_score * weight, 4)
+        primary_meets_bar = primary_solved and primary_score is not None and primary_score >= min_primary_score
         reinforcement_done = any(r in latest_by_problem for r in reinforcement)
         mastered = primary_meets_bar and (reinforcement_done or not require_reinforcement)
         skill_progress[skill_id] = {
