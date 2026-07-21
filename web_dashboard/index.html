@@ -4,6 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>DSA OS Dashboard</title>
+    <link rel="icon" href="data:," />
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
@@ -17,17 +18,20 @@
           </div>
         </div>
         <nav class="nav-list">
-          <a href="#overview">Overview</a>
-          <a href="#weakness-lab">Weaknesses</a>
-          <a href="#deferred">Deferred</a>
-          <a href="#edge-cases">Edge Cases</a>
-          <a href="#stages">Stages</a>
-          <a href="#revisions">Revisions</a>
-          <a href="#skills">Skills</a>
-          <a href="#patterns">Patterns</a>
-          <a href="#history">History</a>
-          <a href="#thinking">Thinking</a>
-          <a href="#analytics">Analytics</a>
+          <span class="nav-group">Daily</span>
+          <a href="#overview" data-workspace-link="today">Command Center</a>
+          <a href="#revisions" data-workspace-link="today">Revision Queue</a>
+          <a href="#weakness-lab" data-workspace-link="practice">Weakness Lab</a>
+          <a href="#edge-cases" data-workspace-link="practice">Edge Checklist</a>
+          <span class="nav-group">Curriculum</span>
+          <a href="#stages" data-workspace-link="curriculum">Stage Map</a>
+          <a href="#skills" data-workspace-link="curriculum">Skills</a>
+          <a href="#patterns" data-workspace-link="curriculum">Pattern Index</a>
+          <span class="nav-group">Evidence</span>
+          <a href="#deferred" data-workspace-link="evidence">Deferred Learning</a>
+          <a href="#history" data-workspace-link="evidence">Problem History</a>
+          <a href="#thinking" data-workspace-link="evidence">Thinking Profile</a>
+          <a href="#analytics" data-workspace-link="analytics">Analytics</a>
         </nav>
         <div class="source-card">
           <span class="label">Source</span>
@@ -40,7 +44,8 @@
         <header class="topbar">
           <div>
             <p class="eyebrow">Developer dashboard</p>
-            <h2>DSA journey tracker</h2>
+            <h2>DSA preparation command center</h2>
+            <p class="topbar-subtitle">Track today’s work, long-term mastery, revision pressure, and learning evidence from one operating view.</p>
           </div>
           <div class="toolbar">
             <input id="search" type="search" placeholder="Search problems, skills, notes" />
@@ -56,9 +61,24 @@
               <option value="not_started">Not started</option>
             </select>
           </div>
+          <nav class="workspace-tabs" aria-label="Dashboard workspaces">
+            <button type="button" class="workspace-tab active" data-workspace="today">Today</button>
+            <button type="button" class="workspace-tab" data-workspace="practice">Practice</button>
+            <button type="button" class="workspace-tab" data-workspace="curriculum">Curriculum</button>
+            <button type="button" class="workspace-tab" data-workspace="evidence">Evidence</button>
+            <button type="button" class="workspace-tab" data-workspace="analytics">Analytics</button>
+          </nav>
         </header>
 
-        <section id="overview" class="section">
+        <section id="overview" class="section" data-workspace-section="today">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Today</p>
+              <h3>Operating board</h3>
+            </div>
+            <span class="pill" id="reference-date-pill">Loading</span>
+          </div>
+          <div id="operating-board" class="operating-board"></div>
           <div class="metric-grid" id="metric-grid"></div>
           <div class="panel-grid">
             <section class="panel">
@@ -83,7 +103,7 @@
           </div>
         </section>
 
-        <section id="weakness-lab" class="section">
+        <section id="weakness-lab" class="section" data-workspace-section="practice">
           <div class="section-head">
             <div>
               <p class="eyebrow">Preparation focus</p>
@@ -93,7 +113,7 @@
           <div id="weakness-grid" class="weakness-grid"></div>
         </section>
 
-        <section id="deferred" class="section">
+        <section id="deferred" class="section" data-workspace-section="evidence">
           <div class="section-head">
             <div>
               <p class="eyebrow">Learning memory</p>
@@ -103,7 +123,7 @@
           <div id="deferred-grid" class="weakness-grid"></div>
         </section>
 
-        <section id="edge-cases" class="section">
+        <section id="edge-cases" class="section" data-workspace-section="practice">
           <div class="section-head">
             <div>
               <p class="eyebrow">Before final answer</p>
@@ -113,7 +133,7 @@
           <div id="edge-case-grid" class="edge-case-grid"></div>
         </section>
 
-        <section id="stages" class="section">
+        <section id="stages" class="section" data-workspace-section="curriculum">
           <div class="section-head">
             <div>
               <p class="eyebrow">Curriculum map</p>
@@ -123,7 +143,7 @@
           <div id="stage-board" class="stage-board"></div>
         </section>
 
-        <section id="revisions" class="section two-column">
+        <section id="revisions" class="section two-column" data-workspace-section="today">
           <section class="panel">
             <div class="panel-head">
               <div>
@@ -144,7 +164,7 @@
           </section>
         </section>
 
-        <section id="skills" class="section">
+        <section id="skills" class="section" data-workspace-section="curriculum">
           <div class="section-head">
             <div>
               <p class="eyebrow">Mastery detail</p>
@@ -154,7 +174,7 @@
           <div id="skill-grid" class="skill-grid"></div>
         </section>
 
-        <section id="patterns" class="section">
+        <section id="patterns" class="section" data-workspace-section="curriculum">
           <div class="section-head">
             <div>
               <p class="eyebrow">Knowledge layer</p>
@@ -164,7 +184,7 @@
           <div id="pattern-grid" class="skill-grid"></div>
         </section>
 
-        <section id="history" class="section">
+        <section id="history" class="section" data-workspace-section="evidence">
           <div class="section-head">
             <div>
               <p class="eyebrow">Audit trail</p>
@@ -190,7 +210,7 @@
           </div>
         </section>
 
-        <section id="thinking" class="section two-column">
+        <section id="thinking" class="section two-column" data-workspace-section="evidence">
           <section class="panel">
             <div class="panel-head">
               <div>
@@ -211,7 +231,7 @@
           </section>
         </section>
 
-        <section id="analytics" class="section">
+        <section id="analytics" class="section" data-workspace-section="analytics">
           <div class="section-head">
             <div>
               <p class="eyebrow">Preparation analytics</p>

@@ -18,6 +18,7 @@
     patternsById: new Map(),
     filteredProblems: [],
     analyticsView: "acquisition",
+    activeWorkspace: "today",
   };
 
   const $ = (selector) => document.querySelector(selector);
@@ -105,7 +106,7 @@
   }
 
   function stageLabel(stage) {
-    if (stage >= 5) return "MASTERED";
+    if (stage >= 4) return "MASTERED";
     return `R${stage + 1} due`;
   }
 
@@ -132,6 +133,27 @@
       modal.showModal();
     } else {
       modal.setAttribute("open", "");
+    }
+  }
+
+  function switchWorkspace(workspace, targetHash = "") {
+    state.activeWorkspace = workspace || "today";
+    document.querySelectorAll("[data-workspace-section]").forEach((section) => {
+      section.hidden = section.dataset.workspaceSection !== state.activeWorkspace;
+    });
+    document.querySelectorAll(".workspace-tab").forEach((tab) => {
+      const active = tab.dataset.workspace === state.activeWorkspace;
+      tab.classList.toggle("active", active);
+      tab.setAttribute("aria-selected", active ? "true" : "false");
+    });
+    document.querySelectorAll("[data-workspace-link]").forEach((link) => {
+      link.classList.toggle("active", link.dataset.workspaceLink === state.activeWorkspace);
+    });
+    if (targetHash) {
+      const target = document.querySelector(targetHash);
+      if (target) target.scrollIntoView({ behavior: "smooth", block: "start" });
+    } else {
+      window.scrollTo({ top: 0, behavior: "smooth" });
     }
   }
 
@@ -418,9 +440,9 @@
         note: "Average interview readiness score",
       },
       {
-        label: "Last updated",
-        value: text(progress.last_updated),
-        note: `Reference date ${referenceDate()}`,
+        label: "Pattern evidence",
+        value: `${patternEntries().length}`,
+        note: "transferable thinking models in knowledge layer",
       },
     ];
 
@@ -433,6 +455,100 @@
       node.querySelector(".metric-value").textContent = metric.value;
       node.querySelector(".metric-note").textContent = metric.note;
       grid.append(node);
+    });
+  }
+
+  function renderOperatingBoard() {
+    const target = $("#operating-board");
+    target.replaceChildren();
+    const action = nextAction();
+    const due = dueEntries();
+    const latest = state.datasets.progress.completed.at(-1);
+    const latestProblem = latest ? state.problemsById.get(latest.problem_id) : null;
+    const openDeferred = openDeferredLearnings();
+    const weakest = collectQuestionWeaknesses()[0];
+    const currentStage = state.datasets.progress.current_stage;
+    const stageMastery = state.datasets.progress.stage_mastery?.[currentStage] || {};
+    const stageTotal = stageMastery.skills_total || 0;
+    const stageDone = stageMastery.skills_mastered || 0;
+    const stagePercent = stageTotal ? Math.round((stageDone / stageTotal) * 100) : 0;
+
+    const cards = [
+      {
+        title: "Next best action",
+        eyebrow: action.mode,
+        value: action.problem ? `${action.problem.id} · ${action.problem.title}` : "No active problem",
+        body: action.reason,
+        tone: due.length ? "warn" : "good",
+        cta: action.problem ? "Open details" : null,
+        onClick: action.problem ? () => openProblemModal(action.problem.id) : null,
+      },
+      {
+        title: "Revision pressure",
+        eyebrow: "Spaced recall",
+        value: `${due.length} due now`,
+        body: due.length
+          ? `${due[0].problem.id} has priority. ${due.length > 1 ? `${due.length - 1} more item${due.length === 2 ? "" : "s"} waiting.` : "Finish this before new work."}`
+          : "No revision is due today.",
+        tone: due.length ? "bad" : "good",
+        cta: due.length ? "View queue" : "View schedule",
+        onClick: () => document.querySelector("#revisions").scrollIntoView({ behavior: "smooth" }),
+      },
+      {
+        title: "Latest evidence",
+        eyebrow: "Last completion",
+        value: latestProblem ? `${latest.problem_id} · ${latestProblem.title}` : "No solved problem yet",
+        body: latest
+          ? `${latest.confidence_before} -> ${latest.confidence_after} confidence · algorithm ${latest.algorithm_thinking_score}/10 · implementation ${latest.implementation_engineering_score}/10`
+          : "Complete a problem to populate evidence.",
+        tone: "info",
+        cta: latest ? "Open problem" : null,
+        onClick: latest ? () => openProblemModal(latest.problem_id) : null,
+      },
+      {
+        title: "Learning attention",
+        eyebrow: "Weakness + deferred",
+        value: weakest ? weakest.title : `${openDeferred.length} open deferred`,
+        body: weakest
+          ? `${weakest.evidence.length} signal${weakest.evidence.length === 1 ? "" : "s"} · ${openDeferred.length} open deferred learning${openDeferred.length === 1 ? "" : "s"}`
+          : openDeferred.length
+            ? "Open deferred learnings are waiting for natural evidence."
+            : "No open learning attention item.",
+        tone: openDeferred.length || weakest ? "warn" : "good",
+        cta: "Review focus",
+        onClick: () => document.querySelector("#weakness-lab").scrollIntoView({ behavior: "smooth" }),
+      },
+      {
+        title: "Stage mastery",
+        eyebrow: currentStage,
+        value: `${stagePercent}% complete`,
+        body: `${stageDone}/${stageTotal} skills mastered in the active stage.`,
+        tone: stagePercent >= 50 ? "good" : "info",
+        cta: "View stage map",
+        onClick: () => document.querySelector("#stages").scrollIntoView({ behavior: "smooth" }),
+      },
+    ];
+
+    cards.forEach((item) => {
+      const card = document.createElement("article");
+      card.className = `operating-card ${item.tone || ""}`.trim();
+      card.innerHTML = `
+        <div>
+          <p class="eyebrow">${item.eyebrow}</p>
+          <h4>${item.title}</h4>
+        </div>
+        <strong>${item.value}</strong>
+        <p>${item.body}</p>
+      `;
+      if (item.cta && item.onClick) {
+        const button = document.createElement("button");
+        button.className = "mini-button";
+        button.type = "button";
+        button.textContent = item.cta;
+        button.addEventListener("click", item.onClick);
+        card.append(button);
+      }
+      target.append(card);
     });
   }
 
@@ -547,6 +663,56 @@
       title: key.replaceAll("_", " "),
       action: "Practice this dimension on the next unlocked problem and record the failure mode.",
       query: key,
+    };
+  }
+
+  function weaknessQuickCues(key) {
+    const cues = {
+      brute_force: {
+        issue: "Skipping baseline",
+        fix: "Write brute force first",
+        drill: "Find repeated work",
+      },
+      pattern_detection: {
+        issue: "Rule not visible",
+        fix: "Name invariant",
+        drill: "State after index i",
+      },
+      algorithm_design: {
+        issue: "State unclear",
+        fix: "Define what to track",
+        drill: "Prove state is enough",
+      },
+      implementation: {
+        issue: "Code breaks idea",
+        fix: "Use blueprint",
+        drill: "Init, loop, return",
+      },
+      complexity_analysis: {
+        issue: "Cost unclear",
+        fix: "Count loops + DS ops",
+        drill: "n x work per step",
+      },
+      understanding: {
+        issue: "Goal unclear",
+        fix: "Restate input/output",
+        drill: "Find failure case",
+      },
+      examples: {
+        issue: "Weak dry run",
+        fix: "Use tiny + tricky case",
+        drill: "1, 2, edge",
+      },
+      communication: {
+        issue: "Explanation scattered",
+        fix: "Use interview order",
+        drill: "Idea, proof, cost",
+      },
+    };
+    return cues[key] || {
+      issue: key.replaceAll("_", " "),
+      fix: "Practice focused recall",
+      drill: "Record exact miss",
     };
   }
 
@@ -675,6 +841,7 @@
       const card = document.createElement("article");
       card.className = "prep-card";
       const problems = targetedProblemsForWeakness(weakness, 3);
+      const cues = weaknessQuickCues(weakness.key);
       card.innerHTML = `
         <div class="section-head">
           <div>
@@ -683,10 +850,15 @@
           </div>
           <span class="pill warn">focus</span>
         </div>
-        <p>${weakness.action}</p>
+        <div class="weakness-cues">
+          <div><span>Issue</span><strong>${cues.issue}</strong></div>
+          <div><span>Fix</span><strong>${cues.fix}</strong></div>
+          <div><span>Drill</span><strong>${cues.drill}</strong></div>
+        </div>
       `;
       const summary = document.createElement("p");
-      summary.innerHTML = `<strong>Targets:</strong> ${problems.map((problem) => problem.id).join(", ") || "None"}`;
+      summary.className = "compact-line";
+      summary.innerHTML = `<strong>Practice:</strong> ${problems.map((problem) => problem.id).join(", ") || "None"}`;
       const openButton = document.createElement("button");
       openButton.className = "stage-skill-open";
       openButton.type = "button";
@@ -713,11 +885,15 @@
       <div class="section-head">
         <div>
           <h4>Frequent mistakes and correction drills</h4>
-          <span class="small-muted">primary list uses solved-session mistakes; profile/catalog items are context only</span>
+          <span class="small-muted">Short labels first; details stay inside review.</span>
         </div>
         <span class="pill bad">${signals.profileGaps.length + signals.completedMistakes.length} signals</span>
       </div>
-      <p>Review repeated mistake patterns and the correction drill for each one.</p>
+      <div class="weakness-cues">
+        <div><span>Look for</span><strong>Repeated misses</strong></div>
+        <div><span>Correct with</span><strong>One drill</strong></div>
+        <div><span>Use on</span><strong>Next problem</strong></div>
+      </div>
     `;
     const mistakeButton = document.createElement("button");
     mistakeButton.className = "stage-skill-open";
@@ -734,7 +910,11 @@
         <h4>How to work on this</h4>
         <span class="pill good">routine</span>
       </div>
-      <p>Use one repeatable routine for targeted weakness practice.</p>
+      <div class="weakness-cues">
+        <div><span>Pick</span><strong>One weakness</strong></div>
+        <div><span>Solve</span><strong>Without label first</strong></div>
+        <div><span>Record</span><strong>Exact miss</strong></div>
+      </div>
     `;
     const routineButton = document.createElement("button");
     routineButton.className = "stage-skill-open";
@@ -1295,30 +1475,81 @@
 
   function renderRevisionLanes() {
     const entries = getRevisionEntries();
+    const due = entries.filter((entry) => entry.nextDue && entry.daysUntil <= 0);
     const lanes = [
       { key: "due", label: "Due now", entries: entries.filter((entry) => entry.nextDue && entry.daysUntil <= 0) },
       { key: "r1", label: "R1", entries: entries.filter((entry) => entry.status !== "MASTERED" && entry.stage === 0) },
       { key: "r2", label: "R2", entries: entries.filter((entry) => entry.status !== "MASTERED" && entry.stage === 1) },
       { key: "r3", label: "R3", entries: entries.filter((entry) => entry.status !== "MASTERED" && entry.stage === 2) },
-      { key: "r4r5", label: "R4/R5", entries: entries.filter((entry) => entry.status !== "MASTERED" && entry.stage >= 3) },
+      { key: "r4", label: "R4", entries: entries.filter((entry) => entry.status !== "MASTERED" && entry.stage >= 3) },
       { key: "mastered", label: "Mastered", entries: entries.filter((entry) => entry.status === "MASTERED") },
     ];
 
     const wrap = $("#revision-lanes");
     wrap.replaceChildren();
+    const consoleNode = document.createElement("div");
+    consoleNode.className = "revision-console";
+
+    const queue = document.createElement("article");
+    queue.className = "revision-focus";
+    const topDue = due[0] || entries.find((entry) => entry.nextDue && entry.status !== "MASTERED");
+    queue.innerHTML = `
+      <div>
+        <p class="eyebrow">${due.length ? "Urgent recall" : "Next scheduled recall"}</p>
+        <h4>${topDue ? `${topDue.problem.id} · ${topDue.problem.title}` : "No active revisions"}</h4>
+        <p>${topDue ? `${stageLabel(topDue.stage)} · ${topDue.nextDue || "maintenance"} · ${topDue.status}` : "All active recall queues are empty."}</p>
+      </div>
+      <div class="revision-focus-score">
+        <strong>${due.length}</strong>
+        <span>due now</span>
+      </div>
+    `;
+    if (topDue) {
+      const button = document.createElement("button");
+      button.className = "stage-skill-open";
+      button.type = "button";
+      button.textContent = "Open revision problem";
+      button.addEventListener("click", () => openProblemModal(topDue.problem.id));
+      queue.append(button);
+    }
+    consoleNode.append(queue);
+
+    const ladder = document.createElement("div");
+    ladder.className = "revision-ladder";
     lanes.forEach((lane) => {
       const node = document.createElement("button");
-      node.className = "lane";
+      node.className = `lane ${lane.key === "due" && lane.entries.length ? "urgent" : ""}`.trim();
       node.type = "button";
       const next = lane.entries[0];
+      const totalActive = Math.max(entries.filter((entry) => entry.status !== "MASTERED").length, 1);
+      const width = Math.max(6, Math.round((lane.entries.length / totalActive) * 100));
       node.innerHTML = `
-        <strong>${lane.label}</strong>
-        <span class="lane-count">${lane.entries.length}</span>
-        <small class="small-muted">${next ? `${next.problem.id} on ${next.nextDue || "maintenance"}` : "No items"}</small>
+        <div>
+          <strong>${lane.label}</strong>
+          <span class="lane-count">${lane.entries.length}</span>
+        </div>
+        <div class="progress-track"><span style="width:${width}%"></span></div>
+        <small class="small-muted">${next ? `${next.problem.id} · ${next.nextDue || "maintenance"}` : "No items"}</small>
       `;
       node.addEventListener("click", () => openRevisionListModal(lane.label, lane.entries));
-      wrap.append(node);
+      ladder.append(node);
     });
+    consoleNode.append(ladder);
+
+    const summary = document.createElement("div");
+    summary.className = "revision-summary-grid";
+    const active = entries.filter((entry) => entry.status === "ACTIVE").length;
+    const failed = entries.filter((entry) => entry.status === "FAILED").length;
+    const mastered = entries.filter((entry) => entry.status === "MASTERED").length;
+    const nextDates = entries.filter((entry) => entry.nextDue).slice(0, 3);
+    summary.innerHTML = `
+      <article class="revision-stat"><span>Active</span><strong>${active}</strong><small>normal recall queue</small></article>
+      <article class="revision-stat"><span>Failed</span><strong>${failed}</strong><small>retry tomorrow policy</small></article>
+      <article class="revision-stat"><span>Mastered</span><strong>${mastered}</strong><small>maintenance only</small></article>
+      <article class="revision-stat wide"><span>Next dates</span><strong>${nextDates.map((entry) => entry.nextDue).join(" · ") || "None"}</strong><small>${nextDates.map((entry) => entry.problem.id).join(", ") || "No upcoming active revisions"}</small></article>
+    `;
+    consoleNode.append(summary);
+    wrap.append(consoleNode);
   }
 
   function renderRevisionCalendar() {
@@ -1522,12 +1753,12 @@
     `;
     const list = document.createElement("div");
     list.className = "skill-row-list";
-    sorted.slice(0, 8).forEach((summary) => list.append(buildSkillCompactRow(summary)));
+    sorted.slice(0, 5).forEach((summary) => list.append(buildSkillCompactRow(summary)));
     if (!summaries.length) {
       list.append(empty("No skills in this lane for the current filters."));
     }
     lane.append(list);
-    if (sorted.length > 8) {
+    if (sorted.length > 5) {
       const button = document.createElement("button");
       button.className = "stage-skill-open";
       button.type = "button";
@@ -1616,8 +1847,25 @@
       </div>
     `;
 
+    const guide = document.createElement("article");
+    guide.className = "pattern-transfer-guide";
+    guide.innerHTML = `
+      <div>
+        <p class="eyebrow">How to use this section</p>
+        <h4>Pattern transfer workflow</h4>
+        <p>Scan for the trigger first. If the state and trap also match, open the pattern and map it to the current problem.</p>
+      </div>
+      <ol>
+        <li><strong>Trigger</strong><span>What problem signal appears?</span></li>
+        <li><strong>State</strong><span>What must be remembered?</span></li>
+        <li><strong>Proof</strong><span>What stays true?</span></li>
+        <li><strong>Trap</strong><span>What mistake looks tempting?</span></li>
+      </ol>
+    `;
+    workbench.append(guide);
+
     const lanes = document.createElement("div");
-    lanes.className = "skill-lanes";
+    lanes.className = "skill-lanes pattern-lanes";
     const byFamily = new Map();
     visiblePatterns.forEach((pattern) => {
       const family = pattern.idea_family || "Other";
@@ -1631,7 +1879,7 @@
         <div class="section-head">
           <div>
             <h4>${family}</h4>
-            <p>Reusable recognition models, not algorithm labels.</p>
+            <p>${patternFamilyGuide(family)}</p>
           </div>
           <span class="pill">${patterns.length}</span>
         </div>
@@ -1648,25 +1896,148 @@
 
   function buildPatternCompactRow(pattern) {
     const row = document.createElement("button");
-    row.className = "skill-compact-row";
+    row.className = "pattern-transfer-row";
     row.type = "button";
     const solved = (pattern.appears_in || []).filter((problemId) => state.completedById.has(problemId));
+    const linkedTotal = (pattern.appears_in || []).length;
+    const cues = patternQuickCues(pattern);
     row.innerHTML = `
-      <div>
+      <div class="pattern-row-title">
+        <span class="pill">${pattern.id}</span>
         <strong>${pattern.name}</strong>
-        <span>${pattern.id}</span>
+        <small>${pattern.idea_family || "Conceptual pattern"}</small>
       </div>
-      <div class="skill-row-progress">
-        <span>${solved.length}/${(pattern.appears_in || []).length} linked problems solved</span>
-        <div class="progress-track"><span style="width: ${(pattern.appears_in || []).length ? Math.round((solved.length / pattern.appears_in.length) * 100) : 0}%"></span></div>
+      <div class="pattern-row-cues">
+        <div><span>Trigger</span><strong>${cues.trigger}</strong></div>
+        <div><span>State</span><strong>${cues.state}</strong></div>
+        <div><span>Trap</span><strong>${cues.trap}</strong></div>
       </div>
-      <div class="skill-row-next">
-        <span>${pattern.idea_family || "Conceptual pattern"}</span>
-        <small>${(pattern.recognition_signals || []).length} recognition signals</small>
+      <div class="pattern-row-footer">
+        <span>${solved.length}/${linkedTotal} solved examples</span>
+        <div class="progress-track"><span style="width: ${linkedTotal ? Math.round((solved.length / linkedTotal) * 100) : 0}%"></span></div>
+        <small>Open transfer guide</small>
       </div>
     `;
     row.addEventListener("click", () => openPatternModal(pattern.id));
     return row;
+  }
+
+  function patternQuickCues(pattern) {
+    const cues = {
+      "PAT-001": {
+        trigger: "Running state must stay true",
+        state: "Precise invariant",
+        trap: "Code before state meaning",
+      },
+      "PAT-002": {
+        trigger: "Extend or restart segment",
+        state: "Best ending here + global best",
+        trap: "Zero init for non-empty answer",
+      },
+      "PAT-003": {
+        trigger: "Negative can flip best/worst",
+        state: "runningMax + runningMin",
+        trap: "Updating without prev values",
+      },
+      "PAT-004": {
+        trigger: "Current needs best past value",
+        state: "Prefix min/max",
+        trap: "Using future or wrong order",
+      },
+      "PAT-005": {
+        trigger: "Every positive step can count",
+        state: "Accumulated local gains",
+        trap: "Searching one global pair",
+      },
+      "PAT-006": {
+        trigger: "Reach/coverage grows forward",
+        state: "Farthest frontier",
+        trap: "Treating it like BFS/DP",
+      },
+      "PAT-007": {
+        trigger: "Failure discards a range",
+        state: "Candidate + local balance",
+        trap: "Restarting the scan pointer",
+      },
+      "PAT-008": {
+        trigger: "Left and right constraints",
+        state: "Two directional requirements",
+        trap: "Trusting one pass",
+      },
+      "PAT-009": {
+        trigger: "Same lookup asked repeatedly",
+        state: "Minimal set/map state",
+        trap: "Choosing DS before query",
+      },
+    };
+    return cues[pattern.id] || {
+      trigger: shortCue((pattern.recognition_signals || [])[0], "Open details"),
+      state: shortCue(patternDecisionCue(pattern), "Maintained state"),
+      trap: shortCue((pattern.common_mistakes || [])[0], "Wrong mental model"),
+    };
+  }
+
+  function shortCue(value, fallback) {
+    if (!value) return fallback;
+    const text = String(value).replace(/\s+/g, " ").trim();
+    if (text.length <= 42) return text;
+    return `${text.slice(0, 39).trim()}...`;
+  }
+
+  function patternFamilyGuide(family) {
+    const guides = {
+      "Maintaining stable truth": "Invariant-first problems.",
+      "Tracking extremes": "Best/worst state problems.",
+      "Accumulating prefix information": "Best past value problems.",
+      "Local optimality": "Sum independent local wins.",
+      "Growing a region": "Expandable reach/coverage.",
+      "Discarding impossible candidates": "Failure eliminates ranges.",
+      "Constraint propagation": "Multiple constraints must merge.",
+      "State construction": "Repeated lookup question.",
+    };
+    return guides[family] || "Reusable recognition models, not algorithm labels.";
+  }
+
+  function patternDecisionCue(pattern) {
+    const name = (pattern.name || "").toLowerCase();
+    if (name.includes("query")) return "Name the repeated question, then store the minimal answer state.";
+    if (name.includes("candidate")) return "Track the current hypothesis separately from the scan pointer.";
+    if (name.includes("frontier")) return "Maintain the farthest useful boundary seen so far.";
+    if (name.includes("constraint")) return "Satisfy each independent constraint, then merge requirements.";
+    if (name.includes("extremum") || name.includes("prefix")) return "Keep only the historical extreme that can improve future choices.";
+    if (name.includes("competing")) return "Preserve both states when one operation can flip their roles.";
+    if (name.includes("invariant")) return "Define the state meaning first, then derive updates from it.";
+    return pattern.core_invariant || pattern.mental_model || "Open to inspect the maintained state.";
+  }
+
+  function simplePatternLabel(pattern) {
+    const labels = {
+      "PAT-001": "State stays correct",
+      "PAT-002": "Restart bad segment",
+      "PAT-003": "Track best and worst",
+      "PAT-004": "Remember best past value",
+      "PAT-005": "Add every useful gain",
+      "PAT-006": "Grow reachable range",
+      "PAT-007": "Discard failed candidates",
+      "PAT-008": "Check both directions",
+      "PAT-009": "Use lookup memory",
+    };
+    return labels[pattern.id] || pattern.name || pattern.id;
+  }
+
+  function simplePatternHint(pattern) {
+    const hints = {
+      "PAT-001": "A variable must mean the right thing after every step.",
+      "PAT-002": "A harmful running segment should be dropped.",
+      "PAT-003": "A negative value can turn worst into best.",
+      "PAT-004": "The current answer needs only the best earlier value.",
+      "PAT-005": "Independent positive moves can all be taken.",
+      "PAT-006": "Each scan step expands how far you can reach.",
+      "PAT-007": "One failure can prove many starts impossible.",
+      "PAT-008": "Left and right neighbor rules must both hold.",
+      "PAT-009": "Repeated lookup questions need set/map memory.",
+    };
+    return hints[pattern.id] || shortCue((pattern.recognition_signals || [])[0], pattern.idea_family || "Related thinking model");
   }
 
   function openPatternModal(patternId) {
@@ -1690,7 +2061,13 @@
     body.append(intro);
 
     body.append(
-      detailListCard("Recognition signals", pattern.recognition_signals || []),
+      detailCard("Developer transfer guide", [
+        ["Recognize when", ((pattern.recognition_signals || [])[0]) || "-"],
+        ["Maintain", patternDecisionCue(pattern)],
+        ["Prove with", pattern.core_invariant || "-"],
+        ["Avoid confusing with", (pattern.contrast_with || []).join(", ") || "-"],
+      ]),
+      detailListCard("More recognition signals", (pattern.recognition_signals || []).slice(1)),
       detailCard("Reasoning", [
         ["Core invariant", pattern.core_invariant || "-"],
         ["Proof idea", pattern.proof_idea || "-"],
@@ -1747,9 +2124,9 @@
       button.className = "problem-chip";
       button.type = "button";
       button.innerHTML = `
-        <strong>${pattern.name}</strong>
-        <span>${pattern.id}</span>
-        <small>${pattern.idea_family || "Knowledge layer"}</small>
+        <strong>${simplePatternLabel(pattern)}</strong>
+        <span>${pattern.id} · ${pattern.name}</span>
+        <small>${simplePatternHint(pattern)}</small>
       `;
       button.addEventListener("click", () => openPatternModal(pattern.id));
       list.append(button);
@@ -2503,7 +2880,7 @@
       ["R1 due", revisions.filter((entry) => entry.status !== "MASTERED" && entry.stage === 0).length],
       ["R2 due", revisions.filter((entry) => entry.status !== "MASTERED" && entry.stage === 1).length],
       ["R3 due", revisions.filter((entry) => entry.status !== "MASTERED" && entry.stage === 2).length],
-      ["R4/R5 due", revisions.filter((entry) => entry.status !== "MASTERED" && entry.stage >= 3).length],
+      ["R4 due", revisions.filter((entry) => entry.status !== "MASTERED" && entry.stage >= 3).length],
       ["Mastered", revisions.filter((entry) => entry.status === "MASTERED").length],
     ];
     const max = Math.max(...stages.map(([, count]) => count), 1);
@@ -2716,6 +3093,8 @@
 
   function renderAll() {
     $("#last-updated").textContent = `Updated ${state.datasets.progress.last_updated}`;
+    $("#reference-date-pill").textContent = `Reference date ${referenceDate()}`;
+    renderOperatingBoard();
     renderMetrics();
     renderNextAction();
     renderThinkingBars();
@@ -2731,6 +3110,7 @@
     renderThinkingProfile();
     renderLearningNotes();
     renderAnalytics();
+    switchWorkspace(state.activeWorkspace);
   }
 
   async function main() {
@@ -2741,6 +3121,15 @@
       $("#search").addEventListener("input", applyFilters);
       $("#stage-filter").addEventListener("change", applyFilters);
       $("#status-filter").addEventListener("change", applyFilters);
+      document.querySelectorAll(".workspace-tab").forEach((tab) => {
+        tab.addEventListener("click", () => switchWorkspace(tab.dataset.workspace));
+      });
+      document.querySelectorAll("[data-workspace-link]").forEach((link) => {
+        link.addEventListener("click", (event) => {
+          event.preventDefault();
+          switchWorkspace(link.dataset.workspaceLink, link.getAttribute("href"));
+        });
+      });
       $("#modal-close").addEventListener("click", () => $("#skill-modal").close());
       $("#skill-modal").addEventListener("click", (event) => {
         if (event.target === $("#skill-modal")) {
