@@ -353,8 +353,10 @@ done before the learner's self-report and recorded separately:
    self-report scores.
 3. Record both sets in the completion record: the existing `thinking_score` /
    `interview_score` fields hold the self-report, and a `mentor_scores` block
-   (same dimension names and scale, plus the evidence quotes) holds the
-   mentor's independent grades.
+   (same dimension names and scale, numeric values only) holds the mentor's
+   independent grades. The evidence quotes are spoken in the session and, when
+   worth keeping, summarized in the session's qualitative notes — they are not
+   part of the `mentor_scores` block itself.
 4. If any single dimension diverges by more than 2 points between the
    mentor's score and the learner's self-report, stop and discuss it with the
    learner before closing the retrospective. Note what was discussed and why
