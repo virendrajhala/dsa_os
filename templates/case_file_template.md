@@ -5,9 +5,8 @@
 - `Date`:
 - `Problem ID`:
 - `Title`:
-- `Original Number`:
+- `Primary skill`:
 - `Stage`:
-- `Module`:
 - `Time Taken (minutes)`:
 - `Hint Level Used`:
 - `Confidence Before (0-10)`:
@@ -39,8 +38,8 @@
 
 ## Pattern
 
-- Chosen pattern:
-- Why this pattern fits better than nearby alternatives:
+- Governing invariant (in your own words):
+- Why this invariant is the real lever, versus nearby alternatives:
 
 ## Algorithm
 
@@ -55,6 +54,8 @@
 - Dominant operation:
 
 ## Implementation Blueprint
+
+<!-- blueprint structure defined in mentor/mentor_protocol.md; keep in sync -->
 
 - State: What does every variable represent?
 - Initialization: Initial values and why they satisfy the state definition:

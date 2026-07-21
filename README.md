@@ -168,14 +168,9 @@ Implementation Engineering is a global core competency, not a new curriculum
 stage. It applies inside every stage and every mentor session.
 
 Before writing any code, the learner must complete the Implementation
-Blueprint:
-
-- State: what every variable represents.
-- Initialization: initial values and why they satisfy the state definition.
-- Loop: start, end, direction, and why.
-- Previous state: whether old values must be preserved.
-- Answer: local/global ownership and update point.
-- Return: exact returned value.
+Blueprint, whose canonical form (state, initialization, loop bounds,
+previous-state needs, answer maintenance, return value) is defined in
+`mentor/mentor_protocol.md`.
 
 Every coding session records two independent 0-10 scores:
 

@@ -47,14 +47,14 @@
     "complexity": "Time and space analysis quality."
   },
   "hint_levels": {
-    "0": "Solved without hints.",
+    "0": "Solved without hints; silence, allow thinking.",
     "1": "Needed a light clarification prompt.",
-    "2": "Needed one directional hint.",
-    "3": "Needed multiple directional hints.",
-    "4": "Needed pattern-level guidance.",
-    "5": "Needed step-level algorithm guidance.",
+    "2": "Needed one directional hint (e.g. ask for another example or edge case).",
+    "3": "Needed multiple directional hints (e.g. what information is being reused?).",
+    "4": "Needed pattern-level guidance (ask for the invariant, without naming the pattern).",
+    "5": "Needed step-level algorithm guidance (ask for a proof or reveal one logical step, never the full algorithm).",
     "6": "Needed near-complete rescue.",
-    "7": "Solution was effectively revealed."
+    "7": "Solution was effectively revealed (only on explicit request or after multiple genuine proof attempts)."
   },
   "hint_mastery_discount": {
     "description": "Skill-mastery evidence weight for a primary-validation solve, by hint_level_used. Hint 0-2 counts full; 3-4 counts at half weight; 5-7 counts as an attempt only (never enough to master).",

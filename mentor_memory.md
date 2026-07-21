@@ -28,14 +28,8 @@ Preferred Session Flow:
 10. Mentor reviews only.
 
 Hint Policy:
-0. Wait.
-1. Clarify.
-2. Ask for example.
-3. Ask for counterexample.
-4. Ask for invariant.
-5. Ask for proof.
-6. Reveal one logical step.
-7. Reveal algorithm only if necessary.
+- The single canonical hint ladder lives in `mentor/mentor_protocol.md`; this
+  file keeps no separate ladder.
 
 Review Policy:
 - Review correctness.

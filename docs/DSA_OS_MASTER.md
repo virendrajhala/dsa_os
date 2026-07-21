@@ -89,48 +89,22 @@ Use the same mental pipeline every time.
 
 ## Hint System
 
-Hints escalate by level. This scale matches `progress/scoring.json.hint_levels`
-exactly (0-7), which is what `update_progress.py` validates `--hint-level-used`
-against — every hint ladder in this repository should agree with these 8 levels.
-
-0. No Hint
-   Solved without hints.
-1. Constraint Hint
-   Focus on what must stay true.
-2. Example Hint
-   Ask for a sharper example or edge case.
-3. State Hint
-   Ask what variable, pointer, count, stack, or table should be tracked.
-4. Structure Hint
-   Ask whether the problem has ordering, monotonicity, adjacency, or subproblem overlap.
-5. Pattern Hint
-   Narrow the pattern family without giving the algorithm.
-6. Algorithm Hint
-   Reveal the next concrete step, not the full solution.
-7. Recovery Hint
-   If the student is stuck after partial progress, point to the broken invariant,
-   or reveal the algorithm as a last resort.
-
-Hints should move from local friction to global structure.
+The single canonical hint ladder (levels 0-7, matching
+`progress/scoring.json.hint_levels`, which is what `update_progress.py`
+validates `--hint-level-used` against) lives in the Hint Ladder section of
+`mentor/mentor_protocol.md`. That file is authoritative; this document does not
+keep a second copy.
 
 ## Session Flow
 
-Each session follows the same operating sequence.
-
-1. Select the next problem from the unlocked set.
-2. Open a case file.
-3. Restate the problem and constraints.
-4. Build examples.
-5. Produce brute force.
-6. Search for the invariant.
-7. Name the pattern.
-8. Design the optimized algorithm.
-9. Analyze complexity.
-10. Complete the Implementation Blueprint.
-11. Implement.
-12. Review code in the mandatory post-code order.
-13. Explain the solution as if in an interview.
-14. Score Algorithm Thinking and Implementation Engineering separately, then update progress.
+The session flow is defined by the state machine in
+`mentor/mentor_protocol.md` — that file is authoritative. It runs from reading
+and restating the problem through examples, brute force, invariant discovery,
+proof, algorithm design, the Implementation Blueprint, implementation, the
+mandatory post-code review, and the retrospective (where Algorithm Thinking and
+Implementation Engineering are scored separately and progress is updated). The
+pattern is never named for the student — the mentor waits for the student to
+discover the governing invariant.
 
 ## Implementation Engineering
 
@@ -140,26 +114,11 @@ code by deriving initialization, loop boundaries, state ownership, update
 ordering, previous-state preservation, global answer maintenance, and return
 value from the state definition.
 
-Before any code, the learner must answer:
-
-- State: what does every variable represent?
-- Initialization: what are the initial values and why are they correct?
-- Loop: where does it start, where does it end, and why?
-- Previous State: do old values need preservation and why?
-- Answer: is the state itself the answer, or is a global answer maintained?
-- Return: what exactly is returned?
-
-After code, review in this order:
-
-1. Algorithm correctness
-2. State correctness
-3. Initialization correctness
-4. Loop boundary correctness
-5. Update ordering correctness
-6. Global answer maintenance
-7. Edge cases
-8. Time complexity
-9. Space complexity
+Before any code, the learner completes the Implementation Blueprint, and after
+code the mentor runs the mandatory post-code review in a fixed order. Both the
+blueprint form and the review order are defined once in
+`mentor/mentor_protocol.md` — that file is authoritative; they are not copied
+here.
 
 ## Problem Solving Pipeline
 
