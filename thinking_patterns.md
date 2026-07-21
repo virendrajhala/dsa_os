@@ -92,3 +92,4 @@ Common mistakes:
 
 Problems:
 - CPX-001 Two Sum
+- CPX-002 Contains Duplicate

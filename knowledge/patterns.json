@@ -307,13 +307,15 @@
         "Brute force repeatedly searches previously seen values",
         "The repeated question is about existence, location, count, or grouping",
         "A direct scan can be replaced by a lookup",
-        "The lookup key should match the repeated question"
+        "The lookup key should match the repeated question",
+        "Only membership is needed, so a HashSet is smaller than a HashMap"
       ],
       "core_invariant": "Before processing the current item, the lookup structure contains exactly the processed information needed to answer the repeated query for items already seen.",
       "proof_idea": "If every future decision only needs the answer to the repeated query over processed items, storing that query's minimal state preserves correctness while removing the repeated scan.",
       "complexity_reasoning": "The loop still performs n iterations, but each repeated query becomes an average O(1) lookup or update, so the total expected time is O(n).",
       "appears_in": [
-        "CPX-001"
+        "CPX-001",
+        "CPX-002"
       ],
       "skills": [
         "SK-OB-01",
@@ -330,7 +332,8 @@
       "common_mistakes": [
         "Choosing a data structure before naming the repeated query",
         "Searching after insertion when the current element must not match itself",
-        "Explaining O(n) without separating number of iterations from lookup cost"
+        "Explaining O(n) without separating number of iterations from lookup cost",
+        "Using a HashMap when membership alone is the required state"
       ]
     }
   }

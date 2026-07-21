@@ -649,6 +649,42 @@
         "next_due": "2026-07-24",
         "history": []
       }
+    },
+    {
+      "problem_id": "CPX-002",
+      "completed_at": "2026-07-21",
+      "time_taken_minutes": 20,
+      "hint_level_used": 2,
+      "confidence_before": 8,
+      "confidence_after": 10,
+      "thinking_breakthrough": "Derived Contains Duplicate from the repeated query: Have I already seen this value? This led directly to the required state of previously processed values and the minimal HashSet structure.",
+      "main_mistake": "No implementation mistake recorded. The key trap analyzed was that inserting before checking would violate the processed-prefix invariant and allow the current element to match itself.",
+      "thinking_score": {
+        "understanding": 4,
+        "examples": 4,
+        "brute_force": 4,
+        "pattern_detection": 4,
+        "algorithm_design": 4,
+        "complexity_analysis": 4,
+        "implementation": 4,
+        "communication": 4
+      },
+      "algorithm_thinking_score": 9.0,
+      "implementation_engineering_score": 9.0,
+      "interview_score": {
+        "understanding": 10,
+        "communication": 10,
+        "algorithm": 9,
+        "coding": 10,
+        "complexity": 10
+      },
+      "revision": {
+        "status": "ACTIVE",
+        "stage": 0,
+        "completed": [],
+        "next_due": "2026-07-24",
+        "history": []
+      }
     }
   ],
   "thinking_profile": {
@@ -678,7 +714,10 @@
       "Mastered the standard Candy two-pass greedy construction by separating independent adjacent constraints and max-merging directional assignments.",
       "Derived HashMap state from the repeated missing-partner query in CPX-001.",
       "Explained HashMap complexity by separating iteration count from average lookup/update cost.",
-      "Used search-before-insertion to preserve the processed-prefix invariant and avoid self-matching."
+      "Used search-before-insertion to preserve the processed-prefix invariant and avoid self-matching.",
+      "Derived HashSet membership state from the repeated seen-value query in CPX-002.",
+      "Preserved the processed-prefix invariant by checking membership before insertion.",
+      "Avoided unnecessary edge-case branches by trusting the general loop invariant."
     ],
     "gaps": [
       "Initially optimizes implementation before proving correctness",
@@ -710,7 +749,7 @@
       "Bidirectional constraint satisfaction",
       "Repeated query -> required state -> minimal data structure"
     ],
-    "notes": "Student shows strong algorithm reasoning, good invariant recognition, strong state-design intuition, and deep concept learning instead of memorization. OBS-001 R2 showed improved state interpretation and proof discipline. OBS-002 R1 clarified that the main current gap is Implementation Engineering: the learner can derive the correct algorithm but needs to derive initialization, loop boundaries, update ordering, global answer ownership, and return value from the state definition before coding. OBS-007 strengthened greedy reasoning, candidate-relative state modelling, observation-vs-hypothesis separation, and proof-to-implementation mapping. OBS-002 R2 showed the previous implementation gap did not recur: the learner reproduced the algorithm and implementation from memory with no hints and no mistakes. OBS-008 confirmed mastery of the standard O(n) time and O(n) extra-space Candy solution; the O(1) space optimization is intentionally deferred as an open learning item, not a weakness or failure. CPX-001 strengthened lookup-state construction: the learner derived value-to-index storage from the repeated missing-partner query and justified search-before-insertion."
+    "notes": "Student shows strong algorithm reasoning, good invariant recognition, strong state-design intuition, and deep concept learning instead of memorization. OBS-001 R2 showed improved state interpretation and proof discipline. OBS-002 R1 clarified that the main current gap is Implementation Engineering: the learner can derive the correct algorithm but needs to derive initialization, loop boundaries, update ordering, global answer ownership, and return value from the state definition before coding. OBS-007 strengthened greedy reasoning, candidate-relative state modelling, observation-vs-hypothesis separation, and proof-to-implementation mapping. OBS-002 R2 showed the previous implementation gap did not recur: the learner reproduced the algorithm and implementation from memory with no hints and no mistakes. OBS-008 confirmed mastery of the standard O(n) time and O(n) extra-space Candy solution; the O(1) space optimization is intentionally deferred as an open learning item, not a weakness or failure. CPX-001 strengthened lookup-state construction: the learner derived value-to-index storage from the repeated missing-partner query and justified search-before-insertion. CPX-002 reinforced the same lookup-state construction with a smaller state than CPX-001: membership only, so HashSet instead of HashMap."
   },
   "history": [
     {
@@ -922,6 +961,24 @@
       ],
       "deferred_learnings_resolved": [],
       "next_problem": "OBS-005"
+    },
+    {
+      "timestamp": "2026-07-21",
+      "event": "problem_completed",
+      "problem_id": "CPX-002",
+      "mode": "new_problem",
+      "stage_before": "Observation",
+      "stage_after": "Observation",
+      "revision_result": null,
+      "revision_stage": 0,
+      "revision_status": "ACTIVE",
+      "next_due": "2026-07-24",
+      "reactivated_problems": [],
+      "deferred_learnings_created": [],
+      "deferred_learnings_resolved": [
+        "DL-002"
+      ],
+      "next_problem": "OBS-005"
     }
   ],
   "notes": [
@@ -987,33 +1044,33 @@
       "complexity": 10
     },
     "averages": {
-      "thinking_weighted": 3.54,
+      "thinking_weighted": 3.59,
       "thinking_dimensions": {
-        "understanding": 3.56,
-        "examples": 3.56,
-        "brute_force": 3.44,
-        "pattern_detection": 3.56,
-        "algorithm_design": 3.56,
-        "complexity_analysis": 3.56,
-        "implementation": 3.56,
-        "communication": 3.56
+        "understanding": 3.6,
+        "examples": 3.6,
+        "brute_force": 3.5,
+        "pattern_detection": 3.6,
+        "algorithm_design": 3.6,
+        "complexity_analysis": 3.6,
+        "implementation": 3.6,
+        "communication": 3.6
       },
-      "interview_average": 8.53,
+      "interview_average": 8.66,
       "interview_dimensions": {
-        "understanding": 8.56,
-        "communication": 8.56,
-        "algorithm": 8.44,
-        "coding": 8.56,
-        "complexity": 8.56
+        "understanding": 8.7,
+        "communication": 8.7,
+        "algorithm": 8.5,
+        "coding": 8.7,
+        "complexity": 8.7
       },
-      "confidence_before": 4.11,
-      "confidence_after": 9.0,
-      "solved_unique_problems": 9
+      "confidence_before": 4.5,
+      "confidence_after": 9.1,
+      "solved_unique_problems": 10
     },
     "stage_checks": {
       "Observation": {
-        "attempted": 9,
-        "passed": 9
+        "attempted": 10,
+        "passed": 10
       },
       "State Construction": {
         "attempted": 0,
@@ -1069,8 +1126,8 @@
     "SK-OB-01": {
       "primary_solved": true,
       "primary_weighted_score": 4.0,
-      "reinforcement_attempted": false,
-      "mastered": false
+      "reinforcement_attempted": true,
+      "mastered": true
     },
     "SK-OB-02": {
       "primary_solved": false,
@@ -1630,21 +1687,22 @@
       "category": "pattern_recognition",
       "description": "Continue building intuition for recognizing HashMap pattern triggers across new problems.",
       "priority": "MEDIUM",
-      "status": "OPEN",
+      "status": "RESOLVED",
       "created_on": "2026-07-21",
-      "resolved_on": null,
-      "resolved_by_problem": null,
-      "evidence": null
+      "resolved_on": "2026-07-21",
+      "resolved_by_problem": "CPX-002",
+      "evidence": "CPX-002 resolved the HashMap/HashSet pattern-recognition deferred learning by deriving the repeated query, required state, minimal HashSet structure, contains-before-add invariant, and O(n)/O(n) complexity without memorized pattern recall."
     }
   ],
   "mastered_skills": [
+    "SK-OB-01",
     "SK-OB-03",
     "SK-OB-04"
   ],
   "stage_mastery": {
     "Observation": {
       "status": "in_progress",
-      "skills_mastered": 2,
+      "skills_mastered": 3,
       "skills_total": 6
     },
     "State Construction": {
@@ -1709,9 +1767,9 @@
     }
   },
   "competency_completion": {
-    "mastered_skills": 2,
+    "mastered_skills": 3,
     "total_skills": 90,
-    "percent": 2.22
+    "percent": 3.33
   },
   "lessons_learned": {
     "OBS-001": {
@@ -1789,6 +1847,15 @@
       "implementation_lesson": "Choose the HashMap key based on the repeated query. Since the repeated query is whether a value has already been seen, store value -> index. Search before insertion so the current element never matches itself.",
       "edge_case_learned": "Search before insertion prevents the current element from matching itself when target equals currentElement * 2.",
       "interview_takeaway": "Explain O(n) complexity by separating n iterations from O(1) average HashMap operations per iteration."
+    },
+    "CPX-002": {
+      "date": "2026-07-21",
+      "core_mental_model": "For Contains Duplicate, the repeated query is: Have I already seen this value? Because only membership is needed, the required state is the set of previously processed values and the minimal data structure is a HashSet.",
+      "primary_invariant": "Immediately before processing index i, the HashSet contains exactly the distinct values encountered in indices 0..i-1.",
+      "major_breakthrough": "The learner derived the solution from first principles by moving from brute-force search to repeated-query identification, then from required state to the minimal data structure.",
+      "implementation_lesson": "Check set.contains(nums[i]) before set.add(nums[i]) so the maintained state represents only previously processed elements and the current element cannot match itself.",
+      "edge_case_learned": "Empty and single-element arrays need no special branches: the loop behavior and final false return already satisfy the problem constraints.",
+      "interview_takeaway": "Explain correctness by noting that every duplicate has a second occurrence; when the second occurrence is reached, the first occurrence is already stored. Explain O(n) as one traversal with average O(1) HashSet contains/add operations and O(n) worst-case space."
     }
   },
   "weaknesses_detected": {
@@ -1834,7 +1901,8 @@
     "For candidate-elimination scans, prove the failed segment impossible before advancing the candidate. Keep candidate-relative state separate from global feasibility, and derive implementation variables from those proof obligations.",
     "When a constraint changes, re-derive whether historical decision state is still needed. Keep an accumulated answer separate from decision state, and derive loop bounds from every indexed access.",
     "For bidirectional adjacent constraints, assign each pass one direction of responsibility, then merge requirements with max so satisfying the second direction does not break the first.",
-    "For lookup problems, identify the repeated query first, then derive the required state and choose the smallest data structure that answers that query instantly. Search before insertion when the current item must not be allowed to match itself."
+    "For lookup problems, identify the repeated query first, then derive the required state and choose the smallest data structure that answers that query instantly. Search before insertion when the current item must not be allowed to match itself.",
+    "When the repeated query only asks whether a value exists, store membership in a HashSet; use a HashMap only when the answer also needs metadata such as an index, count, or group."
   ],
   "implementation_engineering": {
     "score": 9.0,
@@ -1874,7 +1942,10 @@
       "O(n) greedy construction reasoning",
       "HashMap state selection from repeated query",
       "Search-before-insertion invariant",
-      "Average O(1) lookup reasoning"
+      "Average O(1) lookup reasoning",
+      "HashSet state selection from membership-only repeated query",
+      "Contains-before-add processed-prefix invariant",
+      "General algorithm covers empty and single-element arrays without special branches"
     ],
     "weaknesses": [
       "Initialization",
@@ -1896,7 +1967,8 @@
       "OBS-004 R1 confirmed that the learner can derive state necessity from constraints, justify adjacency-based greedy accumulation, and implement safe loop bounds from the indexed access.",
       "OBS-002 R2 confirmed that the learner can reproduce product-DP state definitions, previous-state preservation, global answer maintenance, dry run, and O(n)/O(1) implementation from memory without hints.",
       "OBS-008 confirmed that the learner can derive two directional passes from independent adjacent constraints and explain why max-merging the two directional assignments is the minimum valid distribution.",
-      "CPX-001 confirmed the learner can derive value-to-index HashMap state from the repeated query: Have I already seen this required partner?"
+      "CPX-001 confirmed the learner can derive value-to-index HashMap state from the repeated query: Have I already seen this required partner?",
+      "CPX-002 reinforced that implementation order must preserve the state definition: before index i, the HashSet contains exactly values from indices 0..i-1."
     ]
   }
 }
