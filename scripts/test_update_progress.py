@@ -396,6 +396,22 @@ class CodeExecutionGateTests(unittest.TestCase):
         self.assertNotEqual(result.returncode, 0, msg=result.stdout + result.stderr)
         self.assertEqual(self.tmp_progress.read_bytes(), self.original_bytes)
 
+    def test_new_solve_with_bare_assert_failure_surfaces_traceback(self) -> None:
+        # A bare `assert expr` (no message) degrades check.message to just
+        # "AssertionError"; the file/line/expression only live in stderr.
+        # The gate-failure RepositoryError must surface that traceback tail
+        # so the learner sees the failing assert, not just "AssertionError".
+        (self.solutions_dir / f"{NEW_PROBLEM_ID}.py").write_text(
+            "x = 1\nassert x == 2\n"
+        )
+
+        result = self._run(BASE_ARGS)
+
+        self.assertNotEqual(result.returncode, 0, msg=result.stdout + result.stderr)
+        self.assertIn("Traceback", result.stderr)
+        self.assertIn("assert x == 2", result.stderr)
+        self.assertEqual(self.tmp_progress.read_bytes(), self.original_bytes)
+
     def test_no_code_bypasses_gate_and_records_note(self) -> None:
         result = self._run([*BASE_ARGS, "--no-code"])
 

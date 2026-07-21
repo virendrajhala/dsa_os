@@ -675,12 +675,17 @@ def main() -> int:
                 )
                 check = run_solution_file(solution_path, timeout_seconds=timeout_seconds)
                 if not check.passed:
-                    raise RepositoryError(
+                    gate_message = (
                         f"Code-execution gate failed for `{problem_id}`: {check.message} "
                         f"Expected a runnable solution at {solution_path} with 3-5 embedded "
                         "asserts (see solutions/README.md). Fix it and rerun, or pass "
                         "--no-code for a whiteboard-style session."
                     )
+                    stderr_tail = check.stderr.strip()
+                    if stderr_tail:
+                        tail_lines = stderr_tail.splitlines()[-15:]
+                        gate_message += "\n\n--- solution stderr (tail) ---\n" + "\n".join(tail_lines)
+                    raise RepositoryError(gate_message)
 
         if not args.revision_result:
             completion_record: dict[str, Any] = {
