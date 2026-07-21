@@ -27,6 +27,7 @@ from _shared import (
     problem_lookup,
     reactivate_revision,
     resolve_deferred_learning,
+    revision_due_entries,
     save_json_file,
     select_next_problem,
 )
@@ -180,6 +181,14 @@ def build_parser() -> argparse.ArgumentParser:
         "--revision-result",
         choices=("PASS", "FAIL"),
         help="Record an active-recall revision result for an already completed problem.",
+    )
+    parser.add_argument(
+        "--override-revisions",
+        action="store_true",
+        help=(
+            "Bypass the overdue-revision gate when recording a NEW solve. "
+            "Records an override note on the new completion record."
+        ),
     )
     parser.add_argument(
         "--revision-score",
@@ -493,6 +502,23 @@ def main() -> int:
         else:
             solve_mode = "new_problem"
 
+        override_note = None
+        if solve_mode == "new_problem":
+            overdue = revision_due_entries(progress, completed_on)
+            if overdue:
+                overdue_ids = sorted({str(entry["problem"]) for entry in overdue})
+                if not args.override_revisions:
+                    raise RepositoryError(
+                        "Revision-first violation: overdue revisions must be recorded before "
+                        f"a new solve as of {format_iso_date(completed_on)}: "
+                        f"{', '.join(overdue_ids)}. Record those revisions first, or pass "
+                        "--override-revisions to bypass (logged on the new record)."
+                    )
+                override_note = (
+                    "Recorded new solve via --override-revisions while overdue: "
+                    f"{', '.join(overdue_ids)}."
+                )
+
         if not args.revision_result:
             completion_record: dict[str, Any] = {
                 "problem_id": problem_id,
@@ -509,6 +535,8 @@ def main() -> int:
                 "interview_score": interview_score,
                 "revision": initial_revision_state(completed_on),
             }
+            if override_note:
+                completion_record["notes"] = [override_note]
             progress.setdefault("completed", []).append(completion_record)
         else:
             completion_record = latest_by_problem[problem_id]

@@ -7,6 +7,7 @@ validate:
 
 test:
 	$(PYTHON) scripts/test_shared.py
+	$(PYTHON) scripts/test_update_progress.py
 
 dashboard:
 	$(PYTHON) scripts/dashboard.py
