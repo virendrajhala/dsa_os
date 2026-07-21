@@ -221,5 +221,98 @@ class RevisionPassMinimumTests(unittest.TestCase):
         self.assertEqual(record["revision"]["history"][-1]["result"], "FAIL")
 
 
+WELL_FORMED_MENTOR_THINKING_ARGS = [
+    "--mentor-thinking-score", "understanding=3",
+    "--mentor-thinking-score", "examples=3",
+    "--mentor-thinking-score", "brute_force=3",
+    "--mentor-thinking-score", "pattern_detection=3",
+    "--mentor-thinking-score", "algorithm_design=3",
+    "--mentor-thinking-score", "complexity_analysis=3",
+    "--mentor-thinking-score", "implementation=3",
+    "--mentor-thinking-score", "communication=3",
+]
+
+WELL_FORMED_MENTOR_INTERVIEW_ARGS = [
+    "--mentor-interview-score", "understanding=7",
+    "--mentor-interview-score", "communication=7",
+    "--mentor-interview-score", "algorithm=7",
+    "--mentor-interview-score", "coding=7",
+    "--mentor-interview-score", "complexity=7",
+]
+
+
+class MentorScoresTests(unittest.TestCase):
+    """F7: --mentor-thinking-score / --mentor-interview-score on new solves."""
+
+    def setUp(self) -> None:
+        self.tmpdir = tempfile.mkdtemp(prefix="dsa_os_test_")
+        self.tmp_progress = Path(self.tmpdir) / "progress.json"
+        shutil.copyfile(LIVE_PROGRESS, self.tmp_progress)
+        self.original_bytes = self.tmp_progress.read_bytes()
+
+    def tearDown(self) -> None:
+        shutil.rmtree(self.tmpdir, ignore_errors=True)
+
+    def _run(self, extra_args: list[str]) -> subprocess.CompletedProcess:
+        return subprocess.run(
+            [sys.executable, str(SCRIPT), "--progress-file", str(self.tmp_progress), *extra_args],
+            capture_output=True,
+            text=True,
+            cwd=ROOT,
+        )
+
+    def test_full_mentor_blocks_recorded_and_validates(self) -> None:
+        # Live fixture has overdue revisions (see RevisionFirstGateTests);
+        # override that unrelated gate so this exercises mentor-score
+        # recording specifically.
+        result = self._run(
+            [
+                *BASE_ARGS,
+                "--override-revisions",
+                *WELL_FORMED_MENTOR_THINKING_ARGS,
+                *WELL_FORMED_MENTOR_INTERVIEW_ARGS,
+            ]
+        )
+
+        self.assertEqual(result.returncode, 0, msg=result.stdout + result.stderr)
+        updated = json.loads(self.tmp_progress.read_text())
+        record = next(r for r in updated["completed"] if r["problem_id"] == NEW_PROBLEM_ID)
+        mentor_scores = record.get("mentor_scores")
+        self.assertIsInstance(mentor_scores, dict)
+        self.assertEqual(mentor_scores["thinking_score"]["understanding"], 3)
+        self.assertEqual(mentor_scores["interview_score"]["understanding"], 7)
+
+        validate = subprocess.run(
+            [
+                sys.executable,
+                str(ROOT / "scripts" / "validate_curriculum.py"),
+                "--progress-file", str(self.tmp_progress),
+                "--skip-template-progress",
+            ],
+            capture_output=True,
+            text=True,
+            cwd=ROOT,
+        )
+        self.assertEqual(validate.returncode, 0, msg=validate.stdout + validate.stderr)
+
+    def test_partial_mentor_block_rejected(self) -> None:
+        # Only mentor-thinking dims given, no mentor-interview dims: since
+        # ANY mentor score was provided, both blocks must be complete.
+        result = self._run([*BASE_ARGS, *WELL_FORMED_MENTOR_THINKING_ARGS])
+
+        self.assertNotEqual(result.returncode, 0, msg=result.stdout + result.stderr)
+        self.assertIn("mentor interview score", result.stderr.lower())
+        # Rejected before any write: the temp progress file must be untouched.
+        self.assertEqual(self.tmp_progress.read_bytes(), self.original_bytes)
+
+    def test_mentor_scores_absent_writes_no_key(self) -> None:
+        result = self._run([*BASE_ARGS, "--override-revisions"])
+
+        self.assertEqual(result.returncode, 0, msg=result.stdout + result.stderr)
+        updated = json.loads(self.tmp_progress.read_text())
+        record = next(r for r in updated["completed"] if r["problem_id"] == NEW_PROBLEM_ID)
+        self.assertNotIn("mentor_scores", record)
+
+
 if __name__ == "__main__":
     unittest.main()

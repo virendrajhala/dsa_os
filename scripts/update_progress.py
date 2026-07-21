@@ -145,6 +145,28 @@ def build_parser() -> argparse.ArgumentParser:
         ),
     )
     parser.add_argument(
+        "--mentor-thinking-score",
+        action="append",
+        default=[],
+        metavar="DIMENSION=VALUE",
+        help=(
+            "Mentor-graded thinking-rubric score entry. Repeat once per dimension. Optional; if "
+            "any mentor score is given, all mentor-thinking and mentor-interview dimensions are "
+            "required. Ignored for --revision-result."
+        ),
+    )
+    parser.add_argument(
+        "--mentor-interview-score",
+        action="append",
+        default=[],
+        metavar="DIMENSION=VALUE",
+        help=(
+            "Mentor-graded interview-rubric score entry. Repeat once per dimension. Optional; if "
+            "any mentor score is given, all mentor-thinking and mentor-interview dimensions are "
+            "required. Ignored for --revision-result."
+        ),
+    )
+    parser.add_argument(
         "--algorithm-thinking-score",
         type=float,
         help="Independent Algorithm Thinking score on a 0-10 scale.",
@@ -469,6 +491,7 @@ def main() -> int:
         interview_dimensions = set(state.scoring.get("interview_dimensions", {}))
         revision_dimensions = set(state.scoring.get("revision_evaluation", {}).get("dimensions", {}))
 
+        mentor_scores: dict[str, Any] | None = None
         if is_revision:
             # F8: revision mode does not need (and ignores) the solve rubric.
             thinking_score: dict[str, Any] = {}
@@ -505,6 +528,29 @@ def main() -> int:
                 algorithm_thinking_score = fallback_algorithm_score(thinking_score)
             if implementation_engineering_score is None:
                 implementation_engineering_score = fallback_implementation_score(thinking_score)
+
+            # F7: mentor_scores is entirely optional (absent -> no key written,
+            # backward compat). But if the mentor graded ANY dimension, both
+            # sub-blocks must be complete, mirroring the self-report rule.
+            if args.mentor_thinking_score or args.mentor_interview_score:
+                mentor_thinking_score = parse_score_block(
+                    entries=args.mentor_thinking_score,
+                    required_dimensions=thinking_dimensions,
+                    minimum=float(state.scoring["scale"]["minimum"]),
+                    maximum=float(state.scoring["scale"]["maximum"]),
+                    label="mentor thinking score",
+                )
+                mentor_interview_score = parse_score_block(
+                    entries=args.mentor_interview_score,
+                    required_dimensions=interview_dimensions,
+                    minimum=float(state.scoring["interview_scale"]["minimum"]),
+                    maximum=float(state.scoring["interview_scale"]["maximum"]),
+                    label="mentor interview score",
+                )
+                mentor_scores = {
+                    "thinking_score": mentor_thinking_score,
+                    "interview_score": mentor_interview_score,
+                }
 
         revision_score: dict[str, Any] = {}
         if is_revision:
@@ -595,6 +641,8 @@ def main() -> int:
                 "interview_score": interview_score,
                 "revision": initial_revision_state(completed_on),
             }
+            if mentor_scores is not None:
+                completion_record["mentor_scores"] = mentor_scores
             if override_note:
                 completion_record["notes"] = [override_note]
             progress.setdefault("completed", []).append(completion_record)
