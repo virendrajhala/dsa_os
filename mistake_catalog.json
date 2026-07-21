@@ -5,13 +5,21 @@
       "id": "M001",
       "title": "Optimize before proving correctness",
       "symptom": "Reasoning focuses on computation reuse instead of correctness.",
-      "fix": "First prove the decision is always safe, then optimize."
+      "fix": "First prove the decision is always safe, then optimize.",
+      "source_problem": "OBS-002",
+      "taxonomy": "B",
+      "corrected_on": "2026-07-10",
+      "note": "Provenance inferred during the 2026-07-21 catalog backfill: matches OBS-002's recorded main_mistake ('Initially focused on implementation before identifying the minimal state'); no explicit source field survived the pre-migration schema."
     },
     {
       "id": "M002",
       "title": "Change initialization before questioning iteration",
       "symptom": "Counterexample leads to changing initial state immediately.",
-      "fix": "Inspect loop boundaries, recurrence, initialization, and return value separately."
+      "fix": "Inspect loop boundaries, recurrence, initialization, and return value separately.",
+      "source_problem": "OBS-001",
+      "taxonomy": "D",
+      "corrected_on": "2026-07-16",
+      "note": "Provenance inferred during the 2026-07-21 catalog backfill: same OBS-001 initialization-discipline family as M003 (corrected by the OBS-001 R2 recall on 2026-07-16); no explicit source field survived the pre-migration schema."
     },
     {
       "id": "M003",
@@ -19,6 +27,7 @@
       "symptom": "Uses a convenient neutral value even when the invariant requires every tracked value to represent a real candidate.",
       "fix": "Before choosing initial values, verify that each initialized state satisfies the invariant and survives edge cases such as all-negative arrays.",
       "source_problem": "OBS-001",
+      "taxonomy": "D",
       "corrected_on": "2026-07-16"
     }
   ]

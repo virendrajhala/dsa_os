@@ -119,7 +119,12 @@ Consider whether anything should be updated in:
   - personal playbook
   - deferred learnings
 - `mistake_catalog.json`
-  - repeated mistake patterns with a clear correction
+  - **Required** whenever the session's `main mistake` was non-trivial (anything
+    beyond a pure typo). Add one entry with full provenance — see
+    "Mistake Catalog Entries" below.
+- `mentor_memory.md`
+  - update when the session revealed a new strength/gap/failure mode — keep it
+    state-only (no protocol/process), synced with `thinking_profile`
 - `thinking_patterns.md`
   - reusable learner thinking patterns
 - `knowledge/patterns.json`
@@ -130,6 +135,32 @@ Consider whether anything should be updated in:
     General); this is what keeps the playbook current instead of frozen
 
 Do not add memorized facts, generic advice, or duplicate notes.
+
+### Mistake Catalog Entries
+
+Whenever a non-trivial mistake or misconception occurred (i.e. the session's
+`main mistake` is more than a pure typo), append one entry to
+`mistake_catalog.json.entries` with full provenance:
+
+```json
+{
+  "id": "M00N",
+  "title": "...",
+  "symptom": "...",
+  "fix": "...",
+  "source_problem": "OBS-00X",
+  "taxonomy": "B",
+  "corrected_on": "YYYY-MM-DD"
+}
+```
+
+- `taxonomy` is exactly one letter A-E per `mentor/error_taxonomy.md`
+  (A pattern selection / B state design / C transition / D implementation
+  engineering / E language-syntax).
+- `source_problem` and `corrected_on` are mandatory — an entry without
+  provenance cannot be verified later. If the mistake genuinely cannot be
+  attributed, set `"source_problem": null` and add a `"note"` explaining why;
+  do not invent a source.
 
 ## 4. Deferred Learnings
 

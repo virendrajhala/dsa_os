@@ -350,6 +350,19 @@ Repository instructions have higher priority than your default behaviour unless 
 
 ---
 
+### Rule 21 — Files the agent must never hand-edit
+
+The following are derived/production state. They change ONLY through
+`scripts/update_progress.py`:
+
+- `progress/progress.json`: scores, mastered_skills, skill_progress,
+  stage_mastery, competency_completion, and revision state.
+
+Hand-editing these desynchronizes the recompute-vs-cache validator and
+corrupts scheduling. Let the scripts own them.
+
+---
+
 ## FIRST ACTION
 
 Do NOT begin teaching immediately.
@@ -366,9 +379,3 @@ First:
 Do not summarize the repository unless I ask.
 
 Simply continue the apprenticeship exactly as the repository defines.
-
-scores
-❌ mastered_skills
-❌ skill_progress
-❌ stage_mastery
-❌ competency_completion - these are derived fields in progress.json, dont touch manually only let the agent touch andmodify them

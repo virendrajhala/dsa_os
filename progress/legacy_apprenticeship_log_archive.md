@@ -109,3 +109,31 @@ Preserved verbatim from the pre-migration `progress/progress.json` (schema_versi
 - Derive the required state from the current constraints rather than the previous solution.
 
 ---
+
+## Archived 2026-07-21 — session_notes.md (Session 1 Retrospective, OBS-001)
+
+Moved here from the root `session_notes.md` during protocol consolidation. It
+predates the Implementation Blueprint and its 9-step workflow no longer matches
+the authoritative state machine in `mentor/mentor_protocol.md`; kept only as a
+historical record.
+
+Completed: OBS-001 Maximum Subarray
+
+Key discoveries:
+- Running sum is a local optimum.
+- Largest sum is a global optimum.
+- Negative prefixes are safely discarded via proof using future sum F.
+- Correct initialization uses nums[0] with loop starting at index 1.
+
+Workflow refinement (superseded by the current state machine):
+1. Problem statement
+2. Restatement
+3. Examples
+4. Brute force
+5. Invariant discovery
+6. Proof
+7. Algorithm
+8. Student writes code
+9. Mentor reviews only
+
+---
