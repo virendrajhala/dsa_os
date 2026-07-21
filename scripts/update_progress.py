@@ -9,6 +9,8 @@ import sys
 from datetime import date
 from typing import Any
 
+from pathlib import Path
+
 from _shared import (
     DEFERRED_LEARNING_CATEGORIES,
     DEFERRED_LEARNING_PRIORITIES,
@@ -30,6 +32,12 @@ from _shared import (
     revision_due_entries,
     save_json_file,
     select_next_problem,
+)
+from run_checks import (
+    DEFAULT_TIMEOUT_SECONDS,
+    SOLUTIONS_DIR,
+    run_solution_file,
+    solution_path_for,
 )
 
 
@@ -223,6 +231,27 @@ def build_parser() -> argparse.ArgumentParser:
         default=[],
         metavar="DIMENSION=VALUE",
         help="Revision rubric score entry. Repeat once per revision dimension. Required for --revision-result.",
+    )
+    parser.add_argument(
+        "--no-code",
+        action="store_true",
+        help=(
+            "F9: bypass the runnable-solution gate for a NEW solve (whiteboard-style "
+            "session with no code). Records a note on the new completion record. "
+            "Ignored for --revision-result."
+        ),
+    )
+    parser.add_argument(
+        "--solutions-dir",
+        help=(
+            "Override the solutions/ directory used by the F9 code-execution gate. "
+            "Defaults to solutions/ at the repository root. Mainly for tests."
+        ),
+    )
+    parser.add_argument(
+        "--code-check-timeout",
+        type=float,
+        help=f"Override the F9 code-execution gate's subprocess timeout in seconds. Defaults to {DEFAULT_TIMEOUT_SECONDS:g}.",
     )
     parser.add_argument(
         "--force-pass",
@@ -625,6 +654,34 @@ def main() -> int:
                     f"{', '.join(overdue_ids)}."
                 )
 
+        # F9: "solved means it ran." A NEW solve is gated on a runnable
+        # solutions/<PROBLEM-ID>.py (learner's solution + embedded asserts).
+        # Runs AFTER the F3 revision gate (revisions are higher priority) and
+        # BEFORE any state mutation/write. Revision mode is never gated.
+        no_code_note = None
+        if solve_mode == "new_problem":
+            if args.no_code:
+                no_code_note = (
+                    "Recorded via --no-code (whiteboard-style session); no solution "
+                    "file executed."
+                )
+            else:
+                solutions_dir = Path(args.solutions_dir) if args.solutions_dir else SOLUTIONS_DIR
+                solution_path = solution_path_for(problem_id, solutions_dir)
+                timeout_seconds = (
+                    args.code_check_timeout
+                    if args.code_check_timeout is not None
+                    else DEFAULT_TIMEOUT_SECONDS
+                )
+                check = run_solution_file(solution_path, timeout_seconds=timeout_seconds)
+                if not check.passed:
+                    raise RepositoryError(
+                        f"Code-execution gate failed for `{problem_id}`: {check.message} "
+                        f"Expected a runnable solution at {solution_path} with 3-5 embedded "
+                        "asserts (see solutions/README.md). Fix it and rerun, or pass "
+                        "--no-code for a whiteboard-style session."
+                    )
+
         if not args.revision_result:
             completion_record: dict[str, Any] = {
                 "problem_id": problem_id,
@@ -643,8 +700,9 @@ def main() -> int:
             }
             if mentor_scores is not None:
                 completion_record["mentor_scores"] = mentor_scores
-            if override_note:
-                completion_record["notes"] = [override_note]
+            solve_notes = [note for note in (override_note, no_code_note) if note]
+            if solve_notes:
+                completion_record["notes"] = solve_notes
             progress.setdefault("completed", []).append(completion_record)
         else:
             completion_record = latest_by_problem[problem_id]

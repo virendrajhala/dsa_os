@@ -85,7 +85,9 @@ class RevisionFirstGateTests(unittest.TestCase):
         self.assertEqual(self.tmp_progress.read_bytes(), self.original_bytes)
 
     def test_override_revisions_bypasses_gate_and_logs_note(self) -> None:
-        result = self._run([*BASE_ARGS, "--override-revisions"])
+        # F9: no solution file exists for NEW_PROBLEM_ID in this test, so
+        # --no-code is required to get past the code-execution gate too.
+        result = self._run([*BASE_ARGS, "--override-revisions", "--no-code"])
 
         self.assertEqual(result.returncode, 0, msg=result.stdout + result.stderr)
         payload = json.loads(result.stdout)
@@ -111,7 +113,9 @@ class RevisionFirstGateTests(unittest.TestCase):
                 revision["next_due"] = "2099-01-01"
         self.tmp_progress.write_text(json.dumps(payload, indent=2))
 
-        result = self._run(BASE_ARGS)
+        # F9: no solution file exists for NEW_PROBLEM_ID in this test, so
+        # --no-code is required to get past the code-execution gate too.
+        result = self._run([*BASE_ARGS, "--no-code"])
         self.assertEqual(result.returncode, 0, msg=result.stdout + result.stderr)
 
 
@@ -265,10 +269,13 @@ class MentorScoresTests(unittest.TestCase):
         # Live fixture has overdue revisions (see RevisionFirstGateTests);
         # override that unrelated gate so this exercises mentor-score
         # recording specifically.
+        # F9: no solution file exists for NEW_PROBLEM_ID in this test, so
+        # --no-code is required to get past the code-execution gate too.
         result = self._run(
             [
                 *BASE_ARGS,
                 "--override-revisions",
+                "--no-code",
                 *WELL_FORMED_MENTOR_THINKING_ARGS,
                 *WELL_FORMED_MENTOR_INTERVIEW_ARGS,
             ]
@@ -306,12 +313,112 @@ class MentorScoresTests(unittest.TestCase):
         self.assertEqual(self.tmp_progress.read_bytes(), self.original_bytes)
 
     def test_mentor_scores_absent_writes_no_key(self) -> None:
-        result = self._run([*BASE_ARGS, "--override-revisions"])
+        # F9: no solution file exists for NEW_PROBLEM_ID in this test, so
+        # --no-code is required to get past the code-execution gate too.
+        result = self._run([*BASE_ARGS, "--override-revisions", "--no-code"])
 
         self.assertEqual(result.returncode, 0, msg=result.stdout + result.stderr)
         updated = json.loads(self.tmp_progress.read_text())
         record = next(r for r in updated["completed"] if r["problem_id"] == NEW_PROBLEM_ID)
         self.assertNotIn("mentor_scores", record)
+
+
+class CodeExecutionGateTests(unittest.TestCase):
+    """F9: a NEW solve is gated on a runnable solutions/<PROBLEM-ID>.py file.
+
+    Revision mode is never gated. Uses --solutions-dir to point the gate at a
+    temp directory so no real solutions/ files are read or written.
+    """
+
+    def setUp(self) -> None:
+        self.tmpdir = tempfile.mkdtemp(prefix="dsa_os_test_")
+        self.tmp_progress = Path(self.tmpdir) / "progress.json"
+        shutil.copyfile(LIVE_PROGRESS, self.tmp_progress)
+        # Push every overdue revision out of the way so only the F9 code gate
+        # (not the F3 revision-first gate) is under test here.
+        payload = json.loads(self.tmp_progress.read_text())
+        for record in payload["completed"]:
+            revision = record.get("revision")
+            if isinstance(revision, dict) and revision.get("next_due"):
+                revision["next_due"] = "2099-01-01"
+        self.tmp_progress.write_text(json.dumps(payload, indent=2))
+        self.original_bytes = self.tmp_progress.read_bytes()
+
+        self.solutions_dir = Path(self.tmpdir) / "solutions"
+        self.solutions_dir.mkdir()
+
+    def tearDown(self) -> None:
+        shutil.rmtree(self.tmpdir, ignore_errors=True)
+
+    def _run(self, extra_args: list[str]) -> subprocess.CompletedProcess:
+        return subprocess.run(
+            [
+                sys.executable,
+                str(SCRIPT),
+                "--progress-file", str(self.tmp_progress),
+                "--solutions-dir", str(self.solutions_dir),
+                *extra_args,
+            ],
+            capture_output=True,
+            text=True,
+            cwd=ROOT,
+        )
+
+    def test_new_solve_without_solution_file_aborts_with_expected_path(self) -> None:
+        result = self._run(BASE_ARGS)
+
+        self.assertNotEqual(result.returncode, 0, msg=result.stdout + result.stderr)
+        expected_path = str(self.solutions_dir / f"{NEW_PROBLEM_ID}.py")
+        self.assertIn(expected_path, result.stderr)
+        # Gate must fire before any write: the temp progress file must be
+        # untouched.
+        self.assertEqual(self.tmp_progress.read_bytes(), self.original_bytes)
+
+    def test_new_solve_with_valid_solution_file_proceeds(self) -> None:
+        (self.solutions_dir / f"{NEW_PROBLEM_ID}.py").write_text(
+            "assert 1 + 1 == 2\nassert sorted([3, 1, 2]) == [1, 2, 3]\n"
+        )
+
+        result = self._run(BASE_ARGS)
+
+        self.assertEqual(result.returncode, 0, msg=result.stdout + result.stderr)
+        updated = json.loads(self.tmp_progress.read_text())
+        record = next(r for r in updated["completed"] if r["problem_id"] == NEW_PROBLEM_ID)
+        self.assertNotIn("notes", record)
+
+    def test_new_solve_with_failing_solution_file_aborts(self) -> None:
+        (self.solutions_dir / f"{NEW_PROBLEM_ID}.py").write_text(
+            "assert 1 == 2, 'deliberate failure'\n"
+        )
+
+        result = self._run(BASE_ARGS)
+
+        self.assertNotEqual(result.returncode, 0, msg=result.stdout + result.stderr)
+        self.assertEqual(self.tmp_progress.read_bytes(), self.original_bytes)
+
+    def test_no_code_bypasses_gate_and_records_note(self) -> None:
+        result = self._run([*BASE_ARGS, "--no-code"])
+
+        self.assertEqual(result.returncode, 0, msg=result.stdout + result.stderr)
+        updated = json.loads(self.tmp_progress.read_text())
+        record = next(r for r in updated["completed"] if r["problem_id"] == NEW_PROBLEM_ID)
+        notes = record.get("notes")
+        self.assertIsInstance(notes, list)
+        self.assertTrue(notes, "expected a --no-code note recorded on the new record")
+        self.assertTrue(any("no-code" in note.lower() for note in notes))
+
+    def test_revision_mode_unaffected_by_missing_solution_file(self) -> None:
+        # No solution file exists for REVISION_PROBLEM_ID in the temp
+        # solutions dir, and --no-code is not passed; revision mode must not
+        # be gated on code execution at all.
+        result = self._run(
+            [*REVISION_BASE_ARGS, "--revision-result", "PASS", *_revision_score_args(9)]
+        )
+
+        self.assertEqual(result.returncode, 0, msg=result.stdout + result.stderr)
+        updated = json.loads(self.tmp_progress.read_text())
+        record = next(r for r in updated["completed"] if r["problem_id"] == REVISION_PROBLEM_ID)
+        self.assertEqual(record["revision"]["history"][-1]["result"], "PASS")
 
 
 if __name__ == "__main__":
