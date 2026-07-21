@@ -7,7 +7,6 @@
     skills: "../knowledge/skills.json",
     patternIndex: "../knowledge/patterns.json",
     mistakes: "../mistake_catalog.json",
-    thinkingPatterns: "../thinking_patterns.md",
   };
 
   const state = {
@@ -171,7 +170,7 @@
   }
 
   async function loadData() {
-    const [progress, scoring, curriculum, stages, skills, patternIndex, mistakes, thinkingPatterns] = await Promise.all([
+    const [progress, scoring, curriculum, stages, skills, patternIndex, mistakes] = await Promise.all([
       fetchJson(DATA.progress),
       fetchJson(DATA.scoring),
       fetchJson(DATA.curriculum),
@@ -179,7 +178,6 @@
       fetchJson(DATA.skills),
       fetchJson(DATA.patternIndex),
       fetchJson(DATA.mistakes),
-      fetchText(DATA.thinkingPatterns),
     ]);
 
     state.datasets = {
@@ -190,7 +188,6 @@
       skills,
       patternIndex,
       mistakes,
-      thinkingPatterns,
     };
     state.problemsById = new Map(curriculum.problems.map((problem) => [problem.id, problem]));
     state.skillsById = new Map(Object.entries(skills.skills || {}));
@@ -282,9 +279,16 @@
     return isoDate(today);
   }
 
+  function unresolvedCompletions() {
+    return [...state.completedById.values()].filter(
+      (record) => !state.problemsById.has(record.problem_id),
+    );
+  }
+
   function getRevisionEntries() {
     const ref = referenceDate();
     return [...state.completedById.values()]
+      .filter((record) => state.problemsById.has(record.problem_id))
       .map((record) => {
         const problem = state.problemsById.get(record.problem_id) || {};
         const revision = record.revision || {};
@@ -400,7 +404,7 @@
       {
         label: "Problems completed",
         value: `${completed} / ${total}`,
-        note: `${((completed / total) * 100).toFixed(1)}% curriculum coverage`,
+        note: `${total ? ((completed / total) * 100).toFixed(1) : "0.0"}% curriculum coverage`,
       },
       {
         label: "Current stage",
@@ -3094,9 +3098,23 @@
     return div;
   }
 
+  function renderDataWarning() {
+    const banner = $("#data-warning");
+    const unresolved = unresolvedCompletions();
+    if (!unresolved.length) {
+      banner.hidden = true;
+      return;
+    }
+    const ids = unresolved.map((record) => record.problem_id).join(", ");
+    $("#data-warning-text").textContent =
+      `${unresolved.length} completion${unresolved.length === 1 ? "" : "s"} reference unknown problem_id(s) (${ids}) and were excluded from revision views.`;
+    banner.hidden = false;
+  }
+
   function renderAll() {
     $("#last-updated").textContent = `Updated ${state.datasets.progress.last_updated}`;
     $("#reference-date-pill").textContent = `Reference date ${referenceDate()}`;
+    renderDataWarning();
     renderOperatingBoard();
     renderMetrics();
     renderNextAction();
@@ -3121,6 +3139,9 @@
       await loadData();
       buildStageOptions();
       renderAll();
+      $("#data-warning-dismiss").addEventListener("click", () => {
+        $("#data-warning").hidden = true;
+      });
       $("#search").addEventListener("input", applyFilters);
       $("#stage-filter").addEventListener("change", applyFilters);
       $("#status-filter").addEventListener("change", applyFilters);
