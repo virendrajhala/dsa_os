@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import math
 from dataclasses import dataclass
 from datetime import date, timedelta
 from pathlib import Path
@@ -1612,7 +1613,8 @@ def compute_readiness(
     pass_met = pass_status["total"] > 0 and pass_status["fraction"] >= pass_rate_target
     mock_met = mock_status["met"]
 
-    remaining_core = max(core_status["total"] - core_status["mastered"], 0)
+    core_skills_needed = math.ceil(core_fraction_target * core_status["total"])
+    remaining_core = max(core_skills_needed - core_status["mastered"], 0)
     projection = project_readiness_date(remaining_core, pace["skills_mastered_per_week"], on_date)
 
     return {

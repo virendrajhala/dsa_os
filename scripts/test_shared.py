@@ -20,6 +20,7 @@ from _shared import (
     compute_revision_pass_rate,
     compute_skill_progress,
     core_skill_ids_in_scope,
+    format_iso_date,
     is_mock_due,
     load_json_file,
     project_readiness_date,
@@ -530,6 +531,93 @@ class ReadinessTests(unittest.TestCase):
         result = compute_readiness(curriculum, stages, skills, scoring, progress, date(2026, 7, 21))
         self.assertFalse(result["thresholds"]["recent_mocks"]["met"])
         self.assertFalse(result["all_met"])
+
+    def _build_core_scope(self, total_skills: int, mastered_count: int, on_date: date):
+        """Build a curriculum/stages/skills/progress with `total_skills` CORE
+        skills in scope, of which the first `mastered_count` are mastered
+        (primary + reinforcement both completed on `on_date`)."""
+
+        skill_ids = [f"SK-{i:03d}" for i in range(1, total_skills + 1)]
+        curriculum = {
+            "problems": [
+                {"id": f"P-{i:03d}", "primary_skill": sid, "importance": "CORE"}
+                for i, sid in enumerate(skill_ids, start=1)
+            ]
+        }
+        stages = {"stage_order": ["Stage1"], "stages": {"Stage1": {"skills": skill_ids}}}
+        skills = {
+            "skills": {
+                sid: {
+                    "stage": "Stage1",
+                    "primary_validation_problem": f"P-{i:03d}",
+                    "reinforcement_problems": [f"P-{i:03d}-R"],
+                }
+                for i, sid in enumerate(skill_ids, start=1)
+            }
+        }
+        completions = []
+        for i in range(1, mastered_count + 1):
+            completions.append(
+                _completion(f"P-{i:03d}", hint_level_used=0, thinking_score={"understanding": 4, "algorithm_design": 4})
+            )
+            completions.append(_record(f"P-{i:03d}-R", completed_at=format_iso_date(on_date)))
+        progress = {"completed": completions}
+        return curriculum, stages, skills, progress
+
+    def test_compute_readiness_remaining_is_target_relative_not_total(self):
+        """F23 regression: remaining must be against ceil(target * total), not
+        against 100% mastery. Live-data shape: total 55, mastered 1, fraction
+        0.8 -> needed 44 -> remaining 43 (not 54)."""
+
+        on_date = date(2026, 7, 21)
+        curriculum, stages, skills, progress = self._build_core_scope(55, 1, on_date)
+        scoring = dict(_SCORING)
+        scoring["readiness"] = {
+            "core_skill_fraction": 0.8,
+            "stage_scope_count": 1,
+            "revision_pass_rate": 0.9,
+            "recent_mock_count": 3,
+            "min_mock_verdicts": ["hire", "strong-hire"],
+            "pace_window_days": 28,
+        }
+        result = compute_readiness(curriculum, stages, skills, scoring, progress, on_date)
+        core = result["thresholds"]["core_skill_mastery"]
+        self.assertEqual(core["mastered"], 1)
+        self.assertEqual(core["total"], 55)
+        self.assertFalse(core["met"])
+
+        # Single mastered skill lands inside the 28-day pace window ->
+        # skills_mastered_per_week = 1 / 4 = 0.25.
+        self.assertAlmostEqual(result["pace"]["skills_mastered_per_week"], 0.25, places=4)
+        expected_remaining = 43  # ceil(0.8 * 55) - 1, NOT 55 - 1 = 54.
+        expected_weeks = expected_remaining / 0.25
+        expected_date = on_date + timedelta(days=round(expected_weeks * 7))
+        self.assertEqual(result["projection"]["status"], "projected")
+        self.assertEqual(result["projection"]["date"], expected_date.isoformat())
+
+    def test_compute_readiness_remaining_zero_at_threshold_not_at_full_mastery(self):
+        """44/55 (exactly the 0.8 threshold) must report remaining 0 and no
+        future projection - core_met True must not coexist with a projected
+        future date."""
+
+        on_date = date(2026, 7, 21)
+        curriculum, stages, skills, progress = self._build_core_scope(55, 44, on_date)
+        scoring = dict(_SCORING)
+        scoring["readiness"] = {
+            "core_skill_fraction": 0.8,
+            "stage_scope_count": 1,
+            "revision_pass_rate": 0.9,
+            "recent_mock_count": 3,
+            "min_mock_verdicts": ["hire", "strong-hire"],
+            "pace_window_days": 28,
+        }
+        result = compute_readiness(curriculum, stages, skills, scoring, progress, on_date)
+        core = result["thresholds"]["core_skill_mastery"]
+        self.assertEqual(core["mastered"], 44)
+        self.assertEqual(core["total"], 55)
+        self.assertTrue(core["met"])
+        self.assertEqual(result["projection"]["status"], "core_mastery_met")
+        self.assertNotIn("date", result["projection"])
 
     def test_compute_readiness_all_met(self):
         curriculum = {"problems": [{"id": "P-A1", "primary_skill": "SK-A", "importance": "CORE"}]}

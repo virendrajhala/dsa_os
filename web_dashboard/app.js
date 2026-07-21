@@ -536,7 +536,8 @@
     const passMet = passRate.total > 0 && passRate.fraction >= passRateTarget;
     const mocksMet = mocks.met;
 
-    const remainingCore = Math.max(core.total - core.mastered, 0);
+    const coreSkillsNeeded = Math.ceil(coreFractionTarget * core.total);
+    const remainingCore = Math.max(coreSkillsNeeded - core.mastered, 0);
     const projection = projectReadinessDate(remainingCore, pace.skillsMasteredPerWeek, onDate);
 
     return {
