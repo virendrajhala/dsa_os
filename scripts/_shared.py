@@ -642,11 +642,16 @@ def compute_skill_progress(
     above `scoring.skill_mastery.minimum_primary_weighted_score` AND at least
     one reinforcement problem for that skill has been completed.
 
-    The primary problem's weighted thinking score is discounted by how much
-    hinting it took (`scoring.hint_mastery_discount`, keyed by
-    `hint_level_used`): hint 0-2 counts at full weight, hint 3-4 at half
-    weight, hint 5+ at zero weight (an attempt only, never mastery). A
-    completion with no numeric thinking score never passes the bar.
+    The primary problem's mastery bar is scaled by how much hinting it took
+    (`scoring.hint_mastery_discount`, keyed by `hint_level_used`) instead of
+    discounting the score itself: hint 0-2 leaves the bar unchanged (weight
+    1.0), hint 3-4 raises it halfway to the scale maximum (weight 0.5), hint
+    5+ makes mastery impossible regardless of score (weight 0, an attempt
+    only). Scaling the bar rather than the score keeps every non-zero weight
+    tier reachable - multiplying the score instead would let a low enough
+    weight push the ceiling below the bar and silently collapse a tier. A
+    completion with no numeric thinking score never passes the bar. The
+    stored `primary_weighted_score` is always the raw (undiscounted) score.
     """
 
     latest_by_problem = latest_records_by_problem(progress)
@@ -666,16 +671,26 @@ def compute_skill_progress(
         # A completion with no numeric thinking score does NOT pass the bar
         # (no more "provisionally passing" leniency).
         if raw_primary_score is None:
-            primary_score = None
+            primary_meets_bar = False
         else:
             weight = hint_mastery_weight(primary_record.get("hint_level_used"), scoring)
-            primary_score = round(raw_primary_score * weight, 4)
-        primary_meets_bar = primary_solved and primary_score is not None and primary_score >= min_primary_score
+            if weight <= 0:
+                # hint 5+ (zero weight): attempt only, never mastery.
+                primary_meets_bar = False
+            else:
+                # Margin-scaled effective bar: raise the bar instead of
+                # discounting the score. weight 1.0 -> bar unchanged; weight
+                # 0.5 -> bar moves halfway to the scale max, so a strong
+                # hint-3/4 solve can still master while a mediocre one can't.
+                scale_max = float(scoring.get("scale", {}).get("maximum", 4))
+                effective_bar = min_primary_score + (scale_max - min_primary_score) * (1 - weight)
+                primary_meets_bar = raw_primary_score >= effective_bar
+        primary_meets_bar = primary_solved and primary_meets_bar
         reinforcement_done = any(r in latest_by_problem for r in reinforcement)
         mastered = primary_meets_bar and (reinforcement_done or not require_reinforcement)
         skill_progress[skill_id] = {
             "primary_solved": primary_solved,
-            "primary_weighted_score": primary_score,
+            "primary_weighted_score": raw_primary_score,
             "reinforcement_attempted": reinforcement_done,
             "mastered": mastered,
         }

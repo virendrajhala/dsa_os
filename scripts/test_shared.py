@@ -26,6 +26,7 @@ def _completion(problem_id: str, hint_level_used: int | None, thinking_score: di
 
 
 _SCORING = {
+    "scale": {"minimum": 0, "maximum": 4},
     "weights": {"understanding": 0.5, "algorithm_design": 0.5},
     "skill_mastery": {"minimum_primary_weighted_score": 2.6, "require_reinforcement_attempt": True},
     "hint_mastery_discount": {"0": 1, "1": 1, "2": 1, "3": 0.5, "4": 0.5, "5": 0, "6": 0, "7": 0},
@@ -47,11 +48,19 @@ def _progress(*completions: dict) -> dict:
 
 
 class ComputeSkillProgressHintDiscountTests(unittest.TestCase):
-    """F6: hint_level_used discounts whether a solve counts toward mastery."""
+    """F6: hint_level_used scales the mastery bar for a primary solve.
 
-    FULL_SCORE = {"understanding": 4, "algorithm_design": 4}  # weighted 4.0, well above the 2.6 bar
+    Margin-scaled effective bar (not score discounting): weight 1.0 leaves
+    the 2.6 bar unchanged (hint 0-2); weight 0.5 raises it to 3.3, halfway
+    to the scale max of 4.0 (hint 3-4), so a strong hint-3/4 solve can still
+    master while a mediocre one can't; weight 0 (hint 5+) makes mastery
+    impossible regardless of score.
+    """
 
-    def test_hint_6_primary_solve_stays_unmastered(self):
+    FULL_SCORE = {"understanding": 4, "algorithm_design": 4}  # weighted 4.0
+    MID_SCORE = {"understanding": 3, "algorithm_design": 3}  # weighted 3.0
+
+    def test_hint_6_primary_solve_never_masters_even_at_max_score(self):
         progress = _progress(
             _completion("PRIMARY-001", hint_level_used=6, thinking_score=self.FULL_SCORE),
             _completion("REINFORCE-001", hint_level_used=0, thinking_score=self.FULL_SCORE),
@@ -59,15 +68,37 @@ class ComputeSkillProgressHintDiscountTests(unittest.TestCase):
         result = compute_skill_progress({}, _SKILLS, _SCORING, progress)
         self.assertFalse(result["SK-TEST"]["mastered"])
 
-    def test_hint_3_primary_solve_counts_at_half_weight_and_fails_bar(self):
-        # weighted score 4.0 * 0.5 discount = 2.0, below the 2.6 bar.
+    def test_hint_3_primary_solve_at_raw_4_masters_against_scaled_bar(self):
+        # weight 0.5 -> effective bar 2.6 + (4.0 - 2.6) * 0.5 = 3.3; raw 4.0 clears it.
         progress = _progress(
             _completion("PRIMARY-001", hint_level_used=3, thinking_score=self.FULL_SCORE),
             _completion("REINFORCE-001", hint_level_used=0, thinking_score=self.FULL_SCORE),
         )
         result = compute_skill_progress({}, _SKILLS, _SCORING, progress)
-        self.assertEqual(result["SK-TEST"]["primary_weighted_score"], 2.0)
+        # primary_weighted_score stays the raw score - discount applies only
+        # to the mastery comparison, not to the stored/displayed value.
+        self.assertEqual(result["SK-TEST"]["primary_weighted_score"], 4.0)
+        self.assertTrue(result["SK-TEST"]["mastered"])
+
+    def test_hint_3_primary_solve_at_raw_3_fails_scaled_bar(self):
+        # effective bar 3.3; raw 3.0 falls short.
+        progress = _progress(
+            _completion("PRIMARY-001", hint_level_used=3, thinking_score=self.MID_SCORE),
+            _completion("REINFORCE-001", hint_level_used=0, thinking_score=self.FULL_SCORE),
+        )
+        result = compute_skill_progress({}, _SKILLS, _SCORING, progress)
+        self.assertEqual(result["SK-TEST"]["primary_weighted_score"], 3.0)
         self.assertFalse(result["SK-TEST"]["mastered"])
+
+    def test_hint_2_primary_solve_keeps_bar_at_2_6(self):
+        # weight 1.0 -> effective bar unchanged at 2.6; raw 3.0 clears it.
+        progress = _progress(
+            _completion("PRIMARY-001", hint_level_used=2, thinking_score=self.MID_SCORE),
+            _completion("REINFORCE-001", hint_level_used=0, thinking_score=self.FULL_SCORE),
+        )
+        result = compute_skill_progress({}, _SKILLS, _SCORING, progress)
+        self.assertEqual(result["SK-TEST"]["primary_weighted_score"], 3.0)
+        self.assertTrue(result["SK-TEST"]["mastered"])
 
     def test_hint_0_primary_solve_counts_at_full_weight_and_masters(self):
         progress = _progress(
