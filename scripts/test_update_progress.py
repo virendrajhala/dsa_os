@@ -115,5 +115,111 @@ class RevisionFirstGateTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, msg=result.stdout + result.stderr)
 
 
+# A curriculum problem id that IS already completed in the live fixture, so
+# recording it with --revision-result exercises the revision path.
+REVISION_PROBLEM_ID = "OBS-001"
+
+# All 8 revision_evaluation dimensions from progress/scoring.json.
+REVISION_DIMENSIONS = [
+    "concept_recall",
+    "invariant_recall",
+    "algorithm_reconstruction",
+    "implementation",
+    "hint_dependency",
+    "confidence",
+    "implementation_blueprint",
+    "code_from_memory",
+]
+
+
+def _revision_score_args(value: int) -> list[str]:
+    args: list[str] = []
+    for dimension in REVISION_DIMENSIONS:
+        args += ["--revision-score", f"{dimension}={value}"]
+    return args
+
+
+REVISION_BASE_ARGS = [
+    "--problem-id", REVISION_PROBLEM_ID,
+    "--completed-at", "2026-07-21",
+    "--hint-level-used", "1",
+    "--confidence-after", "8",
+    "--format", "json",
+]
+
+
+class RevisionPassMinimumTests(unittest.TestCase):
+    """F5: --revision-result PASS must meet scoring.json's pass_minimum."""
+
+    def setUp(self) -> None:
+        self.tmpdir = tempfile.mkdtemp(prefix="dsa_os_test_")
+        self.tmp_progress = Path(self.tmpdir) / "progress.json"
+        shutil.copyfile(LIVE_PROGRESS, self.tmp_progress)
+        self.original_bytes = self.tmp_progress.read_bytes()
+
+    def tearDown(self) -> None:
+        shutil.rmtree(self.tmpdir, ignore_errors=True)
+
+    def _run(self, extra_args: list[str]) -> subprocess.CompletedProcess:
+        return subprocess.run(
+            [sys.executable, str(SCRIPT), "--progress-file", str(self.tmp_progress), *extra_args],
+            capture_output=True,
+            text=True,
+            cwd=ROOT,
+        )
+
+    def test_pass_below_pass_minimum_rejected(self) -> None:
+        result = self._run(
+            [*REVISION_BASE_ARGS, "--revision-result", "PASS", *_revision_score_args(5)]
+        )
+
+        self.assertNotEqual(result.returncode, 0, msg=result.stdout + result.stderr)
+        self.assertIn("force-pass", result.stderr.lower())
+        # Rejected before any write: the temp progress file must be untouched.
+        self.assertEqual(self.tmp_progress.read_bytes(), self.original_bytes)
+
+    def test_pass_below_pass_minimum_recorded_with_force_pass(self) -> None:
+        reason = "Interviewer accepted the verbal recall live."
+        result = self._run(
+            [
+                *REVISION_BASE_ARGS,
+                "--revision-result", "PASS",
+                *_revision_score_args(5),
+                "--force-pass",
+                "--force-pass-reason", reason,
+            ]
+        )
+
+        self.assertEqual(result.returncode, 0, msg=result.stdout + result.stderr)
+        updated = json.loads(self.tmp_progress.read_text())
+        record = next(r for r in updated["completed"] if r["problem_id"] == REVISION_PROBLEM_ID)
+        history = record["revision"]["history"]
+        self.assertEqual(history[-1]["result"], "PASS")
+        self.assertEqual(history[-1]["force_pass_reason"], reason)
+
+    def test_revision_recordable_without_any_solve_rubric_args(self) -> None:
+        # Only revision scores, result, hint level, confidence-after: no
+        # --time-taken-minutes, --confidence-before, --thinking-breakthrough,
+        # --main-mistake, --thinking-score, or --interview-score.
+        result = self._run(
+            [*REVISION_BASE_ARGS, "--revision-result", "PASS", *_revision_score_args(9)]
+        )
+
+        self.assertEqual(result.returncode, 0, msg=result.stdout + result.stderr)
+        updated = json.loads(self.tmp_progress.read_text())
+        record = next(r for r in updated["completed"] if r["problem_id"] == REVISION_PROBLEM_ID)
+        self.assertEqual(record["revision"]["history"][-1]["result"], "PASS")
+
+    def test_fail_below_pass_minimum_recorded_without_force(self) -> None:
+        result = self._run(
+            [*REVISION_BASE_ARGS, "--revision-result", "FAIL", *_revision_score_args(3)]
+        )
+
+        self.assertEqual(result.returncode, 0, msg=result.stdout + result.stderr)
+        updated = json.loads(self.tmp_progress.read_text())
+        record = next(r for r in updated["completed"] if r["problem_id"] == REVISION_PROBLEM_ID)
+        self.assertEqual(record["revision"]["history"][-1]["result"], "FAIL")
+
+
 if __name__ == "__main__":
     unittest.main()

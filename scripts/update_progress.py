@@ -58,24 +58,23 @@ def build_parser() -> argparse.ArgumentParser:
             "--algorithm-thinking-score 7.5 --implementation-engineering-score 7.5 "
             "--interview-score understanding=7 --interview-score communication=8 "
             "--interview-score algorithm=7 --interview-score coding=7 --interview-score complexity=8\n\n"
-            "Revision example:\n"
+            "Revision example (no solve-rubric args needed):\n"
             "  python3 scripts/update_progress.py "
             "--problem-id OBS-001 --revision-result PASS "
-            "--time-taken-minutes 12 --hint-level-used 1 "
-            "--confidence-before 6 --confidence-after 8 "
-            "--thinking-breakthrough \"Recalled the invariant without pattern naming.\" "
-            "--main-mistake \"Needed one prompt to state the decision condition.\" "
-            "--thinking-score understanding=3 --thinking-score examples=3 "
-            "--thinking-score brute_force=3 --thinking-score pattern_detection=3 "
-            "--thinking-score algorithm_design=3 --thinking-score complexity_analysis=3 "
-            "--thinking-score implementation=3 --thinking-score communication=3 "
-            "--algorithm-thinking-score 8 --implementation-engineering-score 8 "
-            "--interview-score understanding=8 --interview-score communication=8 "
-            "--interview-score algorithm=8 --interview-score coding=8 --interview-score complexity=8 "
+            "--hint-level-used 1 --confidence-after 8 "
             "--revision-score concept_recall=9 --revision-score invariant_recall=8 "
             "--revision-score algorithm_reconstruction=8 --revision-score implementation=8 "
             "--revision-score implementation_blueprint=8 --revision-score code_from_memory=8 "
             "--revision-score hint_dependency=9 --revision-score confidence=8\n\n"
+            "Force-pass example (average revision score below scoring.json pass_minimum):\n"
+            "  python3 scripts/update_progress.py "
+            "--problem-id OBS-001 --revision-result PASS "
+            "--hint-level-used 3 --confidence-after 5 "
+            "--revision-score concept_recall=5 --revision-score invariant_recall=5 "
+            "--revision-score algorithm_reconstruction=5 --revision-score implementation=5 "
+            "--revision-score implementation_blueprint=5 --revision-score code_from_memory=5 "
+            "--revision-score hint_dependency=5 --revision-score confidence=5 "
+            "--force-pass --force-pass-reason \"Interviewer accepted the verbal recall live.\"\n\n"
             "Prerequisite reinforcement example:\n"
             "  Add to a normal progress command: --reactivate-problem OBS-005 "
             "--reactivation-reason \"Jump Game reachability invariant was weak.\""
@@ -97,51 +96,53 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--time-taken-minutes",
-        required=True,
         type=int,
-        help="Minutes spent in the session.",
+        help="Minutes spent in the session. Required for a new solve; ignored for --revision-result.",
     )
     parser.add_argument(
         "--hint-level-used",
         required=True,
         type=int,
-        help="Hint level used during the session. See progress/scoring.json.",
+        help="Hint level used during the session. See progress/scoring.json. Required in both modes.",
     )
     parser.add_argument(
         "--confidence-before",
-        required=True,
         type=int,
-        help="Confidence before solving on a 0-10 scale.",
+        help="Confidence before solving on a 0-10 scale. Required for a new solve; ignored for --revision-result.",
     )
     parser.add_argument(
         "--confidence-after",
         required=True,
         type=int,
-        help="Confidence after solving on a 0-10 scale.",
+        help="Confidence after solving on a 0-10 scale. Required in both modes.",
     )
     parser.add_argument(
         "--thinking-breakthrough",
-        required=True,
-        help="Short description of what unlocked the solve.",
+        help="Short description of what unlocked the solve. Required for a new solve; ignored for --revision-result.",
     )
     parser.add_argument(
         "--main-mistake",
-        required=True,
-        help="Primary mistake or trap encountered during the solve.",
+        help="Primary mistake or trap encountered during the solve. Required for a new solve; ignored for --revision-result.",
     )
     parser.add_argument(
         "--thinking-score",
         action="append",
         default=[],
         metavar="DIMENSION=VALUE",
-        help="Thinking-rubric score entry. Repeat once per dimension.",
+        help=(
+            "Thinking-rubric score entry. Repeat once per dimension. Required (all dimensions) "
+            "for a new solve; ignored for --revision-result."
+        ),
     )
     parser.add_argument(
         "--interview-score",
         action="append",
         default=[],
         metavar="DIMENSION=VALUE",
-        help="Interview-rubric score entry. Repeat once per dimension.",
+        help=(
+            "Interview-rubric score entry. Repeat once per dimension. Required (all dimensions) "
+            "for a new solve; ignored for --revision-result."
+        ),
     )
     parser.add_argument(
         "--algorithm-thinking-score",
@@ -180,7 +181,11 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--revision-result",
         choices=("PASS", "FAIL"),
-        help="Record an active-recall revision result for an already completed problem.",
+        help=(
+            "Record an active-recall revision result for an already completed problem. "
+            "PASS requires the average --revision-score to meet scoring.json's pass_minimum, "
+            "or --force-pass with --force-pass-reason."
+        ),
     )
     parser.add_argument(
         "--override-revisions",
@@ -195,7 +200,19 @@ def build_parser() -> argparse.ArgumentParser:
         action="append",
         default=[],
         metavar="DIMENSION=VALUE",
-        help="Revision rubric score entry. Repeat once per revision dimension.",
+        help="Revision rubric score entry. Repeat once per revision dimension. Required for --revision-result.",
+    )
+    parser.add_argument(
+        "--force-pass",
+        action="store_true",
+        help=(
+            "Record --revision-result PASS even though the average --revision-score is below "
+            "scoring.json's pass_minimum. Requires --force-pass-reason."
+        ),
+    )
+    parser.add_argument(
+        "--force-pass-reason",
+        help="Reason recorded on the revision history event when using --force-pass.",
     )
     parser.add_argument(
         "--reactivate-problem",
@@ -423,12 +440,12 @@ def main() -> int:
                 "`--resolve-deferred-learning` requires `--deferred-learning-evidence`."
             )
 
-        if args.time_taken_minutes <= 0:
-            raise RepositoryError("`--time-taken-minutes` must be greater than zero.")
+        is_revision = bool(args.revision_result)
+
         if not 0 <= args.hint_level_used <= 7:
             raise RepositoryError("`--hint-level-used` must be between 0 and 7.")
-        if not 0 <= args.confidence_before <= 10 or not 0 <= args.confidence_after <= 10:
-            raise RepositoryError("Confidence values must be between 0 and 10.")
+        if not 0 <= args.confidence_after <= 10:
+            raise RepositoryError("`--confidence-after` must be between 0 and 10.")
         algorithm_thinking_score = validate_zero_to_ten(
             args.algorithm_thinking_score,
             "--algorithm-thinking-score",
@@ -437,34 +454,60 @@ def main() -> int:
             args.implementation_engineering_score,
             "--implementation-engineering-score",
         )
-        if not args.thinking_breakthrough.strip():
-            raise RepositoryError("`--thinking-breakthrough` must not be empty.")
-        if not args.main_mistake.strip():
-            raise RepositoryError("`--main-mistake` must not be empty.")
+
+        if args.force_pass or args.force_pass_reason:
+            if not is_revision or args.revision_result != "PASS":
+                raise RepositoryError(
+                    "`--force-pass` / `--force-pass-reason` only apply to `--revision-result PASS`."
+                )
+            if args.force_pass and not (args.force_pass_reason and args.force_pass_reason.strip()):
+                raise RepositoryError("`--force-pass` requires `--force-pass-reason \"<why>\"`.")
+            if args.force_pass_reason and not args.force_pass:
+                raise RepositoryError("`--force-pass-reason` requires `--force-pass`.")
 
         thinking_dimensions = set(state.scoring.get("dimensions", {}))
         interview_dimensions = set(state.scoring.get("interview_dimensions", {}))
         revision_dimensions = set(state.scoring.get("revision_evaluation", {}).get("dimensions", {}))
-        thinking_score = parse_score_block(
-            entries=args.thinking_score,
-            required_dimensions=thinking_dimensions,
-            minimum=float(state.scoring["scale"]["minimum"]),
-            maximum=float(state.scoring["scale"]["maximum"]),
-            label="thinking score",
-        )
-        interview_score = parse_score_block(
-            entries=args.interview_score,
-            required_dimensions=interview_dimensions,
-            minimum=float(state.scoring["interview_scale"]["minimum"]),
-            maximum=float(state.scoring["interview_scale"]["maximum"]),
-            label="interview score",
-        )
-        if algorithm_thinking_score is None:
-            algorithm_thinking_score = fallback_algorithm_score(thinking_score)
-        if implementation_engineering_score is None:
-            implementation_engineering_score = fallback_implementation_score(thinking_score)
+
+        if is_revision:
+            # F8: revision mode does not need (and ignores) the solve rubric.
+            thinking_score: dict[str, Any] = {}
+            interview_score: dict[str, Any] = {}
+        else:
+            if args.time_taken_minutes is None:
+                raise RepositoryError("`--time-taken-minutes` is required for a new solve.")
+            if args.time_taken_minutes <= 0:
+                raise RepositoryError("`--time-taken-minutes` must be greater than zero.")
+            if args.confidence_before is None:
+                raise RepositoryError("`--confidence-before` is required for a new solve.")
+            if not 0 <= args.confidence_before <= 10:
+                raise RepositoryError("`--confidence-before` must be between 0 and 10.")
+            if not args.thinking_breakthrough or not args.thinking_breakthrough.strip():
+                raise RepositoryError("`--thinking-breakthrough` is required for a new solve and must not be empty.")
+            if not args.main_mistake or not args.main_mistake.strip():
+                raise RepositoryError("`--main-mistake` is required for a new solve and must not be empty.")
+
+            thinking_score = parse_score_block(
+                entries=args.thinking_score,
+                required_dimensions=thinking_dimensions,
+                minimum=float(state.scoring["scale"]["minimum"]),
+                maximum=float(state.scoring["scale"]["maximum"]),
+                label="thinking score",
+            )
+            interview_score = parse_score_block(
+                entries=args.interview_score,
+                required_dimensions=interview_dimensions,
+                minimum=float(state.scoring["interview_scale"]["minimum"]),
+                maximum=float(state.scoring["interview_scale"]["maximum"]),
+                label="interview score",
+            )
+            if algorithm_thinking_score is None:
+                algorithm_thinking_score = fallback_algorithm_score(thinking_score)
+            if implementation_engineering_score is None:
+                implementation_engineering_score = fallback_implementation_score(thinking_score)
+
         revision_score: dict[str, Any] = {}
-        if args.revision_result:
+        if is_revision:
             revision_score = parse_score_block(
                 entries=args.revision_score,
                 required_dimensions=revision_dimensions,
@@ -472,6 +515,17 @@ def main() -> int:
                 maximum=float(state.scoring["revision_evaluation"]["scale"]["maximum"]),
                 label="revision score",
             )
+            if args.revision_result == "PASS":
+                pass_minimum = float(
+                    state.scoring.get("revision_evaluation", {}).get("scale", {}).get("pass_minimum", 0)
+                )
+                avg_revision_score = sum(revision_score.values()) / len(revision_score)
+                if avg_revision_score < pass_minimum and not args.force_pass:
+                    raise RepositoryError(
+                        f"Revision scores average {avg_revision_score:.2f}, below pass_minimum "
+                        f"{pass_minimum:g}; scores say FAIL. Pass explicitly with `--force-pass` "
+                        "and `--force-pass-reason \"<why>\"`, or record `--revision-result FAIL`."
+                    )
 
         stage_before = str(progress.get("current_stage"))
         prior_completed = completed_problem_ids(progress)
@@ -495,9 +549,15 @@ def main() -> int:
                 confidence=args.confidence_after,
                 hint_level=args.hint_level_used,
                 revision_score=revision_score,
+                force_pass_reason=args.force_pass_reason if args.force_pass else None,
             )
-            revision_event["algorithm_thinking_score"] = algorithm_thinking_score
-            revision_event["implementation_engineering_score"] = implementation_engineering_score
+            # F8: algorithm/implementation scores are no longer derived from a
+            # forced solve rubric in revision mode; only record them if the
+            # caller explicitly passed one of the independent score flags.
+            if algorithm_thinking_score is not None:
+                revision_event["algorithm_thinking_score"] = algorithm_thinking_score
+            if implementation_engineering_score is not None:
+                revision_event["implementation_engineering_score"] = implementation_engineering_score
             solve_mode = "revision"
         else:
             solve_mode = "new_problem"

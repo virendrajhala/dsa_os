@@ -965,8 +965,14 @@ def apply_revision_result(
     confidence: int,
     hint_level: int,
     revision_score: JsonDict,
+    force_pass_reason: str | None = None,
 ) -> JsonDict:
-    """Apply a PASS/FAIL revision result to a completion record's revision state."""
+    """Apply a PASS/FAIL revision result to a completion record's revision state.
+
+    `force_pass_reason`: F5 lets the CLI override a below-pass_minimum average
+    revision score via --force-pass; when set, the reason is recorded on the
+    history event so a forced pass is auditable later.
+    """
 
     if result not in REVISION_RESULTS:
         raise RepositoryError("Revision result must be PASS or FAIL.")
@@ -990,6 +996,8 @@ def apply_revision_result(
         "hint_level": hint_level,
         "thinking_score": revision_score,
     }
+    if force_pass_reason:
+        event["force_pass_reason"] = force_pass_reason
     revision.setdefault("history", []).append(event)
 
     if maintenance:
