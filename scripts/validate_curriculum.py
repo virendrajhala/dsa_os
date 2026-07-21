@@ -1034,6 +1034,39 @@ def validate_progress_payload(
                 if not isinstance(value, (int, float)) or not interview_min <= float(value) <= interview_max:
                     add_error(errors, f"{label}: completion #{index} has out-of-range interview score `{dimension}`.")
 
+        mentor_scores = record.get("mentor_scores")
+        if mentor_scores is not None:
+            if not isinstance(mentor_scores, dict):
+                add_error(errors, f"{label}: completion #{index} `mentor_scores` must be an object.")
+            else:
+                mentor_thinking = mentor_scores.get("thinking_score")
+                if not isinstance(mentor_thinking, dict) or set(mentor_thinking) != thinking_dimensions:
+                    add_error(
+                        errors,
+                        f"{label}: completion #{index} `mentor_scores` must define all thinking-score dimensions.",
+                    )
+                else:
+                    for dimension, value in mentor_thinking.items():
+                        if not isinstance(value, (int, float)) or not thinking_min <= float(value) <= thinking_max:
+                            add_error(
+                                errors,
+                                f"{label}: completion #{index} has out-of-range mentor thinking score `{dimension}`.",
+                            )
+
+                mentor_interview = mentor_scores.get("interview_score")
+                if not isinstance(mentor_interview, dict) or set(mentor_interview) != interview_dimensions:
+                    add_error(
+                        errors,
+                        f"{label}: completion #{index} `mentor_scores` must define all interview-score dimensions.",
+                    )
+                else:
+                    for dimension, value in mentor_interview.items():
+                        if not isinstance(value, (int, float)) or not interview_min <= float(value) <= interview_max:
+                            add_error(
+                                errors,
+                                f"{label}: completion #{index} has out-of-range mentor interview score `{dimension}`.",
+                            )
+
         revision = record.get("revision")
         if not isinstance(revision, dict):
             add_error(errors, f"{label}: completion #{index} `revision` must be an object.")

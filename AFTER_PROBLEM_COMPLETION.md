@@ -20,6 +20,7 @@ are available.
 - Algorithm Thinking score
 - Implementation Engineering score
 - interview score dimensions
+- mentor-graded scores, if this was a scored session (see below)
 - revision recall dimensions, if this was a revision
 
 For a new problem completion, `scripts/update_progress.py` requires:
@@ -38,6 +39,29 @@ For a revision completion, also provide:
 
 - `--revision-result`
 - every `--revision-score` dimension
+
+### Mentor-Graded Scores (optional)
+
+Per `mentor/mentor_protocol.md`'s Scoring Rule, the mentor grades every
+rubric dimension independently, with a one-line evidence quote, before the
+learner states their self-report. The completion record may carry these
+under an optional `mentor_scores` block, mirroring the shape of the existing
+`thinking_score` / `interview_score` fields:
+
+```json
+"mentor_scores": {
+  "thinking_score": { "<dimension>": <score>, ... },
+  "interview_score": { "<dimension>": <score>, ... }
+}
+```
+
+- Dimension names and score ranges must match `progress/scoring.json`
+  exactly (same as `thinking_score` / `interview_score`).
+- Absent is fine — `mentor_scores` is optional. If present, both sub-blocks
+  must be complete and in-range.
+- If any dimension diverges from the learner's self-report by more than 2
+  points, that divergence must be discussed and the resolution recorded in
+  the qualitative notes.
 
 ### Required Qualitative Fields
 

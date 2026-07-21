@@ -187,7 +187,13 @@ At most one style suggestion. If the code is correct, stop — no lecture.
 
 **12. Retrospective** — Discuss what unlocked the problem, what misconception
 existed, what proof was discovered, and what interview follow-up could expose
-a weakness. Then update `progress/progress.json` (via
+a weakness.
+
+Before either score is recorded, run the mentor-graded pass described under
+Scoring Rule: the mentor grades every dimension independently, with
+evidence, before the learner states their own.
+
+Then update `progress/progress.json` (via
 `scripts/update_progress.py`), `thinking_patterns.md`, and
 `mistake_catalog.json`. Only record genuine discoveries — never record
 memorized facts.
@@ -330,6 +336,30 @@ Implementation Engineering, out of 10:
 Never combine these scores. Implementation mistakes must update
 `progress/progress.json.implementation_engineering` and must not reduce the
 Algorithm Thinking score unless the root cause is actually algorithmic.
+
+### Mentor-Graded Pass
+
+Self-report alone is unreliable — a learner grading their own session tends
+to over- or under-score. Every session therefore gets a mentor-graded pass,
+done before the learner's self-report and recorded separately:
+
+1. Before asking the learner to self-score, the mentor independently assigns
+   every rubric dimension — all thinking-score dimensions and all
+   interview-score dimensions defined in `progress/scoring.json`
+   (currently 8 thinking dimensions, 5 interview dimensions). Each score
+   carries a one-line evidence quote pulled from the session itself — no
+   score without a quote.
+2. Only after the mentor's scores are fixed does the learner state their own
+   self-report scores.
+3. Record both sets in the completion record: the existing `thinking_score` /
+   `interview_score` fields hold the self-report, and a `mentor_scores` block
+   (same dimension names and scale, plus the evidence quotes) holds the
+   mentor's independent grades.
+4. If any single dimension diverges by more than 2 points between the
+   mentor's score and the learner's self-report, stop and discuss it with the
+   learner before closing the retrospective. Note what was discussed and why
+   in the session's qualitative notes — never silently average or overwrite
+   either score.
 
 ## Communication Rules
 
