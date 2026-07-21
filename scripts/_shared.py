@@ -64,6 +64,23 @@ DEFERRED_LEARNING_CATEGORIES = {
     "language_syntax",
 }
 
+# ---------------------------------------------------------------------------
+# F10: weekend mock interviews. The five interviewer-rubric dimensions are
+# each scored 1-4 (anchored descriptors live in
+# `mentor/mock_interview_protocol.md`); the overall verdict uses an
+# interviewer-style four-point scale.
+# ---------------------------------------------------------------------------
+MOCK_DIMENSIONS = {
+    "problem_solving": "Approach discovery, decomposition, and recovery under time pressure.",
+    "communication": "Structure, precision, and interviewer alignment while thinking aloud.",
+    "code_quality": "Clean, correct, readable translation of a stable plan into code.",
+    "testing": "Self-driven walkthrough, edge cases, and dry runs without prompting.",
+    "time_management": "Pacing across clarify/approach/code/test within the 45-minute cap.",
+}
+MOCK_SCORE_MINIMUM = 1
+MOCK_SCORE_MAXIMUM = 4
+MOCK_VERDICTS = ("strong-hire", "hire", "no-hire", "strong-no-hire")
+
 JsonDict = dict[str, Any]
 
 
@@ -881,6 +898,116 @@ def is_problem_unlocked(problem: JsonDict, completed_ids: set[str], problem_deps
     return all(isinstance(dep, str) and dep in completed_ids for dep in dependencies)
 
 
+def mock_interview_entries(progress: JsonDict) -> list[JsonDict]:
+    """Return recorded mock-interview entries in append order (optional field)."""
+
+    entries = progress.get("mock_interviews", [])
+    if not isinstance(entries, list):
+        raise RepositoryError("`progress.mock_interviews` must be a list.")
+    return [entry for entry in entries if isinstance(entry, dict)]
+
+
+def weekend_window(on_date: date) -> tuple[date, date] | None:
+    """Return the (Saturday, Sunday) window containing `on_date`, or None on a weekday."""
+
+    weekday = on_date.weekday()  # Monday=0 .. Sunday=6
+    if weekday == 5:  # Saturday
+        return on_date, on_date + timedelta(days=1)
+    if weekday == 6:  # Sunday
+        return on_date - timedelta(days=1), on_date
+    return None
+
+
+def is_mock_due(progress: JsonDict, on_date: date) -> bool:
+    """Return whether a weekend mock interview is due on `on_date`.
+
+    A mock is due only on Saturday or Sunday, and only when no mock interview
+    has already been recorded with a date inside the current Saturday-Sunday
+    window (one mock per weekend minimum).
+    """
+
+    window = weekend_window(on_date)
+    if window is None:
+        return False
+    saturday, sunday = window
+    for entry in mock_interview_entries(progress):
+        raw_date = entry.get("date")
+        if not isinstance(raw_date, str):
+            continue
+        try:
+            entry_date = parse_iso_date(raw_date, "mock_interviews.date")
+        except RepositoryError:
+            continue
+        if saturday <= entry_date <= sunday:
+            return False
+    return True
+
+
+def select_mock_problem(state: RepositoryState) -> tuple[JsonDict | None, str]:
+    """Choose an unseen problem for a mock interview.
+
+    Prefers a problem whose primary skill is mastered or adjacent (shares a
+    stage with a mastered skill), never the current in-progress skill, and
+    never an already-completed problem. When no skill is mastered yet, falls
+    back to an unsolved reinforcement sibling of a completed problem, flagged
+    as a "practice_mock". Returns (problem, kind) or (None, "").
+    """
+
+    progress = state.progress
+    completed = completed_problem_ids(progress)
+    problems = ensure_list(state.curriculum.get("problems"), "curriculum.problems")
+    problems_by_id = problem_lookup(state.curriculum)
+    order = problem_order_index(state.curriculum)
+    skills = skill_lookup(state.skills)
+    current_skill = derive_current_skill_id(state)
+
+    mastered = [sid for sid in progress.get("mastered_skills", []) if isinstance(sid, str)]
+    if mastered:
+        mastered_stages = {
+            skills.get(sid, {}).get("stage")
+            for sid in mastered
+            if isinstance(skills.get(sid), dict)
+        }
+        eligible_skills: set[str] = set()
+        for sid, skill in skills.items():
+            if is_global_skill(skill):
+                continue
+            if sid in mastered or skill.get("stage") in mastered_stages:
+                eligible_skills.add(sid)
+        eligible_skills.discard(current_skill)
+        candidates = [
+            problem
+            for problem in problems
+            if isinstance(problem, dict)
+            and isinstance(problem.get("id"), str)
+            and problem["id"] not in completed
+            and problem.get("primary_skill") in eligible_skills
+        ]
+        if candidates:
+            chosen = sorted(candidates, key=lambda problem: order[problem["id"]])[0]
+            return chosen, "mock"
+
+    # Early-days fallback: an unsolved reinforcement sibling of a solved skill.
+    practice: list[JsonDict] = []
+    for sid, skill in skills.items():
+        if is_global_skill(skill):
+            continue
+        reinforcement = skill.get("reinforcement_problems") or []
+        skill_touched = skill.get("primary_validation_problem") in completed or any(
+            pid in completed for pid in reinforcement
+        )
+        if not skill_touched:
+            continue
+        for pid in reinforcement:
+            if pid not in completed and pid in problems_by_id:
+                practice.append(problems_by_id[pid])
+    if practice:
+        chosen = sorted(practice, key=lambda problem: order[problem["id"]])[0]
+        return chosen, "practice_mock"
+
+    return None, ""
+
+
 def select_next_problem(state: RepositoryState, on_date: date | None = None) -> SelectionResult:
     """Choose the next problem using revisions, skill continuity, and stage order."""
 
@@ -930,6 +1057,29 @@ def select_next_problem(state: RepositoryState, on_date: date | None = None) -> 
             suggested_stage=chosen_problem.get("stage"),
             revision_entry=chosen_entry,
         )
+
+    # F10: on a weekend with no mock recorded this Sat-Sun window, a mock
+    # interview outranks new work but never an overdue revision (handled above).
+    if is_mock_due(state.progress, today):
+        mock_problem, mock_kind = select_mock_problem(state)
+        if mock_problem is not None:
+            if mock_kind == "practice_mock":
+                reason = (
+                    "Weekend mock interview is due. No skill is fully mastered yet, so this is a "
+                    "practice mock on an unsolved reinforcement sibling of a completed problem."
+                )
+            else:
+                reason = (
+                    "Weekend mock interview is due and outranks new work (overdue revisions still "
+                    "come first). Problem drawn from a mastered or adjacent skill, never the "
+                    "current in-progress skill. See mentor/mock_interview_protocol.md."
+                )
+            return SelectionResult(
+                mode="mock_due",
+                reason=reason,
+                problem=mock_problem,
+                suggested_stage=mock_problem.get("stage"),
+            )
 
     completed_ids = completed_problem_ids(state.progress)
     incomplete_unlocked = [

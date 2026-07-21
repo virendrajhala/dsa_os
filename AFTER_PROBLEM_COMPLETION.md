@@ -157,6 +157,29 @@ represented by an existing pattern.
 
 Patterns are curriculum knowledge, not learner progress.
 
+## Weekend Mock Interviews
+
+Saturday and Sunday sessions open with a timed mock interview instead of the
+teaching loop (see `mentor/mock_interview_protocol.md`). A mock is not a solve
+or a revision: it never touches completion records, revision state, skill
+mastery, or the current-problem pointer. Record it with `--mode mock`:
+
+```bash
+python3 scripts/update_progress.py --mode mock \
+  --problem-id CPX-004 --mock-duration-minutes 42 \
+  --mock-score problem_solving=3 --mock-score communication=3 \
+  --mock-score code_quality=3 --mock-score testing=2 \
+  --mock-score time_management=3 \
+  --mock-verdict hire \
+  --mock-notes "Debrief: what drove the verdict and the top gaps." \
+  --mock-weakness "Started coding before stating complexity."
+```
+
+This appends one entry to `progress.json.mock_interviews[]` (date, problem_id,
+duration_minutes, five 1-4 scores, verdict, notes, weaknesses) and mirrors each
+`--mock-weakness` into `weaknesses_detected` with a `Mock: ` prefix. The verdict
+scale is strong-hire / hire / no-hire / strong-no-hire.
+
 ## 6. Validate
 
 After updates, run:

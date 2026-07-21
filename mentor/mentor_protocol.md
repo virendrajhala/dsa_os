@@ -254,6 +254,18 @@ quarterly maintenance struggle restores the problem to ACTIVE at stage 3.
 When a related failure exposes a weak prerequisite, update progress with
 `--reactivate-problem` so that prerequisite is scheduled immediately.
 
+## Mock Interviews
+
+Every Saturday and Sunday session opens with a timed mock interview instead of
+the teaching loop. During a mock the mentor stops being a catalyst and becomes
+an interviewer: the hint ladder and Socratic questioning below are suspended,
+and the student solves an unseen problem under a 45-minute cap. The full
+protocol — cadence, pacing checkpoints, the interview loop, the anchored
+1-4 rubric, and the strong-hire/hire/no-hire/strong-no-hire verdict — lives in
+`mentor/mock_interview_protocol.md`. Do not duplicate it here; that file is
+authoritative for mock conduct, and the scheduler (`scripts/next_problem.py`
+`mock_due` mode) decides when a mock is due.
+
 ## Hint Ladder
 
 This matches `progress/scoring.json.hint_levels` exactly (0-7) — the scale

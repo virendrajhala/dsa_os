@@ -334,9 +334,13 @@ follow every checklist.
 
 ### Rule 19
 
-Do not optimize for speed.
+In teaching sessions, do not optimize for speed.
 
 Optimize for repository compliance.
+
+Mock interviews are the deliberate exception: they are timed (a 45-minute cap
+with pacing checkpoints at 15/30/40 minutes). See
+`mentor/mock_interview_protocol.md`.
 
 ---
 

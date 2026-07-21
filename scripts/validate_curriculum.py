@@ -17,6 +17,10 @@ from _shared import (
     DEFERRED_LEARNING_PRIORITIES,
     DEFERRED_LEARNING_STATUSES,
     GRAPH_PATH,
+    MOCK_DIMENSIONS,
+    MOCK_SCORE_MAXIMUM,
+    MOCK_SCORE_MINIMUM,
+    MOCK_VERDICTS,
     PATTERNS_PATH,
     PROGRESS_PATH,
     PROGRESS_TEMPLATE_PATH,
@@ -122,6 +126,15 @@ REQUIRED_REVISION_RECALL_FIELDS = {
     "confidence",
     "hint_level",
     "thinking_score",
+}
+REQUIRED_MOCK_FIELDS = {
+    "date",
+    "problem_id",
+    "duration_minutes",
+    "scores",
+    "verdict",
+    "notes",
+    "weaknesses",
 }
 REQUIRED_DEFERRED_LEARNING_FIELDS = {
     "id",
@@ -961,6 +974,75 @@ def validate_progress_payload(
                         errors,
                         f"{label}: resolved deferred learning `{learning_id}` requires evidence.",
                     )
+
+    # -- mock_interviews (F10: optional array) --------------------------------------
+    mock_interviews = progress.get("mock_interviews")
+    if mock_interviews is not None:
+        if not isinstance(mock_interviews, list):
+            add_error(errors, f"{label}: `mock_interviews` must be a list.")
+        else:
+            for m_index, entry in enumerate(mock_interviews, start=1):
+                if not isinstance(entry, dict):
+                    add_error(errors, f"{label}: mock interview #{m_index} must be an object.")
+                    continue
+                missing = sorted(REQUIRED_MOCK_FIELDS - entry.keys())
+                if missing:
+                    add_error(
+                        errors,
+                        f"{label}: mock interview #{m_index} missing fields: {', '.join(missing)}.",
+                    )
+                    continue
+                mock_date = entry.get("date")
+                if not isinstance(mock_date, str):
+                    add_error(errors, f"{label}: mock interview #{m_index} has invalid `date`.")
+                else:
+                    try:
+                        parse_iso_date(mock_date, f"{label}.mock_interviews[{m_index}].date")
+                    except RepositoryError as exc:
+                        add_error(errors, f"{label}: {exc}")
+                mock_problem = entry.get("problem_id")
+                if mock_problem not in problems:
+                    add_error(
+                        errors,
+                        f"{label}: mock interview #{m_index} references missing problem `{mock_problem}`.",
+                    )
+                duration = entry.get("duration_minutes")
+                if not isinstance(duration, int) or isinstance(duration, bool) or duration <= 0:
+                    add_error(errors, f"{label}: mock interview #{m_index} has invalid `duration_minutes`.")
+                scores = entry.get("scores")
+                if not isinstance(scores, dict) or set(scores) != set(MOCK_DIMENSIONS):
+                    add_error(
+                        errors,
+                        f"{label}: mock interview #{m_index} must define all mock-score dimensions.",
+                    )
+                else:
+                    for dimension, value in scores.items():
+                        if (
+                            not isinstance(value, (int, float))
+                            or isinstance(value, bool)
+                            or not MOCK_SCORE_MINIMUM <= float(value) <= MOCK_SCORE_MAXIMUM
+                        ):
+                            add_error(
+                                errors,
+                                f"{label}: mock interview #{m_index} has out-of-range score `{dimension}`.",
+                            )
+                if entry.get("verdict") not in MOCK_VERDICTS:
+                    add_error(
+                        errors,
+                        f"{label}: mock interview #{m_index} has invalid verdict `{entry.get('verdict')}`.",
+                    )
+                if not isinstance(entry.get("notes"), str) or not entry["notes"].strip():
+                    add_error(errors, f"{label}: mock interview #{m_index} must include non-empty `notes`.")
+                weaknesses = entry.get("weaknesses")
+                if not isinstance(weaknesses, list):
+                    add_error(errors, f"{label}: mock interview #{m_index} `weaknesses` must be a list.")
+                else:
+                    for text in weaknesses:
+                        if not isinstance(text, str) or not text.strip():
+                            add_error(
+                                errors,
+                                f"{label}: mock interview #{m_index} `weaknesses` contains a blank value.",
+                            )
 
     hint_levels = scoring.get("hint_levels", {})
     thinking_dimensions = set(scoring.get("dimensions", {}))

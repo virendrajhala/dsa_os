@@ -9,7 +9,17 @@ from __future__ import annotations
 import unittest
 from datetime import date
 
-from _shared import apply_revision_result, compute_skill_progress, revision_stage_label
+import _shared
+from _shared import (
+    RepositoryState,
+    apply_revision_result,
+    compute_skill_progress,
+    is_mock_due,
+    load_json_file,
+    revision_stage_label,
+    select_next_problem,
+    weekend_window,
+)
 
 
 def _record(problem_id: str = "TEST-001", completed_at: str = "2026-01-01") -> dict:
@@ -203,6 +213,124 @@ class RevisionStageLabelTests(unittest.TestCase):
         self.assertEqual(revision_stage_label(4), "MASTERED")
         self.assertEqual(revision_stage_label(5), "MASTERED")
         self.assertNotIn("R5", {revision_stage_label(s) for s in range(0, 6)})
+
+
+class MockDueSchedulingTests(unittest.TestCase):
+    """F10: weekend mock scheduling. The date is injected via `on_date` /
+    `is_mock_due(..., on_date)` — never by monkeypatching datetime globally.
+
+    Reference dates: 2026-07-25 is a Saturday, 2026-07-26 a Sunday,
+    2026-07-22 a Wednesday.
+    """
+
+    SATURDAY = date(2026, 7, 25)
+    SUNDAY = date(2026, 7, 26)
+    WEDNESDAY = date(2026, 7, 22)
+
+    def test_weekend_window(self):
+        self.assertEqual(weekend_window(self.SATURDAY), (self.SATURDAY, self.SUNDAY))
+        self.assertEqual(weekend_window(self.SUNDAY), (self.SATURDAY, self.SUNDAY))
+        self.assertIsNone(weekend_window(self.WEDNESDAY))
+
+    def test_is_mock_due_weekend_without_mock(self):
+        self.assertTrue(is_mock_due({}, self.SATURDAY))
+        self.assertTrue(is_mock_due({}, self.SUNDAY))
+
+    def test_is_mock_due_false_on_weekday(self):
+        self.assertFalse(is_mock_due({}, self.WEDNESDAY))
+
+    def test_is_mock_due_false_when_mock_already_in_window(self):
+        # A Saturday mock covers the whole Sat-Sun window.
+        progress = {"mock_interviews": [{"date": "2026-07-25"}]}
+        self.assertFalse(is_mock_due(progress, self.SATURDAY))
+        self.assertFalse(is_mock_due(progress, self.SUNDAY))
+
+    def test_is_mock_due_true_when_mock_is_previous_weekend(self):
+        progress = {"mock_interviews": [{"date": "2026-07-18"}]}
+        self.assertTrue(is_mock_due(progress, self.SATURDAY))
+
+
+class MockSelectionOrderingTests(unittest.TestCase):
+    """F10: a due mock outranks new work but never an overdue revision, and
+    the selected problem comes from a mastered/adjacent skill, never the
+    current in-progress skill or an already-completed problem."""
+
+    SATURDAY = date(2026, 7, 25)
+    WEDNESDAY = date(2026, 7, 22)
+    MASTERED = ["SK-OB-01", "SK-OB-03", "SK-OB-04"]
+
+    def _state(self, progress):
+        return RepositoryState(
+            curriculum=load_json_file(_shared.CURRICULUM_PATH),
+            graph=load_json_file(_shared.GRAPH_PATH),
+            stages=load_json_file(_shared.STAGES_PATH),
+            skills=load_json_file(_shared.SKILLS_PATH),
+            patterns={},
+            scoring=load_json_file(_shared.SCORING_PATH),
+            progress=progress,
+            progress_path=_shared.PROGRESS_PATH,
+        )
+
+    @staticmethod
+    def _completed(problem_id, next_due="2099-01-01"):
+        return {
+            "problem_id": problem_id,
+            "completed_at": "2026-01-01",
+            "revision": {
+                "status": "ACTIVE",
+                "stage": 1,
+                "completed": ["2026-01-01"],
+                "next_due": next_due,
+                "history": [],
+            },
+        }
+
+    def _base_progress(self):
+        solved = ["OBS-001", "OBS-002", "OBS-003", "OBS-004", "OBS-005",
+                  "OBS-006", "OBS-007", "OBS-008", "CPX-001", "CPX-002"]
+        return {
+            "completed": [self._completed(p) for p in solved],
+            "mastered_skills": list(self.MASTERED),
+            "current_problem": None,
+            "current_stage": "Observation",
+        }
+
+    def test_mock_due_outranks_new_work_on_weekend(self):
+        selection = select_next_problem(self._state(self._base_progress()), on_date=self.SATURDAY)
+        self.assertEqual(selection.mode, "mock_due")
+        problem = selection.problem
+        self.assertIsNotNone(problem)
+        # Drawn from a mastered/adjacent (Observation-stage) skill, unseen.
+        self.assertTrue(problem["primary_skill"].startswith("SK-OB-"))
+        solved_ids = {c["problem_id"] for c in self._base_progress()["completed"]}
+        self.assertNotIn(problem["id"], solved_ids)
+
+    def test_weekday_does_not_trigger_mock(self):
+        selection = select_next_problem(self._state(self._base_progress()), on_date=self.WEDNESDAY)
+        self.assertNotEqual(selection.mode, "mock_due")
+
+    def test_existing_weekend_mock_suppresses_mock_due(self):
+        progress = self._base_progress()
+        progress["mock_interviews"] = [{"date": "2026-07-25"}]
+        selection = select_next_problem(self._state(progress), on_date=self.SATURDAY)
+        self.assertNotEqual(selection.mode, "mock_due")
+
+    def test_overdue_revision_outranks_mock(self):
+        progress = self._base_progress()
+        progress["completed"][0] = self._completed("OBS-001", next_due="2026-07-01")
+        selection = select_next_problem(self._state(progress), on_date=self.SATURDAY)
+        self.assertEqual(selection.mode, "revision")
+
+    def test_practice_mock_when_no_skill_mastered(self):
+        progress = {
+            "completed": [self._completed("OBS-001")],
+            "mastered_skills": [],
+            "current_problem": None,
+            "current_stage": "Observation",
+        }
+        selection = select_next_problem(self._state(progress), on_date=self.SATURDAY)
+        self.assertEqual(selection.mode, "mock_due")
+        self.assertIn("practice", selection.reason)
 
 
 if __name__ == "__main__":

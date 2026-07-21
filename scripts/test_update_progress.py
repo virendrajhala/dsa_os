@@ -437,5 +437,106 @@ class CodeExecutionGateTests(unittest.TestCase):
         self.assertEqual(record["revision"]["history"][-1]["result"], "PASS")
 
 
+VALIDATOR = ROOT / "scripts" / "validate_curriculum.py"
+
+MOCK_ARGS = [
+    "--mode", "mock",
+    "--problem-id", "CPX-004",
+    "--completed-at", "2026-07-25",
+    "--mock-duration-minutes", "42",
+    "--mock-score", "problem_solving=3",
+    "--mock-score", "communication=3",
+    "--mock-score", "code_quality=3",
+    "--mock-score", "testing=2",
+    "--mock-score", "time_management=3",
+    "--mock-verdict", "hire",
+    "--mock-notes", "Found the approach unprompted; missed the self-match edge case.",
+    "--mock-weakness", "Started coding before stating complexity.",
+    "--format", "json",
+]
+
+
+class MockInterviewRecordingTests(unittest.TestCase):
+    """F10: --mode mock records into mock_interviews[] and mirrors weaknesses.
+
+    A mock never touches completion records, revision state, or the current
+    problem, so it is not blocked by the overdue-revision gate even though the
+    live fixture has overdue revisions.
+    """
+
+    def setUp(self) -> None:
+        self.tmpdir = tempfile.mkdtemp(prefix="dsa_os_test_")
+        self.tmp_progress = Path(self.tmpdir) / "progress.json"
+        shutil.copyfile(LIVE_PROGRESS, self.tmp_progress)
+        self.original = json.loads(self.tmp_progress.read_text())
+
+    def tearDown(self) -> None:
+        shutil.rmtree(self.tmpdir, ignore_errors=True)
+
+    def _run(self, extra_args: list[str]) -> subprocess.CompletedProcess:
+        return subprocess.run(
+            [sys.executable, str(SCRIPT), "--progress-file", str(self.tmp_progress), *extra_args],
+            capture_output=True,
+            text=True,
+            cwd=ROOT,
+        )
+
+    def _validate(self) -> subprocess.CompletedProcess:
+        return subprocess.run(
+            [
+                sys.executable,
+                str(VALIDATOR),
+                "--progress-file",
+                str(self.tmp_progress),
+                "--skip-template-progress",
+            ],
+            capture_output=True,
+            text=True,
+            cwd=ROOT,
+        )
+
+    def test_mock_round_trip(self) -> None:
+        result = self._run(MOCK_ARGS)
+        self.assertEqual(result.returncode, 0, msg=result.stdout + result.stderr)
+
+        updated = json.loads(self.tmp_progress.read_text())
+        self.assertEqual(len(updated["mock_interviews"]), 1)
+        entry = updated["mock_interviews"][0]
+        self.assertEqual(entry["problem_id"], "CPX-004")
+        self.assertEqual(entry["date"], "2026-07-25")
+        self.assertEqual(entry["duration_minutes"], 42)
+        self.assertEqual(entry["verdict"], "hire")
+        self.assertEqual(
+            set(entry["scores"]),
+            {"problem_solving", "communication", "code_quality", "testing", "time_management"},
+        )
+        self.assertEqual(entry["scores"]["testing"], 2)
+        self.assertEqual(entry["weaknesses"], ["Started coding before stating complexity."])
+
+        # Weakness mirrored into weaknesses_detected with a "Mock: " prefix.
+        self.assertIn(
+            "Mock: Started coding before stating complexity.",
+            updated["weaknesses_detected"]["CPX-004"],
+        )
+
+        # A mock does not create or mutate completion records.
+        self.assertEqual(updated["completed"], self.original["completed"])
+
+        # The recorded state must pass the validator.
+        validation = self._validate()
+        self.assertEqual(validation.returncode, 0, msg=validation.stdout + validation.stderr)
+
+    def test_mock_requires_all_scores(self) -> None:
+        # Drop the time_management dimension (its "--mock-score" flag and value)
+        # so the block is incomplete but still argparse-valid.
+        idx = MOCK_ARGS.index("time_management=3")
+        incomplete = MOCK_ARGS[: idx - 1] + MOCK_ARGS[idx + 1 :]
+        result = self._run(incomplete)
+        self.assertNotEqual(result.returncode, 0, msg=result.stdout)
+        self.assertIn("mock score", result.stderr)
+        # Gate fires before any write.
+        self.assertNotIn("mock_interviews", json.loads(self.tmp_progress.read_text()))
+
+
 if __name__ == "__main__":
     unittest.main()

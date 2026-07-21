@@ -14,6 +14,10 @@ from pathlib import Path
 from _shared import (
     DEFERRED_LEARNING_CATEGORIES,
     DEFERRED_LEARNING_PRIORITIES,
+    MOCK_DIMENSIONS,
+    MOCK_SCORE_MAXIMUM,
+    MOCK_SCORE_MINIMUM,
+    MOCK_VERDICTS,
     RepositoryError,
     append_history_event,
     apply_revision_result,
@@ -108,10 +112,21 @@ def build_parser() -> argparse.ArgumentParser:
         help="Minutes spent in the session. Required for a new solve; ignored for --revision-result.",
     )
     parser.add_argument(
+        "--mode",
+        choices=("solve", "revision", "mock"),
+        help=(
+            "Session mode. 'mock' records a weekend mock interview into mock_interviews[] "
+            "(see mentor/mock_interview_protocol.md). Defaults to a new solve, or a revision "
+            "when --revision-result is given."
+        ),
+    )
+    parser.add_argument(
         "--hint-level-used",
-        required=True,
         type=int,
-        help="Hint level used during the session. See progress/scoring.json. Required in both modes.",
+        help=(
+            "Hint level used during the session. See progress/scoring.json. Required for a "
+            "new solve or a revision; ignored for --mode mock."
+        ),
     )
     parser.add_argument(
         "--confidence-before",
@@ -120,9 +135,11 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--confidence-after",
-        required=True,
         type=int,
-        help="Confidence after solving on a 0-10 scale. Required in both modes.",
+        help=(
+            "Confidence after solving on a 0-10 scale. Required for a new solve or a "
+            "revision; ignored for --mode mock."
+        ),
     )
     parser.add_argument(
         "--thinking-breakthrough",
@@ -315,6 +332,40 @@ def build_parser() -> argparse.ArgumentParser:
         help="Optional note to append to progress.notes.",
     )
     parser.add_argument(
+        "--mock-duration-minutes",
+        type=int,
+        help="Wall-clock minutes spent in the mock interview (45-minute cap). Required for --mode mock.",
+    )
+    parser.add_argument(
+        "--mock-score",
+        action="append",
+        default=[],
+        metavar="DIMENSION=VALUE",
+        help=(
+            "Mock-interview rubric score (1-4). Repeat once per dimension. Required (all "
+            f"dimensions) for --mode mock. Dimensions: {', '.join(sorted(MOCK_DIMENSIONS))}."
+        ),
+    )
+    parser.add_argument(
+        "--mock-verdict",
+        choices=MOCK_VERDICTS,
+        help="Overall interviewer verdict. Required for --mode mock.",
+    )
+    parser.add_argument(
+        "--mock-notes",
+        help="Mock-interview debrief text. Required for --mode mock.",
+    )
+    parser.add_argument(
+        "--mock-weakness",
+        action="append",
+        default=[],
+        metavar="TEXT",
+        help=(
+            "Weakness surfaced by the mock. Repeatable. Recorded on the mock entry and also "
+            "appended to progress.weaknesses_detected with a 'Mock: ' prefix."
+        ),
+    )
+    parser.add_argument(
         "--format",
         choices=("json", "text"),
         default="json",
@@ -467,6 +518,93 @@ def update_implementation_engineering(progress: dict[str, Any], args: argparse.N
     )
 
 
+def record_mock_interview(
+    state: Any,
+    args: argparse.Namespace,
+    problem_id: str,
+    completed_on: Any,
+) -> int:
+    """F10: record a weekend mock interview into progress.mock_interviews[].
+
+    A mock is not a solve or a revision: it never touches completion records,
+    revision state, skill mastery, or the current-problem pointer. It appends
+    one immutable entry plus any surfaced weaknesses (also mirrored into
+    progress.weaknesses_detected with a "Mock: " prefix).
+    """
+
+    progress = state.progress
+
+    if args.mock_duration_minutes is None or args.mock_duration_minutes <= 0:
+        raise RepositoryError("`--mode mock` requires `--mock-duration-minutes` greater than zero.")
+    if not args.mock_verdict:
+        raise RepositoryError("`--mode mock` requires `--mock-verdict`.")
+    if not args.mock_notes or not args.mock_notes.strip():
+        raise RepositoryError("`--mode mock` requires a non-empty `--mock-notes` debrief.")
+
+    mock_scores = parse_score_block(
+        entries=args.mock_score,
+        required_dimensions=set(MOCK_DIMENSIONS),
+        minimum=float(MOCK_SCORE_MINIMUM),
+        maximum=float(MOCK_SCORE_MAXIMUM),
+        label="mock score",
+    )
+
+    weaknesses = [item.strip() for item in args.mock_weakness if item.strip()]
+
+    entry: dict[str, Any] = {
+        "date": format_iso_date(completed_on),
+        "problem_id": problem_id,
+        "duration_minutes": args.mock_duration_minutes,
+        "scores": mock_scores,
+        "verdict": args.mock_verdict,
+        "notes": args.mock_notes.strip(),
+        "weaknesses": weaknesses,
+    }
+    progress.setdefault("mock_interviews", []).append(entry)
+
+    if weaknesses:
+        detected = progress.setdefault("weaknesses_detected", {})
+        if not isinstance(detected, dict):
+            raise RepositoryError("`progress.weaknesses_detected` must be an object.")
+        detected.setdefault(problem_id, []).extend(f"Mock: {text}" for text in weaknesses)
+
+    progress["last_updated"] = format_iso_date(completed_on)
+    append_history_event(
+        progress,
+        {
+            "timestamp": format_iso_date(completed_on),
+            "event": "mock_interview_recorded",
+            "problem_id": problem_id,
+            "mode": "mock",
+            "verdict": args.mock_verdict,
+            "duration_minutes": args.mock_duration_minutes,
+        },
+    )
+
+    save_json_file(state.progress_path, progress)
+    payload = {
+        "mode": "mock",
+        "problem_id": problem_id,
+        "verdict": args.mock_verdict,
+        "duration_minutes": args.mock_duration_minutes,
+        "scores": mock_scores,
+        "weaknesses_recorded": weaknesses,
+        "progress_file": str(state.progress_path),
+    }
+    if args.format == "json":
+        print(json.dumps(payload, indent=2))
+    else:
+        lines = [
+            f"Mock interview: {problem_id} / {args.mock_verdict}",
+            f"Duration: {args.mock_duration_minutes} min",
+            "Scores: " + ", ".join(f"{dim}={mock_scores[dim]}" for dim in sorted(mock_scores)),
+        ]
+        if weaknesses:
+            lines.append(f"Weaknesses recorded: {len(weaknesses)}")
+        print("\n".join(lines))
+    return 0
+
+
 def main() -> int:
     """Run the CLI."""
 
@@ -483,6 +621,14 @@ def main() -> int:
             raise RepositoryError("No problem id provided and no active current problem is set.")
         if problem_id not in problems:
             raise RepositoryError(f"Unknown problem id `{problem_id}`.")
+
+        # F10: a mock interview is a self-contained recording path; it never
+        # touches completion records, revision state, or the current problem.
+        if args.mode == "mock":
+            if args.revision_result:
+                raise RepositoryError("`--mode mock` cannot be combined with `--revision-result`.")
+            return record_mock_interview(state, args, problem_id, completed_on)
+
         deferred_learning_skill = args.deferred_learning_skill or problems[problem_id].get("primary_skill")
         if deferred_learning_skill not in state.skills.get("skills", {}):
             raise RepositoryError(f"Unknown deferred learning skill `{deferred_learning_skill}`.")
@@ -493,8 +639,12 @@ def main() -> int:
 
         is_revision = bool(args.revision_result)
 
+        if args.hint_level_used is None:
+            raise RepositoryError("`--hint-level-used` is required for a new solve or a revision.")
         if not 0 <= args.hint_level_used <= 7:
             raise RepositoryError("`--hint-level-used` must be between 0 and 7.")
+        if args.confidence_after is None:
+            raise RepositoryError("`--confidence-after` is required for a new solve or a revision.")
         if not 0 <= args.confidence_after <= 10:
             raise RepositoryError("`--confidence-after` must be between 0 and 10.")
         algorithm_thinking_score = validate_zero_to_ten(
