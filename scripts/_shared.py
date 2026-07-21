@@ -370,7 +370,7 @@ def last_completion_record(progress: JsonDict) -> JsonDict | None:
 def revision_stage_label(stage: int) -> str:
     """Return the next revision label for a completed revision stage count."""
 
-    return "MASTERED" if stage >= 5 else f"R{stage + 1}"
+    return "MASTERED" if stage >= 4 else f"R{stage + 1}"
 
 
 def initial_revision_state(completed_on: date) -> JsonDict:
@@ -1015,7 +1015,7 @@ def apply_revision_result(
     if result == "PASS":
         revision.setdefault("completed", []).append(format_iso_date(completed_on))
         revision["stage"] = attempted_stage
-        if attempted_stage >= 5:
+        if attempted_stage >= 4:
             revision["status"] = "MASTERED"
             revision["next_due"] = None
             revision["last_maintenance"] = format_iso_date(completed_on)

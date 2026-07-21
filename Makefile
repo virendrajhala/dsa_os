@@ -1,9 +1,12 @@
 PYTHON ?= python3
 
-.PHONY: validate dashboard web-dashboard next revise stats weakness progress
+.PHONY: validate test dashboard web-dashboard next revise stats weakness progress
 
 validate:
 	$(PYTHON) scripts/validate_curriculum.py
+
+test:
+	$(PYTHON) scripts/test_shared.py
 
 dashboard:
 	$(PYTHON) scripts/dashboard.py
