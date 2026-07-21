@@ -124,6 +124,10 @@ Consider whether anything should be updated in:
   - reusable learner thinking patterns
 - `knowledge/patterns.json`
   - stable transferable pattern models
+- `interview_playbook.md`
+  - append the session's `interview takeaway` to the matching topic section
+    (Arrays & Strings / Trees & BSTs / Graphs / DP / Heaps & Design /
+    General); this is what keeps the playbook current instead of frozen
 
 Do not add memorized facts, generic advice, or duplicate notes.
 

@@ -1750,8 +1750,8 @@
     },
     "SK-IN-07": {
       "id": "SK-IN-07",
-      "name": "Advanced System Design",
-      "description": "Advanced System Design \u2014 maintain a dynamic ordered set of occupied positions (a sorted structure or a heap of gaps) supporting online insert/remove operations while always answering the optimal-placement query efficiently.",
+      "name": "Data-Structure Design",
+      "description": "Data-Structure Design \u2014 maintain a dynamic ordered set of occupied positions (a sorted structure or a heap of gaps) supporting online insert/remove operations while always answering the optimal-placement query efficiently.",
       "stage": "Integration",
       "prerequisites": [
         "SK-IN-06"
