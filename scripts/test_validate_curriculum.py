@@ -11,6 +11,7 @@ so the real file is never opened for writing.
 
 from __future__ import annotations
 
+import copy
 import json
 import shutil
 import subprocess
@@ -18,6 +19,10 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+
+import _shared
+from _shared import load_json_file
+from validate_curriculum import validate_curriculum
 
 ROOT = Path(__file__).resolve().parent.parent
 SCRIPT = ROOT / "scripts" / "validate_curriculum.py"
@@ -105,6 +110,59 @@ class MentorScoresValidationTests(unittest.TestCase):
         result = self._run()
         self.assertNotEqual(result.returncode, 0, msg=result.stdout + result.stderr)
         self.assertIn("mentor thinking score", result.stdout + result.stderr)
+
+
+class ReadinessScoringValidationTests(unittest.TestCase):
+    """F23: `scoring.json` `readiness` block validation (mirrors hint_mastery_discount)."""
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.curriculum = load_json_file(_shared.CURRICULUM_PATH)
+        cls.graph = load_json_file(_shared.GRAPH_PATH)
+        cls.stages = load_json_file(_shared.STAGES_PATH)
+        cls.skills = load_json_file(_shared.SKILLS_PATH)
+        cls.scoring = load_json_file(_shared.SCORING_PATH)
+
+    def _errors(self, scoring: dict) -> list[str]:
+        errors, _warnings = validate_curriculum(self.curriculum, self.graph, self.stages, self.skills, scoring)
+        return errors
+
+    def test_live_scoring_readiness_block_passes(self) -> None:
+        errors = self._errors(self.scoring)
+        self.assertFalse(
+            [e for e in errors if "readiness" in e],
+            msg="\n".join(errors),
+        )
+
+    def test_missing_readiness_block_fails(self) -> None:
+        scoring = copy.deepcopy(self.scoring)
+        del scoring["readiness"]
+        errors = self._errors(scoring)
+        self.assertTrue(any("`readiness` must be a non-empty object" in e for e in errors), msg=errors)
+
+    def test_core_skill_fraction_out_of_range_fails(self) -> None:
+        scoring = copy.deepcopy(self.scoring)
+        scoring["readiness"]["core_skill_fraction"] = 1.5
+        errors = self._errors(scoring)
+        self.assertTrue(any("readiness.core_skill_fraction" in e for e in errors), msg=errors)
+
+    def test_stage_scope_count_beyond_stage_order_length_fails(self) -> None:
+        scoring = copy.deepcopy(self.scoring)
+        scoring["readiness"]["stage_scope_count"] = len(self.stages["stage_order"]) + 1
+        errors = self._errors(scoring)
+        self.assertTrue(any("readiness.stage_scope_count" in e for e in errors), msg=errors)
+
+    def test_zero_recent_mock_count_fails(self) -> None:
+        scoring = copy.deepcopy(self.scoring)
+        scoring["readiness"]["recent_mock_count"] = 0
+        errors = self._errors(scoring)
+        self.assertTrue(any("readiness.recent_mock_count" in e for e in errors), msg=errors)
+
+    def test_invalid_min_mock_verdict_fails(self) -> None:
+        scoring = copy.deepcopy(self.scoring)
+        scoring["readiness"]["min_mock_verdicts"] = ["hire", "definitely-hire"]
+        errors = self._errors(scoring)
+        self.assertTrue(any("readiness.min_mock_verdicts" in e for e in errors), msg=errors)
 
 
 if __name__ == "__main__":

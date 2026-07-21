@@ -1364,3 +1364,282 @@ def weakest_skills(state: RepositoryState, limit: int = 5) -> list[JsonDict]:
         results,
         key=lambda item: (item["average_weighted_thinking_score"], item["skill"]),
     )[:limit]
+
+
+# ---------------------------------------------------------------------------
+# F23: system-derived interview-readiness estimator. Reads scoring.json's
+# `readiness` block so thresholds stay editable without code. Readiness gates
+# nothing - it is recomputed every run and is purely informational.
+# ---------------------------------------------------------------------------
+def core_skill_ids_in_scope(
+    curriculum: JsonDict,
+    stages: JsonDict,
+    skills: JsonDict,
+    readiness_cfg: JsonDict,
+) -> set[str]:
+    """Return the "CORE skills in scope" set for the readiness estimator.
+
+    A skill is in scope when its stage is one of the first
+    `readiness.stage_scope_count` stages of `stages.stage_order` (config-driven,
+    so a later stage reorder keeps working) AND at least one curriculum
+    problem with `importance == "CORE"` maps to it via `primary_skill`.
+    """
+
+    stage_order = ensure_list(stages.get("stage_order"), "stages.stage_order")
+    scope_count = int(readiness_cfg.get("stage_scope_count", len(stage_order)))
+    scope_stages = set(stage_order[:scope_count])
+
+    problems = ensure_list(curriculum.get("problems"), "curriculum.problems")
+    core_skills_from_problems = {
+        problem.get("primary_skill")
+        for problem in problems
+        if isinstance(problem, dict)
+        and problem.get("importance") == "CORE"
+        and isinstance(problem.get("primary_skill"), str)
+    }
+
+    return {
+        skill_id
+        for skill_id, skill in skill_lookup(skills).items()
+        if not is_global_skill(skill)
+        and skill.get("stage") in scope_stages
+        and skill_id in core_skills_from_problems
+    }
+
+
+def compute_core_mastery_status(
+    skill_progress: dict[str, JsonDict],
+    core_skill_ids: set[str],
+) -> JsonDict:
+    """Return mastered/total/fraction for the CORE-skills-in-scope set."""
+
+    total = len(core_skill_ids)
+    mastered = sum(1 for sid in core_skill_ids if skill_progress.get(sid, {}).get("mastered"))
+    fraction = round(mastered / total, 4) if total else 0.0
+    return {"mastered": mastered, "total": total, "fraction": fraction}
+
+
+def compute_revision_pass_rate(progress: JsonDict) -> JsonDict:
+    """Return the active-recall revision PASS rate: PASS / (PASS + FAIL).
+
+    REACTIVATED events are excluded - they are a system-scheduled prerequisite
+    reinforcement, not a graded recall attempt outcome (mirrors the existing
+    dashboard "Revision impact" card in web_dashboard/app.js).
+    """
+
+    pass_count = 0
+    total = 0
+    for record in completed_records(progress):
+        revision = record.get("revision")
+        if not isinstance(revision, dict):
+            continue
+        history = revision.get("history")
+        if not isinstance(history, list):
+            continue
+        for event in history:
+            if not isinstance(event, dict):
+                continue
+            result = event.get("result")
+            if result not in {"PASS", "FAIL"}:
+                continue
+            total += 1
+            if result == "PASS":
+                pass_count += 1
+    fraction = round(pass_count / total, 4) if total else 0.0
+    return {"pass": pass_count, "total": total, "fraction": fraction}
+
+
+def compute_recent_mock_status(progress: JsonDict, readiness_cfg: JsonDict) -> JsonDict:
+    """Return whether the last `recent_mock_count` mocks all cleared the verdict bar.
+
+    Fewer than `recent_mock_count` recorded mocks means the criterion is
+    structurally unmet regardless of verdicts.
+    """
+
+    entries = mock_interview_entries(progress)
+    required = int(readiness_cfg.get("recent_mock_count", 3))
+    allowed_verdicts = set(readiness_cfg.get("min_mock_verdicts", []))
+    recent = entries[-required:] if entries else []
+    met = len(entries) >= required and all(entry.get("verdict") in allowed_verdicts for entry in recent)
+    return {
+        "recorded": len(entries),
+        "required": required,
+        "recent_verdicts": [entry.get("verdict") for entry in recent],
+        "met": met,
+    }
+
+
+def _completion_date(record: JsonDict | None) -> date | None:
+    """Return the parsed `completed_at` date for a completion record, if valid."""
+
+    if not isinstance(record, dict):
+        return None
+    completed_at = record.get("completed_at")
+    if not isinstance(completed_at, str):
+        return None
+    try:
+        return parse_iso_date(completed_at, "completed_at")
+    except RepositoryError:
+        return None
+
+
+def skill_mastery_dates(
+    skills: JsonDict,
+    progress: JsonDict,
+    skill_progress: dict[str, JsonDict],
+) -> dict[str, date | None]:
+    """Derive when each mastered skill was mastered, for pace calculations.
+
+    Progress does not separately timestamp skill mastery, so this is derived
+    (system-derived, per F23): mastery is reached the moment BOTH conditions
+    are first satisfied - the primary validation problem is solved AND at
+    least one reinforcement problem is solved - so the mastery date is
+    `max(primary completion date, earliest reinforcement completion date)`.
+    Skills that are not mastered, or are missing a dated primary/reinforcement
+    completion, map to None.
+    """
+
+    latest_by_problem = latest_records_by_problem(progress)
+    result: dict[str, date | None] = {}
+    for skill_id, skill in skill_lookup(skills).items():
+        if not skill_progress.get(skill_id, {}).get("mastered"):
+            continue
+        primary_date = _completion_date(latest_by_problem.get(skill.get("primary_validation_problem")))
+        reinforcement_ids = skill.get("reinforcement_problems") or []
+        reinforcement_dates = [
+            d
+            for d in (_completion_date(latest_by_problem.get(rid)) for rid in reinforcement_ids)
+            if d is not None
+        ]
+        if primary_date is None or not reinforcement_dates:
+            result[skill_id] = None
+            continue
+        result[skill_id] = max(primary_date, min(reinforcement_dates))
+    return result
+
+
+def compute_pace(
+    progress: JsonDict,
+    skills: JsonDict,
+    skill_progress: dict[str, JsonDict],
+    readiness_cfg: JsonDict,
+    on_date: date,
+) -> JsonDict:
+    """Return problems/week and skills-mastered/week over the trailing pace window."""
+
+    window_days = int(readiness_cfg.get("pace_window_days", 28))
+    window_start = on_date - timedelta(days=max(window_days - 1, 0))
+
+    problems_in_window = sum(
+        1
+        for record in completed_records(progress)
+        if (completed_on := _completion_date(record)) is not None and window_start <= completed_on <= on_date
+    )
+
+    mastery_dates = skill_mastery_dates(skills, progress, skill_progress)
+    skills_in_window = sum(
+        1
+        for mastered_on in mastery_dates.values()
+        if mastered_on is not None and window_start <= mastered_on <= on_date
+    )
+
+    weeks = window_days / 7 if window_days else 0.0
+    return {
+        "window_days": window_days,
+        "problems_in_window": problems_in_window,
+        "skills_mastered_in_window": skills_in_window,
+        "problems_per_week": round(problems_in_window / weeks, 4) if weeks else 0.0,
+        "skills_mastered_per_week": round(skills_in_window / weeks, 4) if weeks else 0.0,
+    }
+
+
+def project_readiness_date(
+    remaining_core_skills: int,
+    skills_mastered_per_week: float,
+    on_date: date,
+) -> JsonDict:
+    """Linearly extrapolate the binding constraint (skills-mastered pace vs
+    remaining CORE skills needed) to a projected interview-ready date.
+    Informational only - never gates anything.
+    """
+
+    if remaining_core_skills <= 0:
+        return {
+            "status": "core_mastery_met",
+            "message": (
+                "Core-skill mastery target is already met. Any remaining thresholds "
+                "(revision pass rate, recent mock verdicts) do not accrue via pace."
+            ),
+        }
+    if skills_mastered_per_week <= 0:
+        return {
+            "status": "no_pace",
+            "message": "no projection yet (need consistent weekly activity)",
+        }
+
+    weeks_needed = remaining_core_skills / skills_mastered_per_week
+    projected_date = on_date + timedelta(days=round(weeks_needed * 7))
+    projected_iso = format_iso_date(projected_date)
+    return {
+        "status": "projected",
+        "date": projected_iso,
+        "message": f"interview-ready around {projected_iso}",
+    }
+
+
+def compute_readiness(
+    curriculum: JsonDict,
+    stages: JsonDict,
+    skills: JsonDict,
+    scoring: JsonDict,
+    progress: JsonDict,
+    on_date: date,
+) -> JsonDict:
+    """Compute the full F23 interview-readiness snapshot for a reference date."""
+
+    readiness_cfg = scoring.get("readiness", {})
+    core_fraction_target = float(readiness_cfg.get("core_skill_fraction", 0.8))
+    pass_rate_target = float(readiness_cfg.get("revision_pass_rate", 0.9))
+
+    core_skill_ids = core_skill_ids_in_scope(curriculum, stages, skills, readiness_cfg)
+    skill_progress = compute_skill_progress(curriculum, skills, scoring, progress)
+    core_status = compute_core_mastery_status(skill_progress, core_skill_ids)
+    pass_status = compute_revision_pass_rate(progress)
+    mock_status = compute_recent_mock_status(progress, readiness_cfg)
+    pace = compute_pace(progress, skills, skill_progress, readiness_cfg, on_date)
+
+    core_met = core_status["fraction"] >= core_fraction_target
+    pass_met = pass_status["total"] > 0 and pass_status["fraction"] >= pass_rate_target
+    mock_met = mock_status["met"]
+
+    remaining_core = max(core_status["total"] - core_status["mastered"], 0)
+    projection = project_readiness_date(remaining_core, pace["skills_mastered_per_week"], on_date)
+
+    return {
+        "date": format_iso_date(on_date),
+        "thresholds": {
+            "core_skill_mastery": {
+                "met": core_met,
+                "actual": core_status["fraction"],
+                "target": core_fraction_target,
+                "mastered": core_status["mastered"],
+                "total": core_status["total"],
+            },
+            "revision_pass_rate": {
+                "met": pass_met,
+                "actual": pass_status["fraction"],
+                "target": pass_rate_target,
+                "pass": pass_status["pass"],
+                "total": pass_status["total"],
+            },
+            "recent_mocks": {
+                "met": mock_met,
+                "recorded": mock_status["recorded"],
+                "required": mock_status["required"],
+                "recent_verdicts": mock_status["recent_verdicts"],
+            },
+        },
+        "pace": pace,
+        "projection": projection,
+        "all_met": core_met and pass_met and mock_met,
+    }

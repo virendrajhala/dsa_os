@@ -7,17 +7,25 @@ Run: python3 scripts/test_shared.py
 from __future__ import annotations
 
 import unittest
-from datetime import date
+from datetime import date, timedelta
 
 import _shared
 from _shared import (
     RepositoryState,
     apply_revision_result,
+    compute_core_mastery_status,
+    compute_pace,
+    compute_readiness,
+    compute_recent_mock_status,
+    compute_revision_pass_rate,
     compute_skill_progress,
+    core_skill_ids_in_scope,
     is_mock_due,
     load_json_file,
+    project_readiness_date,
     revision_stage_label,
     select_next_problem,
+    skill_mastery_dates,
     weekend_window,
 )
 
@@ -331,6 +339,244 @@ class MockSelectionOrderingTests(unittest.TestCase):
         selection = select_next_problem(self._state(progress), on_date=self.SATURDAY)
         self.assertEqual(selection.mode, "mock_due")
         self.assertIn("practice", selection.reason)
+
+
+class ReadinessTests(unittest.TestCase):
+    """F23: system-derived interview-readiness estimator (pure functions)."""
+
+    STAGES = {
+        "stage_order": ["Stage1", "Stage2", "Stage3"],
+        "stages": {
+            "Stage1": {"skills": ["SK-A", "SK-B"]},
+            "Stage2": {"skills": ["SK-C"]},
+            "Stage3": {"skills": ["SK-D"]},
+        },
+    }
+    CURRICULUM = {
+        "problems": [
+            {"id": "P-A1", "primary_skill": "SK-A", "importance": "CORE"},
+            # SK-B is in scope but has no CORE problem -> excluded.
+            {"id": "P-B1", "primary_skill": "SK-B", "importance": "COMMON"},
+            {"id": "P-C1", "primary_skill": "SK-C", "importance": "CORE"},
+            # SK-D's stage (Stage3) is outside the first-2-stage scope -> excluded.
+            {"id": "P-D1", "primary_skill": "SK-D", "importance": "CORE"},
+        ]
+    }
+    SKILLS = {
+        "skills": {
+            "SK-A": {"stage": "Stage1", "primary_validation_problem": "P-A1", "reinforcement_problems": ["P-A2"]},
+            "SK-B": {"stage": "Stage1", "primary_validation_problem": "P-B1", "reinforcement_problems": ["P-B2"]},
+            "SK-C": {"stage": "Stage2", "primary_validation_problem": "P-C1", "reinforcement_problems": ["P-C2"]},
+            "SK-D": {"stage": "Stage3", "primary_validation_problem": "P-D1", "reinforcement_problems": ["P-D2"]},
+        }
+    }
+    READINESS_CFG = {
+        "core_skill_fraction": 0.8,
+        "stage_scope_count": 2,
+        "revision_pass_rate": 0.9,
+        "recent_mock_count": 3,
+        "min_mock_verdicts": ["hire", "strong-hire"],
+        "pace_window_days": 28,
+    }
+
+    def test_core_skill_ids_in_scope_filters_by_stage_and_core_importance(self):
+        ids = core_skill_ids_in_scope(self.CURRICULUM, self.STAGES, self.SKILLS, self.READINESS_CFG)
+        self.assertEqual(ids, {"SK-A", "SK-C"})
+
+    def test_core_mastery_status_fraction(self):
+        skill_progress = {"SK-A": {"mastered": True}, "SK-C": {"mastered": False}}
+        status = compute_core_mastery_status(skill_progress, {"SK-A", "SK-C"})
+        self.assertEqual(status, {"mastered": 1, "total": 2, "fraction": 0.5})
+
+    def test_core_mastery_status_empty_scope(self):
+        status = compute_core_mastery_status({}, set())
+        self.assertEqual(status, {"mastered": 0, "total": 0, "fraction": 0.0})
+
+    def test_revision_pass_rate_excludes_reactivated_events(self):
+        progress = {
+            "completed": [
+                {
+                    "revision": {
+                        "history": [
+                            {"result": "PASS"},
+                            {"result": "PASS"},
+                            {"result": "FAIL"},
+                            {"result": "REACTIVATED"},
+                        ]
+                    }
+                }
+            ]
+        }
+        status = compute_revision_pass_rate(progress)
+        self.assertEqual(status["pass"], 2)
+        self.assertEqual(status["total"], 3)
+        self.assertAlmostEqual(status["fraction"], 2 / 3, places=4)
+
+    def test_revision_pass_rate_no_events_is_zero(self):
+        status = compute_revision_pass_rate({"completed": []})
+        self.assertEqual(status, {"pass": 0, "total": 0, "fraction": 0.0})
+
+    def test_recent_mock_status_no_mocks_is_unmet(self):
+        status = compute_recent_mock_status({}, self.READINESS_CFG)
+        self.assertFalse(status["met"])
+        self.assertEqual(status["recorded"], 0)
+        self.assertEqual(status["required"], 3)
+
+    def test_recent_mock_status_three_hire_mocks_is_met(self):
+        progress = {
+            "mock_interviews": [
+                {"date": "2026-06-01", "verdict": "hire"},
+                {"date": "2026-06-08", "verdict": "strong-hire"},
+                {"date": "2026-06-15", "verdict": "hire"},
+            ]
+        }
+        status = compute_recent_mock_status(progress, self.READINESS_CFG)
+        self.assertTrue(status["met"])
+        self.assertEqual(status["recorded"], 3)
+
+    def test_recent_mock_status_recent_no_hire_is_unmet(self):
+        progress = {
+            "mock_interviews": [
+                {"date": "2026-06-01", "verdict": "hire"},
+                {"date": "2026-06-08", "verdict": "hire"},
+                {"date": "2026-06-15", "verdict": "no-hire"},
+            ]
+        }
+        status = compute_recent_mock_status(progress, self.READINESS_CFG)
+        self.assertFalse(status["met"])
+
+    def test_skill_mastery_dates_uses_max_of_primary_and_earliest_reinforcement(self):
+        progress = {
+            "completed": [
+                {"problem_id": "P-A1", "completed_at": "2026-07-01"},
+                {"problem_id": "P-A2", "completed_at": "2026-07-05"},
+            ]
+        }
+        skill_progress = {"SK-A": {"mastered": True}}
+        dates = skill_mastery_dates(self.SKILLS, progress, skill_progress)
+        self.assertEqual(dates["SK-A"], date(2026, 7, 5))
+
+    def test_skill_mastery_dates_none_when_reinforcement_missing(self):
+        progress = {"completed": [{"problem_id": "P-A1", "completed_at": "2026-07-01"}]}
+        skill_progress = {"SK-A": {"mastered": True}}
+        dates = skill_mastery_dates(self.SKILLS, progress, skill_progress)
+        self.assertIsNone(dates["SK-A"])
+
+    def test_compute_pace_counts_problems_and_skills_in_window(self):
+        on_date = date(2026, 7, 21)
+        progress = {
+            "completed": [
+                {"problem_id": "PX1", "completed_at": "2026-07-01"},
+                {"problem_id": "PX2", "completed_at": "2026-07-05"},  # SK-X mastery date, in window
+                {"problem_id": "PY1", "completed_at": "2026-05-01"},
+                {"problem_id": "PY2", "completed_at": "2026-05-10"},  # SK-Y mastery date, out of window
+                {"problem_id": "OTHER-1", "completed_at": "2026-07-10"},
+            ]
+        }
+        skills = {
+            "skills": {
+                "SK-X": {"primary_validation_problem": "PX1", "reinforcement_problems": ["PX2"]},
+                "SK-Y": {"primary_validation_problem": "PY1", "reinforcement_problems": ["PY2"]},
+            }
+        }
+        skill_progress = {"SK-X": {"mastered": True}, "SK-Y": {"mastered": True}}
+        pace = compute_pace(progress, skills, skill_progress, self.READINESS_CFG, on_date)
+        self.assertEqual(pace["window_days"], 28)
+        # 3 completions fall within [2026-06-24, 2026-07-21]: PX1, PX2, OTHER-1.
+        self.assertEqual(pace["problems_in_window"], 3)
+        self.assertEqual(pace["skills_mastered_in_window"], 1)
+        self.assertAlmostEqual(pace["problems_per_week"], 3 / 4, places=4)
+        self.assertAlmostEqual(pace["skills_mastered_per_week"], 1 / 4, places=4)
+
+    def test_project_readiness_date_core_mastery_already_met(self):
+        result = project_readiness_date(0, 0.5, date(2026, 7, 21))
+        self.assertEqual(result["status"], "core_mastery_met")
+
+    def test_project_readiness_date_no_pace_is_unprojected(self):
+        result = project_readiness_date(3, 0.0, date(2026, 7, 21))
+        self.assertEqual(result["status"], "no_pace")
+        self.assertIn("no projection yet", result["message"])
+
+    def test_project_readiness_date_linear_extrapolation(self):
+        on_date = date(2026, 7, 21)
+        result = project_readiness_date(2, 0.25, on_date)
+        self.assertEqual(result["status"], "projected")
+        expected = on_date + timedelta(days=56)
+        self.assertEqual(result["date"], expected.isoformat())
+        self.assertIn(expected.isoformat(), result["message"])
+
+    def test_compute_readiness_no_mocks_is_unmet(self):
+        curriculum = {"problems": [{"id": "P-A1", "primary_skill": "SK-A", "importance": "CORE"}]}
+        stages = {"stage_order": ["Stage1"], "stages": {"Stage1": {"skills": ["SK-A"]}}}
+        skills = {
+            "skills": {
+                "SK-A": {
+                    "stage": "Stage1",
+                    "primary_validation_problem": "P-A1",
+                    "reinforcement_problems": ["P-A2"],
+                }
+            }
+        }
+        scoring = dict(_SCORING)
+        scoring["readiness"] = {
+            "core_skill_fraction": 0.8,
+            "stage_scope_count": 1,
+            "revision_pass_rate": 0.9,
+            "recent_mock_count": 3,
+            "min_mock_verdicts": ["hire", "strong-hire"],
+            "pace_window_days": 28,
+        }
+        progress = {"completed": []}
+        result = compute_readiness(curriculum, stages, skills, scoring, progress, date(2026, 7, 21))
+        self.assertFalse(result["thresholds"]["recent_mocks"]["met"])
+        self.assertFalse(result["all_met"])
+
+    def test_compute_readiness_all_met(self):
+        curriculum = {"problems": [{"id": "P-A1", "primary_skill": "SK-A", "importance": "CORE"}]}
+        stages = {"stage_order": ["Stage1"], "stages": {"Stage1": {"skills": ["SK-A"]}}}
+        skills = {
+            "skills": {
+                "SK-A": {
+                    "stage": "Stage1",
+                    "primary_validation_problem": "P-A1",
+                    "reinforcement_problems": ["P-A2"],
+                }
+            }
+        }
+        scoring = {
+            "scale": {"minimum": 0, "maximum": 4},
+            "weights": {"understanding": 0.5, "algorithm_design": 0.5},
+            "skill_mastery": {"minimum_primary_weighted_score": 2.6, "require_reinforcement_attempt": True},
+            "hint_mastery_discount": {"0": 1, "1": 1, "2": 1, "3": 0.5, "4": 0.5, "5": 0, "6": 0, "7": 0},
+            "readiness": {
+                "core_skill_fraction": 0.8,
+                "stage_scope_count": 1,
+                "revision_pass_rate": 0.9,
+                "recent_mock_count": 3,
+                "min_mock_verdicts": ["hire", "strong-hire"],
+                "pace_window_days": 28,
+            },
+        }
+        progress = {
+            "completed": [
+                _completion("P-A1", hint_level_used=0, thinking_score={"understanding": 4, "algorithm_design": 4}),
+                {
+                    "problem_id": "P-A2",
+                    "completed_at": "2026-01-01",
+                    "revision": {"history": [{"result": "PASS"}, {"result": "PASS"}, {"result": "PASS"}]},
+                },
+            ],
+            "mock_interviews": [
+                {"date": "2026-06-01", "verdict": "hire"},
+                {"date": "2026-06-08", "verdict": "strong-hire"},
+                {"date": "2026-06-15", "verdict": "hire"},
+            ],
+        }
+        result = compute_readiness(curriculum, stages, skills, scoring, progress, date(2026, 7, 21))
+        self.assertTrue(result["thresholds"]["core_skill_mastery"]["met"])
+        self.assertTrue(result["thresholds"]["revision_pass_rate"]["met"])
+        self.assertTrue(result["thresholds"]["recent_mocks"]["met"])
+        self.assertTrue(result["all_met"])
 
 
 if __name__ == "__main__":

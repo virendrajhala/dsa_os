@@ -385,6 +385,222 @@
     };
   }
 
+  // ---------------------------------------------------------------------
+  // F23: system-derived interview-readiness estimator (informational only;
+  // gates nothing). Mirrors scripts/_shared.py's compute_readiness family so
+  // the dashboard and `revision_report.py` agree without a server round trip.
+  // ---------------------------------------------------------------------
+  function readinessConfig() {
+    return state.datasets.scoring.readiness || {};
+  }
+
+  function coreSkillIdsInScope() {
+    const { curriculum, stages, skills } = state.datasets;
+    const cfg = readinessConfig();
+    const stageOrder = stages.stage_order || [];
+    const scopeCount = Number.isInteger(cfg.stage_scope_count) ? cfg.stage_scope_count : stageOrder.length;
+    const scopeStages = new Set(stageOrder.slice(0, scopeCount));
+    const coreSkillsFromProblems = new Set(
+      curriculum.problems
+        .filter((problem) => problem.importance === "CORE" && typeof problem.primary_skill === "string")
+        .map((problem) => problem.primary_skill),
+    );
+    const result = new Set();
+    Object.entries(skills.skills || {}).forEach(([skillId, skill]) => {
+      if (skill.scope === "global") return;
+      if (scopeStages.has(skill.stage) && coreSkillsFromProblems.has(skillId)) {
+        result.add(skillId);
+      }
+    });
+    return result;
+  }
+
+  function computeCoreMasteryStatus() {
+    const skillProgress = state.datasets.progress.skill_progress || {};
+    const coreIds = coreSkillIdsInScope();
+    let mastered = 0;
+    coreIds.forEach((id) => {
+      if (skillProgress[id]?.mastered) mastered += 1;
+    });
+    const total = coreIds.size;
+    return { mastered, total, fraction: total ? mastered / total : 0 };
+  }
+
+  function computeRevisionPassRate() {
+    const completed = state.datasets.progress.completed || [];
+    const events = completed.flatMap((record) => record.revision?.history || []);
+    // REACTIVATED events are excluded: a system-scheduled prerequisite
+    // reinforcement, not a graded recall attempt outcome.
+    const passCount = events.filter((event) => event.result === "PASS").length;
+    const failCount = events.filter((event) => event.result === "FAIL").length;
+    const total = passCount + failCount;
+    return { pass: passCount, total, fraction: total ? passCount / total : 0 };
+  }
+
+  function computeRecentMockStatus() {
+    const cfg = readinessConfig();
+    const entries = Array.isArray(state.datasets.progress.mock_interviews)
+      ? state.datasets.progress.mock_interviews
+      : [];
+    const required = Number.isInteger(cfg.recent_mock_count) ? cfg.recent_mock_count : 3;
+    const allowed = new Set(cfg.min_mock_verdicts || []);
+    const recent = entries.length ? entries.slice(-required) : [];
+    const met = entries.length >= required && recent.every((entry) => allowed.has(entry.verdict));
+    return {
+      recorded: entries.length,
+      required,
+      recentVerdicts: recent.map((entry) => entry.verdict),
+      met,
+    };
+  }
+
+  function skillMasteryDates() {
+    const { skills, progress } = state.datasets;
+    const skillProgress = progress.skill_progress || {};
+    const dates = {};
+    Object.entries(skills.skills || {}).forEach(([skillId, skill]) => {
+      if (!skillProgress[skillId]?.mastered) return;
+      const primaryRecord = state.completedById.get(skill.primary_validation_problem);
+      const primaryDate = primaryRecord ? parseDate(primaryRecord.completed_at) : null;
+      const reinforcementDates = (skill.reinforcement_problems || [])
+        .map((problemId) => state.completedById.get(problemId))
+        .filter(Boolean)
+        .map((record) => parseDate(record.completed_at))
+        .filter(Boolean);
+      if (!primaryDate || !reinforcementDates.length) {
+        dates[skillId] = null;
+        return;
+      }
+      const earliestReinforcement = reinforcementDates.reduce((min, d) => (d < min ? d : min));
+      dates[skillId] = primaryDate > earliestReinforcement ? primaryDate : earliestReinforcement;
+    });
+    return dates;
+  }
+
+  function computePace(onDate) {
+    const cfg = readinessConfig();
+    const windowDays = Number.isInteger(cfg.pace_window_days) ? cfg.pace_window_days : 28;
+    const windowStart = new Date(onDate);
+    windowStart.setDate(windowStart.getDate() - Math.max(windowDays - 1, 0));
+
+    const completed = state.datasets.progress.completed || [];
+    const problemsInWindow = completed.filter((record) => {
+      const completedOn = parseDate(record.completed_at);
+      return completedOn && completedOn >= windowStart && completedOn <= onDate;
+    }).length;
+
+    const masteryDates = skillMasteryDates();
+    const skillsInWindow = Object.values(masteryDates).filter(
+      (masteredOn) => masteredOn && masteredOn >= windowStart && masteredOn <= onDate,
+    ).length;
+
+    const weeks = windowDays / 7;
+    return {
+      windowDays,
+      problemsInWindow,
+      skillsInWindow,
+      problemsPerWeek: weeks ? problemsInWindow / weeks : 0,
+      skillsMasteredPerWeek: weeks ? skillsInWindow / weeks : 0,
+    };
+  }
+
+  function projectReadinessDate(remainingCore, skillsMasteredPerWeek, onDate) {
+    if (remainingCore <= 0) {
+      return {
+        status: "core_mastery_met",
+        message: "core-skill mastery target already met; other thresholds do not accrue via pace",
+      };
+    }
+    if (skillsMasteredPerWeek <= 0) {
+      return { status: "no_pace", message: "no projection yet (need consistent weekly activity)" };
+    }
+    const weeksNeeded = remainingCore / skillsMasteredPerWeek;
+    const projected = new Date(onDate);
+    projected.setDate(projected.getDate() + Math.round(weeksNeeded * 7));
+    const iso = isoDate(projected);
+    return { status: "projected", date: iso, message: `interview-ready around ${iso}` };
+  }
+
+  function computeReadiness() {
+    const cfg = readinessConfig();
+    const coreFractionTarget = typeof cfg.core_skill_fraction === "number" ? cfg.core_skill_fraction : 0.8;
+    const passRateTarget = typeof cfg.revision_pass_rate === "number" ? cfg.revision_pass_rate : 0.9;
+    const onDate = parseDate(referenceDate());
+
+    const core = computeCoreMasteryStatus();
+    const passRate = computeRevisionPassRate();
+    const mocks = computeRecentMockStatus();
+    const pace = computePace(onDate);
+
+    const coreMet = core.fraction >= coreFractionTarget;
+    const passMet = passRate.total > 0 && passRate.fraction >= passRateTarget;
+    const mocksMet = mocks.met;
+
+    const remainingCore = Math.max(core.total - core.mastered, 0);
+    const projection = projectReadinessDate(remainingCore, pace.skillsMasteredPerWeek, onDate);
+
+    return {
+      core: { ...core, met: coreMet, target: coreFractionTarget },
+      passRate: { ...passRate, met: passMet, target: passRateTarget },
+      mocks: { ...mocks, met: mocksMet },
+      pace,
+      projection,
+      allMet: coreMet && passMet && mocksMet,
+    };
+  }
+
+  function renderReadiness() {
+    const readiness = computeReadiness();
+    const rows = $("#readiness-rows");
+    rows.replaceChildren();
+
+    const rowSpecs = [
+      {
+        label: "Core skill mastery",
+        met: readiness.core.met,
+        detail:
+          `${readiness.core.mastered}/${readiness.core.total} skills - ` +
+          `${(readiness.core.fraction * 100).toFixed(1)}% vs ${(readiness.core.target * 100).toFixed(0)}% target`,
+      },
+      {
+        label: "Revision pass rate",
+        met: readiness.passRate.met,
+        detail:
+          `${readiness.passRate.pass}/${readiness.passRate.total} - ` +
+          `${(readiness.passRate.fraction * 100).toFixed(1)}% vs ${(readiness.passRate.target * 100).toFixed(0)}% target`,
+      },
+      {
+        label: "Recent mocks",
+        met: readiness.mocks.met,
+        detail:
+          readiness.mocks.recorded >= readiness.mocks.required
+            ? `last ${readiness.mocks.required}: ${readiness.mocks.recentVerdicts.join(", ") || "none"}`
+            : `${readiness.mocks.recorded}/${readiness.mocks.required} mocks recorded`,
+      },
+    ];
+
+    rowSpecs.forEach((spec) => {
+      const row = document.createElement("div");
+      row.className = "readiness-row";
+      const label = document.createElement("span");
+      label.className = "readiness-row-label";
+      label.textContent = spec.label;
+      const detail = document.createElement("span");
+      detail.className = "readiness-row-detail";
+      detail.textContent = spec.detail;
+      row.append(label, detail, pill(spec.met ? "MET" : "UNMET", spec.met ? "good" : "bad"));
+      rows.append(row);
+    });
+
+    const overall = $("#readiness-overall");
+    overall.textContent = readiness.allMet ? "All met" : "Not yet";
+    overall.className = `pill ${readiness.allMet ? "good" : "warn"}`;
+
+    $("#readiness-projection").textContent =
+      `Pace (trailing ${readiness.pace.windowDays}d): ${readiness.pace.problemsPerWeek.toFixed(2)} problems/week, ` +
+      `${readiness.pace.skillsMasteredPerWeek.toFixed(2)} skills mastered/week. ${readiness.projection.message}`;
+  }
+
   function renderMetrics() {
     const { progress, curriculum, scoring } = state.datasets;
     const completed = state.completedById.size;
@@ -3117,6 +3333,7 @@
     renderDataWarning();
     renderOperatingBoard();
     renderMetrics();
+    renderReadiness();
     renderNextAction();
     renderThinkingBars();
     renderWeaknessLab();

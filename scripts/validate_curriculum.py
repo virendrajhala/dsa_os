@@ -670,6 +670,46 @@ def validate_curriculum(
     if not isinstance(scoring.get("skill_mastery", {}).get("minimum_primary_weighted_score"), (int, float)):
         add_error(errors, "scoring.json: `skill_mastery.minimum_primary_weighted_score` must be numeric.")
 
+    # -- readiness (F23: system-derived interview-readiness estimator) ---------------
+    readiness = scoring.get("readiness")
+    if not isinstance(readiness, dict) or not readiness:
+        add_error(errors, "scoring.json: `readiness` must be a non-empty object.")
+    else:
+        def _fraction(field: str) -> None:
+            value = readiness.get(field)
+            if not isinstance(value, (int, float)) or isinstance(value, bool) or not (0 <= value <= 1):
+                add_error(errors, f"scoring.json: `readiness.{field}` must be a number between 0 and 1.")
+
+        def _positive_int(field: str) -> None:
+            value = readiness.get(field)
+            if not isinstance(value, int) or isinstance(value, bool) or value <= 0:
+                add_error(errors, f"scoring.json: `readiness.{field}` must be a positive integer.")
+
+        _fraction("core_skill_fraction")
+        _fraction("revision_pass_rate")
+        _positive_int("recent_mock_count")
+        _positive_int("pace_window_days")
+
+        stage_scope_count = readiness.get("stage_scope_count")
+        if (
+            not isinstance(stage_scope_count, int)
+            or isinstance(stage_scope_count, bool)
+            or not (0 < stage_scope_count <= len(stage_order))
+        ):
+            add_error(
+                errors,
+                f"scoring.json: `readiness.stage_scope_count` must be an integer between 1 and "
+                f"{len(stage_order)} (stages.stage_order length).",
+            )
+
+        min_mock_verdicts = readiness.get("min_mock_verdicts")
+        if not isinstance(min_mock_verdicts, list) or not min_mock_verdicts:
+            add_error(errors, "scoring.json: `readiness.min_mock_verdicts` must be a non-empty list.")
+        else:
+            for verdict in min_mock_verdicts:
+                if verdict not in MOCK_VERDICTS:
+                    add_error(errors, f"scoring.json: `readiness.min_mock_verdicts` has invalid verdict `{verdict}`.")
+
     return errors, warnings
 
 

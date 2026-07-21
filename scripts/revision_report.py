@@ -11,6 +11,7 @@ from typing import Any
 
 from _shared import (
     RepositoryError,
+    compute_readiness,
     confidence_trend,
     interview_trend,
     load_repository_state,
@@ -114,6 +115,15 @@ def build_payload(state_date: date, state: Any) -> dict[str, Any]:
                 "skill_name": skills.get(skill_id, {}).get("name", skill_id),
             }
         )
+    readiness = compute_readiness(
+        curriculum=state.curriculum,
+        stages=state.stages,
+        skills=state.skills,
+        scoring=state.scoring,
+        progress=state.progress,
+        on_date=state_date,
+    )
+
     return {
         "date": state_date.isoformat(),
         "todays_revisions": enrich(todays),
@@ -130,6 +140,7 @@ def build_payload(state_date: date, state: Any) -> dict[str, Any]:
         "weakest_skills": weakest_skills(state),
         "confidence_trend": confidence_trend(completed),
         "interview_score_trend": interview_trend(completed),
+        "readiness": readiness,
     }
 
 
@@ -209,7 +220,53 @@ def render_text(payload: dict[str, Any], today_only: bool) -> str:
             f"- Previous average: {interview['previous_average']:.2f}\n"
             f"- Direction: {interview['direction']} ({interview['delta']:+.2f})"
         )
+        lines.append("")
 
+        lines.append(render_readiness(payload["readiness"]))
+
+    return "\n".join(lines)
+
+
+def render_readiness(readiness: dict[str, Any]) -> str:
+    """Render the F23 interview-readiness section (informational only)."""
+
+    thresholds = readiness["thresholds"]
+    core = thresholds["core_skill_mastery"]
+    passes = thresholds["revision_pass_rate"]
+    mocks = thresholds["recent_mocks"]
+    pace = readiness["pace"]
+    projection = readiness["projection"]
+
+    def status(met: bool) -> str:
+        return "MET" if met else "UNMET"
+
+    mocks_line = (
+        f"{status(mocks['met'])} | last {mocks['required']} mock verdicts: "
+        f"{', '.join(mocks['recent_verdicts']) or 'none'}"
+        if mocks["recorded"] >= mocks["required"]
+        else f"{status(mocks['met'])} | {mocks['recorded']}/{mocks['required']} mocks recorded"
+    )
+
+    lines = [
+        "Interview Readiness (system-derived, informational only)",
+        (
+            f"- Core skill mastery: {status(core['met'])} | "
+            f"{core['mastered']}/{core['total']} skills ({core['actual'] * 100:.1f}% "
+            f"vs {core['target'] * 100:.0f}% target)"
+        ),
+        (
+            f"- Revision pass rate: {status(passes['met'])} | "
+            f"{passes['pass']}/{passes['total']} ({passes['actual'] * 100:.1f}% "
+            f"vs {passes['target'] * 100:.0f}% target)"
+        ),
+        f"- Recent mocks: {mocks_line}",
+        (
+            f"- Pace (trailing {pace['window_days']}d): "
+            f"{pace['problems_per_week']:.2f} problems/week, "
+            f"{pace['skills_mastered_per_week']:.2f} skills mastered/week"
+        ),
+        f"- Projection: {projection['message']}",
+    ]
     return "\n".join(lines)
 
 
