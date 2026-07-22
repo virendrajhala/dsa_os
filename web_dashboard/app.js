@@ -99,11 +99,6 @@
     return value === undefined || value === null || value === "" ? fallback : String(value);
   }
 
-  function stageLabel(stage) {
-    if (stage >= 4) return "MASTERED";
-    return `R${stage + 1} due`;
-  }
-
   function pill(label, tone = "") {
     const span = document.createElement("span");
     span.className = `pill ${tone}`.trim();
@@ -673,7 +668,15 @@
 
       const tone =
         item.kind === "quarterly_maintenance" ? "" : item.kind === "reactivated" ? "warn" : "accent";
-      const kind = pill(item.stage_label || item.kind, tone);
+      // A reactivated row keeps its R-stage but must say so in words: it is a
+      // forced prerequisite reinforcement, not an ordinary scheduled recall,
+      // and tone alone would leave that readable only by color.
+      const kind = pill(
+        item.kind === "reactivated"
+          ? `${item.stage_label || "R?"} · reactivated`
+          : item.stage_label || item.kind,
+        tone,
+      );
       kind.classList.add("num");
 
       const due = document.createElement("span");
@@ -2855,11 +2858,14 @@
     path.className = "num solution-path";
     path.textContent = `solutions/${problemId}.py`;
 
+    // The record only ever proves the negative: update_progress.py notes a
+    // --no-code bypass but writes nothing when the gate passes, and records
+    // predating F9 have no note at all. Say what is known, claim nothing else.
     const status = document.createElement("p");
-    status.className = `gate-status microlabel ${whiteboard ? "warn" : "good"}`;
+    status.className = `gate-status microlabel ${whiteboard ? "warn" : ""}`.trim();
     status.textContent = whiteboard
       ? "⚠ whiteboard session — recorded with --no-code, no solution file was executed"
-      : "✓ the solution file ran before this solve was recorded";
+      : "· no --no-code override on this record";
 
     card.append(heading, path, status);
     return card;
