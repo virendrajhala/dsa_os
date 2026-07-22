@@ -131,10 +131,6 @@ class JourneyInvariantTests(unittest.TestCase):
     def test_tree_ladder_builds_before_serialize(self):
         self.assertLess(self._pos_of_lc(105), self._pos_of_lc(297))
 
-    # Fails today (D1): Pattern Discovery is stage 11 and the readiness
-    # scope covers 9 stages, so backtracking sits outside the core.
-    # Marker removed by Task 1 (stage reorder + wider scope).
-    @unittest.expectedFailure
     def test_backtracking_is_inside_the_readiness_scope(self):
         stages = load_json_file(_shared.STAGES_PATH)
         scoring = load_json_file(_shared.SCORING_PATH)

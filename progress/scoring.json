@@ -221,7 +221,7 @@
   "readiness": {
     "description": "F23: system-derived interview-readiness estimator. Thresholds are informational only - readiness gates nothing.",
     "core_skill_fraction": 0.8,
-    "stage_scope_count": 9,
+    "stage_scope_count": 10,
     "revision_pass_rate": 0.9,
     "recent_mock_count": 3,
     "min_mock_verdicts": [
