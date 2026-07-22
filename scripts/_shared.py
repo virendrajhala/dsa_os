@@ -70,11 +70,13 @@ def revision_intervals(policy):
     return out
 
 
-def _scoring_payload_for_policy():
+def _scoring_payload_for_policy(path=None):
     try:
-        with SCORING_PATH.open(encoding="utf-8") as handle:
+        with (path or SCORING_PATH).open(encoding="utf-8") as handle:
             payload = json.load(handle)
-    except (OSError, json.JSONDecodeError):
+    except (OSError, ValueError):
+        # ValueError covers JSONDecodeError and UnicodeDecodeError: a corrupt
+        # config falls back to defaults; `make validate` reports it properly.
         return None
     return payload if isinstance(payload, dict) else None
 
@@ -1333,8 +1335,9 @@ def apply_revision_result(
     prior_status = str(revision.get("status", "ACTIVE"))
     maintenance = prior_status == "MASTERED"
     beyond_mastery = mastered_after + 1
+    demoted_stage = mastered_after - 1
     attempted_stage = beyond_mastery if maintenance else min(current_stage + 1, beyond_mastery)
-    event_stage = attempted_stage if result == "PASS" else (3 if maintenance else current_stage)
+    event_stage = attempted_stage if result == "PASS" else (demoted_stage if maintenance else current_stage)
     event = {
         "date": format_iso_date(completed_on),
         "result": result,
@@ -1357,10 +1360,10 @@ def apply_revision_result(
             revision.pop("reactivated_on", None)
         else:
             revision["status"] = "ACTIVE"
-            revision["stage"] = 3
+            revision["stage"] = demoted_stage
             completed = revision.get("completed")
             if isinstance(completed, list):
-                revision["completed"] = completed[:3]
+                revision["completed"] = completed[:demoted_stage]
             else:
                 revision["completed"] = []
             revision["next_due"] = format_iso_date(completed_on + retry)

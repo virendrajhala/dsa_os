@@ -412,6 +412,44 @@ class RevisionPolicyConfigTests(unittest.TestCase):
         )
         self.assertEqual(record["revision"]["next_due"], "2026-01-13")
 
+    def test_maintenance_fail_demotion_follows_policy(self):
+        # Demotion after a failed quarterly check must land one stage below
+        # mastery (and truncate completed accordingly), not hardcoded 3.
+        policy = resolve_revision_policy(
+            {
+                "revision_policy": {
+                    "successful_recall_intervals": {"R1": 1, "R2": 2, "R3": 4, "R4": 8, "R5": 16},
+                    "mastered_after_stage": 5,
+                }
+            }
+        )
+        record = _record()
+        record["revision"] = {
+            "status": "MASTERED",
+            "stage": 6,
+            "completed": ["2026-01-01", "2026-01-02", "2026-01-04", "2026-01-08", "2026-01-16"],
+            "next_due": None,
+            "history": [],
+        }
+        apply_revision_result(
+            record, "FAIL", date(2026, 4, 1), confidence=4, hint_level=4, revision_score={}, policy=policy
+        )
+        self.assertEqual(record["revision"]["status"], "ACTIVE")
+        self.assertEqual(record["revision"]["stage"], 4)
+        self.assertEqual(len(record["revision"]["completed"]), 4)
+
+    def test_scoring_read_tolerates_non_utf8_file(self):
+        import tempfile
+        from pathlib import Path
+
+        with tempfile.NamedTemporaryFile(suffix=".json", delete=False) as handle:
+            handle.write(b"\xff\xfe\x00garbage")
+            path = Path(handle.name)
+        try:
+            self.assertIsNone(_shared._scoring_payload_for_policy(path))
+        finally:
+            path.unlink()
+
     def test_module_constants_mirror_live_scoring_json(self):
         block = load_json_file(_shared.SCORING_PATH)["revision_policy"]
         self.assertEqual(
