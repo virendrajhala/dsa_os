@@ -24,6 +24,8 @@ from _shared import (
     is_mock_due,
     load_json_file,
     project_readiness_date,
+    resolve_revision_policy,
+    revision_intervals,
     revision_stage_label,
     select_mock_problem,
     select_next_problem,
@@ -357,6 +359,71 @@ class MockSelectionOrderingTests(unittest.TestCase):
         selection = select_next_problem(self._state(progress), on_date=self.SATURDAY)
         self.assertEqual(selection.mode, "mock_due")
         self.assertIn("practice", selection.reason)
+
+
+class RevisionPolicyConfigTests(unittest.TestCase):
+    """Revision policy numbers must flow from scoring.json `revision_policy`,
+    not from a second hardcoded table in Python."""
+
+    def test_resolve_defaults_when_config_absent(self):
+        policy = resolve_revision_policy(None)
+        self.assertEqual(
+            policy["successful_recall_intervals"], {"R1": 3, "R2": 7, "R3": 21, "R4": 60}
+        )
+        self.assertEqual(policy["mastered_after_stage"], 4)
+        self.assertEqual(policy["failure_retry_days"], 1)
+
+    def test_resolve_overlays_config_values(self):
+        policy = resolve_revision_policy(
+            {"revision_policy": {"failure_retry_days": 2, "quarterly_maintenance_days": 45}}
+        )
+        self.assertEqual(policy["failure_retry_days"], 2)
+        self.assertEqual(policy["quarterly_maintenance_days"], 45)
+        # Untouched keys keep their defaults.
+        self.assertEqual(policy["successful_recall_intervals"]["R3"], 21)
+
+    def test_revision_intervals_maps_stage_indexes(self):
+        policy = resolve_revision_policy(
+            {"revision_policy": {"successful_recall_intervals": {"R1": 1, "R2": 2, "R3": 4, "R4": 8}}}
+        )
+        self.assertEqual(revision_intervals(policy), {0: 1, 1: 2, 2: 4, 3: 8})
+
+    def test_apply_revision_result_honors_injected_policy(self):
+        policy = resolve_revision_policy(
+            {
+                "revision_policy": {
+                    "successful_recall_intervals": {"R1": 1, "R2": 2, "R3": 4, "R4": 8},
+                    "failure_retry_days": 3,
+                }
+            }
+        )
+        record = _record()
+        on = date(2026, 1, 10)
+
+        # PASS clears R1; next due follows the custom R2 interval (2 days).
+        apply_revision_result(
+            record, "PASS", on, confidence=8, hint_level=0, revision_score={}, policy=policy
+        )
+        self.assertEqual(record["revision"]["next_due"], "2026-01-12")
+
+        # FAIL retries after the custom failure_retry_days (3 days).
+        apply_revision_result(
+            record, "FAIL", on, confidence=5, hint_level=3, revision_score={}, policy=policy
+        )
+        self.assertEqual(record["revision"]["next_due"], "2026-01-13")
+
+    def test_module_constants_mirror_live_scoring_json(self):
+        block = load_json_file(_shared.SCORING_PATH)["revision_policy"]
+        self.assertEqual(
+            _shared.REVISION_INTERVAL_DAYS,
+            {i: block["successful_recall_intervals"][f"R{i + 1}"] for i in range(4)},
+        )
+        self.assertEqual(_shared.MASTERED_AFTER_STAGE, block["mastered_after_stage"])
+        self.assertEqual(_shared.FAILURE_RETRY_DAYS, block["failure_retry_days"])
+        self.assertEqual(_shared.QUARTERLY_MAINTENANCE_DAYS, block["quarterly_maintenance_days"])
+        self.assertEqual(
+            _shared.QUARTERLY_MAINTENANCE_LIMIT, block["quarterly_maintenance_sample_size"]
+        )
 
 
 class ReadinessTests(unittest.TestCase):

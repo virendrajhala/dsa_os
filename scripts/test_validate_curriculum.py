@@ -165,6 +165,54 @@ class ReadinessScoringValidationTests(unittest.TestCase):
         self.assertTrue(any("readiness.min_mock_verdicts" in e for e in errors), msg=errors)
 
 
+class RevisionPolicyValidationTests(unittest.TestCase):
+    """Config-driven revision policy: the validator guards coherence of the
+    scoring.json block the scripts now read (intervals cover R1..R{mastered},
+    positive and strictly increasing) instead of comparing to a code copy."""
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.curriculum = load_json_file(_shared.CURRICULUM_PATH)
+        cls.graph = load_json_file(_shared.GRAPH_PATH)
+        cls.stages = load_json_file(_shared.STAGES_PATH)
+        cls.skills = load_json_file(_shared.SKILLS_PATH)
+        cls.scoring = load_json_file(_shared.SCORING_PATH)
+
+    def _errors(self, scoring: dict) -> list[str]:
+        errors, _warnings = validate_curriculum(self.curriculum, self.graph, self.stages, self.skills, scoring)
+        return errors
+
+    def test_live_revision_policy_passes(self) -> None:
+        errors = [e for e in self._errors(self.scoring) if "revision_policy" in e or "recall_intervals" in e]
+        self.assertFalse(errors, msg="\n".join(errors))
+
+    def test_interval_keys_must_cover_mastered_after_stage(self) -> None:
+        # The original F1 crash: mastery at a stage with no configured
+        # interval. Raising mastered_after_stage without adding R5 must fail.
+        scoring = copy.deepcopy(self.scoring)
+        scoring["revision_policy"]["mastered_after_stage"] = 5
+        errors = self._errors(scoring)
+        self.assertTrue(any("exactly R1..R5" in e for e in errors), msg=errors)
+
+    def test_missing_interval_key_fails(self) -> None:
+        scoring = copy.deepcopy(self.scoring)
+        del scoring["revision_policy"]["successful_recall_intervals"]["R4"]
+        errors = self._errors(scoring)
+        self.assertTrue(any("exactly R1..R4" in e for e in errors), msg=errors)
+
+    def test_non_increasing_intervals_fail(self) -> None:
+        scoring = copy.deepcopy(self.scoring)
+        scoring["revision_policy"]["successful_recall_intervals"]["R3"] = 7
+        errors = self._errors(scoring)
+        self.assertTrue(any("strictly increasing" in e for e in errors), msg=errors)
+
+    def test_non_positive_retry_days_fail(self) -> None:
+        scoring = copy.deepcopy(self.scoring)
+        scoring["revision_policy"]["failure_retry_days"] = 0
+        errors = self._errors(scoring)
+        self.assertTrue(any("failure_retry_days" in e for e in errors), msg=errors)
+
+
 class RevisitOfValidationTests(unittest.TestCase):
     """F15: `revisit_of` markers + exact-title duplicate gating."""
 

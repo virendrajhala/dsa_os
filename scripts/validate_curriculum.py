@@ -27,7 +27,6 @@ from _shared import (
     SCORING_PATH,
     SKILLS_PATH,
     STAGES_PATH,
-    REVISION_INTERVAL_DAYS,
     REVISION_RESULTS,
     REVISION_STATUSES,
     WEAKNESS_SOURCES,
@@ -771,18 +770,46 @@ def validate_curriculum(
                     f"scoring.json: `hint_mastery_discount.{hint_level}` must be a number between 0 and 1.",
                 )
 
+    # revision_policy is the single source of truth the scripts read at import
+    # (F22 follow-up) — so validate its coherence, not equality with any code
+    # copy: intervals must cover exactly R1..R{mastered_after_stage}, be
+    # positive, and grow monotonically (spaced retrieval).
     revision_policy = scoring.get("revision_policy", {})
+    mastered_after = revision_policy.get("mastered_after_stage")
+    if not isinstance(mastered_after, int) or mastered_after < 1:
+        add_error(errors, "scoring.json: `revision_policy.mastered_after_stage` must be a positive integer.")
+        mastered_after = None
     intervals = revision_policy.get("successful_recall_intervals")
     if not isinstance(intervals, dict):
         add_error(errors, "scoring.json: `revision_policy.successful_recall_intervals` must be an object.")
     else:
-        expected = {f"R{stage + 1}": days for stage, days in REVISION_INTERVAL_DAYS.items()}
-        for stage_name, days in expected.items():
-            if intervals.get(stage_name) != days:
+        bad_values = {k: v for k, v in intervals.items() if not isinstance(v, int) or v < 1}
+        if bad_values:
+            add_error(
+                errors,
+                "scoring.json: revision intervals must be positive integers: "
+                + ", ".join(sorted(bad_values)) + ".",
+            )
+        if mastered_after is not None:
+            expected_keys = {f"R{stage}" for stage in range(1, mastered_after + 1)}
+            if set(intervals) != expected_keys:
                 add_error(
                     errors,
-                    f"scoring.json: revision interval `{stage_name}` must be {days} days.",
+                    "scoring.json: `successful_recall_intervals` keys must be exactly "
+                    f"R1..R{mastered_after} (found: {', '.join(sorted(intervals)) or 'none'}).",
                 )
+            elif not bad_values:
+                ordered = [intervals[f"R{stage}"] for stage in range(1, mastered_after + 1)]
+                if ordered != sorted(ordered) or len(set(ordered)) != len(ordered):
+                    add_error(
+                        errors,
+                        "scoring.json: revision intervals must be strictly increasing "
+                        f"(found: {ordered}).",
+                    )
+    for key, minimum in (("failure_retry_days", 1), ("quarterly_maintenance_days", 1), ("quarterly_maintenance_sample_size", 0)):
+        value = revision_policy.get(key)
+        if not isinstance(value, int) or value < minimum:
+            add_error(errors, f"scoring.json: `revision_policy.{key}` must be an integer >= {minimum}.")
 
     revision_eval = scoring.get("revision_evaluation", {})
     revision_dimensions = revision_eval.get("dimensions")

@@ -23,16 +23,68 @@ SCORING_PATH = ROOT / "progress" / "scoring.json"
 PROGRESS_PATH = ROOT / "progress" / "progress.json"
 PROGRESS_TEMPLATE_PATH = ROOT / "progress" / "progress_template.json"
 
-REVISION_INTERVAL_DAYS = {
-    0: 3,   # R1 after the original solve.
-    1: 7,   # R2 after successful R1.
-    2: 21,  # R3 after successful R2.
-    3: 60,  # R4 after successful R3.
-}
 REVISION_STATUSES = {"ACTIVE", "MASTERED", "FAILED"}
 REVISION_RESULTS = {"PASS", "FAIL", "REACTIVATED"}
-QUARTERLY_MAINTENANCE_DAYS = 90
-QUARTERLY_MAINTENANCE_LIMIT = 3
+
+# Revision policy numbers live in progress/scoring.json `revision_policy`
+# (single source of truth; `make validate` checks its coherence). These
+# defaults exist only so a missing/corrupt scoring.json can't crash module
+# import — they mirror the shipped config.
+DEFAULT_REVISION_POLICY = {
+    "successful_recall_intervals": {"R1": 3, "R2": 7, "R3": 21, "R4": 60},
+    "mastered_after_stage": 4,
+    "failure_retry_days": 1,
+    "quarterly_maintenance_days": 90,
+    "quarterly_maintenance_sample_size": 3,
+}
+
+
+def resolve_revision_policy(scoring):
+    """Overlay scoring.json's `revision_policy` block on the defaults."""
+
+    block = scoring.get("revision_policy") if isinstance(scoring, dict) else None
+    if not isinstance(block, dict):
+        block = {}
+    merged = dict(DEFAULT_REVISION_POLICY)
+    for key, default in DEFAULT_REVISION_POLICY.items():
+        value = block.get(key, default)
+        if key == "successful_recall_intervals":
+            merged[key] = dict(value) if isinstance(value, dict) and value else dict(default)
+        else:
+            try:
+                merged[key] = int(value)
+            except (TypeError, ValueError):
+                merged[key] = default
+    return merged
+
+
+def revision_intervals(policy):
+    """Map `R1..Rn` interval config to 0-based revision stage indexes."""
+
+    out = {}
+    for name, days in policy["successful_recall_intervals"].items():
+        try:
+            out[int(str(name)[1:]) - 1] = int(days)
+        except (TypeError, ValueError):
+            continue
+    return out
+
+
+def _scoring_payload_for_policy():
+    try:
+        with SCORING_PATH.open(encoding="utf-8") as handle:
+            payload = json.load(handle)
+    except (OSError, json.JSONDecodeError):
+        return None
+    return payload if isinstance(payload, dict) else None
+
+
+REVISION_POLICY = resolve_revision_policy(_scoring_payload_for_policy())
+REVISION_INTERVAL_DAYS = revision_intervals(REVISION_POLICY)
+MASTERED_AFTER_STAGE = REVISION_POLICY["mastered_after_stage"]
+FAILURE_RETRY_DAYS = REVISION_POLICY["failure_retry_days"]
+QUARTERLY_MAINTENANCE_DAYS = REVISION_POLICY["quarterly_maintenance_days"]
+QUARTERLY_MAINTENANCE_LIMIT = REVISION_POLICY["quarterly_maintenance_sample_size"]
 THINKING_DIMENSION_LABELS = {
     "understanding": "Understanding",
     "examples": "Examples",
@@ -392,7 +444,7 @@ def last_completion_record(progress: JsonDict) -> JsonDict | None:
 def revision_stage_label(stage: int) -> str:
     """Return the next revision label for a completed revision stage count."""
 
-    return "MASTERED" if stage >= 4 else f"R{stage + 1}"
+    return "MASTERED" if stage >= MASTERED_AFTER_STAGE else f"R{stage + 1}"
 
 
 def initial_revision_state(completed_on: date) -> JsonDict:
@@ -1251,13 +1303,23 @@ def apply_revision_result(
     hint_level: int,
     revision_score: JsonDict,
     force_pass_reason: str | None = None,
+    policy: JsonDict | None = None,
 ) -> JsonDict:
     """Apply a PASS/FAIL revision result to a completion record's revision state.
 
     `force_pass_reason`: F5 lets the CLI override a below-pass_minimum average
     revision score via --force-pass; when set, the reason is recorded on the
     history event so a forced pass is auditable later.
+
+    `policy`: resolved revision policy (see resolve_revision_policy); defaults
+    to the module-level REVISION_POLICY read from progress/scoring.json.
     """
+
+    if policy is None:
+        policy = REVISION_POLICY
+    intervals = revision_intervals(policy)
+    mastered_after = int(policy["mastered_after_stage"])
+    retry = timedelta(days=int(policy["failure_retry_days"]))
 
     if result not in REVISION_RESULTS:
         raise RepositoryError("Revision result must be PASS or FAIL.")
@@ -1270,7 +1332,8 @@ def apply_revision_result(
     current_stage = int(revision.get("stage", 0))
     prior_status = str(revision.get("status", "ACTIVE"))
     maintenance = prior_status == "MASTERED"
-    attempted_stage = 5 if maintenance else min(current_stage + 1, 5)
+    beyond_mastery = mastered_after + 1
+    attempted_stage = beyond_mastery if maintenance else min(current_stage + 1, beyond_mastery)
     event_stage = attempted_stage if result == "PASS" else (3 if maintenance else current_stage)
     event = {
         "date": format_iso_date(completed_on),
@@ -1288,7 +1351,7 @@ def apply_revision_result(
     if maintenance:
         if result == "PASS":
             revision["status"] = "MASTERED"
-            revision["stage"] = 5
+            revision["stage"] = beyond_mastery
             revision["next_due"] = None
             revision["last_maintenance"] = format_iso_date(completed_on)
             revision.pop("reactivated_on", None)
@@ -1300,7 +1363,7 @@ def apply_revision_result(
                 revision["completed"] = completed[:3]
             else:
                 revision["completed"] = []
-            revision["next_due"] = format_iso_date(completed_on + timedelta(days=1))
+            revision["next_due"] = format_iso_date(completed_on + retry)
             revision.pop("last_maintenance", None)
             revision.pop("reactivated_on", None)
         return event
@@ -1308,21 +1371,27 @@ def apply_revision_result(
     if result == "PASS":
         revision.setdefault("completed", []).append(format_iso_date(completed_on))
         revision["stage"] = attempted_stage
-        if attempted_stage >= 4:
+        if attempted_stage >= mastered_after:
             revision["status"] = "MASTERED"
             revision["next_due"] = None
             revision["last_maintenance"] = format_iso_date(completed_on)
             revision.pop("reactivated_on", None)
         else:
             revision["status"] = "ACTIVE"
+            if attempted_stage not in intervals:
+                raise RepositoryError(
+                    f"scoring.json revision_policy has no interval for stage R{attempted_stage + 1}; "
+                    "successful_recall_intervals must cover R1.."
+                    f"R{int(policy['mastered_after_stage'])}."
+                )
             revision["next_due"] = format_iso_date(
-                completed_on + timedelta(days=REVISION_INTERVAL_DAYS[attempted_stage])
+                completed_on + timedelta(days=intervals[attempted_stage])
             )
             revision.pop("reactivated_on", None)
     else:
         revision["status"] = "FAILED"
         revision["stage"] = current_stage
-        revision["next_due"] = format_iso_date(completed_on + timedelta(days=1))
+        revision["next_due"] = format_iso_date(completed_on + retry)
         revision.pop("last_maintenance", None)
         revision.pop("reactivated_on", None)
     return event
