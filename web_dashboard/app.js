@@ -1266,7 +1266,9 @@
           if (entry.status === "resolved" || !entry.text) return;
           classifyWeaknessText(entry.text).forEach((dimension) => {
             addEvidence(dimension, {
-              source: "weaknesses_detected",
+              // F20 provenance: keep the entry's own source so the lab can
+              // show where the signal came from (mock vs revision vs session).
+              source: entry.source,
               problemId,
               text: entry.text,
               severity: 1.2,
@@ -1281,7 +1283,7 @@
       if (!text || text.toLowerCase().includes("none recorded")) return;
       classifyWeaknessText(text).forEach((dimension) => {
         addEvidence(dimension, {
-          source: "main_mistake",
+          source: "solve",
           problemId: record.problem_id,
           text,
           severity: 1.1,
@@ -1364,6 +1366,15 @@
           <div><span>Drill</span><strong>${cues.drill}</strong></div>
         </div>
       `;
+      const sources = document.createElement("div");
+      sources.className = "meta-row source-chips";
+      [...new Set(weakness.evidence.map((item) => item.source).filter(Boolean))].forEach((source) => {
+        const chip = pill(source, "");
+        chip.classList.add("microlabel");
+        sources.append(chip);
+      });
+      if (sources.children.length) card.append(sources);
+
       const summary = document.createElement("p");
       summary.className = "compact-line";
       summary.innerHTML = `<strong>Practice:</strong> ${problems.map((problem) => problem.id).join(", ") || "None"}`;
@@ -1749,7 +1760,8 @@
       const node = document.createElement("article");
       node.className = "mistake-item";
       node.innerHTML = `
-        <strong>${item.problemId} · ${item.source}</strong>
+        <strong>${item.problemId}</strong>
+        <span class="pill microlabel">${item.source}</span>
         <p>${item.text}</p>
       `;
       const button = document.createElement("button");
@@ -3085,6 +3097,9 @@
     );
     body.append(grid);
 
+    if (record) body.append(codeGateCard(problem.id, record));
+    if (record?.mentor_scores) body.append(mentorScoreCard(record));
+
     if (lesson) {
       const lessonCard = document.createElement("article");
       lessonCard.className = "note-card";
@@ -3163,6 +3178,119 @@
 
     appendDependencyCard(body, problem);
     showModal();
+  }
+
+  // F9 code-execution gate: a new solve is only recorded once
+  // solutions/<ID>.py runs its embedded asserts — unless the session was
+  // logged with --no-code, which update_progress.py notes on the record.
+  function codeGateCard(problemId, record) {
+    const notes = Array.isArray(record.notes) ? record.notes : record.notes ? [record.notes] : [];
+    const whiteboard = notes.some((note) => String(note).includes("--no-code"));
+    const card = document.createElement("article");
+    card.className = "note-card";
+
+    const heading = document.createElement("h4");
+    heading.textContent = "Code-execution gate";
+
+    const path = document.createElement("p");
+    path.className = "num solution-path";
+    path.textContent = `solutions/${problemId}.py`;
+
+    const status = document.createElement("p");
+    status.className = `gate-status microlabel ${whiteboard ? "warn" : "good"}`;
+    status.textContent = whiteboard
+      ? "⚠ whiteboard session — recorded with --no-code, no solution file was executed"
+      : "✓ the solution file ran before this solve was recorded";
+
+    card.append(heading, path, status);
+    return card;
+  }
+
+  // F7 mentor-graded pass: self and mentor side by side. A gap wider than the
+  // divergence threshold is the signal to discuss, not to average away.
+  const MENTOR_DIVERGENCE = 2;
+
+  function mentorScoreBlock(title, selfScores, mentorScores, max) {
+    const dimensions = [...new Set([...Object.keys(selfScores), ...Object.keys(mentorScores)])];
+    if (!dimensions.length) return null;
+    const wrap = document.createElement("div");
+    wrap.className = "mentor-block";
+    const table = document.createElement("table");
+    table.className = "mentor-table";
+    table.innerHTML = `
+      <caption class="microlabel">${title} · out of ${max}</caption>
+      <thead>
+        <tr>
+          <th scope="col">Dimension</th>
+          <th scope="col">Self</th>
+          <th scope="col">Mentor</th>
+          <th scope="col">Gap</th>
+        </tr>
+      </thead>
+    `;
+    const tbody = document.createElement("tbody");
+    dimensions.forEach((dimension) => {
+      const selfValue = selfScores[dimension];
+      const mentorValue = mentorScores[dimension];
+      const comparable = typeof selfValue === "number" && typeof mentorValue === "number";
+      const gap = comparable ? Math.abs(selfValue - mentorValue) : null;
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <th scope="row">${dimension.replaceAll("_", " ")}</th>
+        <td class="num">${text(selfValue)}</td>
+        <td class="num">${text(mentorValue)}</td>
+      `;
+      const gapCell = document.createElement("td");
+      if (gap != null && gap > MENTOR_DIVERGENCE) {
+        const chip = pill(`discuss · ${gap}`, "warn");
+        chip.classList.add("num");
+        gapCell.append(chip);
+      } else {
+        gapCell.className = "num";
+        gapCell.textContent = gap == null ? "-" : String(gap);
+      }
+      row.append(gapCell);
+      tbody.append(row);
+    });
+    table.append(tbody);
+    wrap.append(table);
+    return wrap;
+  }
+
+  function mentorScoreCard(record) {
+    const mentor = record.mentor_scores || {};
+    const scoring = state.datasets.scoring || {};
+    const card = document.createElement("article");
+    card.className = "note-card";
+    const heading = document.createElement("h4");
+    heading.textContent = "Self vs mentor scores";
+    card.append(heading);
+
+    const blocks = [
+      mentorScoreBlock(
+        "Thinking",
+        record.thinking_score || {},
+        mentor.thinking_score || {},
+        scoring.scale?.maximum || 4,
+      ),
+      mentorScoreBlock(
+        "Interview",
+        record.interview_score || {},
+        mentor.interview_score || {},
+        scoring.interview_scale?.maximum || 10,
+      ),
+    ].filter(Boolean);
+    if (!blocks.length) {
+      card.append(empty("A mentor pass was recorded but carried no dimension scores."));
+      return card;
+    }
+    blocks.forEach((block) => card.append(block));
+    card.append(
+      chartNote(
+        `Any dimension more than ${MENTOR_DIVERGENCE} apart is flagged to discuss — the gap is the lesson.`,
+      ),
+    );
+    return card;
   }
 
   function revisionHistoryItem(event) {

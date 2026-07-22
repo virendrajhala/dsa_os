@@ -657,7 +657,7 @@ select {
   padding: 10px;
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  background: #fbfdff;
+  background: var(--surface-2);
 }
 
 .mistake-item strong {
@@ -674,10 +674,10 @@ select {
 .mini-button {
   justify-self: start;
   min-height: 28px;
-  border: 1px solid #88d9d1;
+  border: 1px solid color-mix(in srgb, var(--accent) 40%, transparent);
   border-radius: var(--radius);
-  background: #f5fffd;
-  color: #0f5f59;
+  background: color-mix(in srgb, var(--accent) 12%, var(--surface));
+  color: var(--accent);
   font-size: 12px;
   font-weight: 800;
   cursor: pointer;
@@ -703,12 +703,12 @@ select {
   padding: 10px;
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  background: #fbfdff;
+  background: var(--surface-2);
 }
 
 .complexity-row strong {
   font-size: 12px;
-  color: #31485d;
+  color: var(--text);
 }
 
 .complexity-row span {
@@ -895,10 +895,10 @@ select {
 
 .stage-skill-open {
   height: 36px;
-  border: 1px solid #88d9d1;
+  border: 1px solid color-mix(in srgb, var(--accent) 40%, transparent);
   border-radius: var(--radius);
-  background: #f5fffd;
-  color: #0f5f59;
+  background: color-mix(in srgb, var(--accent) 12%, var(--surface));
+  color: var(--accent);
   font-size: 12px;
   font-weight: 800;
   cursor: pointer;
@@ -908,8 +908,8 @@ select {
 
 .stage-skill-open:hover,
 .stage-skill-open:focus {
-  background: #e6fffb;
-  outline: 2px solid #86d7cf;
+  background: color-mix(in srgb, var(--accent) 22%, var(--surface));
+  outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
 
@@ -2418,9 +2418,9 @@ tbody tr:focus {
   display: grid;
   gap: 3px;
   padding: 8px;
-  border: 1px solid #e6edf4;
+  border: 1px solid var(--line);
   border-radius: 6px;
-  background: #fbfdff;
+  background: var(--surface-2);
 }
 
 .weakness-cues span {
@@ -2431,7 +2431,7 @@ tbody tr:focus {
 }
 
 .weakness-cues strong {
-  color: #26384b;
+  color: var(--text);
   font-size: 12px;
   line-height: 1.25;
 }
@@ -3443,4 +3443,77 @@ tbody tr:hover {
 
 .chart-legend i.legend-node.locked {
   opacity: 0.25;
+}
+
+/* ---------------------------------------------------------------------------
+   Problem modal additions (design section 5): mentor-vs-self score columns
+   (F7) and the code-execution gate path (F9). Practice source chips.
+   --------------------------------------------------------------------------- */
+.mentor-block + .mentor-block {
+  margin-top: 14px;
+}
+
+.mentor-table {
+  width: 100%;
+  min-width: 0;
+  border-collapse: collapse;
+}
+
+.mentor-table caption {
+  text-align: left;
+  padding-bottom: 6px;
+}
+
+.mentor-table th,
+.mentor-table td {
+  padding: 7px 10px;
+  border-bottom: 1px solid var(--line);
+  font-size: 13px;
+  text-align: left;
+}
+
+.mentor-table thead th {
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+}
+
+.mentor-table tbody th {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.solution-path {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text);
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 7px 9px;
+  overflow-wrap: anywhere;
+}
+
+.gate-status {
+  margin: 0;
+}
+
+.gate-status.good {
+  color: var(--good);
+}
+
+.gate-status.warn {
+  color: var(--warn);
+}
+
+.source-chips {
+  gap: 6px;
+}
+
+.mistake-item .pill.microlabel {
+  justify-self: start;
+  height: 22px;
 }
