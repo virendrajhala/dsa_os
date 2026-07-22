@@ -120,15 +120,12 @@ make progress ARGS="\
 Revisions are state-based active recall, not passive date checks.
 
 - Every solve records a per-problem `revision` object in `progress/progress.json`.
-- A problem becomes mastered only after four successful recall stages: R1 after 3 days, R2 after 7 days, R3 after 21 days, and R4 after 60 days.
-- A revision only advances when the learner completes pattern recall, state
-  recall, transition recall, complexity recall, implementation blueprint, code
-  from memory, dry run, edge cases, and interview discussion with minimal or no
-  hints.
-- Failed revisions do not advance. They keep the same stage and become due again tomorrow.
+- A problem becomes mastered only after four successful recall stages (R1-R4).
+  The stage intervals, the recall gates a PASS requires, and FAIL/maintenance
+  behavior are defined authoritatively in `mentor/mentor_protocol.md` under
+  "Revision Protocol" (config mirror: `progress/scoring.json` `revision_policy`).
 - `scripts/next_problem.py` prioritizes due ACTIVE/FAILED revisions before new work.
-- MASTERED problems leave normal revision scheduling and enter deterministic quarterly maintenance every 90 days.
-- If a later problem exposes a weak prerequisite, `scripts/update_progress.py --reactivate-problem PROBLEM_ID` restores that prerequisite to ACTIVE revision; MASTERED prerequisites restart at stage 3.
+- If a later problem exposes a weak prerequisite, `scripts/update_progress.py --reactivate-problem PROBLEM_ID` restores that prerequisite to ACTIVE revision.
 
 This is spaced retrieval: elapsed time makes a recall attempt due, but only successful recall changes mastery state.
 

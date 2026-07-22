@@ -173,26 +173,14 @@ Silence is acceptable while thinking. Vagueness is not.
 ## Revision Strategy
 
 The repository uses state-based spaced retrieval. Time passing only makes a
-revision due; it does not prove mastery.
+revision due; it does not prove mastery — only successful active recall
+advances a problem toward MASTERED.
 
-A problem becomes MASTERED only after four successful active-recall revisions:
-
-- R1 after 3 days: prevent immediate forgetting with a minimum buffer
-- R2 after 7 days: strengthen retrieval
-- R3 after 21 days: long-term strengthening
-- R4 after 60 days: durable long-horizon recall
-
-A revision PASS requires pattern recall, state recall, transition recall,
-complexity recall, implementation blueprint, code from memory, dry run, edge
-cases, and interview discussion with minimal or no hints. A revision cannot
-pass without code from memory. A failed revision keeps the same stage and
-becomes due tomorrow.
-
-MASTERED problems leave normal revision scheduling. They return only when a
-related failure exposes weakness, the mentor detects a misconception, a
-dependency chain requires reinforcement, or quarterly maintenance selects them.
-Quarterly maintenance runs every 90 days over a small deterministic subset and
-uses quick recall checks; struggle restores the problem to ACTIVE at stage 3.
+The mechanics — the R1-R4 stage intervals, the recall gates a PASS requires,
+FAIL rescheduling, and how MASTERED problems return (including quarterly
+maintenance) — are defined once in `mentor/mentor_protocol.md` under
+"Revision Protocol" and mirrored as config in `progress/scoring.json`
+(`revision_policy`). That file is authoritative; they are not copied here.
 
 Revision is not repetition for its own sake. Each return should have a narrow purpose:
 
