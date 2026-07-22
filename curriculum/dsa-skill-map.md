@@ -2,13 +2,13 @@
 
 This file is generated, not hand-maintained. It replaces the old module/pattern-based skill map after the skill-first migration (curriculum.json v3.0). Regenerate it any time `knowledge/skills.json` or `curriculum/curriculum.json` changes.
 
-**557 problems** across **91 skills** in **13 stages**. Difficulty: 94 Easy / 320 Medium / 143 Hard. Importance: 266 CORE / 250 COMMON / 41 SPECIALIZED / 0 NICHE.
+**581 problems** across **93 skills** in **13 stages**. Difficulty: 99 Easy / 336 Medium / 146 Hard. Importance: 292 CORE / 252 COMMON / 37 SPECIALIZED / 0 NICHE.
 
 ## Observation
 
 Learn to read the prompt exactly, simulate small examples, and state the invariant before reaching for a pattern name. Includes reasoning about what a brute force costs and why.
 
-*6 skills, 21 problems.*
+*7 skills, 24 problems.*
 
 | Skill | Description | Primary | Reinforcement | Challenge |
 |---|---|---|---|---|
@@ -17,35 +17,37 @@ Learn to read the prompt exactly, simulate small examples, and state the invaria
 | `SK-OB-03` Running Extremum Scan | Running Extremum Scan — track a running best-so-far value (max, min, or both) in a single pass; when a new element makes the running value worse than starting fresh, reset instead of carrying stale history forward. The basis of Kadane's algorithm for maximum subarray problems. | OBS-001 | 1 problems | 0 problems |
 | `SK-OB-04` Single-Pass Greedy Choice | Single-Pass Greedy Choice — scan once, maintain one running invariant (best buy-so-far, farthest reachable index, cumulative deficit, or a two-pass local allocation), and make an irrevocable locally-optimal decision at each step instead of exploring alternatives. Distinct from Running Extremum Scan: the invariant here drives a decision (buy/sell, jump, refuel, allocate), not just a max/min value. | OBS-003 | 4 problems | 1 problems |
 | `SK-OB-05` Expand Around Center | Expand Around Center — for every possible palindrome center (each index, and each gap between two indices, for odd- and even-length palindromes), expand outward while the characters on both sides match. O(n^2) time, O(1) space; the standard non-DP approach to palindrome-substring problems. | OBS-019 | 1 problems | 0 problems |
-| `SK-OB-06` Pattern Matching / Prefix Function | PDF subsection: Pattern Matching. Shared technique note for this skill group (general, not specific to this problem): KMP / Rabin-Karp / Z-Algorithm — efficient O(n+m) substring search. | OBS-021 | 2 problems | 2 problems |
+| `SK-OB-06` Pattern Matching / Prefix Function | PDF subsection: Pattern Matching. Shared technique note for this skill group (general, not specific to this problem): KMP / Rabin-Karp / Z-Algorithm — efficient O(n+m) substring search. | OBS-021 | 2 problems | 3 problems |
+| `SK-OB-07` Boyer-Moore Voting | Boyer-Moore Voting - find majority elements in one pass and O(1) space by maintaining candidate(s) and vote counts that cancel opposing elements, then verifying the survivor(s). | OBS-028 | 1 problems | 0 problems |
 
 ## State Construction
 
 Build explicit state representations (hash maps, frequency counts, pointer-linked structures) that summarize an input well enough to answer the actual question.
 
-*6 skills, 46 problems.*
+*7 skills, 52 problems.*
 
 | Skill | Description | Primary | Reinforcement | Challenge |
 |---|---|---|---|---|
-| `SK-SC-01` String Simulation / Frequency Map | PDF subsection: String Manipulation & Hashing. Shared technique note for this skill group (general, not specific to this problem): HashMap / Frequency Count — count character frequencies to compare or find patterns. | HSH-001 | 11 problems | 0 problems |
+| `SK-SC-01` String Simulation / Frequency Map | PDF subsection: String Manipulation & Hashing. Shared technique note for this skill group (general, not specific to this problem): HashMap / Frequency Count — count character frequencies to compare or find patterns. | HSH-001 | 12 problems | 0 problems |
 | `SK-SC-02` Hash Map / Hash Set | HashMap — O(1) lookups to avoid nested loops; track frequency, index, or pairs. Intentional revisit preserved from the PDF. | HSH-005 | 6 problems | 0 problems |
 | `SK-SC-03` Cycle Detection or Value-Space Search | Sorting + Binary Search — sort once, then binary-search for O(n log n) solutions. | LNK-001 | 1 problems | 0 problems |
 | `SK-SC-04` Fast & Slow Pointers | PDF subsection: Fast & Slow Pointers. Shared technique note for this skill group (general, not specific to this problem): Floyd's Cycle Detection — two pointers at different speeds to detect cycles and midpoints. | LNK-002 | 4 problems | 0 problems |
 | `SK-SC-05` Linked-List Reversal / Merge | PDF subsection: Reversal & Merging. Shared technique note for this skill group (general, not specific to this problem): In-place Reversal — reverse sublists or entire lists using pointer manipulation. | LNK-007 | 11 problems | 2 problems |
 | `SK-SC-06` Pointer Stitching / List Design | PDF subsection: Advanced Linked List. Shared technique note for this skill group (general, not specific to this problem): In-place Reversal — reverse sublists or entire lists using pointer manipulation. | LNK-026 | 5 problems | 0 problems |
+| `SK-SC-07` Matrix Simulation | Matrix Simulation - transform a 2D grid in place (rotate, spiral-traverse, mark-and-sweep, simultaneous update) by carefully managing boundaries, index mapping, and update ordering without allocating a second grid. | MAT-023 | 4 problems | 0 problems |
 
 ## Constraint Maintenance
 
 Maintain a moving invariant (window, pointer pair, or monotonic stack) while scanning, so that repeated work collapses into amortized linear time.
 
-*6 skills, 46 problems.*
+*6 skills, 50 problems.*
 
 | Skill | Description | Primary | Reinforcement | Challenge |
 |---|---|---|---|---|
-| `SK-CM-01` Two Pointers | Two Pointers — use two indices moving toward/away from each other to reduce O(n²) to O(n). Intentional revisit preserved from the PDF. | TWO-001 | 8 problems | 1 problems |
+| `SK-CM-01` Two Pointers | Two Pointers — use two indices moving toward/away from each other to reduce O(n²) to O(n). Intentional revisit preserved from the PDF. | TWO-001 | 11 problems | 1 problems |
 | `SK-CM-02` Sliding Window | Sliding Window — maintain a window of elements; expand/shrink to satisfy a constraint. | WIN-002 | 7 problems | 2 problems |
 | `SK-CM-03` Sliding Window on Strings | Variable-size Sliding Window — track character counts inside a window. | WIN-011 | 2 problems | 1 problems |
-| `SK-CM-04` Stack Parsing / Monotonic Stack | Monotonic Stack / Explicit Stack — process characters left-to-right with a stack. | STK-001 | 8 problems | 1 problems |
+| `SK-CM-04` Stack Parsing / Monotonic Stack | Monotonic Stack / Explicit Stack — process characters left-to-right with a stack. | STK-001 | 8 problems | 2 problems |
 | `SK-CM-05` Monotonic Stack on Linked List | In-place Reversal — reverse sublists or entire lists using pointer manipulation. | STK-011 | 1 problems | 0 problems |
 | `SK-CM-06` Monotonic Stack | Monotonic Stack — maintain a stack in increasing/decreasing order for next-greater/smaller | STK-012 | 7 problems | 2 problems |
 
@@ -67,11 +69,11 @@ Use sorted order and monotonic feasibility to replace repeated scans with binary
 
 Answer repeated queries efficiently using precomputed prefix structures or order-statistic heaps, instead of rescanning the input per query.
 
-*6 skills, 37 problems.*
+*6 skills, 38 problems.*
 
 | Skill | Description | Primary | Reinforcement | Challenge |
 |---|---|---|---|---|
-| `SK-QP-01` Prefix Sum / Difference Array | Prefix Sum — precompute cumulative sums for O(1) range queries. | PFX-002 | 9 problems | 0 problems |
+| `SK-QP-01` Prefix Sum / Difference Array | Prefix Sum — precompute cumulative sums for O(1) range queries. | PFX-002 | 10 problems | 0 problems |
 | `SK-QP-02` Prefix Sum + Hash Map | HashMap — O(1) lookups to avoid nested loops; track frequency, index, or pairs. Intentional revisit preserved from the PDF. | PFX-011 | 2 problems | 0 problems |
 | `SK-QP-03` Weighted Prefix Sampling | Reservoir Sampling / Fisher-Yates — uniform random sampling in O(1) space. Intentional revisit preserved from the PDF. | PFX-014 | 1 problems | 0 problems |
 | `SK-QP-04` Heap Selection | Heap Selection — maintain a fixed-size min-heap (size k) of the largest elements seen so far; after processing all elements, the heap's minimum is the kth largest, avoiding a full O(n log n) sort. | HEP-001 | 1 problems | 0 problems |
@@ -94,14 +96,14 @@ Commit to local, irrevocable choices and defend them with an exchange argument, 
 
 Decompose hierarchical structures (trees, BSTs, tries) into reusable subproblems and combine subtree results through a stated recursive contract.
 
-*6 skills, 46 problems.*
+*6 skills, 50 problems.*
 
 | Skill | Description | Primary | Reinforcement | Challenge |
 |---|---|---|---|---|
 | `SK-RT-01` Tree Traversal (DFS/BFS) | PDF subsection: Tree Traversals. Shared technique note for this skill group (general, not specific to this problem): DFS (Pre/In/Post-order) & BFS (Level-order) — foundation of nearly all tree problems. | TRE-001 | 8 problems | 1 problems |
-| `SK-RT-02` Tree Recursion | Tree Recursion — solve sub-problems on left/right subtrees and combine results. | TRE-011 | 13 problems | 1 problems |
+| `SK-RT-02` Tree Recursion | Tree Recursion — solve sub-problems on left/right subtrees and combine results. | TRE-011 | 16 problems | 1 problems |
 | `SK-RT-03` Tree Serialization | Tree Serialization — convert a tree into a string (typically via pre-order or level-order traversal, encoding null children as sentinels) and reconstruct it unambiguously from that string alone. | TRE-026 | 1 problems | 0 problems |
-| `SK-RT-04` BST Invariant | BST Invariant — for every node, all values in the left subtree are smaller and all values in the right subtree are larger. Exploit this ordering to prune search (go left or right, never both) instead of visiting every node. | BST-003 | 9 problems | 1 problems |
+| `SK-RT-04` BST Invariant | BST Invariant — for every node, all values in the left subtree are smaller and all values in the right subtree are larger. Exploit this ordering to prune search (go left or right, never both) instead of visiting every node. | BST-003 | 10 problems | 1 problems |
 | `SK-RT-05` Trie / Prefix Tree | PDF subsection: Tries. Shared technique note for this skill group (general, not specific to this problem): Trie (Prefix Tree) — efficient prefix search and autocomplete in O(L) per query. | TRI-001 | 3 problems | 2 problems |
 | `SK-RT-06` Trie with Multiplicity | Trie with Multiplicity — extend a standard trie node with a count (or list) at each node or end-of-word marker to track how many times a word or prefix has been inserted, enabling frequency-aware prefix queries. | TRI-007 | 1 problems | 0 problems |
 
@@ -109,11 +111,11 @@ Decompose hierarchical structures (trees, BSTs, tries) into reusable subproblems
 
 Define explicit states, transitions, and base cases, then choose an evaluation order that respects dependencies -- the discipline of dynamic programming.
 
-*17 skills, 103 problems.*
+*17 skills, 105 problems.*
 
 | Skill | Description | Primary | Reinforcement | Challenge |
 |---|---|---|---|---|
-| `SK-ST-01` 2-D Dynamic Programming | 2-D DP — state is two indices (i, j); fill a table row by row. | DP-029 | 6 problems | 10 problems |
+| `SK-ST-01` 2-D Dynamic Programming | 2-D DP — state is two indices (i, j); fill a table row by row. | DP-029 | 7 problems | 10 problems |
 | `SK-ST-02` Word-Break Dynamic Programming | Word-Break Dynamic Programming — dp[i] is true if the prefix of length i can be segmented into dictionary words: dp[i] is true when some dp[j] is true and s[j:i] is in the dictionary. | DP-003 | 1 problems | 0 problems |
 | `SK-ST-03` Decode Dynamic Programming | Decode Dynamic Programming — dp[i] is the number of ways to decode the prefix of length i, combining the ways from treating s[i-1] alone and s[i-2:i] as a pair, with '0' and two-digit validity as base-case constraints. | DP-004 | 1 problems | 0 problems |
 | `SK-ST-04` LIS Dynamic Programming with Bisect | Parametric Search — binary search on the answer space, validate with a feasibility function. | DP-005 | 1 problems | 0 problems |
@@ -126,7 +128,7 @@ Define explicit states, transitions, and base cases, then choose an evaluation o
 | `SK-ST-11` Pointer Dynamic Programming | PDF subsection: Two-Heap Pattern. Shared technique note for this skill group (general, not specific to this problem): Two Heaps — one max-heap and one min-heap to find the median dynamically. | DP-012 | 1 problems | 0 problems |
 | `SK-ST-12` 1-D Dynamic Programming | 1-D DP — state is a single index; transition from previous states. | DP-014 | 15 problems | 1 problems |
 | `SK-ST-13` Knapsack Dynamic Programming | PDF subsection: Knapsack Variants. Shared technique note for this skill group (general, not specific to this problem): 0/1 Knapsack / Unbounded Knapsack — classic DP on items with weight/value. | DP-044 | 8 problems | 1 problems |
-| `SK-ST-14` Interval / Range Dynamic Programming | PDF subsection: Interval / Range DP. Shared technique note for this skill group (general, not specific to this problem): Interval DP — solve subproblems over all intervals [i, j], merge results. | DP-055 | 1 problems | 7 problems |
+| `SK-ST-14` Interval / Range Dynamic Programming | PDF subsection: Interval / Range DP. Shared technique note for this skill group (general, not specific to this problem): Interval DP — solve subproblems over all intervals [i, j], merge results. | DP-055 | 2 problems | 7 problems |
 | `SK-ST-15` State Machine Dynamic Programming | PDF subsection: State-Machine DP (Stocks & Transactions). Shared technique note for this skill group (general, not specific to this problem): State Machine DP — model allowed states (holding/not holding) and transitions. | DP-065 | 3 problems | 6 problems |
 | `SK-ST-16` Bitmask Dynamic Programming | PDF subsection: Bitmask DP. Shared technique note for this skill group (general, not specific to this problem): Bitmask DP — represent subsets as bitmasks; ideal for small n (≤20). | DP-074 | 1 problems | 8 problems |
 | `SK-ST-17` Tree / Graph Dynamic Programming | Tree / Graph Dynamic Programming — compute a value at each node from its already-computed children (post-order traversal), e.g. height, diameter, or max path sum, combining child results at each parent. | DP-083 | 1 problems | 8 problems |
@@ -135,14 +137,14 @@ Define explicit states, transitions, and base cases, then choose an evaluation o
 
 Model problems as graphs, choose the right traversal or connectivity tool, and separate reachability/traversal correctness from path optimality.
 
-*9 skills, 71 problems.*
+*9 skills, 73 problems.*
 
 | Skill | Description | Primary | Reinforcement | Challenge |
 |---|---|---|---|---|
 | `SK-GT-01` Queue / Deque / BFS | Monotonic Deque — maintain a deque for sliding window max/min in O(n). | QUE-003 | 8 problems | 4 problems |
 | `SK-GT-02` Grid BFS | Grid BFS — treat each grid cell as a graph node connected to its (usually 4-directional) neighbors, and run multi-source BFS from every initially 'active' cell simultaneously to compute the minimum steps for a state to propagate across the grid. | GRF-001 | 1 problems | 0 problems |
 | `SK-GT-03` Graph BFS | PDF subsection: BFS (Shortest Path / Level-order). Shared technique note for this skill group (general, not specific to this problem): BFS — explore nodes level by level; guarantees shortest path in unweighted graphs. | GRF-004 | 10 problems | 4 problems |
-| `SK-GT-04` Graph DFS / Union-Find | PDF subsection: DFS / Backtracking on Graphs. Shared technique note for this skill group (general, not specific to this problem): DFS with Visited Set — explore all paths; detect cycles and connected components. | GRF-017 | 9 problems | 0 problems |
+| `SK-GT-04` Graph DFS / Union-Find | PDF subsection: DFS / Backtracking on Graphs. Shared technique note for this skill group (general, not specific to this problem): DFS with Visited Set — explore all paths; detect cycles and connected components. | GRF-017 | 10 problems | 1 problems |
 | `SK-GT-05` Topological Sort | PDF subsection: Topological Sort. Shared technique note for this skill group (general, not specific to this problem): Kahn's Algorithm / DFS Post-order — linear ordering of nodes in a DAG. | GRF-028 | 3 problems | 2 problems |
 | `SK-GT-06` Disjoint Set Union | PDF subsection: Union-Find (Disjoint Set Union). Shared technique note for this skill group (general, not specific to this problem): DSU with Path Compression + Union by Rank — near-O(1) amortised operations. | GRF-033 | 3 problems | 4 problems |
 | `SK-GT-07` Shortest Path Algorithms | PDF subsection: Shortest Path Algorithms. Shared technique note for this skill group (general, not specific to this problem): Dijkstra / Bellman-Ford / Floyd-Warshall — weighted shortest paths. | GRF-041 | 6 problems | 3 problems |
@@ -153,12 +155,12 @@ Model problems as graphs, choose the right traversal or connectivity tool, and s
 
 Reason about overlapping ranges, sweeps, and ordered range-query structures (Fenwick/segment trees) that summarize or update intervals efficiently.
 
-*11 skills, 40 problems.*
+*11 skills, 41 problems.*
 
 | Skill | Description | Primary | Reinforcement | Challenge |
 |---|---|---|---|---|
 | `SK-IR-01` Interval / Scheduling Greedy | PDF subsection: Interval & Scheduling Greedy. Shared technique note for this skill group (general, not specific to this problem): Greedy Selection — always pick the locally optimal choice; prove exchange argument. | GRD-005 | 11 problems | 0 problems |
-| `SK-IR-02` Sorting / Interval Sweep | PDF subsection: Sorting & Searching in Arrays. Shared technique note for this skill group (general, not specific to this problem): Sorting + Binary Search — sort once, then binary-search for O(n log n) solutions. | ORD-001 | 4 problems | 0 problems |
+| `SK-IR-02` Sorting / Interval Sweep | PDF subsection: Sorting & Searching in Arrays. Shared technique note for this skill group (general, not specific to this problem): Sorting + Binary Search — sort once, then binary-search for O(n log n) solutions. | ORD-001 | 5 problems | 0 problems |
 | `SK-IR-03` Two-Pointer Interval Sweep | Second example of sweeping sorted values into ranges — gives 'Interval List Intersections' a companion instead of standing alone. | ORD-007 | 1 problems | 0 problems |
 | `SK-IR-04` Fenwick Tree / Ordered Merge | Fenwick Tree / Ordered Merge — coordinate-compress the values, then use a Fenwick (Binary Indexed) tree to count, in O(log n) per element, how many previously-inserted values are smaller; a merge-sort-based inversion count is the ordered-merge alternative. | RNG-001 | 1 problems | 0 problems |
 | `SK-IR-05` Range Count / Ordered Prefix | Range Count / Ordered Prefix — compute prefix sums, then count index pairs (i, j) whose prefix-sum difference falls in a target range, using a Fenwick tree, merge sort, or balanced BST over the prefix-sum sequence for O(n log n). | RNG-002 | 1 problems | 0 problems |
@@ -187,12 +189,12 @@ Generate the space of possibilities deliberately, prune aggressively using the p
 
 Replace simulation with direct reasoning using number-theoretic or bitwise properties, and prove correctness algebraically rather than by example.
 
-*3 skills, 22 problems.*
+*3 skills, 23 problems.*
 
 | Skill | Description | Primary | Reinforcement | Challenge |
 |---|---|---|---|---|
 | `SK-MT-01` Cycle Detection on State Space | Floyd's Cycle Detection — two pointers at different speeds to detect cycles and midpoints. Intentional revisit preserved from the PDF. | MAT-001 | 1 problems | 0 problems |
-| `SK-MT-02` Number Theory / Arithmetic | Number Theory — prime sieves, GCD/LCM, modular arithmetic, combinatorics. | MAT-003 | 9 problems | 0 problems |
+| `SK-MT-02` Number Theory / Arithmetic | Number Theory — prime sieves, GCD/LCM, modular arithmetic, combinatorics. | MAT-003 | 10 problems | 0 problems |
 | `SK-MT-03` Bit Manipulation | PDF subsection: Bit Manipulation. Shared technique note for this skill group (general, not specific to this problem): Bit Tricks — XOR, AND/OR masks, Brian Kernighan's algorithm for O(1) bit operations. | MAT-012 | 9 problems | 0 problems |
 
 ## Integration

@@ -9,12 +9,14 @@
     "SK-OB-04",
     "SK-OB-05",
     "SK-OB-06",
+    "SK-OB-07",
     "SK-SC-01",
     "SK-SC-02",
     "SK-SC-03",
     "SK-SC-04",
     "SK-SC-05",
     "SK-SC-06",
+    "SK-SC-07",
     "SK-CM-01",
     "SK-CM-02",
     "SK-CM-03",
@@ -189,7 +191,8 @@
       ],
       "challenge_problems": [
         "OBS-023",
-        "OBS-024"
+        "OBS-024",
+        "OBS-030"
       ]
     },
     "SK-SC-01": {
@@ -212,7 +215,8 @@
         "OBS-015",
         "OBS-016",
         "OBS-017",
-        "OBS-018"
+        "OBS-018",
+        "HSH-012"
       ],
       "challenge_problems": []
     },
@@ -328,7 +332,10 @@
         "TWO-003",
         "TWO-004",
         "TWO-008",
-        "TWO-009"
+        "TWO-009",
+        "TWO-012",
+        "TWO-013",
+        "TWO-014"
       ],
       "challenge_problems": [
         "TWO-005"
@@ -395,7 +402,8 @@
         "STK-009"
       ],
       "challenge_problems": [
-        "STK-010"
+        "STK-010",
+        "STK-024"
       ]
     },
     "SK-CM-05": {
@@ -633,7 +641,8 @@
         "ORD-002",
         "ORD-003",
         "ORD-004",
-        "ORD-005"
+        "ORD-005",
+        "ORD-016"
       ],
       "challenge_problems": []
     },
@@ -822,7 +831,10 @@
         "TRE-021",
         "TRE-023",
         "TRE-024",
-        "TRE-025"
+        "TRE-025",
+        "TRE-028",
+        "TRE-029",
+        "TRE-030"
       ],
       "challenge_problems": [
         "TRE-022"
@@ -861,7 +873,8 @@
         "BST-006",
         "BST-007",
         "BST-008",
-        "BST-010"
+        "BST-010",
+        "BST-012"
       ],
       "challenge_problems": [
         "BST-009"
@@ -917,7 +930,8 @@
         "DP-033",
         "DP-034",
         "DP-035",
-        "DP-039"
+        "DP-039",
+        "DP-104"
       ],
       "challenge_problems": [
         "DP-001",
@@ -1141,7 +1155,8 @@
       ],
       "primary_validation_problem": "DP-055",
       "reinforcement_problems": [
-        "DP-060"
+        "DP-060",
+        "DP-105"
       ],
       "challenge_problems": [
         "DP-054",
@@ -1312,9 +1327,12 @@
         "GRF-023",
         "GRF-024",
         "GRF-025",
-        "GRF-026"
+        "GRF-026",
+        "GRF-059"
       ],
-      "challenge_problems": []
+      "challenge_problems": [
+        "GRF-060"
+      ]
     },
     "SK-GT-05": {
       "id": "SK-GT-05",
@@ -1433,7 +1451,8 @@
         "PFX-006",
         "PFX-007",
         "PFX-008",
-        "PFX-010"
+        "PFX-010",
+        "PFX-016"
       ],
       "challenge_problems": []
     },
@@ -1657,7 +1676,8 @@
         "MAT-007",
         "MAT-009",
         "MAT-010",
-        "MAT-011"
+        "MAT-011",
+        "MAT-028"
       ],
       "challenge_problems": []
     },
@@ -1839,6 +1859,37 @@
       "prerequisites": [],
       "primary_validation_problem": null,
       "reinforcement_problems": [],
+      "challenge_problems": []
+    },
+    "SK-SC-07": {
+      "id": "SK-SC-07",
+      "name": "Matrix Simulation",
+      "description": "Matrix Simulation - transform a 2D grid in place (rotate, spiral-traverse, mark-and-sweep, simultaneous update) by carefully managing boundaries, index mapping, and update ordering without allocating a second grid.",
+      "stage": "State Construction",
+      "prerequisites": [
+        "SK-SC-01"
+      ],
+      "primary_validation_problem": "MAT-023",
+      "reinforcement_problems": [
+        "MAT-024",
+        "MAT-025",
+        "MAT-026",
+        "MAT-027"
+      ],
+      "challenge_problems": []
+    },
+    "SK-OB-07": {
+      "id": "SK-OB-07",
+      "name": "Boyer-Moore Voting",
+      "description": "Boyer-Moore Voting - find majority elements in one pass and O(1) space by maintaining candidate(s) and vote counts that cancel opposing elements, then verifying the survivor(s).",
+      "stage": "Observation",
+      "prerequisites": [
+        "SK-OB-03"
+      ],
+      "primary_validation_problem": "OBS-028",
+      "reinforcement_problems": [
+        "OBS-029"
+      ],
       "challenge_problems": []
     }
   }

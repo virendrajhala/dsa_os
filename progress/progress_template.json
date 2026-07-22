@@ -547,18 +547,30 @@
       "primary_weighted_score": null,
       "reinforcement_attempted": false,
       "mastered": false
+    },
+    "SK-SC-07": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-OB-07": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
     }
   },
   "stage_mastery": {
     "Observation": {
       "status": "in_progress",
       "skills_mastered": 0,
-      "skills_total": 6
+      "skills_total": 7
     },
     "State Construction": {
       "status": "locked",
       "skills_mastered": 0,
-      "skills_total": 6
+      "skills_total": 7
     },
     "Constraint Maintenance": {
       "status": "locked",
@@ -570,15 +582,15 @@
       "skills_mastered": 0,
       "skills_total": 5
     },
+    "Query Processing": {
+      "status": "locked",
+      "skills_mastered": 0,
+      "skills_total": 6
+    },
     "Decision Making": {
       "status": "locked",
       "skills_mastered": 0,
       "skills_total": 3
-    },
-    "Interval Reasoning": {
-      "status": "locked",
-      "skills_mastered": 0,
-      "skills_total": 11
     },
     "Recursive Thinking": {
       "status": "locked",
@@ -595,10 +607,10 @@
       "skills_mastered": 0,
       "skills_total": 9
     },
-    "Query Processing": {
+    "Interval Reasoning": {
       "status": "locked",
       "skills_mastered": 0,
-      "skills_total": 6
+      "skills_total": 11
     },
     "Pattern Discovery": {
       "status": "locked",
@@ -618,7 +630,7 @@
   },
   "competency_completion": {
     "mastered_skills": 0,
-    "total_skills": 90,
+    "total_skills": 92,
     "percent": 0.0
   },
   "thinking_profile": {
@@ -672,11 +684,11 @@
         "attempted": 0,
         "passed": 0
       },
-      "Decision Making": {
+      "Query Processing": {
         "attempted": 0,
         "passed": 0
       },
-      "Interval Reasoning": {
+      "Decision Making": {
         "attempted": 0,
         "passed": 0
       },
@@ -692,7 +704,7 @@
         "attempted": 0,
         "passed": 0
       },
-      "Query Processing": {
+      "Interval Reasoning": {
         "attempted": 0,
         "passed": 0
       },
