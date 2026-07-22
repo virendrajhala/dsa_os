@@ -533,7 +533,8 @@
       "importance": "COMMON",
       "status": "not_started",
       "revision_count": 0,
-      "notes": "PDF subsection: Pattern Matching. Shared technique note for this skill group (general, not specific to this problem): KMP / Rabin-Karp / Z-Algorithm \u2014 efficient O(n+m) substring search."
+      "notes": "PDF subsection: Pattern Matching. Shared technique note for this skill group (general, not specific to this problem): KMP / Rabin-Karp / Z-Algorithm \u2014 efficient O(n+m) substring search.",
+      "revisit_of": "OBS-021"
     },
     {
       "id": "OBS-026",
@@ -565,7 +566,8 @@
       "importance": "CORE",
       "status": "not_started",
       "revision_count": 0,
-      "notes": "PDF subsection: Two Pointers. Original pattern note: Two Pointers \u2014 use two indices moving toward/away from each other to reduce O(n\u00b2) to O(n). Intentional revisit preserved from the PDF."
+      "notes": "PDF subsection: Two Pointers. Original pattern note: Two Pointers \u2014 use two indices moving toward/away from each other to reduce O(n\u00b2) to O(n). Intentional revisit preserved from the PDF.",
+      "revisit_of": "CPX-001"
     },
     {
       "id": "TWO-002",
@@ -917,7 +919,8 @@
       "importance": "CORE",
       "status": "not_started",
       "revision_count": 0,
-      "notes": "PDF subsection: Sliding Window on Strings. Original pattern note: Variable-size Sliding Window \u2014 track character counts inside a window. Intentional revisit preserved from the PDF."
+      "notes": "PDF subsection: Sliding Window on Strings. Original pattern note: Variable-size Sliding Window \u2014 track character counts inside a window. Intentional revisit preserved from the PDF.",
+      "revisit_of": "WIN-004"
     },
     {
       "id": "WIN-013",
@@ -1029,7 +1032,8 @@
       "importance": "CORE",
       "status": "not_started",
       "revision_count": 0,
-      "notes": "PDF subsection: HashMap / HashSet Patterns. Original pattern note: HashMap \u2014 O(1) lookups to avoid nested loops; track frequency, index, or pairs. Intentional revisit preserved from the PDF."
+      "notes": "PDF subsection: HashMap / HashSet Patterns. Original pattern note: HashMap \u2014 O(1) lookups to avoid nested loops; track frequency, index, or pairs. Intentional revisit preserved from the PDF.",
+      "revisit_of": "CPX-001"
     },
     {
       "id": "HSH-006",
@@ -1797,7 +1801,8 @@
       "importance": "CORE",
       "status": "not_started",
       "revision_count": 0,
-      "notes": "PDF subsection: HashMap / HashSet Patterns. Original pattern note: HashMap \u2014 O(1) lookups to avoid nested loops; track frequency, index, or pairs. Intentional revisit preserved from the PDF."
+      "notes": "PDF subsection: HashMap / HashSet Patterns. Original pattern note: HashMap \u2014 O(1) lookups to avoid nested loops; track frequency, index, or pairs. Intentional revisit preserved from the PDF.",
+      "revisit_of": "PFX-001"
     },
     {
       "id": "PFX-012",
@@ -1845,7 +1850,8 @@
       "importance": "CORE",
       "status": "not_started",
       "revision_count": 0,
-      "notes": "PDF subsection: Randomized & Probabilistic Structures. Original pattern note: Reservoir Sampling / Fisher-Yates \u2014 uniform random sampling in O(1) space. Intentional revisit preserved from the PDF."
+      "notes": "PDF subsection: Randomized & Probabilistic Structures. Original pattern note: Reservoir Sampling / Fisher-Yates \u2014 uniform random sampling in O(1) space. Intentional revisit preserved from the PDF.",
+      "revisit_of": "PFX-010"
     },
     {
       "id": "LNK-001",
@@ -2501,7 +2507,8 @@
       "importance": "CORE",
       "status": "not_started",
       "revision_count": 0,
-      "notes": "PDF subsection: Monotonic Stack. Original pattern note: Monotonic Stack \u2014 maintain a stack in increasing/decreasing order for next-greater/smaller Intentional revisit preserved from the PDF."
+      "notes": "PDF subsection: Monotonic Stack. Original pattern note: Monotonic Stack \u2014 maintain a stack in increasing/decreasing order for next-greater/smaller Intentional revisit preserved from the PDF.",
+      "revisit_of": "STK-010"
     },
     {
       "id": "STK-016",
@@ -2933,7 +2940,8 @@
       "importance": "CORE",
       "status": "not_started",
       "revision_count": 0,
-      "notes": "PDF subsection: Top-K Pattern. Original pattern note: Min-Heap of size K \u2014 maintain the K largest elements efficiently. Intentional revisit preserved from the PDF."
+      "notes": "PDF subsection: Top-K Pattern. Original pattern note: Min-Heap of size K \u2014 maintain the K largest elements efficiently. Intentional revisit preserved from the PDF.",
+      "revisit_of": "BSR-010"
     },
     {
       "id": "HEP-009",
@@ -2981,7 +2989,8 @@
       "importance": "CORE",
       "status": "not_started",
       "revision_count": 0,
-      "notes": "PDF subsection: Top-K Pattern. Original pattern note: Min-Heap of size K \u2014 maintain the K largest elements efficiently. Intentional revisit preserved from the PDF."
+      "notes": "PDF subsection: Top-K Pattern. Original pattern note: Min-Heap of size K \u2014 maintain the K largest elements efficiently. Intentional revisit preserved from the PDF.",
+      "revisit_of": "HEP-002"
     },
     {
       "id": "HEP-012",
@@ -3973,7 +3982,8 @@
       "importance": "CORE",
       "status": "not_started",
       "revision_count": 0,
-      "notes": "PDF subsection: BFS (Shortest Path / Level-order). Shared technique note for this skill group (general, not specific to this problem): BFS \u2014 explore nodes level by level; guarantees shortest path in unweighted graphs."
+      "notes": "PDF subsection: BFS (Shortest Path / Level-order). Shared technique note for this skill group (general, not specific to this problem): BFS \u2014 explore nodes level by level; guarantees shortest path in unweighted graphs.",
+      "revisit_of": "GRF-001"
     },
     {
       "id": "GRF-008",
@@ -4933,7 +4943,8 @@
       "importance": "CORE",
       "status": "not_started",
       "revision_count": 0,
-      "notes": "PDF subsection: Segment Trees & BITs (Advanced). Original pattern note: Segment Tree / Fenwick Tree \u2014 O(log n) range queries and point updates. Intentional revisit preserved from the PDF."
+      "notes": "PDF subsection: Segment Trees & BITs (Advanced). Original pattern note: Segment Tree / Fenwick Tree \u2014 O(log n) range queries and point updates. Intentional revisit preserved from the PDF.",
+      "revisit_of": "DP-008"
     },
     {
       "id": "DP-012",
@@ -5157,7 +5168,8 @@
       "importance": "CORE",
       "status": "not_started",
       "revision_count": 0,
-      "notes": "PDF subsection: 1-D DP (Linear Recurrences). Original pattern note: 1-D DP \u2014 state is a single index; transition from previous states. Intentional revisit preserved from the PDF."
+      "notes": "PDF subsection: 1-D DP (Linear Recurrences). Original pattern note: 1-D DP \u2014 state is a single index; transition from previous states. Intentional revisit preserved from the PDF.",
+      "revisit_of": "DP-004"
     },
     {
       "id": "DP-026",
@@ -5397,7 +5409,8 @@
       "importance": "CORE",
       "status": "not_started",
       "revision_count": 0,
-      "notes": "PDF subsection: 2-D DP (Grid / Two Sequences). Original pattern note: 2-D DP \u2014 state is two indices (i, j); fill a table row by row. Intentional revisit preserved from the PDF."
+      "notes": "PDF subsection: 2-D DP (Grid / Two Sequences). Original pattern note: 2-D DP \u2014 state is two indices (i, j); fill a table row by row. Intentional revisit preserved from the PDF.",
+      "revisit_of": "DP-002"
     },
     {
       "id": "DP-041",
@@ -5413,7 +5426,8 @@
       "importance": "CORE",
       "status": "not_started",
       "revision_count": 0,
-      "notes": "PDF subsection: 2-D DP (Grid / Two Sequences). Original pattern note: 2-D DP \u2014 state is two indices (i, j); fill a table row by row. Intentional revisit preserved from the PDF."
+      "notes": "PDF subsection: 2-D DP (Grid / Two Sequences). Original pattern note: 2-D DP \u2014 state is two indices (i, j); fill a table row by row. Intentional revisit preserved from the PDF.",
+      "revisit_of": "DP-001"
     },
     {
       "id": "DP-042",
@@ -6101,7 +6115,8 @@
       "importance": "CORE",
       "status": "not_started",
       "revision_count": 0,
-      "notes": "PDF subsection: DP on Trees & Graphs. Original pattern note: Bitmask DP \u2014 represent subsets as bitmasks; ideal for small n (\u226420). Intentional revisit preserved from the PDF."
+      "notes": "PDF subsection: DP on Trees & Graphs. Original pattern note: Bitmask DP \u2014 represent subsets as bitmasks; ideal for small n (\u226420). Intentional revisit preserved from the PDF.",
+      "revisit_of": "TRE-022"
     },
     {
       "id": "DP-085",
@@ -6917,7 +6932,8 @@
       "importance": "CORE",
       "status": "not_started",
       "revision_count": 0,
-      "notes": "PDF subsection: String & Array Greedy. Original pattern note: Greedy Selection \u2014 always pick the locally optimal choice; prove exchange argument. Intentional revisit preserved from the PDF."
+      "notes": "PDF subsection: String & Array Greedy. Original pattern note: Greedy Selection \u2014 always pick the locally optimal choice; prove exchange argument. Intentional revisit preserved from the PDF.",
+      "revisit_of": "STK-006"
     },
     {
       "id": "GRD-013",
@@ -7045,7 +7061,8 @@
       "importance": "CORE",
       "status": "not_started",
       "revision_count": 0,
-      "notes": "PDF subsection: String & Array Greedy. Original pattern note: Greedy Selection \u2014 always pick the locally optimal choice; prove exchange argument. Intentional revisit preserved from the PDF."
+      "notes": "PDF subsection: String & Array Greedy. Original pattern note: Greedy Selection \u2014 always pick the locally optimal choice; prove exchange argument. Intentional revisit preserved from the PDF.",
+      "revisit_of": "QUE-011"
     },
     {
       "id": "GRD-021",
@@ -7221,7 +7238,8 @@
       "importance": "CORE",
       "status": "not_started",
       "revision_count": 0,
-      "notes": "PDF subsection: Math & Number Theory. Original pattern note: Number Theory \u2014 prime sieves, GCD/LCM, modular arithmetic, combinatorics. Intentional revisit preserved from the PDF."
+      "notes": "PDF subsection: Math & Number Theory. Original pattern note: Number Theory \u2014 prime sieves, GCD/LCM, modular arithmetic, combinatorics. Intentional revisit preserved from the PDF.",
+      "revisit_of": "MAT-001"
     },
     {
       "id": "MAT-006",
@@ -7525,7 +7543,8 @@
       "importance": "CORE",
       "status": "not_started",
       "revision_count": 0,
-      "notes": "PDF subsection: Bisect Tricks. Original pattern note: Parametric Search \u2014 binary search on the answer space, validate with a feasibility function. Intentional revisit preserved from the PDF."
+      "notes": "PDF subsection: Bisect Tricks. Original pattern note: Parametric Search \u2014 binary search on the answer space, validate with a feasibility function. Intentional revisit preserved from the PDF.",
+      "revisit_of": "RNG-001"
     },
     {
       "id": "RNG-004",
@@ -7573,7 +7592,8 @@
       "importance": "CORE",
       "status": "not_started",
       "revision_count": 0,
-      "notes": "PDF subsection: Segment Trees & BITs (Advanced). Original pattern note: Segment Tree / Fenwick Tree \u2014 O(log n) range queries and point updates. Intentional revisit preserved from the PDF."
+      "notes": "PDF subsection: Segment Trees & BITs (Advanced). Original pattern note: Segment Tree / Fenwick Tree \u2014 O(log n) range queries and point updates. Intentional revisit preserved from the PDF.",
+      "revisit_of": "RNG-002"
     },
     {
       "id": "RNG-007",
@@ -7765,7 +7785,8 @@
       "importance": "COMMON",
       "status": "not_started",
       "revision_count": 0,
-      "notes": "PDF subsection: Classic Design Problems. Shared technique note for this skill group (general, not specific to this problem): OOP + Right Data Structures \u2014 combine hash maps, heaps, doubly linked lists for O(1) ops."
+      "notes": "PDF subsection: Classic Design Problems. Shared technique note for this skill group (general, not specific to this problem): OOP + Right Data Structures \u2014 combine hash maps, heaps, doubly linked lists for O(1) ops.",
+      "revisit_of": "DES-001"
     },
     {
       "id": "DES-005",
@@ -7781,7 +7802,8 @@
       "importance": "SPECIALIZED",
       "status": "not_started",
       "revision_count": 0,
-      "notes": "PDF subsection: Classic Design Problems. Shared technique note for this skill group (general, not specific to this problem): OOP + Right Data Structures \u2014 combine hash maps, heaps, doubly linked lists for O(1) ops."
+      "notes": "PDF subsection: Classic Design Problems. Shared technique note for this skill group (general, not specific to this problem): OOP + Right Data Structures \u2014 combine hash maps, heaps, doubly linked lists for O(1) ops.",
+      "revisit_of": "DES-002"
     },
     {
       "id": "DES-006",
@@ -8005,7 +8027,8 @@
       "importance": "CORE",
       "status": "not_started",
       "revision_count": 0,
-      "notes": "PDF subsection: Stream / Online Algorithms. Original pattern note: Online Algorithms \u2014 process data one element at a time without looking back. Intentional revisit preserved from the PDF."
+      "notes": "PDF subsection: Stream / Online Algorithms. Original pattern note: Online Algorithms \u2014 process data one element at a time without looking back. Intentional revisit preserved from the PDF.",
+      "revisit_of": "HEP-013"
     },
     {
       "id": "DES-020",
@@ -8021,7 +8044,8 @@
       "importance": "CORE",
       "status": "not_started",
       "revision_count": 0,
-      "notes": "PDF subsection: Stream / Online Algorithms. Original pattern note: Online Algorithms \u2014 process data one element at a time without looking back. Intentional revisit preserved from the PDF."
+      "notes": "PDF subsection: Stream / Online Algorithms. Original pattern note: Online Algorithms \u2014 process data one element at a time without looking back. Intentional revisit preserved from the PDF.",
+      "revisit_of": "HEP-003"
     },
     {
       "id": "DES-021",
@@ -8449,7 +8473,8 @@
       "status": "not_started",
       "revision_count": 0,
       "supplemental": true,
-      "notes": "SUPPLEMENTAL (added to close a coverage gap): The textbook Floyd's-cycle problem, giving the array-based 'Find the Duplicate Number' a direct linked-list counterpart."
+      "notes": "SUPPLEMENTAL (added to close a coverage gap): The textbook Floyd's-cycle problem, giving the array-based 'Find the Duplicate Number' a direct linked-list counterpart.",
+      "revisit_of": "LNK-003"
     },
     {
       "id": "STK-023",
@@ -8483,7 +8508,8 @@
       "status": "not_started",
       "revision_count": 0,
       "supplemental": true,
-      "notes": "SUPPLEMENTAL (added to close a coverage gap): Second heap-selection problem, extended to 2D structure."
+      "notes": "SUPPLEMENTAL (added to close a coverage gap): Second heap-selection problem, extended to 2D structure.",
+      "revisit_of": "BSR-010"
     },
     {
       "id": "HEP-024",
@@ -8534,7 +8560,8 @@
       "status": "not_started",
       "revision_count": 0,
       "supplemental": true,
-      "notes": "SUPPLEMENTAL (added to close a coverage gap): Second trie-with-multiplicity-style lookup (shortest matching root)."
+      "notes": "SUPPLEMENTAL (added to close a coverage gap): Second trie-with-multiplicity-style lookup (shortest matching root).",
+      "revisit_of": "TRI-004"
     },
     {
       "id": "GRF-057",
@@ -8602,7 +8629,8 @@
       "status": "not_started",
       "revision_count": 0,
       "supplemental": true,
-      "notes": "SUPPLEMENTAL (added to close a coverage gap): Second partition-counting DP, same family as Decode Ways."
+      "notes": "SUPPLEMENTAL (added to close a coverage gap): Second partition-counting DP, same family as Decode Ways.",
+      "revisit_of": "DP-061"
     },
     {
       "id": "DP-095",
@@ -8704,7 +8732,8 @@
       "status": "not_started",
       "revision_count": 0,
       "supplemental": true,
-      "notes": "SUPPLEMENTAL (added to close a coverage gap): Simpler tree-DP on-ramp that should really be solved before the harder Binary Tree Cameras already in this pattern."
+      "notes": "SUPPLEMENTAL (added to close a coverage gap): Simpler tree-DP on-ramp that should really be solved before the harder Binary Tree Cameras already in this pattern.",
+      "revisit_of": "DP-017"
     },
     {
       "id": "DP-101",
@@ -8772,7 +8801,8 @@
       "status": "not_started",
       "revision_count": 0,
       "supplemental": true,
-      "notes": "SUPPLEMENTAL (added to close a coverage gap): Simpler enumeration-with-pruning on-ramp before the harder Word Break II already in this pattern."
+      "notes": "SUPPLEMENTAL (added to close a coverage gap): Simpler enumeration-with-pruning on-ramp before the harder Word Break II already in this pattern.",
+      "revisit_of": "REC-008"
     },
     {
       "id": "REC-033",
@@ -8908,7 +8938,8 @@
       "status": "not_started",
       "revision_count": 0,
       "supplemental": true,
-      "notes": "SUPPLEMENTAL (added to close a coverage gap): Second versioned/snapshot-style design problem."
+      "notes": "SUPPLEMENTAL (added to close a coverage gap): Second versioned/snapshot-style design problem.",
+      "revisit_of": "DES-021"
     },
     {
       "id": "RNG-020",
@@ -8925,7 +8956,8 @@
       "status": "not_started",
       "revision_count": 0,
       "supplemental": true,
-      "notes": "SUPPLEMENTAL (added to close a coverage gap): Second coordinate-compression + segment-tree range-design problem."
+      "notes": "SUPPLEMENTAL (added to close a coverage gap): Second coordinate-compression + segment-tree range-design problem.",
+      "revisit_of": "RNG-009"
     },
     {
       "id": "RNG-021",
@@ -8942,7 +8974,8 @@
       "status": "not_started",
       "revision_count": 0,
       "supplemental": true,
-      "notes": "SUPPLEMENTAL (added to close a coverage gap): A simpler Fenwick/segment-tree prerequisite that should precede the harder Booking Concert Tickets problem already in this pattern."
+      "notes": "SUPPLEMENTAL (added to close a coverage gap): A simpler Fenwick/segment-tree prerequisite that should precede the harder Booking Concert Tickets problem already in this pattern.",
+      "revisit_of": "RNG-004"
     },
     {
       "id": "DES-035",
@@ -8959,7 +8992,8 @@
       "status": "not_started",
       "revision_count": 0,
       "supplemental": true,
-      "notes": "SUPPLEMENTAL (added to close a coverage gap): Second O(1)-amortized hashmap-based design problem, complementing LRU Cache."
+      "notes": "SUPPLEMENTAL (added to close a coverage gap): Second O(1)-amortized hashmap-based design problem, complementing LRU Cache.",
+      "revisit_of": "DES-012"
     },
     {
       "id": "DES-036",
@@ -8976,7 +9010,8 @@
       "status": "not_started",
       "revision_count": 0,
       "supplemental": true,
-      "notes": "SUPPLEMENTAL (added to close a coverage gap): Second recency/frequency-aware design problem, complementing LFU Cache."
+      "notes": "SUPPLEMENTAL (added to close a coverage gap): Second recency/frequency-aware design problem, complementing LFU Cache.",
+      "revisit_of": "DES-006"
     },
     {
       "id": "DES-037",

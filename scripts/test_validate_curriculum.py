@@ -165,5 +165,55 @@ class ReadinessScoringValidationTests(unittest.TestCase):
         self.assertTrue(any("readiness.min_mock_verdicts" in e for e in errors), msg=errors)
 
 
+class RevisitOfValidationTests(unittest.TestCase):
+    """F15: `revisit_of` markers + exact-title duplicate gating."""
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.curriculum = load_json_file(_shared.CURRICULUM_PATH)
+        cls.graph = load_json_file(_shared.GRAPH_PATH)
+        cls.stages = load_json_file(_shared.STAGES_PATH)
+        cls.skills = load_json_file(_shared.SKILLS_PATH)
+        cls.scoring = load_json_file(_shared.SCORING_PATH)
+
+    def _errors(self, curriculum: dict) -> list[str]:
+        errors, _warnings = validate_curriculum(
+            curriculum, self.graph, self.stages, self.skills, self.scoring
+        )
+        return errors
+
+    def _by_id(self, curriculum: dict) -> dict:
+        return {p["id"]: p for p in curriculum["problems"]}
+
+    def test_live_curriculum_revisit_markers_pass(self) -> None:
+        errors = self._errors(self.curriculum)
+        self.assertFalse(
+            [e for e in errors if "revisit_of" in e or "duplicate title" in e],
+            msg="\n".join(errors),
+        )
+
+    def test_revisit_of_unknown_target_fails(self) -> None:
+        curriculum = copy.deepcopy(self.curriculum)
+        self._by_id(curriculum)["OBS-025"]["revisit_of"] = "ZZZ-999"
+        errors = self._errors(curriculum)
+        self.assertTrue(any("references unknown problem `ZZZ-999`" in e for e in errors), msg=errors)
+
+    def test_revisit_of_forward_reference_fails(self) -> None:
+        curriculum = copy.deepcopy(self.curriculum)
+        # Point an early problem at a much later slot: must be rejected.
+        self._by_id(curriculum)["OBS-021"]["revisit_of"] = "DES-036"
+        errors = self._errors(curriculum)
+        self.assertTrue(any("must appear earlier" in e for e in errors), msg=errors)
+
+    def test_exact_title_dup_without_revisit_of_fails(self) -> None:
+        curriculum = copy.deepcopy(self.curriculum)
+        # DP-025 is the later "Decode Ways" slot; stripping its marker must error.
+        self._by_id(curriculum)["DP-025"].pop("revisit_of", None)
+        errors = self._errors(curriculum)
+        self.assertTrue(
+            any("duplicate title `Decode Ways`" in e for e in errors), msg=errors
+        )
+
+
 if __name__ == "__main__":
     unittest.main()

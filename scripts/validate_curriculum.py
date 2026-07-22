@@ -548,11 +548,44 @@ def validate_curriculum(
     if missing_originals:
         add_error(errors, "curriculum.json: missing original numbers: " + ", ".join(str(n) for n in missing_originals[:10]) + ".")
 
+    # revisit_of (F15): a later slot may re-see an earlier problem through a
+    # different skill/lens. Validate the marker points at a real, EARLIER slot.
+    for problem in problems:
+        if not isinstance(problem, dict):
+            continue
+        revisit_of = problem.get("revisit_of")
+        if revisit_of is None:
+            continue
+        pid = problem.get("id")
+        if not isinstance(revisit_of, str) or revisit_of not in problems_by_id_raw:
+            add_error(errors, f"curriculum.json: `{pid}` `revisit_of` references unknown problem `{revisit_of}`.")
+            continue
+        if revisit_of == pid:
+            add_error(errors, f"curriculum.json: `{pid}` cannot be a revisit of itself.")
+        elif (
+            pid in problem_order
+            and revisit_of in problem_order
+            and problem_order[revisit_of] >= problem_order[pid]
+        ):
+            add_error(
+                errors,
+                f"curriculum.json: `{pid}` `revisit_of` target `{revisit_of}` must appear "
+                f"earlier in curriculum ordering.",
+            )
+
+    # Duplicate titles are an ERROR unless every later slot carries `revisit_of`
+    # (F15: replaces the old free-text "Intentional revisit preserved" note gate).
     for title, matching_problems in sorted(title_occurrences.items()):
         if len(matching_problems) <= 1:
             continue
-        if not all(isinstance(p.get("notes"), str) and "Intentional revisit preserved" in p["notes"] for p in matching_problems):
-            add_error(errors, f"curriculum.json: duplicate title `{title}` is missing intentional-duplicate notes.")
+        ordered = sorted(matching_problems, key=lambda p: problem_order.get(p.get("id"), 0))
+        unmarked = [p for p in ordered[1:] if not p.get("revisit_of")]
+        if unmarked:
+            add_error(
+                errors,
+                f"curriculum.json: duplicate title `{title}` requires the later slot(s) to set "
+                f"`revisit_of`; missing on {', '.join(str(p.get('id')) for p in unmarked)}.",
+            )
         else:
             add_warning(warnings, f"curriculum.json: duplicate title preserved intentionally: `{title}`.")
 
