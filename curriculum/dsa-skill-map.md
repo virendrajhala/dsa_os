@@ -2,7 +2,7 @@
 
 This file is generated, not hand-maintained. It replaces the old module/pattern-based skill map after the skill-first migration (curriculum.json v3.0). Regenerate it any time `knowledge/skills.json` or `curriculum/curriculum.json` changes.
 
-**581 problems** across **93 skills** in **13 stages**. Difficulty: 99 Easy / 336 Medium / 146 Hard. Importance: 292 CORE / 252 COMMON / 37 SPECIALIZED / 0 NICHE.
+**581 problems** across **93 skills** in **13 stages**. Difficulty: 99 Easy / 337 Medium / 145 Hard. Importance: 292 CORE / 252 COMMON / 37 SPECIALIZED / 0 NICHE.
 
 ## Observation
 
@@ -101,11 +101,43 @@ Decompose hierarchical structures (trees, BSTs, tries) into reusable subproblems
 | Skill | Description | Primary | Reinforcement | Challenge |
 |---|---|---|---|---|
 | `SK-RT-01` Tree Traversal (DFS/BFS) | Traverse a tree via DFS (preorder, inorder, or postorder, recursively or with an explicit stack) or BFS (level-order with a queue); these traversals underpin nearly all tree computations such as searching, aggregating, and building level-based answers. | TRE-001 | 8 problems | 1 problems |
-| `SK-RT-02` Tree Recursion | Tree Recursion — solve sub-problems on left/right subtrees and combine results. | TRE-011 | 16 problems | 1 problems |
-| `SK-RT-03` Tree Serialization | Tree Serialization — convert a tree into a string (typically via pre-order or level-order traversal, encoding null children as sentinels) and reconstruct it unambiguously from that string alone. | TRE-026 | 1 problems | 0 problems |
+| `SK-RT-02` Tree Recursion | Tree Recursion — solve sub-problems on left/right subtrees and combine results. | TRE-011 | 15 problems | 1 problems |
+| `SK-RT-03` Tree Serialization | Tree Serialization — convert a tree into a string (typically via pre-order or level-order traversal, encoding null children as sentinels) and reconstruct it unambiguously from that string alone. | TRE-028 | 2 problems | 0 problems |
 | `SK-RT-04` BST Invariant | BST Invariant — for every node, all values in the left subtree are smaller and all values in the right subtree are larger. Exploit this ordering to prune search (go left or right, never both) instead of visiting every node. | BST-003 | 10 problems | 1 problems |
 | `SK-RT-05` Trie / Prefix Tree | A trie stores strings as a tree of character-labeled edges with a shared-prefix path, enabling insert and prefix/word lookup in O(L) per key (L = key length) independent of the number of stored words; ideal for autocomplete, prefix counting, and word dictionaries. | TRI-001 | 3 problems | 2 problems |
 | `SK-RT-06` Trie with Multiplicity | Trie with Multiplicity — extend a standard trie node with a count (or list) at each node or end-of-word marker to track how many times a word or prefix has been inserted, enabling frequency-aware prefix queries. | TRI-007 | 1 problems | 0 problems |
+
+## Pattern Discovery
+
+Generate the space of possibilities deliberately, prune aggressively using the problem's constraints, and recognize when a decision tree is the right model.
+
+*5 skills, 33 problems.*
+
+| Skill | Description | Primary | Reinforcement | Challenge |
+|---|---|---|---|---|
+| `SK-PD-01` Memoized DFS / Enumeration | Simpler enumeration-with-pruning on-ramp before the harder Word Break II already in this pattern. | REC-032 | 1 problems | 0 problems |
+| `SK-PD-02` Recursive Tree Construction | Recursive Tree Construction — for each possible root value, recursively generate every valid left-subtree and right-subtree shape, then combine each left/right pair under that root to enumerate all distinct trees. | REC-002 | 1 problems | 0 problems |
+| `SK-PD-03` Combination Backtracking | Backtracking that recursively builds subsets or fixed-size combinations, advancing a start index so each element is only considered forward (avoiding duplicate orderings) and pruning branches that break constraints; generates the combinatorial search space in O(2^n) style. | REC-003 | 9 problems | 0 problems |
+| `SK-PD-04` Permutation Backtracking | Backtracking that generates all orderings by, at each depth, choosing an unused element (via swap or a used[] array), recursing, then undoing the choice; produces n! permutations and handles duplicate-skipping when the input has repeats. | REC-013 | 4 problems | 5 problems |
+| `SK-PD-05` Constraint Backtracking | Backtracking under explicit constraints where each partial placement is validated before recursing and invalid branches are pruned early; solves N-Queens, Sudoku, and word-search by trying a candidate, checking feasibility, and backtracking on failure. | REC-024 | 5 problems | 3 problems |
+
+## Graph Thinking
+
+Model problems as graphs, choose the right traversal or connectivity tool, and separate reachability/traversal correctness from path optimality.
+
+*9 skills, 73 problems.*
+
+| Skill | Description | Primary | Reinforcement | Challenge |
+|---|---|---|---|---|
+| `SK-GT-01` Queue / Deque / BFS | Use a FIFO queue (or double-ended deque) to process elements in arrival order; the backbone of breadth-first traversal, level-order processing, and sliding-window extremes. | QUE-003 | 8 problems | 4 problems |
+| `SK-GT-02` Grid BFS | Grid BFS — treat each grid cell as a graph node connected to its (usually 4-directional) neighbors, and run multi-source BFS from every initially 'active' cell simultaneously to compute the minimum steps for a state to propagate across the grid. | GRF-001 | 1 problems | 0 problems |
+| `SK-GT-03` Graph BFS | Breadth-first search explores a graph level by level using a queue and a visited set, guaranteeing the shortest path (fewest edges) in unweighted graphs; used for level-order, multi-source spread, and shortest-hop problems. | GRF-004 | 10 problems | 4 problems |
+| `SK-GT-04` Graph DFS / Union-Find | Depth-first search recurses (or uses a stack) along each path with a visited set to enumerate reachable nodes, find connected components, and detect cycles; disjoint-set union is an alternative for incrementally merging components and testing connectivity. | GRF-017 | 10 problems | 1 problems |
+| `SK-GT-05` Topological Sort | Produce a linear ordering of a DAG's nodes so every edge points forward, via Kahn's algorithm (repeatedly remove zero-indegree nodes) or DFS post-order reversal; used for dependency resolution, build/course scheduling, and cycle detection in directed graphs. | GRF-028 | 3 problems | 2 problems |
+| `SK-GT-06` Disjoint Set Union | Disjoint Set Union maintains a partition of elements supporting find (which set) and union (merge sets); with path compression plus union by rank/size, operations are near-O(1) amortized, powering connectivity queries, Kruskal's MST, and cycle detection. | GRF-033 | 3 problems | 4 problems |
+| `SK-GT-07` Shortest Path Algorithms | Compute shortest paths on weighted graphs: Dijkstra (non-negative weights, O(E log V) with a heap), Bellman-Ford (handles negative edges and detects negative cycles, O(VE)), and Floyd-Warshall (all-pairs, O(V^3)). | GRF-041 | 6 problems | 3 problems |
+| `SK-GT-08` Minimum Spanning Tree | Find a minimum-total-weight tree connecting all vertices: Kruskal's sorts edges and adds them if they join different DSU components, while Prim's grows the tree from a start vertex using a min-heap of frontier edges. | GRF-051 | 1 problems | 3 problems |
+| `SK-GT-09` Grid DFS / Flood Fill | An Easy grid-DFS problem — softens the module's steep 2-Easy-out-of-56 difficulty cliff. | GRF-058 | 1 problems | 0 problems |
 
 ## State Transition
 
@@ -133,24 +165,6 @@ Define explicit states, transitions, and base cases, then choose an evaluation o
 | `SK-ST-16` Bitmask Dynamic Programming | Encode a subset of up to ~20 elements as the bits of an integer mask and run DP over masks, transitioning by flipping bits; runs in O(2^n * n) and solves traveling-salesman, assignment, and set-cover style problems. | DP-074 | 1 problems | 8 problems |
 | `SK-ST-17` Tree / Graph Dynamic Programming | Tree / Graph Dynamic Programming — compute a value at each node from its already-computed children (post-order traversal), e.g. height, diameter, or max path sum, combining child results at each parent. | DP-083 | 1 problems | 8 problems |
 
-## Graph Thinking
-
-Model problems as graphs, choose the right traversal or connectivity tool, and separate reachability/traversal correctness from path optimality.
-
-*9 skills, 73 problems.*
-
-| Skill | Description | Primary | Reinforcement | Challenge |
-|---|---|---|---|---|
-| `SK-GT-01` Queue / Deque / BFS | Use a FIFO queue (or double-ended deque) to process elements in arrival order; the backbone of breadth-first traversal, level-order processing, and sliding-window extremes. | QUE-003 | 8 problems | 4 problems |
-| `SK-GT-02` Grid BFS | Grid BFS — treat each grid cell as a graph node connected to its (usually 4-directional) neighbors, and run multi-source BFS from every initially 'active' cell simultaneously to compute the minimum steps for a state to propagate across the grid. | GRF-001 | 1 problems | 0 problems |
-| `SK-GT-03` Graph BFS | Breadth-first search explores a graph level by level using a queue and a visited set, guaranteeing the shortest path (fewest edges) in unweighted graphs; used for level-order, multi-source spread, and shortest-hop problems. | GRF-004 | 10 problems | 4 problems |
-| `SK-GT-04` Graph DFS / Union-Find | Depth-first search recurses (or uses a stack) along each path with a visited set to enumerate reachable nodes, find connected components, and detect cycles; disjoint-set union is an alternative for incrementally merging components and testing connectivity. | GRF-017 | 10 problems | 1 problems |
-| `SK-GT-05` Topological Sort | Produce a linear ordering of a DAG's nodes so every edge points forward, via Kahn's algorithm (repeatedly remove zero-indegree nodes) or DFS post-order reversal; used for dependency resolution, build/course scheduling, and cycle detection in directed graphs. | GRF-028 | 3 problems | 2 problems |
-| `SK-GT-06` Disjoint Set Union | Disjoint Set Union maintains a partition of elements supporting find (which set) and union (merge sets); with path compression plus union by rank/size, operations are near-O(1) amortized, powering connectivity queries, Kruskal's MST, and cycle detection. | GRF-033 | 3 problems | 4 problems |
-| `SK-GT-07` Shortest Path Algorithms | Compute shortest paths on weighted graphs: Dijkstra (non-negative weights, O(E log V) with a heap), Bellman-Ford (handles negative edges and detects negative cycles, O(VE)), and Floyd-Warshall (all-pairs, O(V^3)). | GRF-041 | 6 problems | 3 problems |
-| `SK-GT-08` Minimum Spanning Tree | Find a minimum-total-weight tree connecting all vertices: Kruskal's sorts edges and adds them if they join different DSU components, while Prim's grows the tree from a start vertex using a min-heap of frontier edges. | GRF-051 | 1 problems | 3 problems |
-| `SK-GT-09` Grid DFS / Flood Fill | An Easy grid-DFS problem — softens the module's steep 2-Easy-out-of-56 difficulty cliff. | GRF-058 | 1 problems | 0 problems |
-
 ## Interval Reasoning
 
 Reason about overlapping ranges, sweeps, and ordered range-query structures (Fenwick/segment trees) that summarize or update intervals efficiently.
@@ -170,20 +184,6 @@ Reason about overlapping ranges, sweeps, and ordered range-query structures (Fen
 | `SK-IR-09` Persistent Array Snapshot Design | Persistent Array Snapshot Design — instead of copying the whole array on every snapshot, store each index's value history as a list of (snapshot_id, value) pairs and binary-search that history on read, giving O(1) snapshot and O(log n) get. | RNG-012 | 1 problems | 0 problems |
 | `SK-IR-10` Segment Tree / Ordered Range Design | Segment Tree / Ordered Range Design — maintain a dynamic set of non-overlapping ranges (a sorted map of interval boundaries, or a segment tree with lazy propagation) supporting add/remove/query of arbitrary ranges. | RNG-013 | 1 problems | 0 problems |
 | `SK-IR-11` Segment Tree Ticket Allocation | A simpler Fenwick/segment-tree prerequisite that should precede the harder Booking Concert Tickets problem already in this pattern. | RNG-021 | 1 problems | 0 problems |
-
-## Pattern Discovery
-
-Generate the space of possibilities deliberately, prune aggressively using the problem's constraints, and recognize when a decision tree is the right model.
-
-*5 skills, 33 problems.*
-
-| Skill | Description | Primary | Reinforcement | Challenge |
-|---|---|---|---|---|
-| `SK-PD-01` Memoized DFS / Enumeration | Simpler enumeration-with-pruning on-ramp before the harder Word Break II already in this pattern. | REC-032 | 1 problems | 0 problems |
-| `SK-PD-02` Recursive Tree Construction | Recursive Tree Construction — for each possible root value, recursively generate every valid left-subtree and right-subtree shape, then combine each left/right pair under that root to enumerate all distinct trees. | REC-002 | 1 problems | 0 problems |
-| `SK-PD-03` Combination Backtracking | Backtracking that recursively builds subsets or fixed-size combinations, advancing a start index so each element is only considered forward (avoiding duplicate orderings) and pruning branches that break constraints; generates the combinatorial search space in O(2^n) style. | REC-003 | 9 problems | 0 problems |
-| `SK-PD-04` Permutation Backtracking | Backtracking that generates all orderings by, at each depth, choosing an unused element (via swap or a used[] array), recursing, then undoing the choice; produces n! permutations and handles duplicate-skipping when the input has repeats. | REC-013 | 4 problems | 5 problems |
-| `SK-PD-05` Constraint Backtracking | Backtracking under explicit constraints where each partial placement is validated before recursing and invalid branches are pruned early; solves N-Queens, Sudoku, and word-search by trying a candidate, checking feasibility, and backtracking on failure. | REC-024 | 5 problems | 3 problems |
 
 ## Mathematical Thinking
 
