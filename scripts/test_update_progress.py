@@ -52,6 +52,29 @@ BASE_ARGS = [
 ]
 
 
+def _pin_overdue_fixture(tmp_progress: Path) -> None:
+    """Freeze the copied fixture so these tests don't depend on live state:
+    OBS-005/OBS-006 are forced overdue (as of the 2026-07-21 --completed-at),
+    every other revision is pushed far into the future, and any live
+    completion of NEW_PROBLEM_ID is dropped so it stays a new solve."""
+
+    payload = json.loads(tmp_progress.read_text())
+    payload["completed"] = [
+        r for r in payload["completed"] if r.get("problem_id") != NEW_PROBLEM_ID
+    ]
+    forced_overdue = {"OBS-005": "2026-07-17", "OBS-006": "2026-07-18"}
+    for record in payload["completed"]:
+        revision = record.get("revision")
+        if not isinstance(revision, dict):
+            continue
+        if record["problem_id"] in forced_overdue:
+            revision["status"] = "ACTIVE"
+            revision["next_due"] = forced_overdue[record["problem_id"]]
+        elif revision.get("next_due"):
+            revision["next_due"] = "2099-01-01"
+    tmp_progress.write_text(json.dumps(payload, indent=2))
+
+
 class RevisionFirstGateTests(unittest.TestCase):
     """F3: recording a NEW solve must abort while a revision is overdue."""
 
@@ -59,6 +82,7 @@ class RevisionFirstGateTests(unittest.TestCase):
         self.tmpdir = tempfile.mkdtemp(prefix="dsa_os_test_")
         self.tmp_progress = Path(self.tmpdir) / "progress.json"
         shutil.copyfile(LIVE_PROGRESS, self.tmp_progress)
+        _pin_overdue_fixture(self.tmp_progress)
         self.original_bytes = self.tmp_progress.read_bytes()
 
     def tearDown(self) -> None:
@@ -73,8 +97,8 @@ class RevisionFirstGateTests(unittest.TestCase):
         )
 
     def test_new_solve_blocked_while_revisions_overdue(self) -> None:
-        # Live fixture has OBS-005 (due 2026-07-17) and OBS-006 (due
-        # 2026-07-18) overdue as of 2026-07-21.
+        # Fixture pins OBS-005 (due 2026-07-17) and OBS-006 (due 2026-07-18)
+        # overdue as of the 2026-07-21 --completed-at.
         result = self._run(BASE_ARGS)
 
         self.assertNotEqual(result.returncode, 0, msg=result.stdout + result.stderr)
@@ -102,6 +126,19 @@ class RevisionFirstGateTests(unittest.TestCase):
         self.assertIn("OBS-005", joined)
         self.assertIn("OBS-006", joined)
         self.assertIn("override", joined.lower())
+
+    def test_revision_recording_not_blocked_by_other_overdue_revisions(self) -> None:
+        # Pins the F3 design point: revision mode is UNGATED — recording a
+        # revision is how overdue state gets cleared, so OBS-001's revision
+        # must record fine while OBS-005/OBS-006 are overdue.
+        result = self._run(
+            [*REVISION_BASE_ARGS, "--revision-result", "PASS", *_revision_score_args(9)]
+        )
+
+        self.assertEqual(result.returncode, 0, msg=result.stdout + result.stderr)
+        updated = json.loads(self.tmp_progress.read_text())
+        record = next(r for r in updated["completed"] if r["problem_id"] == REVISION_PROBLEM_ID)
+        self.assertEqual(record["revision"]["history"][-1]["result"], "PASS")
 
     def test_new_solve_not_blocked_when_no_revisions_overdue(self) -> None:
         # Push every overdue revision's next_due far into the future so the
