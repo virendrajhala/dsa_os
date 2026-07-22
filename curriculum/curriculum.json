@@ -780,7 +780,7 @@
       "revision_count": 0,
       "notes": "PDF subsection: Sliding Window. Original pattern note: Sliding Window \u2014 maintain a window of elements; expand/shrink to satisfy a constraint.",
       "lc_id": null,
-      "url": null,
+      "url": "https://www.geeksforgeeks.org/problems/max-sum-subarray-of-size-k5313/1",
       "source": "GFG",
       "source_section": "Arrays"
     },
@@ -832,7 +832,7 @@
       "revision_count": 0,
       "notes": "PDF subsection: Sliding Window. Original pattern note: Sliding Window \u2014 maintain a window of elements; expand/shrink to satisfy a constraint.",
       "lc_id": null,
-      "url": null,
+      "url": "https://www.geeksforgeeks.org/dsa/find-zeroes-to-be-flipped-so-that-number-of-consecutive-1s-is-maximized/",
       "source_section": "Arrays",
       "source": "GFG"
     },
@@ -1583,7 +1583,7 @@
       "revision_count": 0,
       "notes": "PDF subsection: Binary Search on Answer. Shared technique note for this skill group (general, not specific to this problem): Parametric Search \u2014 binary search on the answer space, validate with a feasibility function.",
       "lc_id": null,
-      "url": null,
+      "url": "https://www.geeksforgeeks.org/problems/allocate-minimum-number-of-pages0937/1",
       "source": "GFG",
       "source_section": "Binary Search"
     },
@@ -1619,7 +1619,7 @@
       "revision_count": 0,
       "notes": "PDF subsection: Binary Search on Answer. Shared technique note for this skill group (general, not specific to this problem): Parametric Search \u2014 binary search on the answer space, validate with a feasibility function.",
       "lc_id": null,
-      "url": null,
+      "url": "https://www.geeksforgeeks.org/problems/the-painters-partition-problem1535/1",
       "source": "GFG",
       "source_section": "Binary Search"
     },
@@ -1808,7 +1808,7 @@
       "revision_count": 0,
       "notes": "PDF subsection: Prefix Sum / Difference Array. Original pattern note: Prefix Sum \u2014 precompute cumulative sums for O(1) range queries.",
       "lc_id": null,
-      "url": null,
+      "url": "https://www.geeksforgeeks.org/problems/count-subarrays-with-equal-number-of-1s-and-0s-1587115620/1",
       "source": "GFG",
       "source_section": "Arrays"
     },
@@ -2764,7 +2764,7 @@
       "revision_count": 0,
       "notes": "PDF subsection: Queue / Deque Patterns. Original pattern note: Monotonic Deque \u2014 maintain a deque for sliding window max/min in O(n).",
       "lc_id": null,
-      "url": null,
+      "url": "https://www.geeksforgeeks.org/problems/maximum-of-minimum-for-every-window-size3453/1",
       "source": "GFG",
       "source_section": "Stacks & Queues"
     },
@@ -2799,7 +2799,7 @@
       "revision_count": 0,
       "notes": "PDF subsection: Queue / Deque Patterns. Original pattern note: Monotonic Deque \u2014 maintain a deque for sliding window max/min in O(n).",
       "lc_id": null,
-      "url": null,
+      "url": "https://www.geeksforgeeks.org/problems/first-negative-integer-in-every-window-of-size-k3345/1",
       "source": "GFG",
       "source_section": "Stacks & Queues"
     },
@@ -5802,7 +5802,7 @@
       "revision_count": 0,
       "notes": "PDF subsection: Knapsack Variants. Shared technique note for this skill group (general, not specific to this problem): 0/1 Knapsack / Unbounded Knapsack \u2014 classic DP on items with weight/value.",
       "lc_id": null,
-      "url": null,
+      "url": "https://www.geeksforgeeks.org/problems/0-1-knapsack-problem0945/1",
       "source": "GFG",
       "source_section": "Dynamic Programming"
     },
@@ -5820,7 +5820,7 @@
       "revision_count": 0,
       "notes": "PDF subsection: Knapsack Variants. Shared technique note for this skill group (general, not specific to this problem): 0/1 Knapsack / Unbounded Knapsack \u2014 classic DP on items with weight/value.",
       "lc_id": null,
-      "url": null,
+      "url": "https://www.geeksforgeeks.org/problems/knapsack-with-duplicate-items4201/1",
       "source": "GFG",
       "source_section": "Dynamic Programming"
     },
@@ -5974,7 +5974,7 @@
       "revision_count": 0,
       "notes": "PDF subsection: Interval / Range DP. Shared technique note for this skill group (general, not specific to this problem): Interval DP \u2014 solve subproblems over all intervals [i, j], merge results.",
       "lc_id": null,
-      "url": null,
+      "url": "https://www.geeksforgeeks.org/problems/matrix-chain-multiplication0303/1",
       "source": "GFG",
       "source_section": "Dynamic Programming"
     },
@@ -6077,7 +6077,7 @@
       "revision_count": 0,
       "notes": "PDF subsection: Interval / Range DP. Shared technique note for this skill group (general, not specific to this problem): Interval DP \u2014 solve subproblems over all intervals [i, j], merge results.",
       "lc_id": null,
-      "url": null,
+      "url": "https://www.geeksforgeeks.org/problems/optimal-strategy-for-a-game-1587115620/1",
       "source": "GFG",
       "source_section": "Dynamic Programming"
     },
@@ -6299,7 +6299,7 @@
       "revision_count": 0,
       "notes": "PDF subsection: Bitmask DP. Shared technique note for this skill group (general, not specific to this problem): Bitmask DP \u2014 represent subsets as bitmasks; ideal for small n (\u226420).",
       "lc_id": null,
-      "url": null,
+      "url": "https://www.geeksforgeeks.org/problems/travelling-salesman-problem2732/1",
       "source": "GFG",
       "source_section": "Dynamic Programming"
     },
@@ -7204,7 +7204,7 @@
       "revision_count": 0,
       "notes": "PDF subsection: Interval & Scheduling Greedy. Shared technique note for this skill group (general, not specific to this problem): Greedy Selection \u2014 always pick the locally optimal choice; prove exchange argument.",
       "lc_id": null,
-      "url": null,
+      "url": "https://www.geeksforgeeks.org/problems/minimum-platforms-1587115620/1",
       "source": "GFG",
       "source_section": "Greedy Algorithms"
     },
@@ -7222,7 +7222,7 @@
       "revision_count": 0,
       "notes": "PDF subsection: Interval & Scheduling Greedy. Shared technique note for this skill group (general, not specific to this problem): Greedy Selection \u2014 always pick the locally optimal choice; prove exchange argument.",
       "lc_id": null,
-      "url": null,
+      "url": "https://www.geeksforgeeks.org/problems/job-sequencing-problem-1587115620/1",
       "source": "GFG",
       "source_section": "Greedy Algorithms"
     },
@@ -7240,7 +7240,7 @@
       "revision_count": 0,
       "notes": "PDF subsection: Interval & Scheduling Greedy. Shared technique note for this skill group (general, not specific to this problem): Greedy Selection \u2014 always pick the locally optimal choice; prove exchange argument.",
       "lc_id": null,
-      "url": null,
+      "url": "https://www.geeksforgeeks.org/problems/fractional-knapsack-1587115620/1",
       "source": "GFG",
       "source_section": "Greedy Algorithms"
     },
@@ -7258,7 +7258,7 @@
       "revision_count": 0,
       "notes": "PDF subsection: Interval & Scheduling Greedy. Shared technique note for this skill group (general, not specific to this problem): Greedy Selection \u2014 always pick the locally optimal choice; prove exchange argument.",
       "lc_id": null,
-      "url": null,
+      "url": "https://www.geeksforgeeks.org/problems/n-meetings-in-one-room-1587115620/1",
       "source": "GFG",
       "source_section": "Greedy Algorithms"
     },
@@ -7379,7 +7379,7 @@
       "revision_count": 0,
       "notes": "PDF subsection: String & Array Greedy. Original pattern note: Greedy Selection \u2014 always pick the locally optimal choice; prove exchange argument.",
       "lc_id": null,
-      "url": null,
+      "url": "https://www.geeksforgeeks.org/dsa/largest-number-possible-after-removal-of-k-digits/",
       "source_section": "Greedy Algorithms",
       "source": "GFG"
     },
@@ -8048,7 +8048,7 @@
       "revision_count": 0,
       "notes": "PDF subsection: Segment Trees & BITs (Advanced). Original pattern note: Segment Tree / Fenwick Tree \u2014 O(log n) range queries and point updates.",
       "lc_id": null,
-      "url": null,
+      "url": "https://www.geeksforgeeks.org/dsa/range-minimum-query-for-static-array/",
       "source": "GFG",
       "source_section": "Trees"
     },
@@ -9210,7 +9210,7 @@
       "supplemental": true,
       "notes": "SUPPLEMENTAL (added to close a coverage gap): 3-D generalization of Russian Doll Envelopes \u2014 same nested-ordering LIS reduction.",
       "lc_id": null,
-      "url": null,
+      "url": "https://www.geeksforgeeks.org/problems/box-stacking/1",
       "source": "GFG",
       "source_section": "Strings"
     },
