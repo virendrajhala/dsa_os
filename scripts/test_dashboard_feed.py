@@ -178,5 +178,66 @@ class FeedEndpointTests(unittest.TestCase):
                 proc.kill()
 
 
+class ForecastMaintenanceTests(unittest.TestCase):
+    """The day-0 bar must not undercount the queue printed above it."""
+
+    def _mastered_due_for_maintenance(self, problem_id, last_pass):
+        record = _completed(problem_id, status="MASTERED", stage=5)
+        record["revision"]["completed"] = [last_pass]
+        record["revision"]["next_due"] = None
+        return record
+
+    def test_day_zero_includes_quarterly_maintenance_due_now(self):
+        progress = _base_progress()
+        # Passed R4 long enough ago that 90-day maintenance has come due.
+        progress["completed"][0] = self._mastered_due_for_maintenance(
+            "OBS-001", "2026-01-01"
+        )
+        on = date(2026, 7, 22)
+        feed = build_dashboard_feed(_state(progress), on)
+        maintenance = [
+            item["problem_id"] for item in feed["revision_queue"]
+            if item["kind"] == "quarterly_maintenance"
+        ]
+        self.assertTrue(maintenance, "fixture did not produce maintenance work")
+        day_zero = feed["review_forecast"][0]
+        for problem_id in maintenance:
+            self.assertIn(problem_id, day_zero["problem_ids"])
+        # Every queue row due today or earlier is represented in day 0.
+        due_now = [
+            item["problem_id"] for item in feed["revision_queue"]
+            if item["next_due"] <= "2026-07-22"
+        ]
+        self.assertEqual(sorted(set(due_now)), sorted(set(day_zero["problem_ids"])))
+        self.assertEqual(day_zero["count"], len(day_zero["problem_ids"]))
+
+    def test_forecast_never_double_counts_a_problem_on_day_zero(self):
+        progress = _base_progress()
+        progress["completed"][0] = self._mastered_due_for_maintenance(
+            "OBS-001", "2026-01-01"
+        )
+        progress["completed"][1] = _completed("OBS-002", next_due="2026-07-01")
+        feed = build_dashboard_feed(_state(progress), date(2026, 7, 22))
+        ids = feed["review_forecast"][0]["problem_ids"]
+        self.assertEqual(len(ids), len(set(ids)))
+
+
+class SolutionPresenceTests(unittest.TestCase):
+    """The modal may only link a solution file the repo actually has."""
+
+    def test_solutions_present_lists_only_real_files(self):
+        feed = build_dashboard_feed(_state(_base_progress()), date(2026, 7, 22))
+        present = feed["solutions_present"]
+        self.assertIsInstance(present, list)
+        for problem_id in present:
+            self.assertTrue((_shared.ROOT / "solutions" / f"{problem_id}.py").exists())
+
+    def test_solutions_present_excludes_non_problem_files(self):
+        feed = build_dashboard_feed(_state(_base_progress()), date(2026, 7, 22))
+        # solutions/ ships _example.py and README.md; neither is a problem id.
+        self.assertNotIn("_example", feed["solutions_present"])
+        self.assertNotIn("README", feed["solutions_present"])
+
+
 if __name__ == "__main__":
     unittest.main()

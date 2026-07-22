@@ -407,15 +407,15 @@
     return banner;
   }
 
+  // The trajectory strip is the readiness visual; this renders the two pieces
+  // of chrome around it. The per-gate rows it used to build went into a
+  // permanently-hidden container — the strip's stations already say the same
+  // thing, and its aria-label is the text equivalent.
   function renderReadiness() {
-    const rows = $("#readiness-rows");
-    if (!rows) return;
-    rows.replaceChildren();
     const overall = $("#readiness-overall");
     const projection = $("#readiness-projection");
 
     if (!feedAvailable()) {
-      rows.append(degradedBanner());
       if (overall) {
         overall.textContent = "Offline";
         overall.className = "pill warn";
@@ -425,47 +425,6 @@
     }
 
     const readiness = state.feed.readiness || {};
-    const gates = readiness.gates || {};
-    const core = gates.core_mastery || {};
-    const pass = gates.revision_pass || {};
-    const mocks = gates.mocks || {};
-    const pct = (value) => `${((Number(value) || 0) * 100).toFixed(1)}%`;
-    const pctTarget = (value) => `${((Number(value) || 0) * 100).toFixed(0)}%`;
-
-    const rowSpecs = [
-      {
-        label: "Core skill mastery",
-        met: core.met,
-        detail: `${core.mastered ?? 0}/${core.total ?? 0} skills - ${pct(core.current)} vs ${pctTarget(core.target)} target`,
-      },
-      {
-        label: "Revision pass rate",
-        met: pass.met,
-        detail: `${pct(pass.current)} vs ${pctTarget(pass.target)} target`,
-      },
-      {
-        label: "Recent mocks",
-        met: mocks.met,
-        detail:
-          (mocks.current ?? 0) >= (mocks.required ?? 0)
-            ? `last ${mocks.required}: ${(mocks.verdicts || []).join(", ") || "none"}`
-            : `${mocks.current ?? 0}/${mocks.required ?? 0} mocks recorded`,
-      },
-    ];
-
-    rowSpecs.forEach((spec) => {
-      const row = document.createElement("div");
-      row.className = "readiness-row";
-      const label = document.createElement("span");
-      label.className = "readiness-row-label";
-      label.textContent = spec.label;
-      const detail = document.createElement("span");
-      detail.className = "readiness-row-detail";
-      detail.textContent = spec.detail;
-      row.append(label, detail, pill(spec.met ? "MET" : "UNMET", spec.met ? "good" : "bad"));
-      rows.append(row);
-    });
-
     if (overall) {
       overall.textContent = readiness.all_met ? "All met" : "Not yet";
       overall.className = `pill ${readiness.all_met ? "good" : "warn"}`;
@@ -2854,9 +2813,20 @@
     const heading = document.createElement("h4");
     heading.textContent = "Code-execution gate";
 
+    // Link it only when the repo really has the file (feed.solutions_present);
+    // otherwise the path stays plain text rather than becoming a dead 404.
+    const relative = `solutions/${problemId}.py`;
+    const exists = (state.feed?.solutions_present || []).includes(problemId);
     const path = document.createElement("p");
     path.className = "num solution-path";
-    path.textContent = `solutions/${problemId}.py`;
+    if (exists) {
+      const link = document.createElement("a");
+      link.href = `../${relative}`;
+      link.textContent = relative;
+      path.append(link);
+    } else {
+      path.textContent = relative;
+    }
 
     // The record only ever proves the negative: update_progress.py notes a
     // --no-code bypass but writes nothing when the gate passes, and records
@@ -3162,7 +3132,15 @@
   // ---------------------------------------------------------------------------
 
   const SVG_NS = "http://www.w3.org/2000/svg";
-  const HINT_MAX = 7;
+  const HINT_MAX_FALLBACK = 7;
+  // The ladder's top rung comes from scoring.json hint_levels, so widening the
+  // ladder there does not silently clip this chart.
+  function hintMax() {
+    const levels = Object.keys(state.datasets.scoring?.hint_levels || {})
+      .map(Number)
+      .filter(Number.isFinite);
+    return levels.length ? Math.max(...levels) : HINT_MAX_FALLBACK;
+  }
   const HINT_BAND_FALLBACK = [
     { from: 0, to: 2, name: "independent", note: "full mastery credit", tone: "good" },
     { from: 3, to: 4, name: "guided", note: "half credit", tone: "warn" },
@@ -3193,8 +3171,9 @@
   // disagree with the tier the scorer actually applies.
   function hintBands() {
     const discount = state.datasets.scoring?.hint_mastery_discount || {};
+    const top = hintMax();
     const bands = [];
-    for (let level = 0; level <= HINT_MAX; level += 1) {
+    for (let level = 0; level <= top; level += 1) {
       const weight = discount[String(level)];
       if (typeof weight !== "number") return HINT_BAND_FALLBACK;
       const last = bands.at(-1);
@@ -3262,7 +3241,8 @@
       return;
     }
 
-    const levels = points.map((point) => clamp(Number(point.hint_level) || 0, 0, HINT_MAX));
+    const top = hintMax();
+    const levels = points.map((point) => clamp(Number(point.hint_level) || 0, 0, top));
     const means = rollingMean(levels, 5);
     const bands = hintBands();
     const bandFor = (level) => bands.find((band) => level >= band.from && level <= band.to);
@@ -3283,41 +3263,47 @@
     const plotH = H - PAD_TOP - PAD_BOTTOM;
     const xAt = (index) =>
       PAD_L + (points.length === 1 ? plotW / 2 : (plotW * index) / (points.length - 1));
-    const yAt = (level) => PAD_TOP + plotH - (plotH * clamp(level, 0, HINT_MAX)) / HINT_MAX;
+    const yAt = (level) => PAD_TOP + plotH - (plotH * clamp(level, 0, top)) / top;
 
     const svg = svgNode("svg", { viewBox: `0 0 ${W} ${H}`, class: "insight-svg" });
 
     // Mastery-tier bands, tinted; the name beside each carries the meaning so
     // the tier is never communicated by color alone.
     bands.forEach((band) => {
-      const top = yAt(Math.min(HINT_MAX, band.to + 0.5));
+      const bandTop = yAt(Math.min(top, band.to + 0.5));
       const bottom = yAt(Math.max(0, band.from - 0.5));
       svg.append(
         svgNode("rect", {
           x: PAD_L,
-          y: top,
+          y: bandTop,
           width: plotW,
-          height: Math.max(1, bottom - top),
+          height: Math.max(1, bottom - bandTop),
           class: `hint-band ${band.tone}`.trim(),
         }),
       );
       // A hairline at each band edge: the 4% tint alone is deliberately faint.
-      if (top > PAD_TOP) {
+      if (bandTop > PAD_TOP) {
         svg.append(
-          svgNode("line", { x1: PAD_L, y1: top, x2: PAD_L + plotW, y2: top, class: "hint-band-edge" }),
+          svgNode("line", {
+            x1: PAD_L,
+            y1: bandTop,
+            x2: PAD_L + plotW,
+            y2: bandTop,
+            class: "hint-band-edge",
+          }),
         );
       }
       svg.append(
         svgNode(
           "text",
-          { x: W - PAD_R + 10, y: (top + bottom) / 2 + 4, class: "insight-band-label" },
+          { x: W - PAD_R + 10, y: (bandTop + bottom) / 2 + 4, class: "insight-band-label" },
           `${band.name} ${band.from}-${band.to}`,
         ),
       );
     });
 
     // Recessive y ticks at the band edges.
-    const ticks = [...new Set([0, ...bands.map((band) => band.from), HINT_MAX])].sort((a, b) => a - b);
+    const ticks = [...new Set([0, ...bands.map((band) => band.from), top])].sort((a, b) => a - b);
     ticks.forEach((tick) => {
       svg.append(
         svgNode(
@@ -3401,12 +3387,19 @@
       "aria-label",
       `Hint independence over ${points.length} solve${points.length === 1 ? "" : "s"}. ` +
         `Latest hint level ${latest}${latestBand ? ` (${latestBand.name})` : ""}. ` +
-        `Rolling mean now ${means.at(-1).toFixed(1)} of a maximum ${HINT_MAX}.`,
+        `Rolling mean now ${means.at(-1).toFixed(1)} of a maximum ${top}.`,
     );
   }
 
   function mockSparkline(dimension, mocks) {
-    const values = mocks.map((mock) => Number(mock.scores?.[dimension]) || 0);
+    // An ungraded dimension is null, never 0: coercing it would draw a
+    // catastrophic drop where the truth is "this mock did not score it".
+    const values = mocks.map((mock) => {
+      const raw = mock.scores?.[dimension];
+      return typeof raw === "number" && Number.isFinite(raw) ? raw : null;
+    });
+    const graded = values.filter((value) => value != null);
+    const latest = [...values].reverse().find((value) => value != null) ?? null;
     const card = document.createElement("article");
     card.className = "sparkline-card";
 
@@ -3419,26 +3412,50 @@
     const svg = svgNode("svg", { viewBox: `0 0 ${W} ${H}`, class: "sparkline-svg" });
     const xAt = (index) => (values.length === 1 ? W / 2 : (W * index) / (values.length - 1));
     const yAt = (value) => H - 3 - ((H - 6) * clamp(value, 0, MOCK_SCORE_MAX)) / MOCK_SCORE_MAX;
-    if (values.length > 1) {
+    // Gaps break the line into segments rather than dragging it to the floor.
+    let segment = [];
+    const flush = () => {
+      if (segment.length > 1) {
+        svg.append(svgNode("polyline", { points: segment.join(" "), class: "sparkline-stroke" }));
+      }
+      segment = [];
+    };
+    values.forEach((value, index) => {
+      if (value == null) {
+        flush();
+        return;
+      }
+      segment.push(`${xAt(index).toFixed(1)},${yAt(value).toFixed(1)}`);
+    });
+    flush();
+    const lastGradedIndex = values.reduce((last, value, index) => (value != null ? index : last), -1);
+    if (lastGradedIndex >= 0) {
       svg.append(
-        svgNode("polyline", {
-          points: values.map((value, index) => `${xAt(index).toFixed(1)},${yAt(value).toFixed(1)}`).join(" "),
-          class: "sparkline-stroke",
+        svgNode("circle", {
+          cx: xAt(lastGradedIndex),
+          cy: yAt(values[lastGradedIndex]),
+          r: 4,
+          class: "sparkline-end",
         }),
       );
     }
-    svg.append(
-      svgNode("circle", { cx: xAt(values.length - 1), cy: yAt(values.at(-1)), r: 4, class: "sparkline-end" }),
-    );
 
     const value = document.createElement("strong");
     value.className = "num";
-    value.textContent = `${values.at(-1)} / ${MOCK_SCORE_MAX}`;
+    value.textContent = latest == null ? "not graded" : `${latest} / ${MOCK_SCORE_MAX}`;
 
     card.append(label, svg, value);
+    if (graded.length < values.length) {
+      const gap = document.createElement("small");
+      gap.className = "microlabel";
+      gap.textContent = `${values.length - graded.length} of ${values.length} mocks ungraded`;
+      card.append(gap);
+    }
     card.setAttribute(
       "aria-label",
-      `${dimension.replaceAll("_", " ")}: ${values.join(", ")} out of ${MOCK_SCORE_MAX} across ${values.length} mock${
+      `${dimension.replaceAll("_", " ")}: ${values
+        .map((entry) => (entry == null ? "not graded" : entry))
+        .join(", ")} out of ${MOCK_SCORE_MAX} across ${values.length} mock${
         values.length === 1 ? "" : "s"
       }.`,
     );
@@ -3524,6 +3541,21 @@
     const retention = state.feed.retention || {};
     const counts = retention.counts || {};
     const target = state.feed.readiness?.gates?.revision_pass?.target ?? 0.9;
+    // "Mature" is whatever the policy says R3+ is, so the copy tracks
+    // scoring.json's revision_policy instead of restating it from memory.
+    const intervals = state.feed.policy?.intervals || {};
+    const matureDays = Object.entries(intervals)
+      .filter(([label]) => Number(label.replace("R", "")) >= 3)
+      .map(([, days]) => `${days}-day`);
+    const matureNote = matureDays.length
+      ? `${matureDays.join(" and ")} intervals`
+      : "long intervals";
+    const youngDays = Object.entries(intervals)
+      .filter(([label]) => Number(label.replace("R", "")) <= 2)
+      .map(([, days]) => `${days}-day`);
+    const youngNote = youngDays.length
+      ? `${youngDays.join(" and ")} intervals`
+      : "short intervals";
     const youngTotal = counts.young_total || 0;
     const matureTotal = counts.mature_total || 0;
     const youngPass = counts.young_pass || 0;
@@ -3540,13 +3572,13 @@
         label: "Young · R1-R2",
         rate: retention.young_pass_rate,
         detail: youngTotal ? `${youngPass}/${youngTotal} reviews passed` : "no R1-R2 reviews yet",
-        note: "short intervals",
+        note: youngNote,
       },
       {
         label: "Mature · R3+",
         rate: retention.mature_pass_rate,
         detail: matureTotal ? `${maturePass}/${matureTotal} reviews passed` : "no R3+ reviews yet",
-        note: "21-day and 60-day intervals",
+        note: matureNote,
       },
     ];
 

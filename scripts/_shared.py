@@ -1875,7 +1875,13 @@ def review_forecast(progress: JsonDict, on_date: date) -> list[JsonDict]:
     """A 14-day review-load forecast from `on_date`. Overdue open revisions
     fold into day 0 (flagged `overdue`); items due beyond the window are
     dropped. Sourced from `open_revision_entries` so it matches the scheduler's
-    view of scheduled recall work."""
+    view of scheduled recall work.
+
+    Quarterly maintenance due *now* is folded into day 0 as well: it is real
+    load today and the due queue lists it, so leaving it out made the day-0 bar
+    undercount the panel above it. Future maintenance stays out — it is derived
+    from a 90-day anchor and is not projectable day by day.
+    """
 
     buckets = [
         {
@@ -1899,6 +1905,16 @@ def review_forecast(progress: JsonDict, on_date: date) -> list[JsonDict]:
         bucket = buckets[index]
         bucket["count"] += 1
         bucket["problem_ids"].append(entry["problem"])
+
+    day_zero = buckets[0]
+    scheduled_today = set(day_zero["problem_ids"])
+    for entry in quarterly_maintenance_entries(progress, on_date):
+        problem_id = entry["problem"]
+        if problem_id in scheduled_today:
+            continue
+        scheduled_today.add(problem_id)
+        day_zero["count"] += 1
+        day_zero["problem_ids"].append(problem_id)
     return buckets
 
 
@@ -2121,6 +2137,13 @@ def build_dashboard_feed(state: RepositoryState, on_date: date) -> JsonDict:
         "retention": retention_split(state.progress),
         "hint_trajectory": hint_trajectory_events(state.progress),
         "mock_history": _feed_mock_history(state.progress),
+        # Which problems actually have a runnable solution file (F9). The UI
+        # may only link a path that exists; everything else stays plain text.
+        "solutions_present": sorted(
+            path.stem
+            for path in (ROOT / "solutions").glob("*.py")
+            if path.stem in problems
+        ),
         "policy": {
             "mastered_after_stage": MASTERED_AFTER_STAGE,
             "intervals": {
