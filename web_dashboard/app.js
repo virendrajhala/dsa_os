@@ -1419,6 +1419,7 @@
         text: entry.symptom,
         fix: entry.fix,
         problemId: entry.source_problem,
+        taxonomy: entry.taxonomy,
       })),
     ];
   }
@@ -1442,6 +1443,14 @@
         <p>${item.text}</p>
         <small>${item.fix}</small>
       `;
+      // F14 taxonomy: catalog entries carry their error class (A-E); the chip
+      // names it so the code is never the only thing shown.
+      if (item.taxonomy) {
+        const labels = state.datasets.scoring.error_taxonomy || {};
+        const chip = pill(`${item.taxonomy} · ${labels[item.taxonomy] || "uncategorised"}`, "");
+        chip.classList.add("microlabel");
+        node.prepend(chip);
+      }
       if (item.problemId) {
         const button = document.createElement("button");
         button.className = "mini-button";
@@ -2951,6 +2960,15 @@
           .join(" · ")
       : "";
     const details = [
+      // A reactivation carries why it was re-opened and what it was demoted
+      // from; without that the event reads as an unexplained stage reset.
+      event.reason
+        ? `<p><strong>Reason:</strong> ${event.reason}${
+            event.prior_status
+              ? ` <span class="small-muted">(was ${event.prior_status} at stage ${event.prior_stage ?? "-"})</span>`
+              : ""
+          }</p>`
+        : "",
       event.misconception_corrected
         ? `<p><strong>Misconception corrected:</strong> ${event.misconception_corrected}</p>`
         : "",
