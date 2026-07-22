@@ -351,5 +351,87 @@ class F18DependencyDagTests(unittest.TestCase):
         self.assertTrue(any("transitively requires" in e for e in errors), msg=errors)
 
 
+class F20WeaknessShapeValidationTests(unittest.TestCase):
+    """F20: optional hand-authored fields get shape checks (absent OK);
+    weaknesses_detected objects validate, legacy strings only warn."""
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.curriculum = load_json_file(_shared.CURRICULUM_PATH)
+        cls.graph = load_json_file(_shared.GRAPH_PATH)
+        cls.stages = load_json_file(_shared.STAGES_PATH)
+        cls.skills = load_json_file(_shared.SKILLS_PATH)
+        cls.scoring = load_json_file(_shared.SCORING_PATH)
+        cls.progress = _shared.migrate_progress_payload(load_json_file(_shared.PROGRESS_PATH))
+
+    def _validate(self, progress) -> tuple[list[str], list[str]]:
+        return validate_progress_payload(
+            label="test", progress=progress, curriculum=self.curriculum,
+            graph=self.graph, stages=self.stages, skills=self.skills, scoring=self.scoring,
+        )
+
+    def test_live_progress_weakness_objects_pass(self) -> None:
+        errors, _ = self._validate(copy.deepcopy(self.progress))
+        self.assertFalse(any("weaknesses_detected" in e for e in errors), msg=errors)
+
+    def test_absent_optional_fields_are_ok(self) -> None:
+        progress = copy.deepcopy(self.progress)
+        progress.pop("weaknesses_detected", None)
+        progress.pop("lessons_learned", None)
+        progress.pop("personal_playbook", None)
+        errors, _ = self._validate(progress)
+        self.assertFalse(
+            any(
+                key in e
+                for e in errors
+                for key in ("weaknesses_detected", "lessons_learned", "personal_playbook")
+            ),
+            msg=errors,
+        )
+
+    def test_legacy_string_entry_warns_but_does_not_error(self) -> None:
+        progress = copy.deepcopy(self.progress)
+        progress["weaknesses_detected"] = {"OBS-002": ["Resolved: legacy string entry."]}
+        errors, warnings = self._validate(progress)
+        self.assertFalse(any("weaknesses_detected" in e for e in errors), msg=errors)
+        self.assertTrue(any("legacy string" in w for w in warnings), msg=warnings)
+
+    def test_bad_status_fails(self) -> None:
+        progress = copy.deepcopy(self.progress)
+        progress["weaknesses_detected"] = {
+            "OBS-002": [{"text": "x", "status": "closed", "source": "session", "resolved_on": None}]
+        }
+        errors, _ = self._validate(progress)
+        self.assertTrue(any("status" in e and "weaknesses_detected" in e for e in errors), msg=errors)
+
+    def test_bad_source_fails(self) -> None:
+        progress = copy.deepcopy(self.progress)
+        progress["weaknesses_detected"] = {
+            "OBS-002": [{"text": "x", "status": "open", "source": "elsewhere", "resolved_on": None}]
+        }
+        errors, _ = self._validate(progress)
+        self.assertTrue(any("source" in e and "weaknesses_detected" in e for e in errors), msg=errors)
+
+    def test_empty_text_fails(self) -> None:
+        progress = copy.deepcopy(self.progress)
+        progress["weaknesses_detected"] = {
+            "OBS-002": [{"text": "", "status": "open", "source": "session", "resolved_on": None}]
+        }
+        errors, _ = self._validate(progress)
+        self.assertTrue(any("text" in e and "weaknesses_detected" in e for e in errors), msg=errors)
+
+    def test_lessons_learned_wrong_type_fails(self) -> None:
+        progress = copy.deepcopy(self.progress)
+        progress["lessons_learned"] = ["not-a-dict"]
+        errors, _ = self._validate(progress)
+        self.assertTrue(any("lessons_learned" in e for e in errors), msg=errors)
+
+    def test_personal_playbook_wrong_type_fails(self) -> None:
+        progress = copy.deepcopy(self.progress)
+        progress["personal_playbook"] = {"not": "a list"}
+        errors, _ = self._validate(progress)
+        self.assertTrue(any("personal_playbook" in e for e in errors), msg=errors)
+
+
 if __name__ == "__main__":
     unittest.main()

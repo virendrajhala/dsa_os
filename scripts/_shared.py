@@ -50,6 +50,8 @@ IMPLEMENTATION_ENGINEERING_DEFAULT = {
     "common_errors": [],
     "improvement_notes": [],
 }
+WEAKNESS_STATUSES = {"open", "resolved"}
+WEAKNESS_SOURCES = {"session", "mock", "revision"}
 DEFERRED_LEARNING_STATUSES = {"OPEN", "RESOLVED"}
 DEFERRED_LEARNING_PRIORITIES = {"LOW", "MEDIUM", "HIGH"}
 DEFERRED_LEARNING_CATEGORIES = {
@@ -404,6 +406,39 @@ def initial_revision_state(completed_on: date) -> JsonDict:
     }
 
 
+def normalize_weakness_entry(entry: Any) -> JsonDict:
+    """Return a structured weakness entry from a legacy string or object.
+
+    F20a: `weaknesses_detected` entries are objects
+    `{"text", "status", "source", "resolved_on"}`. Legacy plain strings map by
+    prefix — "Resolved: " -> status resolved, "Mock: " -> source mock,
+    anything else -> open/session — so old data or hand edits never crash a
+    reader. Unknown statuses/sources fall back to open/session.
+    """
+
+    if isinstance(entry, dict):
+        status = entry.get("status")
+        source = entry.get("source")
+        resolved_on = entry.get("resolved_on")
+        return {
+            "text": str(entry.get("text", "")).strip(),
+            "status": status if status in WEAKNESS_STATUSES else "open",
+            "source": source if source in WEAKNESS_SOURCES else "session",
+            "resolved_on": resolved_on if isinstance(resolved_on, str) else None,
+        }
+
+    text = str(entry).strip()
+    status = "open"
+    source = "session"
+    if text.startswith("Resolved: "):
+        status = "resolved"
+        text = text.removeprefix("Resolved: ")
+    elif text.startswith("Mock: "):
+        source = "mock"
+        text = text.removeprefix("Mock: ")
+    return {"text": text, "status": status, "source": source, "resolved_on": None}
+
+
 def migrate_progress_payload(payload: JsonDict) -> JsonDict:
     """Upgrade old date-queue progress payloads to per-problem revision state in memory."""
 
@@ -483,6 +518,14 @@ def migrate_progress_payload(payload: JsonDict) -> JsonDict:
             implementation_engineering[key] = list(default_value)
     if not isinstance(payload.get("deferred_learnings"), list):
         payload["deferred_learnings"] = []
+
+    # F20a: upgrade legacy weaknesses_detected strings to structured objects.
+    detected = payload.get("weaknesses_detected")
+    if isinstance(detected, dict):
+        for problem_id, entries in detected.items():
+            if isinstance(entries, list):
+                detected[problem_id] = [normalize_weakness_entry(entry) for entry in entries]
+
     payload["schema_version"] = 8
     return payload
 
@@ -1341,8 +1384,40 @@ def interview_trend(records: list[JsonDict]) -> JsonDict:
     }
 
 
+def revision_adjusted_problem_score(record: JsonDict, scoring: JsonDict) -> float | None:
+    """Blend the latest revision recall average into a completion's score.
+
+    F20b: the original solve score alone goes stale once revisions exist.
+    When the record's revision history has recall scores, return
+    `0.6 x latest-revision-recall-average + 0.4 x solve score`. Recall scores
+    are 0-10 while thinking scores are 0-4, so the recall average is scaled
+    by 0.4 first. Without recall scores this is exactly the solve score.
+    """
+
+    solve_score = weighted_thinking_score(record, scoring)
+    if solve_score is None:
+        return None
+    revision = record.get("revision")
+    history = revision.get("history") if isinstance(revision, dict) else None
+    if not isinstance(history, list):
+        return solve_score
+    for event in reversed(history):
+        if not isinstance(event, dict):
+            continue
+        recall = event.get("thinking_score")
+        if not isinstance(recall, dict):
+            continue
+        values = [float(v) for v in recall.values() if isinstance(v, (int, float))]
+        if not values:
+            continue
+        recall_on_thinking_scale = mean(values) * 0.4
+        return round(0.6 * recall_on_thinking_scale + 0.4 * solve_score, 4)
+    return solve_score
+
+
 def weakest_skills(state: RepositoryState, limit: int = 5) -> list[JsonDict]:
-    """Return the weakest solved skills by average weighted thinking score."""
+    """Return the weakest solved skills by average weighted thinking score,
+    blended with revision recall via `revision_adjusted_problem_score`."""
 
     latest_by_problem = latest_records_by_problem(state.progress)
     problems = problem_lookup(state.curriculum)
@@ -1352,7 +1427,7 @@ def weakest_skills(state: RepositoryState, limit: int = 5) -> list[JsonDict]:
         problem = problems.get(problem_id)
         if problem is None:
             continue
-        score = weighted_thinking_score(record, state.scoring)
+        score = revision_adjusted_problem_score(record, state.scoring)
         if score is None:
             continue
         skill_id = str(problem["primary_skill"])

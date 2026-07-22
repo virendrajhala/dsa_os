@@ -30,6 +30,8 @@ from _shared import (
     REVISION_INTERVAL_DAYS,
     REVISION_RESULTS,
     REVISION_STATUSES,
+    WEAKNESS_SOURCES,
+    WEAKNESS_STATUSES,
     RepositoryError,
     RepositoryState,
     completed_records,
@@ -1030,6 +1032,85 @@ def validate_progress_payload(
         score = implementation_engineering.get("score")
         if not isinstance(score, (int, float)) or not 0 <= float(score) <= 10:
             add_error(errors, f"{label}: `implementation_engineering.score` must be 0..10.")
+
+    # F20: optional hand-authored fields — absent OK, but shape-checked when
+    # present. weaknesses_detected entries are structured objects; legacy
+    # plain strings are tolerated with a warning (readers normalize them).
+    weaknesses_detected = progress.get("weaknesses_detected")
+    if weaknesses_detected is not None:
+        if not isinstance(weaknesses_detected, dict):
+            add_error(errors, f"{label}: `weaknesses_detected` must be an object.")
+        else:
+            for problem_id, entries in weaknesses_detected.items():
+                if not isinstance(entries, list):
+                    add_error(
+                        errors,
+                        f"{label}: `weaknesses_detected.{problem_id}` must be a list.",
+                    )
+                    continue
+                for index, entry in enumerate(entries, start=1):
+                    where = f"weaknesses_detected.{problem_id}[{index}]"
+                    if isinstance(entry, str):
+                        add_warning(
+                            warnings,
+                            f"{label}: `{where}` is a legacy string entry; readers "
+                            "normalize it, but structured objects are preferred.",
+                        )
+                        continue
+                    if not isinstance(entry, dict):
+                        add_error(errors, f"{label}: `{where}` must be an object or string.")
+                        continue
+                    text = entry.get("text")
+                    if not isinstance(text, str) or not text.strip():
+                        add_error(errors, f"{label}: `{where}` requires non-empty `text`.")
+                    if entry.get("status") not in WEAKNESS_STATUSES:
+                        add_error(
+                            errors,
+                            f"{label}: `{where}` `status` must be one of "
+                            f"{', '.join(sorted(WEAKNESS_STATUSES))}.",
+                        )
+                    if entry.get("source") not in WEAKNESS_SOURCES:
+                        add_error(
+                            errors,
+                            f"{label}: `{where}` `source` must be one of "
+                            f"{', '.join(sorted(WEAKNESS_SOURCES))}.",
+                        )
+                    resolved_on = entry.get("resolved_on")
+                    if resolved_on is not None:
+                        if not isinstance(resolved_on, str):
+                            add_error(
+                                errors,
+                                f"{label}: `{where}` `resolved_on` must be null or YYYY-MM-DD.",
+                            )
+                        else:
+                            try:
+                                parse_iso_date(resolved_on, f"{label}.{where}.resolved_on")
+                            except RepositoryError as exc:
+                                add_error(errors, f"{label}: {exc}")
+
+    lessons_learned = progress.get("lessons_learned")
+    if lessons_learned is not None:
+        if not isinstance(lessons_learned, dict):
+            add_error(errors, f"{label}: `lessons_learned` must be an object keyed by problem id.")
+        else:
+            for problem_id, lesson in lessons_learned.items():
+                if not isinstance(lesson, dict):
+                    add_error(
+                        errors,
+                        f"{label}: `lessons_learned.{problem_id}` must be an object.",
+                    )
+
+    personal_playbook = progress.get("personal_playbook")
+    if personal_playbook is not None:
+        if not isinstance(personal_playbook, list):
+            add_error(errors, f"{label}: `personal_playbook` must be a list of strings.")
+        else:
+            for index, item in enumerate(personal_playbook, start=1):
+                if not isinstance(item, str) or not item.strip():
+                    add_error(
+                        errors,
+                        f"{label}: `personal_playbook[{index}]` must be a non-empty string.",
+                    )
 
     deferred_learning_ids: set[str] = set()
     deferred_learnings = progress.get("deferred_learnings")

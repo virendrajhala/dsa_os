@@ -10,6 +10,7 @@ test:
 	$(PYTHON) scripts/test_update_progress.py
 	$(PYTHON) scripts/test_validate_curriculum.py
 	$(PYTHON) scripts/test_run_checks.py
+	$(PYTHON) scripts/test_weakness_lab.py
 
 dashboard:
 	$(PYTHON) scripts/dashboard.py

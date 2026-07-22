@@ -15,6 +15,8 @@ from _shared import (
     THINKING_DIMENSION_LABELS,
     completed_problem_ids,
     load_repository_state,
+    normalize_weakness_entry,
+    revision_stage_label,
 )
 
 
@@ -280,13 +282,18 @@ def collect_evidence(state: Any) -> dict[str, list[dict[str, Any]]]:
     for problem_id, entries in state.progress.get("weaknesses_detected", {}).items():
         if not isinstance(entries, list):
             continue
-        for text in entries:
-            for dimension in classify_text(str(text)):
+        for raw_entry in entries:
+            # F20a: entries are structured objects; legacy strings normalize
+            # in place. Resolved weaknesses no longer inflate clusters.
+            entry = normalize_weakness_entry(raw_entry)
+            if entry["status"] == "resolved" or not entry["text"]:
+                continue
+            for dimension in classify_text(entry["text"]):
                 evidence[dimension].append(
                     {
                         "source": "weaknesses_detected",
                         "problem_id": problem_id,
-                        "text": str(text),
+                        "text": entry["text"],
                         "severity": 1.2,
                     }
                 )
@@ -303,6 +310,29 @@ def collect_evidence(state: Any) -> dict[str, list[dict[str, Any]]]:
                         "source": "completed.main_mistake",
                         "problem_id": problem_id,
                         "text": mistake,
+                        "severity": 1.1,
+                    }
+                )
+
+        # F20b: failed revision recalls are weakness evidence too, at the
+        # same weight as a solve's main_mistake.
+        revision = record.get("revision")
+        history = revision.get("history") if isinstance(revision, dict) else None
+        if not isinstance(history, list):
+            continue
+        for event in history:
+            if not isinstance(event, dict) or event.get("result") != "FAIL":
+                continue
+            stage = event.get("stage")
+            label = revision_stage_label(int(stage)) if isinstance(stage, int) else "revision"
+            notes = str(event.get("notes", "")).strip()
+            text = notes or f"Failed {label} recall."
+            for dimension in classify_text(text):
+                evidence[dimension].append(
+                    {
+                        "source": "revision.fail",
+                        "problem_id": problem_id,
+                        "text": text,
                         "severity": 1.1,
                     }
                 )
@@ -433,7 +463,8 @@ def build_payload(reference_date: date, state: Any, limit: int, focus_count: int
         "recent_problem_scores": recent_problem_scores,
         "method": (
             "Primary weakness clusters are built only from question-level evidence in "
-            "progress.json: `weaknesses_detected` and completed problem `main_mistake`. "
+            "progress.json: open `weaknesses_detected` entries (resolved ones are skipped), "
+            "completed problem `main_mistake`, and failed revision recalls. "
             "Scores, learner profile gaps, and lessons are attached only as supporting context."
         ),
     }

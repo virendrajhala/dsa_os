@@ -362,7 +362,7 @@ def build_parser() -> argparse.ArgumentParser:
         metavar="TEXT",
         help=(
             "Weakness surfaced by the mock. Repeatable. Recorded on the mock entry and also "
-            "appended to progress.weaknesses_detected with a 'Mock: ' prefix."
+            "appended to progress.weaknesses_detected as a structured entry with source 'mock'."
         ),
     )
     parser.add_argument(
@@ -529,7 +529,7 @@ def record_mock_interview(
     A mock is not a solve or a revision: it never touches completion records,
     revision state, skill mastery, or the current-problem pointer. It appends
     one immutable entry plus any surfaced weaknesses (also mirrored into
-    progress.weaknesses_detected with a "Mock: " prefix).
+    progress.weaknesses_detected as structured entries with source "mock").
     """
 
     progress = state.progress
@@ -566,7 +566,10 @@ def record_mock_interview(
         detected = progress.setdefault("weaknesses_detected", {})
         if not isinstance(detected, dict):
             raise RepositoryError("`progress.weaknesses_detected` must be an object.")
-        detected.setdefault(problem_id, []).extend(f"Mock: {text}" for text in weaknesses)
+        detected.setdefault(problem_id, []).extend(
+            {"text": text, "status": "open", "source": "mock", "resolved_on": None}
+            for text in weaknesses
+        )
 
     progress["last_updated"] = format_iso_date(completed_on)
     append_history_event(

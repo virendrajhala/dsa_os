@@ -687,5 +687,121 @@ class StageMasteryMetaSkillTests(unittest.TestCase):
         self.assertEqual(result["Only"]["status"], "mastered")
 
 
+class NormalizeWeaknessEntryTests(unittest.TestCase):
+    """F20a: weaknesses_detected entries become structured objects; legacy
+    strings (with "Resolved: "/"Mock: " prefixes) keep working in all readers."""
+
+    def test_plain_string_is_open_session(self):
+        self.assertEqual(
+            _shared.normalize_weakness_entry("Forgot loop bounds."),
+            {"text": "Forgot loop bounds.", "status": "open", "source": "session", "resolved_on": None},
+        )
+
+    def test_resolved_prefix_string_maps_to_resolved_status(self):
+        self.assertEqual(
+            _shared.normalize_weakness_entry("Resolved: confusion about update order."),
+            {
+                "text": "confusion about update order.",
+                "status": "resolved",
+                "source": "session",
+                "resolved_on": None,
+            },
+        )
+
+    def test_mock_prefix_string_maps_to_mock_source(self):
+        self.assertEqual(
+            _shared.normalize_weakness_entry("Mock: started coding before complexity."),
+            {
+                "text": "started coding before complexity.",
+                "status": "open",
+                "source": "mock",
+                "resolved_on": None,
+            },
+        )
+
+    def test_object_passes_through_with_defaults_for_bad_fields(self):
+        entry = {"text": "x", "status": "weird", "source": "nowhere", "resolved_on": 5}
+        self.assertEqual(
+            _shared.normalize_weakness_entry(entry),
+            {"text": "x", "status": "open", "source": "session", "resolved_on": None},
+        )
+
+    def test_well_formed_object_is_unchanged(self):
+        entry = {"text": "x", "status": "resolved", "source": "revision", "resolved_on": "2026-07-01"}
+        self.assertEqual(_shared.normalize_weakness_entry(entry), entry)
+
+
+class WeaknessMigrationTests(unittest.TestCase):
+    """F20a: migrate_progress_payload upgrades weaknesses_detected strings."""
+
+    def test_migrate_converts_string_entries_to_objects(self):
+        payload = {
+            "completed": [],
+            "weaknesses_detected": {
+                "P-1": ["Resolved: old issue.", "Mock: mock issue.", "open issue."],
+            },
+        }
+        _shared.migrate_progress_payload(payload)
+        self.assertEqual(
+            payload["weaknesses_detected"]["P-1"],
+            [
+                {"text": "old issue.", "status": "resolved", "source": "session", "resolved_on": None},
+                {"text": "mock issue.", "status": "open", "source": "mock", "resolved_on": None},
+                {"text": "open issue.", "status": "open", "source": "session", "resolved_on": None},
+            ],
+        )
+
+    def test_migrate_tolerates_non_list_values(self):
+        payload = {"completed": [], "weaknesses_detected": {"P-1": "not-a-list"}}
+        _shared.migrate_progress_payload(payload)
+        self.assertEqual(payload["weaknesses_detected"]["P-1"], "not-a-list")
+
+
+class RevisionAdjustedScoreTests(unittest.TestCase):
+    """F20b: weakest-skills blends latest revision recall into the solve score."""
+
+    def test_no_revision_history_returns_solve_score(self):
+        record = _completion("P-1", 0, {"understanding": 2, "algorithm_design": 2})
+        self.assertEqual(_shared.revision_adjusted_problem_score(record, _SCORING), 2.0)
+
+    def test_no_thinking_score_returns_none(self):
+        record = _completion("P-1", 0, None)
+        self.assertIsNone(_shared.revision_adjusted_problem_score(record, _SCORING))
+
+    def test_blends_latest_revision_recall_average(self):
+        record = _completion("P-1", 0, {"understanding": 2, "algorithm_design": 2})
+        record["revision"] = {
+            "history": [
+                {"result": "PASS", "thinking_score": {"concept_recall": 2, "implementation": 2}},
+                # Latest event wins: avg 7.5 on 0-10 -> 3.0 on 0-4.
+                {"result": "PASS", "thinking_score": {"concept_recall": 10, "implementation": 5}},
+            ]
+        }
+        # 0.6 * 3.0 + 0.4 * 2.0 = 2.6
+        self.assertEqual(_shared.revision_adjusted_problem_score(record, _SCORING), 2.6)
+
+    def test_weakest_skills_uses_blended_score(self):
+        from pathlib import Path
+
+        record = _completion("PRIMARY-001", 0, {"understanding": 2, "algorithm_design": 2})
+        record["revision"] = {
+            "history": [{"result": "PASS", "thinking_score": {"concept_recall": 10, "implementation": 5}}]
+        }
+        state = RepositoryState(
+            curriculum={"problems": [{"id": "PRIMARY-001", "primary_skill": "SK-TEST"}]},
+            graph={},
+            stages={},
+            skills=_SKILLS,
+            patterns={},
+            scoring=_SCORING,
+            progress=_progress(record),
+            progress_path=Path("test"),
+        )
+        results = _shared.weakest_skills(state)
+        self.assertEqual(len(results), 1)
+        self.assertEqual(results[0]["skill"], "SK-TEST")
+        self.assertEqual(results[0]["average_weighted_thinking_score"], 2.6)
+
+
 if __name__ == "__main__":
     unittest.main()

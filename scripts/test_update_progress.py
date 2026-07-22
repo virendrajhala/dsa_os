@@ -513,9 +513,15 @@ class MockInterviewRecordingTests(unittest.TestCase):
         self.assertEqual(entry["scores"]["testing"], 2)
         self.assertEqual(entry["weaknesses"], ["Started coding before stating complexity."])
 
-        # Weakness mirrored into weaknesses_detected with a "Mock: " prefix.
+        # Weakness mirrored into weaknesses_detected as a structured object
+        # with source "mock" (F20a; formerly a "Mock: "-prefixed string).
         self.assertIn(
-            "Mock: Started coding before stating complexity.",
+            {
+                "text": "Started coding before stating complexity.",
+                "status": "open",
+                "source": "mock",
+                "resolved_on": None,
+            },
             updated["weaknesses_detected"]["CPX-004"],
         )
 

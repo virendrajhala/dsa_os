@@ -1872,36 +1872,146 @@
   },
   "weaknesses_detected": {
     "OBS-002": [
-      "Incorrect initialization using Integer.MIN_VALUE / Integer.MAX_VALUE instead of values that satisfy the state invariant.",
-      "Forgot to use preserved prevMax / prevMin values after storing them.",
-      "Returned local runningMax instead of maintaining and returning a global answer.",
-      "Placed globalMax update outside the loop instead of immediately after computing each new runningMax.",
-      "Minor syntax omissions during code recall.",
-      "Resolved in R2: no initialization, previous-state, global-answer, update-ordering, syntax, dry-run, or complexity weakness appeared during the 2026-07-20 active recall."
+      {
+        "text": "Incorrect initialization using Integer.MIN_VALUE / Integer.MAX_VALUE instead of values that satisfy the state invariant.",
+        "status": "open",
+        "source": "session",
+        "resolved_on": null
+      },
+      {
+        "text": "Forgot to use preserved prevMax / prevMin values after storing them.",
+        "status": "open",
+        "source": "session",
+        "resolved_on": null
+      },
+      {
+        "text": "Returned local runningMax instead of maintaining and returning a global answer.",
+        "status": "open",
+        "source": "session",
+        "resolved_on": null
+      },
+      {
+        "text": "Placed globalMax update outside the loop instead of immediately after computing each new runningMax.",
+        "status": "open",
+        "source": "session",
+        "resolved_on": null
+      },
+      {
+        "text": "Minor syntax omissions during code recall.",
+        "status": "open",
+        "source": "session",
+        "resolved_on": null
+      },
+      {
+        "text": "Resolved in R2: no initialization, previous-state, global-answer, update-ordering, syntax, dry-run, or complexity weakness appeared during the 2026-07-20 active recall.",
+        "status": "open",
+        "source": "session",
+        "resolved_on": null
+      }
     ],
     "OBS-003": [
-      "Resolved: confusion about update order.",
-      "Resolved: lack of proof for greedy correctness.",
-      "Resolved: uncertainty regarding initialization.",
-      "Resolved: uncertainty about loop boundaries.",
-      "Resolved: confusion regarding why larger previous values can be safely discarded."
+      {
+        "text": "confusion about update order.",
+        "status": "resolved",
+        "source": "session",
+        "resolved_on": null
+      },
+      {
+        "text": "lack of proof for greedy correctness.",
+        "status": "resolved",
+        "source": "session",
+        "resolved_on": null
+      },
+      {
+        "text": "uncertainty regarding initialization.",
+        "status": "resolved",
+        "source": "session",
+        "resolved_on": null
+      },
+      {
+        "text": "uncertainty about loop boundaries.",
+        "status": "resolved",
+        "source": "session",
+        "resolved_on": null
+      },
+      {
+        "text": "confusion regarding why larger previous values can be safely discarded.",
+        "status": "resolved",
+        "source": "session",
+        "resolved_on": null
+      }
     ],
     "OBS-004": [
-      "Resolved: carrying unnecessary historical state from the single-transaction variant.",
-      "Resolved: conflating accumulated profit with algorithm decision state.",
-      "Resolved: relying on memorized loop boundaries instead of deriving them from prices[i + 1].",
-      "Resolved: lacking a clear optimality explanation for the positive-difference greedy rule."
+      {
+        "text": "carrying unnecessary historical state from the single-transaction variant.",
+        "status": "resolved",
+        "source": "session",
+        "resolved_on": null
+      },
+      {
+        "text": "conflating accumulated profit with algorithm decision state.",
+        "status": "resolved",
+        "source": "session",
+        "resolved_on": null
+      },
+      {
+        "text": "relying on memorized loop boundaries instead of deriving them from prices[i + 1].",
+        "status": "resolved",
+        "source": "session",
+        "resolved_on": null
+      },
+      {
+        "text": "lacking a clear optimality explanation for the positive-difference greedy rule.",
+        "status": "resolved",
+        "source": "session",
+        "resolved_on": null
+      }
     ],
     "OBS-006": [
-      "Initially attempted to understand the algorithm through concrete jump paths rather than reachable regions.",
-      "Required formal justification for every variable before internalizing the greedy invariant.",
-      "Initially proposed alternative initialization without considering loop invariant preservation."
+      {
+        "text": "Initially attempted to understand the algorithm through concrete jump paths rather than reachable regions.",
+        "status": "open",
+        "source": "session",
+        "resolved_on": null
+      },
+      {
+        "text": "Required formal justification for every variable before internalizing the greedy invariant.",
+        "status": "open",
+        "source": "session",
+        "resolved_on": null
+      },
+      {
+        "text": "Initially proposed alternative initialization without considering loop invariant preservation.",
+        "status": "open",
+        "source": "session",
+        "resolved_on": null
+      }
     ],
     "OBS-007": [
-      "Resolved: initially treated tankBalance as global fuel instead of candidate-relative fuel.",
-      "Resolved: initially expected the loop to restart after a failed candidate.",
-      "Resolved: initially tied candidate replacement to changing the scan pointer.",
-      "Resolved: needed to separate local tankBalance reasoning from global total feasibility."
+      {
+        "text": "initially treated tankBalance as global fuel instead of candidate-relative fuel.",
+        "status": "resolved",
+        "source": "session",
+        "resolved_on": null
+      },
+      {
+        "text": "initially expected the loop to restart after a failed candidate.",
+        "status": "resolved",
+        "source": "session",
+        "resolved_on": null
+      },
+      {
+        "text": "initially tied candidate replacement to changing the scan pointer.",
+        "status": "resolved",
+        "source": "session",
+        "resolved_on": null
+      },
+      {
+        "text": "needed to separate local tankBalance reasoning from global total feasibility.",
+        "status": "resolved",
+        "source": "session",
+        "resolved_on": null
+      }
     ]
   },
   "personal_playbook": [

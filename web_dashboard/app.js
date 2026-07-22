@@ -957,6 +957,28 @@
       .map(([, dimension]) => dimension);
   }
 
+  function normalizeWeaknessEntry(raw) {
+    if (raw && typeof raw === "object" && !Array.isArray(raw)) {
+      return {
+        text: String(raw.text || "").trim(),
+        status: raw.status === "resolved" ? "resolved" : "open",
+        source: ["session", "mock", "revision"].includes(raw.source) ? raw.source : "session",
+        resolvedOn: typeof raw.resolved_on === "string" ? raw.resolved_on : null,
+      };
+    }
+    let text = String(raw ?? "").trim();
+    let status = "open";
+    let source = "session";
+    if (text.startsWith("Resolved: ")) {
+      status = "resolved";
+      text = text.slice("Resolved: ".length);
+    } else if (text.startsWith("Mock: ")) {
+      source = "mock";
+      text = text.slice("Mock: ".length);
+    }
+    return { text, status, source, resolvedOn: null };
+  }
+
   function collectQuestionWeaknesses() {
     const clusters = new Map();
     const addEvidence = (dimension, item) => {
@@ -976,12 +998,17 @@
     Object.entries(state.datasets.progress.weaknesses_detected || {}).forEach(
       ([problemId, entries]) => {
         if (!Array.isArray(entries)) return;
-        entries.forEach((text) => {
-          classifyWeaknessText(String(text)).forEach((dimension) => {
+        entries.forEach((raw) => {
+          // F20a: entries are objects {text, status, source, resolved_on};
+          // legacy plain strings normalize by prefix. Resolved entries no
+          // longer inflate clusters.
+          const entry = normalizeWeaknessEntry(raw);
+          if (entry.status === "resolved" || !entry.text) return;
+          classifyWeaknessText(entry.text).forEach((dimension) => {
             addEvidence(dimension, {
               source: "weaknesses_detected",
               problemId,
-              text: String(text),
+              text: entry.text,
               severity: 1.2,
             });
           });
