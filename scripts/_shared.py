@@ -1063,6 +1063,9 @@ def select_mock_problem(state: RepositoryState) -> tuple[JsonDict | None, str]:
             if isinstance(problem, dict)
             and isinstance(problem.get("id"), str)
             and problem["id"] not in completed
+            # A revisit slot of a completed problem is the same problem seen
+            # again — never "unseen" for a mock (protocol rule 5).
+            and problem.get("revisit_of") not in completed
             and problem.get("primary_skill") in eligible_skills
         ]
         if candidates:
@@ -1081,7 +1084,11 @@ def select_mock_problem(state: RepositoryState) -> tuple[JsonDict | None, str]:
         if not skill_touched:
             continue
         for pid in reinforcement:
-            if pid not in completed and pid in problems_by_id:
+            if (
+                pid not in completed
+                and pid in problems_by_id
+                and problems_by_id[pid].get("revisit_of") not in completed
+            ):
                 practice.append(problems_by_id[pid])
     if practice:
         chosen = sorted(practice, key=lambda problem: order[problem["id"]])[0]

@@ -25,6 +25,7 @@ from _shared import (
     load_json_file,
     project_readiness_date,
     revision_stage_label,
+    select_mock_problem,
     select_next_problem,
     skill_mastery_dates,
     weekend_window,
@@ -329,6 +330,22 @@ class MockSelectionOrderingTests(unittest.TestCase):
         progress["completed"][0] = self._completed("OBS-001", next_due="2026-07-01")
         selection = select_next_problem(self._state(progress), on_date=self.SATURDAY)
         self.assertEqual(selection.mode, "revision")
+
+    def test_mock_never_serves_revisit_of_completed_problem(self):
+        # TWO-001 is `revisit_of` CPX-001 (Two Sum); with CPX-001 completed and
+        # SK-CM-01 mastered, TWO-001 is the top-ordered candidate — but it is
+        # literally a seen problem, so mock selection must skip it (rule 5).
+        progress = {
+            "completed": [self._completed("CPX-001")],
+            "mastered_skills": ["SK-CM-01"],
+            "current_problem": None,
+            "current_stage": "Observation",
+        }
+        problem, kind = select_mock_problem(self._state(progress))
+        self.assertEqual(kind, "mock")
+        self.assertIsNotNone(problem)
+        self.assertNotEqual(problem["id"], "TWO-001")
+        self.assertNotIn(problem.get("revisit_of"), {"CPX-001"})
 
     def test_practice_mock_when_no_skill_mastered(self):
         progress = {
