@@ -22,7 +22,7 @@ from pathlib import Path
 
 import _shared
 from _shared import load_json_file
-from validate_curriculum import validate_curriculum
+from validate_curriculum import validate_curriculum, validate_progress_payload
 
 ROOT = Path(__file__).resolve().parent.parent
 SCRIPT = ROOT / "scripts" / "validate_curriculum.py"
@@ -213,6 +213,37 @@ class RevisitOfValidationTests(unittest.TestCase):
         self.assertTrue(
             any("duplicate title `Decode Ways`" in e for e in errors), msg=errors
         )
+
+
+class F19MetadataTests(unittest.TestCase):
+    """F19: source_section rename, secondary_skill removal, history stage guard."""
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.curriculum = load_json_file(_shared.CURRICULUM_PATH)
+        cls.graph = load_json_file(_shared.GRAPH_PATH)
+        cls.stages = load_json_file(_shared.STAGES_PATH)
+        cls.skills = load_json_file(_shared.SKILLS_PATH)
+        cls.scoring = load_json_file(_shared.SCORING_PATH)
+        cls.progress = _shared.migrate_progress_payload(load_json_file(_shared.PROGRESS_PATH))
+
+    def test_source_section_required(self) -> None:
+        curriculum = copy.deepcopy(self.curriculum)
+        curriculum["problems"][0].pop("source_section", None)
+        errors, _ = validate_curriculum(curriculum, self.graph, self.stages, self.skills, self.scoring)
+        self.assertTrue(any("source_section" in e for e in errors), msg=errors)
+
+    def test_no_problem_has_secondary_skill(self) -> None:
+        self.assertFalse(any("secondary_skill" in p for p in self.curriculum["problems"]))
+
+    def test_history_unknown_stage_fails(self) -> None:
+        progress = copy.deepcopy(self.progress)
+        progress["history"][0]["stage_before"] = "Foundational"
+        errors, _ = validate_progress_payload(
+            label="test", progress=progress, curriculum=self.curriculum,
+            graph=self.graph, stages=self.stages, skills=self.skills, scoring=self.scoring,
+        )
+        self.assertTrue(any("unknown stage `Foundational`" in e for e in errors), msg=errors)
 
 
 class F16LcIdTests(unittest.TestCase):

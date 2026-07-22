@@ -190,7 +190,7 @@ def problem_haystack(problem: dict[str, Any], skill: dict[str, Any] | None) -> s
             problem.get("id"),
             problem.get("title"),
             problem.get("stage"),
-            problem.get("section"),
+            problem.get("source_section"),
             problem.get("difficulty"),
             problem.get("problem_role"),
             problem.get("importance"),

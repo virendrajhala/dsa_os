@@ -178,7 +178,7 @@
     "SK-OB-06": {
       "id": "SK-OB-06",
       "name": "Pattern Matching / Prefix Function",
-      "description": "PDF subsection: Pattern Matching. Shared technique note for this skill group (general, not specific to this problem): KMP / Rabin-Karp / Z-Algorithm \u2014 efficient O(n+m) substring search.",
+      "description": "Substring search that preprocesses the pattern into a prefix (failure) function so mismatches skip ahead without re-scanning, matching in O(n+m) instead of O(nm). KMP uses the prefix table for shifts, Rabin-Karp uses a rolling hash, and the Z-algorithm computes longest-match lengths at each position.",
       "stage": "Observation",
       "prerequisites": [
         "SK-OB-05",
@@ -198,7 +198,7 @@
     "SK-SC-01": {
       "id": "SK-SC-01",
       "name": "String Simulation / Frequency Map",
-      "description": "PDF subsection: String Manipulation & Hashing. Shared technique note for this skill group (general, not specific to this problem): HashMap / Frequency Count \u2014 count character frequencies to compare or find patterns.",
+      "description": "Scan a string while maintaining a frequency map (array or hash) of character or token counts, then compare or update counts to detect anagrams, duplicates, or valid arrangements in O(n). Often paired with a running state that you simulate character by character.",
       "stage": "State Construction",
       "prerequisites": [
         "SK-OB-06"
@@ -242,7 +242,7 @@
     "SK-SC-03": {
       "id": "SK-SC-03",
       "name": "Cycle Detection or Value-Space Search",
-      "description": "Sorting + Binary Search \u2014 sort once, then binary-search for O(n log n) solutions.",
+      "description": "Detect a cycle or search the value space directly rather than over indices: Floyd's tortoise-and-hare on an implicit functional graph, or binary search over the range of possible values, to find a duplicate or target in O(n) / O(n log n).",
       "stage": "State Construction",
       "prerequisites": [
         "SK-SC-02"
@@ -256,7 +256,7 @@
     "SK-SC-04": {
       "id": "SK-SC-04",
       "name": "Fast & Slow Pointers",
-      "description": "PDF subsection: Fast & Slow Pointers. Shared technique note for this skill group (general, not specific to this problem): Floyd's Cycle Detection \u2014 two pointers at different speeds to detect cycles and midpoints.",
+      "description": "Advance two pointers through a sequence at different speeds (one step vs two steps); Floyd's tortoise-and-hare uses this to detect a cycle when they meet, find the cycle entry, or locate the list midpoint in O(n) time and O(1) space.",
       "stage": "State Construction",
       "prerequisites": [
         "SK-SC-03"
@@ -273,7 +273,7 @@
     "SK-SC-05": {
       "id": "SK-SC-05",
       "name": "Linked-List Reversal / Merge",
-      "description": "PDF subsection: Reversal & Merging. Shared technique note for this skill group (general, not specific to this problem): In-place Reversal \u2014 reverse sublists or entire lists using pointer manipulation.",
+      "description": "Reverse a linked list or a sublist in place by rewiring next pointers one node at a time (prev, curr, next), and merge two sorted lists by splicing nodes; both run in O(n) with O(1) extra space and underlie reorder, palindrome, and k-group problems.",
       "stage": "State Construction",
       "prerequisites": [
         "SK-SC-04"
@@ -300,7 +300,7 @@
     "SK-SC-06": {
       "id": "SK-SC-06",
       "name": "Pointer Stitching / List Design",
-      "description": "PDF subsection: Advanced Linked List. Shared technique note for this skill group (general, not specific to this problem): In-place Reversal \u2014 reverse sublists or entire lists using pointer manipulation.",
+      "description": "Build or restructure linked lists by carefully stitching next/prev (and random) pointers, using dummy heads and multi-pass or hash-map cloning; used for problems like copy-list-with-random-pointer, flatten, and complex in-place rewiring.",
       "stage": "State Construction",
       "prerequisites": [
         "SK-SC-05"
@@ -409,7 +409,7 @@
     "SK-CM-05": {
       "id": "SK-CM-05",
       "name": "Monotonic Stack on Linked List",
-      "description": "In-place Reversal \u2014 reverse sublists or entire lists using pointer manipulation.",
+      "description": "Apply a monotonic stack while traversing a linked list (often after collecting values or via recursion) to answer next-greater-style queries when random indexed access is unavailable.",
       "stage": "Constraint Maintenance",
       "prerequisites": [
         "SK-CM-04",
@@ -462,7 +462,7 @@
     "SK-OR-02": {
       "id": "SK-OR-02",
       "name": "Parametric Search",
-      "description": "PDF subsection: Binary Search on Answer. Shared technique note for this skill group (general, not specific to this problem): Parametric Search \u2014 binary search on the answer space, validate with a feasibility function.",
+      "description": "When the answer is monotonic (a feasible value stays feasible as you relax it), binary-search the answer space and test each candidate with a boolean feasibility check, giving O(log(range) * check) time. Used for minimize-the-maximum problems like Koko eating bananas or split-array-largest-sum.",
       "stage": "Ordered Reasoning",
       "prerequisites": [
         "SK-OR-04"
@@ -490,7 +490,7 @@
     "SK-OR-03": {
       "id": "SK-OR-03",
       "name": "Binary Search on Rotated Array",
-      "description": "PDF subsection: Sorting & Searching in Arrays. Shared technique note for this skill group (general, not specific to this problem): Sorting + Binary Search \u2014 sort once, then binary-search for O(n log n) solutions.",
+      "description": "Binary search on a rotated sorted array by, at each midpoint, deciding which half is sorted and whether the target lies within it, then discarding the other half - locating a value or the pivot in O(log n) despite the rotation.",
       "stage": "Ordered Reasoning",
       "prerequisites": [
         "SK-OR-04"
@@ -605,7 +605,7 @@
     "SK-IR-01": {
       "id": "SK-IR-01",
       "name": "Interval / Scheduling Greedy",
-      "description": "PDF subsection: Interval & Scheduling Greedy. Shared technique note for this skill group (general, not specific to this problem): Greedy Selection \u2014 always pick the locally optimal choice; prove exchange argument.",
+      "description": "Sort intervals or jobs by a key (usually end time or deadline) and greedily pick each locally optimal choice, skipping any that conflict, to maximize non-overlapping selections or minimize resources; correctness is argued with an exchange argument.",
       "stage": "Interval Reasoning",
       "prerequisites": [
         "SK-DM-03",
@@ -630,7 +630,7 @@
     "SK-IR-02": {
       "id": "SK-IR-02",
       "name": "Sorting / Interval Sweep",
-      "description": "PDF subsection: Sorting & Searching in Arrays. Shared technique note for this skill group (general, not specific to this problem): Sorting + Binary Search \u2014 sort once, then binary-search for O(n log n) solutions.",
+      "description": "Sort intervals by start (or end) and sweep through them, merging overlaps, counting concurrent intervals, or processing sorted event endpoints, to solve merge-intervals, meeting-rooms, and range-coverage problems in O(n log n).",
       "stage": "Interval Reasoning",
       "prerequisites": [
         "SK-IR-01",
@@ -788,7 +788,7 @@
     "SK-RT-01": {
       "id": "SK-RT-01",
       "name": "Tree Traversal (DFS/BFS)",
-      "description": "PDF subsection: Tree Traversals. Shared technique note for this skill group (general, not specific to this problem): DFS (Pre/In/Post-order) & BFS (Level-order) \u2014 foundation of nearly all tree problems.",
+      "description": "Traverse a tree via DFS (preorder, inorder, or postorder, recursively or with an explicit stack) or BFS (level-order with a queue); these traversals underpin nearly all tree computations such as searching, aggregating, and building level-based answers.",
       "stage": "Recursive Thinking",
       "prerequisites": [
         "SK-SC-06",
@@ -883,7 +883,7 @@
     "SK-RT-05": {
       "id": "SK-RT-05",
       "name": "Trie / Prefix Tree",
-      "description": "PDF subsection: Tries. Shared technique note for this skill group (general, not specific to this problem): Trie (Prefix Tree) \u2014 efficient prefix search and autocomplete in O(L) per query.",
+      "description": "A trie stores strings as a tree of character-labeled edges with a shared-prefix path, enabling insert and prefix/word lookup in O(L) per key (L = key length) independent of the number of stored words; ideal for autocomplete, prefix counting, and word dictionaries.",
       "stage": "Recursive Thinking",
       "prerequisites": [
         "SK-RT-01",
@@ -977,7 +977,7 @@
     "SK-ST-04": {
       "id": "SK-ST-04",
       "name": "LIS Dynamic Programming with Bisect",
-      "description": "Parametric Search \u2014 binary search on the answer space, validate with a feasibility function.",
+      "description": "Longest Increasing Subsequence in O(n log n): maintain a tails array where tails[k] is the smallest possible tail of an increasing subsequence of length k+1, and binary-search (bisect) each element's insertion point.",
       "stage": "State Transition",
       "prerequisites": [
         "SK-ST-01",
@@ -1080,7 +1080,7 @@
     "SK-ST-11": {
       "id": "SK-ST-11",
       "name": "Pointer Dynamic Programming",
-      "description": "PDF subsection: Two-Heap Pattern. Shared technique note for this skill group (general, not specific to this problem): Two Heaps \u2014 one max-heap and one min-heap to find the median dynamically.",
+      "description": "Pointer DP that generates an ordered sequence by maintaining one index per generator (e.g. one pointer per prime factor) into the sequence built so far; the next term is the minimum of the candidate products, advancing whichever pointer(s) produced it. Basis of the Ugly Number family.",
       "stage": "State Transition",
       "prerequisites": [
         "SK-ST-01"
@@ -1125,7 +1125,7 @@
     "SK-ST-13": {
       "id": "SK-ST-13",
       "name": "Knapsack Dynamic Programming",
-      "description": "PDF subsection: Knapsack Variants. Shared technique note for this skill group (general, not specific to this problem): 0/1 Knapsack / Unbounded Knapsack \u2014 classic DP on items with weight/value.",
+      "description": "DP over items with weights and values: 0/1 knapsack allows each item once (iterate capacity descending), unbounded allows repeats (iterate ascending), maximizing value under a capacity constraint; the same recurrence covers subset-sum, coin-change, and partition problems.",
       "stage": "State Transition",
       "prerequisites": [
         "SK-ST-12"
@@ -1148,7 +1148,7 @@
     "SK-ST-14": {
       "id": "SK-ST-14",
       "name": "Interval / Range Dynamic Programming",
-      "description": "PDF subsection: Interval / Range DP. Shared technique note for this skill group (general, not specific to this problem): Interval DP \u2014 solve subproblems over all intervals [i, j], merge results.",
+      "description": "DP where each state is a contiguous interval [i, j] and the answer is built by choosing a split or merge point k inside it, combining subinterval results; solves matrix-chain multiplication, burst-balloons, and optimal-BST in O(n^3).",
       "stage": "State Transition",
       "prerequisites": [
         "SK-ST-01"
@@ -1171,7 +1171,7 @@
     "SK-ST-15": {
       "id": "SK-ST-15",
       "name": "State Machine Dynamic Programming",
-      "description": "PDF subsection: State-Machine DP (Stocks & Transactions). Shared technique note for this skill group (general, not specific to this problem): State Machine DP \u2014 model allowed states (holding/not holding) and transitions.",
+      "description": "Model the problem as a finite set of states (e.g. holding vs not holding a stock, cooldown) with allowed transitions, and carry the best value per state across each step; used for stock-trading with k transactions, cooldowns, and fees.",
       "stage": "State Transition",
       "prerequisites": [
         "SK-ST-12",
@@ -1195,7 +1195,7 @@
     "SK-ST-16": {
       "id": "SK-ST-16",
       "name": "Bitmask Dynamic Programming",
-      "description": "PDF subsection: Bitmask DP. Shared technique note for this skill group (general, not specific to this problem): Bitmask DP \u2014 represent subsets as bitmasks; ideal for small n (\u226420).",
+      "description": "Encode a subset of up to ~20 elements as the bits of an integer mask and run DP over masks, transitioning by flipping bits; runs in O(2^n * n) and solves traveling-salesman, assignment, and set-cover style problems.",
       "stage": "State Transition",
       "prerequisites": [
         "SK-ST-13"
@@ -1242,7 +1242,7 @@
     "SK-GT-01": {
       "id": "SK-GT-01",
       "name": "Queue / Deque / BFS",
-      "description": "Monotonic Deque \u2014 maintain a deque for sliding window max/min in O(n).",
+      "description": "Use a FIFO queue (or double-ended deque) to process elements in arrival order; the backbone of breadth-first traversal, level-order processing, and sliding-window extremes.",
       "stage": "Graph Thinking",
       "prerequisites": [
         "SK-CM-06",
@@ -1283,7 +1283,7 @@
     "SK-GT-03": {
       "id": "SK-GT-03",
       "name": "Graph BFS",
-      "description": "PDF subsection: BFS (Shortest Path / Level-order). Shared technique note for this skill group (general, not specific to this problem): BFS \u2014 explore nodes level by level; guarantees shortest path in unweighted graphs.",
+      "description": "Breadth-first search explores a graph level by level using a queue and a visited set, guaranteeing the shortest path (fewest edges) in unweighted graphs; used for level-order, multi-source spread, and shortest-hop problems.",
       "stage": "Graph Thinking",
       "prerequisites": [
         "SK-GT-02"
@@ -1311,7 +1311,7 @@
     "SK-GT-04": {
       "id": "SK-GT-04",
       "name": "Graph DFS / Union-Find",
-      "description": "PDF subsection: DFS / Backtracking on Graphs. Shared technique note for this skill group (general, not specific to this problem): DFS with Visited Set \u2014 explore all paths; detect cycles and connected components.",
+      "description": "Depth-first search recurses (or uses a stack) along each path with a visited set to enumerate reachable nodes, find connected components, and detect cycles; disjoint-set union is an alternative for incrementally merging components and testing connectivity.",
       "stage": "Graph Thinking",
       "prerequisites": [
         "SK-GT-03",
@@ -1337,7 +1337,7 @@
     "SK-GT-05": {
       "id": "SK-GT-05",
       "name": "Topological Sort",
-      "description": "PDF subsection: Topological Sort. Shared technique note for this skill group (general, not specific to this problem): Kahn's Algorithm / DFS Post-order \u2014 linear ordering of nodes in a DAG.",
+      "description": "Produce a linear ordering of a DAG's nodes so every edge points forward, via Kahn's algorithm (repeatedly remove zero-indegree nodes) or DFS post-order reversal; used for dependency resolution, build/course scheduling, and cycle detection in directed graphs.",
       "stage": "Graph Thinking",
       "prerequisites": [
         "SK-GT-04"
@@ -1356,7 +1356,7 @@
     "SK-GT-06": {
       "id": "SK-GT-06",
       "name": "Disjoint Set Union",
-      "description": "PDF subsection: Union-Find (Disjoint Set Union). Shared technique note for this skill group (general, not specific to this problem): DSU with Path Compression + Union by Rank \u2014 near-O(1) amortised operations.",
+      "description": "Disjoint Set Union maintains a partition of elements supporting find (which set) and union (merge sets); with path compression plus union by rank/size, operations are near-O(1) amortized, powering connectivity queries, Kruskal's MST, and cycle detection.",
       "stage": "Graph Thinking",
       "prerequisites": [
         "SK-GT-04"
@@ -1377,7 +1377,7 @@
     "SK-GT-07": {
       "id": "SK-GT-07",
       "name": "Shortest Path Algorithms",
-      "description": "PDF subsection: Shortest Path Algorithms. Shared technique note for this skill group (general, not specific to this problem): Dijkstra / Bellman-Ford / Floyd-Warshall \u2014 weighted shortest paths.",
+      "description": "Compute shortest paths on weighted graphs: Dijkstra (non-negative weights, O(E log V) with a heap), Bellman-Ford (handles negative edges and detects negative cycles, O(VE)), and Floyd-Warshall (all-pairs, O(V^3)).",
       "stage": "Graph Thinking",
       "prerequisites": [
         "SK-GT-03",
@@ -1401,7 +1401,7 @@
     "SK-GT-08": {
       "id": "SK-GT-08",
       "name": "Minimum Spanning Tree",
-      "description": "PDF subsection: Minimum Spanning Tree. Shared technique note for this skill group (general, not specific to this problem): Kruskal's / Prim's \u2014 greedily build a spanning tree with minimum total edge weight.",
+      "description": "Find a minimum-total-weight tree connecting all vertices: Kruskal's sorts edges and adds them if they join different DSU components, while Prim's grows the tree from a start vertex using a min-heap of frontier edges.",
       "stage": "Graph Thinking",
       "prerequisites": [
         "SK-GT-06",
@@ -1531,14 +1531,14 @@
       "prerequisites": [
         "SK-QP-05"
       ],
-      "primary_validation_problem": "HEP-016",
+      "primary_validation_problem": "HEP-013",
       "reinforcement_problems": [
         "HEP-020",
         "HEP-021",
-        "HEP-022"
+        "HEP-022",
+        "HEP-016"
       ],
       "challenge_problems": [
-        "HEP-013",
         "HEP-014",
         "HEP-015",
         "HEP-017",
@@ -1579,7 +1579,7 @@
     "SK-PD-03": {
       "id": "SK-PD-03",
       "name": "Combination Backtracking",
-      "description": "PDF subsection: Subsets & Combinations. Shared technique note for this skill group (general, not specific to this problem): Backtracking \u2014 explore all choices recursively; prune branches that violate constraints.",
+      "description": "Backtracking that recursively builds subsets or fixed-size combinations, advancing a start index so each element is only considered forward (avoiding duplicate orderings) and pruning branches that break constraints; generates the combinatorial search space in O(2^n) style.",
       "stage": "Pattern Discovery",
       "prerequisites": [
         "SK-PD-01"
@@ -1601,7 +1601,7 @@
     "SK-PD-04": {
       "id": "SK-PD-04",
       "name": "Permutation Backtracking",
-      "description": "PDF subsection: Permutations. Shared technique note for this skill group (general, not specific to this problem): Permutation Backtracking \u2014 swap elements or use a visited array.",
+      "description": "Backtracking that generates all orderings by, at each depth, choosing an unused element (via swap or a used[] array), recursing, then undoing the choice; produces n! permutations and handles duplicate-skipping when the input has repeats.",
       "stage": "Pattern Discovery",
       "prerequisites": [
         "SK-PD-03"
@@ -1624,7 +1624,7 @@
     "SK-PD-05": {
       "id": "SK-PD-05",
       "name": "Constraint Backtracking",
-      "description": "PDF subsection: Advanced Backtracking. Shared technique note for this skill group (general, not specific to this problem): Permutation Backtracking \u2014 swap elements or use a visited array.",
+      "description": "Backtracking under explicit constraints where each partial placement is validated before recursing and invalid branches are pruned early; solves N-Queens, Sudoku, and word-search by trying a candidate, checking feasibility, and backtracking on failure.",
       "stage": "Pattern Discovery",
       "prerequisites": [
         "SK-PD-04"
@@ -1684,7 +1684,7 @@
     "SK-MT-03": {
       "id": "SK-MT-03",
       "name": "Bit Manipulation",
-      "description": "PDF subsection: Bit Manipulation. Shared technique note for this skill group (general, not specific to this problem): Bit Tricks \u2014 XOR, AND/OR masks, Brian Kernighan's algorithm for O(1) bit operations.",
+      "description": "Manipulate numbers at the bit level using XOR (find the unique element, swap without temp), AND/OR masks (set/clear/test bits), shifts, and Brian Kernighan's n & (n-1) trick to strip the lowest set bit for fast bit counting.",
       "stage": "Mathematical Thinking",
       "prerequisites": [
         "SK-MT-02"
@@ -1750,7 +1750,7 @@
     "SK-IN-04": {
       "id": "SK-IN-04",
       "name": "Core Data-Structure Design",
-      "description": "PDF subsection: Classic Design Problems. Shared technique note for this skill group (general, not specific to this problem): OOP + Right Data Structures \u2014 combine hash maps, heaps, doubly linked lists for O(1) ops.",
+      "description": "Design a custom data structure by composing primitives - hash maps for O(1) lookup, heaps for ordered extremes, doubly linked lists for O(1) removal - to meet the required operation complexities, as in LRU cache, LFU cache, or an O(1) insert/delete/getRandom set.",
       "stage": "Integration",
       "prerequisites": [
         "SK-IN-01",
@@ -1773,7 +1773,7 @@
     "SK-IN-05": {
       "id": "SK-IN-05",
       "name": "Randomized Data Structure",
-      "description": "PDF subsection: Randomized & Probabilistic Structures. Shared technique note for this skill group (general, not specific to this problem): Reservoir Sampling / Fisher-Yates \u2014 uniform random sampling in O(1) space.",
+      "description": "Randomized structures for streaming or sampling: reservoir sampling picks k uniform items from an unknown-length stream in O(1) space, and the Fisher-Yates shuffle produces a uniformly random permutation in place in O(n).",
       "stage": "Integration",
       "prerequisites": [
         "SK-IN-04",

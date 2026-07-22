@@ -1607,7 +1607,7 @@
   function openSingleSkillModal(skillId) {
     const skillInfo = skillMeta(skillId);
     const problems = state.datasets.curriculum.problems.filter(
-      (problem) => problem.primary_skill === skillId || problem.secondary_skill === skillId,
+      (problem) => problem.primary_skill === skillId,
     );
     const solved = problems.filter((problem) => state.completedById.has(problem.id));
     const skill = state.datasets.progress.skill_progress?.[skillId] || {};
@@ -1640,7 +1640,7 @@
     const skillInfo = skillMeta(skillId);
     const skill = progress.skill_progress?.[skillId] || {};
     const problems = state.datasets.curriculum.problems.filter(
-      (problem) => problem.primary_skill === skillId || problem.secondary_skill === skillId,
+      (problem) => problem.primary_skill === skillId,
     );
     const solved = problems.filter((problem) => state.completedById.has(problem.id));
     const remaining = problems.filter((problem) => !state.completedById.has(problem.id));
@@ -1909,7 +1909,7 @@
     const skillInfo = skillMeta(skillId);
     const skill = state.datasets.progress.skill_progress?.[skillId] || {};
     const problems = state.datasets.curriculum.problems.filter(
-      (problem) => problem.primary_skill === skillId || problem.secondary_skill === skillId,
+      (problem) => problem.primary_skill === skillId,
     );
     const solvedProblems = problems.filter((problem) => state.completedById.has(problem.id));
     const nextOpen = problems.find((problem) => !state.completedById.has(problem.id));
@@ -2390,8 +2390,6 @@
       problem.stage,
       problem.primary_skill,
       skillMeta(problem.primary_skill).name,
-      problem.secondary_skill,
-      problem.secondary_skill ? skillMeta(problem.secondary_skill).name : null,
       problem.difficulty,
       problem.problem_role,
       problem.importance,
@@ -2433,7 +2431,7 @@
       return true;
     }
     return state.datasets.curriculum.problems
-      .filter((problem) => problem.primary_skill === skillId || problem.secondary_skill === skillId)
+      .filter((problem) => problem.primary_skill === skillId)
       .some((problem) => problemMatchesQuery(problem, query));
   }
 
@@ -2472,8 +2470,6 @@
       problem.stage,
       problem.primary_skill,
       skillMeta(problem.primary_skill).name,
-      problem.secondary_skill,
-      problem.secondary_skill ? skillMeta(problem.secondary_skill).name : null,
       problem.difficulty,
       problem.problem_role,
       record?.thinking_breakthrough,
@@ -3262,7 +3258,6 @@
       dayRecords.forEach((record) => {
         const problem = state.problemsById.get(record.problem_id);
         if (problem?.primary_skill) skills.add(problem.primary_skill);
-        if (problem?.secondary_skill) skills.add(problem.secondary_skill);
       });
       return { date, problems, skills: skills.size };
     });

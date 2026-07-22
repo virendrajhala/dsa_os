@@ -55,10 +55,9 @@ REQUIRED_PROBLEM_FIELDS = {
     "original_number",
     "title",
     "difficulty",
-    "section",
+    "source_section",
     "stage",
     "primary_skill",
-    "secondary_skill",
     "problem_role",
     "difficulty_weight",
     "importance",
@@ -540,11 +539,6 @@ def validate_curriculum(
         primary_skill = problem.get("primary_skill")
         if primary_skill not in skill_defs:
             add_error(errors, f"curriculum.json: `{problem_id}` references unknown `primary_skill` `{primary_skill}`.")
-        secondary_skill = problem.get("secondary_skill")
-        if secondary_skill is not None and secondary_skill not in skill_defs:
-            add_error(errors, f"curriculum.json: `{problem_id}` references unknown `secondary_skill` `{secondary_skill}`.")
-        if secondary_skill is not None and secondary_skill == primary_skill:
-            add_error(errors, f"curriculum.json: `{problem_id}` `secondary_skill` must differ from `primary_skill`.")
 
         stage_name = problem.get("stage")
         if stage_name not in stage_defs:
@@ -1464,6 +1458,15 @@ def validate_progress_payload(
         problem_id = event.get("problem_id")
         if problem_id is not None and problem_id not in problems:
             add_error(errors, f"{label}: history event #{index} references missing problem `{problem_id}`.")
+        # F19: history stage names must be current stages (guards against fossils
+        # like the retired "Foundational" stage regressing back in).
+        for stage_field in ("stage_before", "stage_after"):
+            stage_value = event.get(stage_field)
+            if stage_value is not None and stage_value not in stage_defs:
+                add_error(
+                    errors,
+                    f"{label}: history event #{index} `{stage_field}` references unknown stage `{stage_value}`.",
+                )
 
     if current_problem is not None and current_problem in {record.get("problem_id") for record in completion_records}:
         open_problem_ids = {entry.get("problem") for entry in open_revision_entries(progress)}
