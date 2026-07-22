@@ -2,7 +2,7 @@
 
 This file is generated, not hand-maintained. It replaces the old module/pattern-based skill map after the skill-first migration (curriculum.json v3.0). Regenerate it any time `knowledge/skills.json` or `curriculum/curriculum.json` changes.
 
-**557 problems** across **90 skills** in **13 stages**. Difficulty: 94 Easy / 320 Medium / 143 Hard. Importance: 266 CORE / 250 COMMON / 41 SPECIALIZED / 0 NICHE.
+**557 problems** across **91 skills** in **13 stages**. Difficulty: 94 Easy / 320 Medium / 143 Hard. Importance: 266 CORE / 250 COMMON / 41 SPECIALIZED / 0 NICHE.
 
 ## Observation
 
@@ -63,6 +63,21 @@ Use sorted order and monotonic feasibility to replace repeated scans with binary
 | `SK-OR-04` Binary Search | Binary Search — repeatedly halve the search space on a monotonic function. | BSR-003 | 7 problems | 1 problems |
 | `SK-OR-05` Sorting Algorithms & Custom Comparators | Raw sorting mechanics were previously assumed, never taught — implement the algorithm itself. | ORD-008 | 7 problems | 0 problems |
 
+## Query Processing
+
+Answer repeated queries efficiently using precomputed prefix structures or order-statistic heaps, instead of rescanning the input per query.
+
+*6 skills, 37 problems.*
+
+| Skill | Description | Primary | Reinforcement | Challenge |
+|---|---|---|---|---|
+| `SK-QP-01` Prefix Sum / Difference Array | Prefix Sum — precompute cumulative sums for O(1) range queries. | PFX-002 | 9 problems | 0 problems |
+| `SK-QP-02` Prefix Sum + Hash Map | HashMap — O(1) lookups to avoid nested loops; track frequency, index, or pairs. Intentional revisit preserved from the PDF. | PFX-011 | 2 problems | 0 problems |
+| `SK-QP-03` Weighted Prefix Sampling | Reservoir Sampling / Fisher-Yates — uniform random sampling in O(1) space. Intentional revisit preserved from the PDF. | PFX-014 | 1 problems | 0 problems |
+| `SK-QP-04` Heap Selection | Heap Selection — maintain a fixed-size min-heap (size k) of the largest elements seen so far; after processing all elements, the heap's minimum is the kth largest, avoiding a full O(n log n) sort. | HEP-001 | 1 problems | 0 problems |
+| `SK-QP-05` Top-K Heap | Min-Heap of size K — maintain the K largest elements efficiently. Intentional revisit preserved from the PDF. | HEP-003 | 8 problems | 1 problems |
+| `SK-QP-06` Two Heaps / Priority Queue | Two Heaps — one max-heap and one min-heap to find the median dynamically. | HEP-016 | 3 problems | 6 problems |
+
 ## Decision Making
 
 Commit to local, irrevocable choices and defend them with an exchange argument, invariant, or counterexample search, instead of exploring every branch.
@@ -74,26 +89,6 @@ Commit to local, irrevocable choices and defend them with an exchange argument, 
 | `SK-DM-01` Priority Scheduling | Priority Scheduling — repeatedly pick the highest-priority or most-frequent remaining item using a max-heap (or frequency-bucket count), respecting a cooldown or ordering constraint before that item can be reused. | HEP-002 | 1 problems | 0 problems |
 | `SK-DM-02` Sorting / Greedy Choice | Sorting / Greedy Choice — sort the input first, then apply a greedy selection rule (e.g. always take from a fixed relative position within each sorted group) to optimize an aggregate outcome; correctness typically follows from an exchange argument. | GRD-001 | 1 problems | 0 problems |
 | `SK-DM-03` String / Array Greedy | Greedy Selection — always pick the locally optimal choice; prove exchange argument. | GRD-014 | 13 problems | 1 problems |
-
-## Interval Reasoning
-
-Reason about overlapping ranges, sweeps, and ordered range-query structures (Fenwick/segment trees) that summarize or update intervals efficiently.
-
-*11 skills, 40 problems.*
-
-| Skill | Description | Primary | Reinforcement | Challenge |
-|---|---|---|---|---|
-| `SK-IR-01` Interval / Scheduling Greedy | PDF subsection: Interval & Scheduling Greedy. Shared technique note for this skill group (general, not specific to this problem): Greedy Selection — always pick the locally optimal choice; prove exchange argument. | GRD-005 | 11 problems | 0 problems |
-| `SK-IR-02` Sorting / Interval Sweep | PDF subsection: Sorting & Searching in Arrays. Shared technique note for this skill group (general, not specific to this problem): Sorting + Binary Search — sort once, then binary-search for O(n log n) solutions. | ORD-001 | 4 problems | 0 problems |
-| `SK-IR-03` Two-Pointer Interval Sweep | Second example of sweeping sorted values into ranges — gives 'Interval List Intersections' a companion instead of standing alone. | ORD-007 | 1 problems | 0 problems |
-| `SK-IR-04` Fenwick Tree / Ordered Merge | Fenwick Tree / Ordered Merge — coordinate-compress the values, then use a Fenwick (Binary Indexed) tree to count, in O(log n) per element, how many previously-inserted values are smaller; a merge-sort-based inversion count is the ordered-merge alternative. | RNG-001 | 1 problems | 0 problems |
-| `SK-IR-05` Range Count / Ordered Prefix | Range Count / Ordered Prefix — compute prefix sums, then count index pairs (i, j) whose prefix-sum difference falls in a target range, using a Fenwick tree, merge sort, or balanced BST over the prefix-sum sequence for O(n log n). | RNG-002 | 1 problems | 0 problems |
-| `SK-IR-06` Fenwick Tree / Ordered Statistics | Second ordered-statistics counting problem, more approachable difficulty than the existing Hard-only pair. | RNG-017 | 1 problems | 0 problems |
-| `SK-IR-07` Fenwick Tree / Segment Tree | Segment Tree / Fenwick Tree — O(log n) range queries and point updates. | RNG-004 | 1 problems | 5 problems |
-| `SK-IR-08` Interval Booking Structure | Interval Booking Structure — maintain a dynamic set of booked intervals (sorted structure, balanced BST, or segment tree) supporting fast overlap queries and insertions as new bookings arrive online. | RNG-008 | 1 problems | 0 problems |
-| `SK-IR-09` Persistent Array Snapshot Design | Persistent Array Snapshot Design — instead of copying the whole array on every snapshot, store each index's value history as a list of (snapshot_id, value) pairs and binary-search that history on read, giving O(1) snapshot and O(log n) get. | RNG-012 | 1 problems | 0 problems |
-| `SK-IR-10` Segment Tree / Ordered Range Design | Segment Tree / Ordered Range Design — maintain a dynamic set of non-overlapping ranges (a sorted map of interval boundaries, or a segment tree with lazy propagation) supporting add/remove/query of arbitrary ranges. | RNG-013 | 1 problems | 0 problems |
-| `SK-IR-11` Segment Tree Ticket Allocation | A simpler Fenwick/segment-tree prerequisite that should precede the harder Booking Concert Tickets problem already in this pattern. | RNG-021 | 1 problems | 0 problems |
 
 ## Recursive Thinking
 
@@ -154,20 +149,25 @@ Model problems as graphs, choose the right traversal or connectivity tool, and s
 | `SK-GT-08` Minimum Spanning Tree | PDF subsection: Minimum Spanning Tree. Shared technique note for this skill group (general, not specific to this problem): Kruskal's / Prim's — greedily build a spanning tree with minimum total edge weight. | GRF-051 | 1 problems | 3 problems |
 | `SK-GT-09` Grid DFS / Flood Fill | An Easy grid-DFS problem — softens the module's steep 2-Easy-out-of-56 difficulty cliff. | GRF-058 | 1 problems | 0 problems |
 
-## Query Processing
+## Interval Reasoning
 
-Answer repeated queries efficiently using precomputed prefix structures or order-statistic heaps, instead of rescanning the input per query.
+Reason about overlapping ranges, sweeps, and ordered range-query structures (Fenwick/segment trees) that summarize or update intervals efficiently.
 
-*6 skills, 37 problems.*
+*11 skills, 40 problems.*
 
 | Skill | Description | Primary | Reinforcement | Challenge |
 |---|---|---|---|---|
-| `SK-QP-01` Prefix Sum / Difference Array | Prefix Sum — precompute cumulative sums for O(1) range queries. | PFX-002 | 9 problems | 0 problems |
-| `SK-QP-02` Prefix Sum + Hash Map | HashMap — O(1) lookups to avoid nested loops; track frequency, index, or pairs. Intentional revisit preserved from the PDF. | PFX-011 | 2 problems | 0 problems |
-| `SK-QP-03` Weighted Prefix Sampling | Reservoir Sampling / Fisher-Yates — uniform random sampling in O(1) space. Intentional revisit preserved from the PDF. | PFX-014 | 1 problems | 0 problems |
-| `SK-QP-04` Heap Selection | Heap Selection — maintain a fixed-size min-heap (size k) of the largest elements seen so far; after processing all elements, the heap's minimum is the kth largest, avoiding a full O(n log n) sort. | HEP-001 | 1 problems | 0 problems |
-| `SK-QP-05` Top-K Heap | Min-Heap of size K — maintain the K largest elements efficiently. Intentional revisit preserved from the PDF. | HEP-003 | 8 problems | 1 problems |
-| `SK-QP-06` Two Heaps / Priority Queue | Two Heaps — one max-heap and one min-heap to find the median dynamically. | HEP-016 | 3 problems | 6 problems |
+| `SK-IR-01` Interval / Scheduling Greedy | PDF subsection: Interval & Scheduling Greedy. Shared technique note for this skill group (general, not specific to this problem): Greedy Selection — always pick the locally optimal choice; prove exchange argument. | GRD-005 | 11 problems | 0 problems |
+| `SK-IR-02` Sorting / Interval Sweep | PDF subsection: Sorting & Searching in Arrays. Shared technique note for this skill group (general, not specific to this problem): Sorting + Binary Search — sort once, then binary-search for O(n log n) solutions. | ORD-001 | 4 problems | 0 problems |
+| `SK-IR-03` Two-Pointer Interval Sweep | Second example of sweeping sorted values into ranges — gives 'Interval List Intersections' a companion instead of standing alone. | ORD-007 | 1 problems | 0 problems |
+| `SK-IR-04` Fenwick Tree / Ordered Merge | Fenwick Tree / Ordered Merge — coordinate-compress the values, then use a Fenwick (Binary Indexed) tree to count, in O(log n) per element, how many previously-inserted values are smaller; a merge-sort-based inversion count is the ordered-merge alternative. | RNG-001 | 1 problems | 0 problems |
+| `SK-IR-05` Range Count / Ordered Prefix | Range Count / Ordered Prefix — compute prefix sums, then count index pairs (i, j) whose prefix-sum difference falls in a target range, using a Fenwick tree, merge sort, or balanced BST over the prefix-sum sequence for O(n log n). | RNG-002 | 1 problems | 0 problems |
+| `SK-IR-06` Fenwick Tree / Ordered Statistics | Second ordered-statistics counting problem, more approachable difficulty than the existing Hard-only pair. | RNG-017 | 1 problems | 0 problems |
+| `SK-IR-07` Fenwick Tree / Segment Tree | Segment Tree / Fenwick Tree — O(log n) range queries and point updates. | RNG-004 | 1 problems | 5 problems |
+| `SK-IR-08` Interval Booking Structure | Interval Booking Structure — maintain a dynamic set of booked intervals (sorted structure, balanced BST, or segment tree) supporting fast overlap queries and insertions as new bookings arrive online. | RNG-008 | 1 problems | 0 problems |
+| `SK-IR-09` Persistent Array Snapshot Design | Persistent Array Snapshot Design — instead of copying the whole array on every snapshot, store each index's value history as a list of (snapshot_id, value) pairs and binary-search that history on read, giving O(1) snapshot and O(log n) get. | RNG-012 | 1 problems | 0 problems |
+| `SK-IR-10` Segment Tree / Ordered Range Design | Segment Tree / Ordered Range Design — maintain a dynamic set of non-overlapping ranges (a sorted map of interval boundaries, or a segment tree with lazy propagation) supporting add/remove/query of arbitrary ranges. | RNG-013 | 1 problems | 0 problems |
+| `SK-IR-11` Segment Tree Ticket Allocation | A simpler Fenwick/segment-tree prerequisite that should precede the harder Booking Concert Tickets problem already in this pattern. | RNG-021 | 1 problems | 0 problems |
 
 ## Pattern Discovery
 
@@ -199,7 +199,7 @@ Replace simulation with direct reasoning using number-theoretic or bitwise prope
 
 Compose multiple data structures into a durable system, support online updates, and reason about API guarantees under sustained use -- the terminal stage of the apprenticeship.
 
-*7 skills, 37 problems.*
+*8 skills, 37 problems.*
 
 | Skill | Description | Primary | Reinforcement | Challenge |
 |---|---|---|---|---|
@@ -210,4 +210,5 @@ Compose multiple data structures into a durable system, support online updates, 
 | `SK-IN-05` Randomized Data Structure | PDF subsection: Randomized & Probabilistic Structures. Shared technique note for this skill group (general, not specific to this problem): Reservoir Sampling / Fisher-Yates — uniform random sampling in O(1) space. | DES-013 | 3 problems | 1 problems |
 | `SK-IN-06` Online / Streaming Design | Online Algorithms — process data one element at a time without looking back. | DES-018 | 7 problems | 1 problems |
 | `SK-IN-07` Data-Structure Design | Data-Structure Design — maintain a dynamic ordered set of occupied positions (a sorted structure or a heap of gaps) supporting online insert/remove operations while always answering the optimal-placement query efficiently. | DES-028 | 4 problems | 3 problems |
+| `SK-IE-00` Implementation Engineering | The ability to correctly translate an understood algorithm into bug-free code by determining initialization, loop boundaries, state ownership, update ordering, previous-state preservation, and return value without relying on memorized implementations. | — | 0 problems | 0 problems |
 

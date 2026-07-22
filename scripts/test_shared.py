@@ -667,5 +667,25 @@ class ReadinessTests(unittest.TestCase):
         self.assertTrue(result["all_met"])
 
 
+class StageMasteryMetaSkillTests(unittest.TestCase):
+    """F18: a problemless meta-skill registered under a stage (SK-IE-00) must
+    not count toward that stage's mastery totals."""
+
+    def test_meta_skill_excluded_from_stage_totals(self):
+        stages = {
+            "stage_order": ["Only"],
+            "stages": {"Only": {"skills": ["SK-A", "SK-B", "SK-META"]}},
+        }
+        # SK-META is not tracked in skill_progress (like SK-IE-00).
+        skill_progress = {
+            "SK-A": {"mastered": True},
+            "SK-B": {"mastered": True},
+        }
+        result = _shared.compute_stage_mastery(stages, skill_progress)
+        self.assertEqual(result["Only"]["skills_total"], 2)
+        self.assertEqual(result["Only"]["skills_mastered"], 2)
+        self.assertEqual(result["Only"]["status"], "mastered")
+
+
 if __name__ == "__main__":
     unittest.main()

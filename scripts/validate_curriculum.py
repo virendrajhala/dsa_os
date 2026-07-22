@@ -332,21 +332,17 @@ def validate_curriculum(
     if set(skill_order) != set(skill_defs):
         add_error(errors, "knowledge/skills.json: `skill_order` and `skills` keys must match exactly.")
 
-    global_skill_ids = {
+    # Meta skills (SK-IE-00 Implementation Engineering) are problemless
+    # cross-cutting skills registered under a stage; every other skill maps to
+    # exactly one stage and owns problems.
+    meta_skill_ids = {
         skill_id
         for skill_id in skill_order
         if isinstance(skill_defs.get(skill_id), dict)
-        and skill_defs[skill_id].get("scope") == "global"
+        and skill_defs[skill_id].get("scope") == "meta"
     }
 
     for skill_id in skill_order:
-        if skill_id in global_skill_ids:
-            if stage_skill_occurrences[skill_id] != 0:
-                add_error(
-                    errors,
-                    f"global skill `{skill_id}` must not appear in any stage `skills` list.",
-                )
-            continue
         if stage_skill_occurrences[skill_id] != 1:
             add_error(
                 errors,
@@ -362,8 +358,9 @@ def validate_curriculum(
             add_error(errors, f"knowledge/skills.json: skill `{skill_id}` must be an object.")
             continue
         required_fields = (
-            {"id", "name", "description", "scope", "subskills", "required_for_difficulties"}
-            if skill_id in global_skill_ids
+            {"id", "name", "description", "scope", "stage", "subskills",
+             "required_for_difficulties", "prerequisites"}
+            if skill_id in meta_skill_ids
             else REQUIRED_SKILL_FIELDS
         )
         missing = sorted(required_fields - skill.keys())
@@ -372,16 +369,24 @@ def validate_curriculum(
             continue
         if not SKILL_ID_RE.match(skill_id):
             add_error(errors, f"knowledge/skills.json: skill id `{skill_id}` has an unexpected format.")
-        if skill_id in global_skill_ids:
-            if skill.get("stage") is not None:
-                add_error(errors, f"knowledge/skills.json: global skill `{skill_id}` must have `stage: null`.")
+        if skill_id in meta_skill_ids:
+            # Problemless meta-skill: registered under a stage, no owned problems.
+            if skill.get("stage") not in stage_defs:
+                add_error(errors, f"knowledge/skills.json: meta skill `{skill_id}` references unknown stage `{skill.get('stage')}`.")
             if not isinstance(skill.get("subskills"), list) or not skill["subskills"]:
-                add_error(errors, f"knowledge/skills.json: global skill `{skill_id}` must define non-empty subskills.")
+                add_error(errors, f"knowledge/skills.json: meta skill `{skill_id}` must define non-empty subskills.")
             if skill.get("required_for_difficulties") != ["Medium", "Hard"]:
                 add_error(
                     errors,
-                    f"knowledge/skills.json: global skill `{skill_id}` must be required for Medium and Hard problems.",
+                    f"knowledge/skills.json: meta skill `{skill_id}` must be required for Medium and Hard problems.",
                 )
+            prereqs = skill.get("prerequisites")
+            if not isinstance(prereqs, list):
+                add_error(errors, f"knowledge/skills.json: meta skill `{skill_id}` `prerequisites` must be a list.")
+            else:
+                for p in prereqs:
+                    if p not in skill_defs:
+                        add_error(errors, f"knowledge/skills.json: meta skill `{skill_id}` references missing prerequisite `{p}`.")
             continue
         if skill["stage"] not in stage_defs:
             add_error(errors, f"knowledge/skills.json: skill `{skill_id}` references unknown stage `{skill['stage']}`.")
@@ -415,9 +420,10 @@ def validate_curriculum(
             if pid not in problems_by_id_raw:
                 add_error(errors, f"knowledge/skills.json: skill `{skill_id}` references missing problem `{pid}`.")
 
-    # skill dependency graph must be acyclic, and (per the frozen curriculum rule)
-    # every non-root skill has exactly one prerequisite so that each curriculum
-    # transition introduces exactly one new reasoning model at a time.
+    # F18: skill dependencies are a real 1-4 prerequisite DAG (the old frozen
+    # one-prereq-per-skill chain was removed). Deps must reference real skills,
+    # never point to a LATER-stage skill, and stay acyclic.
+    stage_index = {name: i for i, name in enumerate(stage_order)}
     skill_dependencies = graph.get("skill_dependencies", {})
     if not isinstance(skill_dependencies, dict):
         add_error(errors, "dependency_graph.json: `skill_dependencies` must be an object.")
@@ -427,15 +433,22 @@ def validate_curriculum(
         if not isinstance(deps, list):
             add_error(errors, f"dependency_graph.json: `skill_dependencies.{skill_id}` must be a list.")
             continue
-        if skill_id not in global_skill_ids and len(deps) > 1:
-            add_error(
-                errors,
-                f"dependency_graph.json: skill `{skill_id}` has {len(deps)} prerequisites; the frozen "
-                f"curriculum rule requires at most one, so each transition unlocks a single new skill.",
-            )
+        skill_stage = skill_defs.get(skill_id, {}).get("stage") if isinstance(skill_defs.get(skill_id), dict) else None
         for dep in deps:
             if dep not in skill_defs:
                 add_error(errors, f"dependency_graph.json: skill `{skill_id}` depends on missing skill `{dep}`.")
+                continue
+            dep_stage = skill_defs[dep].get("stage") if isinstance(skill_defs[dep], dict) else None
+            if (
+                skill_stage in stage_index
+                and dep_stage in stage_index
+                and stage_index[dep_stage] > stage_index[skill_stage]
+            ):
+                add_error(
+                    errors,
+                    f"dependency_graph.json: skill `{skill_id}` ({skill_stage}) depends on later-stage "
+                    f"skill `{dep}` ({dep_stage}).",
+                )
 
     skill_cycle_nodes = detect_cycle_nodes(skill_order, skill_dependencies)
     if skill_cycle_nodes:
@@ -454,11 +467,14 @@ def validate_curriculum(
         if orphan_skills:
             add_error(errors, "dependency_graph.json: orphan skills detected (unreachable from any root): " + ", ".join(orphan_skills[:10]) + ".")
 
-    global_skill_dependencies = graph.get("global_skill_dependencies")
-    if not isinstance(global_skill_dependencies, dict):
-        add_error(errors, "dependency_graph.json: `global_skill_dependencies` must be an object.")
-    elif global_skill_dependencies.get("Medium") != ["SK-IE-00"] or global_skill_dependencies.get("Hard") != ["SK-IE-00"]:
-        add_error(errors, "dependency_graph.json: Medium and Hard problems must depend on global skill `SK-IE-00`.")
+    # F18: difficulty gates (replaces the malformed global_skill_dependencies
+    # block that keyed on difficulty strings). Medium/Hard problems additionally
+    # require the SK-IE-00 Implementation Engineering meta-skill.
+    difficulty_gates = graph.get("difficulty_gates")
+    if not isinstance(difficulty_gates, dict):
+        add_error(errors, "dependency_graph.json: `difficulty_gates` must be an object.")
+    elif difficulty_gates.get("Medium") != ["SK-IE-00"] or difficulty_gates.get("Hard") != ["SK-IE-00"]:
+        add_error(errors, "dependency_graph.json: Medium and Hard problems must be gated on the `SK-IE-00` meta-skill via `difficulty_gates`.")
 
     # -- per-problem validation ------------------------------------------------------
     problem_ids: list[str] = []
@@ -623,6 +639,28 @@ def validate_curriculum(
         orphan_problems = sorted(set(problem_ids) - reachable_problems)
         if orphan_problems:
             add_error(errors, "dependency_graph.json: orphan problems detected: " + ", ".join(orphan_problems[:10]) + ".")
+
+    # F18: an Easy problem must not transitively require more than 30 problems,
+    # so a warm-up never sits behind a wall of prerequisites.
+    easy_depth_limit = 30
+    for problem in problems:
+        if not isinstance(problem, dict) or problem.get("difficulty") != "Easy":
+            continue
+        pid = problem.get("id")
+        transitive: set[str] = set()
+        queue = deque(problem_dependencies.get(pid, []))
+        while queue:
+            dep_id = queue.popleft()
+            if dep_id in transitive:
+                continue
+            transitive.add(dep_id)
+            queue.extend(problem_dependencies.get(dep_id, []))
+        if len(transitive) > easy_depth_limit:
+            add_error(
+                errors,
+                f"dependency_graph.json: Easy problem `{pid}` transitively requires {len(transitive)} "
+                f"problems (limit {easy_depth_limit}).",
+            )
 
     # -- scoring.json -----------------------------------------------------------------
     if set(scoring.get("dimensions", {})) != set(scoring.get("weights", {})):

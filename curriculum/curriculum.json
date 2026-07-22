@@ -8,30 +8,6 @@
     "supplemental_problems_added": 50,
     "total_problem_count": 557
   },
-  "module_order": [
-    "CPX",
-    "OBS",
-    "TWO",
-    "WIN",
-    "HSH",
-    "ORD",
-    "BSR",
-    "PFX",
-    "LNK",
-    "STK",
-    "QUE",
-    "HEP",
-    "TRE",
-    "BST",
-    "TRI",
-    "GRF",
-    "DP",
-    "REC",
-    "GRD",
-    "MAT",
-    "RNG",
-    "DES"
-  ],
   "problems": [
     {
       "id": "CPX-001",

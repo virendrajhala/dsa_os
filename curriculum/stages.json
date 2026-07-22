@@ -4,12 +4,12 @@
     "State Construction",
     "Constraint Maintenance",
     "Ordered Reasoning",
+    "Query Processing",
     "Decision Making",
-    "Interval Reasoning",
     "Recursive Thinking",
     "State Transition",
     "Graph Thinking",
-    "Query Processing",
+    "Interval Reasoning",
     "Pattern Discovery",
     "Mathematical Thinking",
     "Integration"
@@ -409,10 +409,11 @@
         "SK-IN-04",
         "SK-IN-05",
         "SK-IN-06",
-        "SK-IN-07"
+        "SK-IN-07",
+        "SK-IE-00"
       ],
       "entry_requirements": [
-        "Mathematical Thinking stage mastered, and at least one skill mastered in each of the other 11 stages.",
+        "Mathematical Thinking stage mastered, and at least one skill mastered in each of the other 12 stages.",
         "Comfortable designing a class-level API (not just a single function) with documented method contracts."
       ],
       "exit_requirements": [

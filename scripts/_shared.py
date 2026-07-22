@@ -211,10 +211,11 @@ def skill_lookup(skills: JsonDict) -> dict[str, JsonDict]:
     return data
 
 
-def is_global_skill(skill: JsonDict) -> bool:
-    """Return whether a skill is a cross-cutting competency, not a stage skill."""
+def is_meta_skill(skill: JsonDict) -> bool:
+    """Return whether a skill is a problemless cross-cutting meta-skill
+    (e.g. SK-IE-00 Implementation Engineering), not a problem-owning stage skill."""
 
-    return skill.get("scope") == "global"
+    return skill.get("scope") == "meta"
 
 
 def problem_dependencies_map(graph: JsonDict) -> dict[str, list[str]]:
@@ -679,7 +680,7 @@ def compute_skill_progress(
 
     skill_progress: dict[str, JsonDict] = {}
     for skill_id, skill in skill_lookup(skills).items():
-        if is_global_skill(skill):
+        if is_meta_skill(skill):
             continue
         primary = skill.get("primary_validation_problem")
         reinforcement = skill.get("reinforcement_problems", [])
@@ -723,7 +724,13 @@ def compute_stage_mastery(stages: JsonDict, skill_progress: dict[str, JsonDict])
     result: dict[str, JsonDict] = {}
     unlocked = True
     for stage_name in stage_order:
-        stage_skills = stage_defs.get(stage_name, {}).get("skills", [])
+        # Problemless meta-skills (e.g. SK-IE-00) are registered under a stage but
+        # are not tracked in skill_progress, so they never count toward mastery.
+        stage_skills = [
+            sid
+            for sid in stage_defs.get(stage_name, {}).get("skills", [])
+            if sid in skill_progress
+        ]
         total = len(stage_skills)
         mastered = sum(1 for sid in stage_skills if skill_progress.get(sid, {}).get("mastered"))
         if not unlocked:
@@ -971,7 +978,7 @@ def select_mock_problem(state: RepositoryState) -> tuple[JsonDict | None, str]:
         }
         eligible_skills: set[str] = set()
         for sid, skill in skills.items():
-            if is_global_skill(skill):
+            if is_meta_skill(skill):
                 continue
             if sid in mastered or skill.get("stage") in mastered_stages:
                 eligible_skills.add(sid)
@@ -991,7 +998,7 @@ def select_mock_problem(state: RepositoryState) -> tuple[JsonDict | None, str]:
     # Early-days fallback: an unsolved reinforcement sibling of a solved skill.
     practice: list[JsonDict] = []
     for sid, skill in skills.items():
-        if is_global_skill(skill):
+        if is_meta_skill(skill):
             continue
         reinforcement = skill.get("reinforcement_problems") or []
         skill_touched = skill.get("primary_validation_problem") in completed or any(
@@ -1402,7 +1409,7 @@ def core_skill_ids_in_scope(
     return {
         skill_id
         for skill_id, skill in skill_lookup(skills).items()
-        if not is_global_skill(skill)
+        if not is_meta_skill(skill)
         and skill.get("stage") in scope_stages
         and skill_id in core_skills_from_problems
     }

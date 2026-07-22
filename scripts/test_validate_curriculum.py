@@ -215,5 +215,70 @@ class RevisitOfValidationTests(unittest.TestCase):
         )
 
 
+class F18DependencyDagTests(unittest.TestCase):
+    """F18: real skill DAG, difficulty_gates, meta skill, Easy-depth guard."""
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.curriculum = load_json_file(_shared.CURRICULUM_PATH)
+        cls.graph = load_json_file(_shared.GRAPH_PATH)
+        cls.stages = load_json_file(_shared.STAGES_PATH)
+        cls.skills = load_json_file(_shared.SKILLS_PATH)
+        cls.scoring = load_json_file(_shared.SCORING_PATH)
+
+    def _errors(self, graph=None, skills=None, curriculum=None) -> list[str]:
+        errors, _ = validate_curriculum(
+            curriculum or self.curriculum,
+            graph or self.graph,
+            self.stages,
+            skills or self.skills,
+            self.scoring,
+        )
+        return errors
+
+    def test_live_dag_passes(self) -> None:
+        errors = self._errors()
+        self.assertFalse(
+            [e for e in errors if "prereq" in e.lower() or "later-stage" in e or "difficulty_gates" in e or "transitively" in e],
+            msg="\n".join(errors),
+        )
+
+    def test_multi_prereq_allowed(self) -> None:
+        # A skill with several prereqs must NOT error (old one-prereq rule is gone).
+        multi = [s for s, d in self.graph["skill_dependencies"].items() if len(d) > 1]
+        self.assertTrue(multi, "expected some skills to have >1 prereq")
+        errors = self._errors()
+        self.assertFalse(any("at most one" in e or "prerequisites; the frozen" in e for e in errors), msg=errors)
+
+    def test_forward_stage_dependency_fails(self) -> None:
+        graph = copy.deepcopy(self.graph)
+        # SK-OB-01 (Observation) depending on SK-IN-01 (Integration) is a forward dep.
+        graph["skill_dependencies"]["SK-OB-01"] = ["SK-IN-01"]
+        errors = self._errors(graph=graph)
+        self.assertTrue(any("later-stage" in e for e in errors), msg=errors)
+
+    def test_difficulty_gates_wrong_fails(self) -> None:
+        graph = copy.deepcopy(self.graph)
+        graph["difficulty_gates"]["Medium"] = []
+        errors = self._errors(graph=graph)
+        self.assertTrue(any("difficulty_gates" in e for e in errors), msg=errors)
+
+    def test_meta_skill_registered_in_integration(self) -> None:
+        self.assertEqual(self.skills["skills"]["SK-IE-00"]["scope"], "meta")
+        self.assertEqual(self.skills["skills"]["SK-IE-00"]["stage"], "Integration")
+        self.assertIn("SK-IE-00", self.stages["stages"]["Integration"]["skills"])
+        # meta skill has no owned problems yet must not raise problem errors
+        errors = self._errors()
+        self.assertFalse(any("SK-IE-00" in e for e in errors), msg=errors)
+
+    def test_easy_problem_over_depth_limit_fails(self) -> None:
+        graph = copy.deepcopy(self.graph)
+        easy_id = next(p["id"] for p in self.curriculum["problems"] if p["difficulty"] == "Easy")
+        others = [p["id"] for p in self.curriculum["problems"] if p["id"] != easy_id][:31]
+        graph["problem_dependencies"][easy_id] = others
+        errors = self._errors(graph=graph)
+        self.assertTrue(any("transitively requires" in e for e in errors), msg=errors)
+
+
 if __name__ == "__main__":
     unittest.main()
