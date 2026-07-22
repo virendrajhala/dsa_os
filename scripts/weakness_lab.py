@@ -405,7 +405,8 @@ def build_payload(reference_date: date, state: Any, limit: int, focus_count: int
                         "skill": problem["primary_skill"],
                         "difficulty": problem["difficulty"],
                         "role": problem.get("problem_role"),
-                        "leetcode_number": problem.get("original_number"),
+                        "lc_id": problem.get("lc_id"),
+                        "source_index": problem.get("original_number"),
                     }
                     for problem in problems
                 ],
@@ -461,7 +462,14 @@ def render_text(payload: dict[str, Any]) -> str:
         lines.append("   Targeted problems:")
         if cluster["targeted_problems"]:
             for problem in cluster["targeted_problems"]:
-                lc = f" | LC {problem['leetcode_number']}" if problem["leetcode_number"] else ""
+                # `original_number` is the source-PDF index, NOT a LeetCode id;
+                # only show "LC <n>" when a real lc_id is set (F16).
+                if problem.get("lc_id"):
+                    lc = f" | LC {problem['lc_id']}"
+                elif problem.get("source_index"):
+                    lc = f" | #{problem['source_index']} (source index)"
+                else:
+                    lc = ""
                 lines.append(
                     f"   - {problem['id']} | {problem['title']} | {problem['difficulty']} | "
                     f"{problem['skill']} | {problem['role']}{lc}"

@@ -65,7 +65,10 @@ REQUIRED_PROBLEM_FIELDS = {
     "status",
     "revision_count",
     "notes",
+    "lc_id",
+    "url",
 }
+ALLOWED_PROBLEM_SOURCES = {"SPOJ", "GFG", "custom"}
 REQUIRED_SKILL_FIELDS = {
     "id",
     "name",
@@ -588,6 +591,53 @@ def validate_curriculum(
                 f"curriculum.json: `{pid}` `revisit_of` target `{revisit_of}` must appear "
                 f"earlier in curriculum ordering.",
             )
+
+    # lc_id / url (F16): lc_id is a positive int or null and must be UNIQUE
+    # across problems, except revisit_of pairs which SHARE their origin's lc_id.
+    def _revisit_root(pid: str) -> str:
+        seen: set[str] = set()
+        current = pid
+        while True:
+            prob = problems_by_id_raw.get(current)
+            nxt = prob.get("revisit_of") if isinstance(prob, dict) else None
+            if not isinstance(nxt, str) or nxt not in problems_by_id_raw or nxt in seen:
+                return current
+            seen.add(current)
+            current = nxt
+
+    lc_id_owner: dict[int, str] = {}
+    for problem in problems:
+        if not isinstance(problem, dict):
+            continue
+        pid = problem.get("id")
+        lc_id = problem.get("lc_id")
+        if lc_id is not None and (not isinstance(lc_id, int) or isinstance(lc_id, bool) or lc_id <= 0):
+            add_error(errors, f"curriculum.json: `{pid}` `lc_id` must be a positive integer or null.")
+            continue
+        url = problem.get("url")
+        if url is not None and not isinstance(url, str):
+            add_error(errors, f"curriculum.json: `{pid}` `url` must be a string or null.")
+        source = problem.get("source")
+        if source is not None and source not in ALLOWED_PROBLEM_SOURCES:
+            add_error(errors, f"curriculum.json: `{pid}` `source` must be one of {sorted(ALLOWED_PROBLEM_SOURCES)} or absent.")
+        twin = problem.get("revisit_of")
+        if isinstance(twin, str) and twin in problems_by_id_raw:
+            if lc_id != problems_by_id_raw[twin].get("lc_id"):
+                add_error(
+                    errors,
+                    f"curriculum.json: `{pid}` `lc_id` ({lc_id}) must match its revisit_of twin "
+                    f"`{twin}` ({problems_by_id_raw[twin].get('lc_id')}).",
+                )
+        if lc_id is not None:
+            root = _revisit_root(pid) if isinstance(pid, str) else pid
+            if lc_id in lc_id_owner and lc_id_owner[lc_id] != root:
+                add_error(
+                    errors,
+                    f"curriculum.json: `lc_id` {lc_id} is shared by unrelated problems "
+                    f"(`{lc_id_owner[lc_id]}` and `{root}`); dedupe or mark revisit_of.",
+                )
+            else:
+                lc_id_owner[lc_id] = root
 
     # Duplicate titles are an ERROR unless every later slot carries `revisit_of`
     # (F15: replaces the old free-text "Intentional revisit preserved" note gate).

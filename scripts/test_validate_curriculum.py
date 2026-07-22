@@ -215,6 +215,46 @@ class RevisitOfValidationTests(unittest.TestCase):
         )
 
 
+class F16LcIdTests(unittest.TestCase):
+    """F16: lc_id / url schema, uniqueness, and revisit sharing."""
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.curriculum = load_json_file(_shared.CURRICULUM_PATH)
+        cls.graph = load_json_file(_shared.GRAPH_PATH)
+        cls.stages = load_json_file(_shared.STAGES_PATH)
+        cls.skills = load_json_file(_shared.SKILLS_PATH)
+        cls.scoring = load_json_file(_shared.SCORING_PATH)
+
+    def _errors(self, curriculum) -> list[str]:
+        errors, _ = validate_curriculum(curriculum, self.graph, self.stages, self.skills, self.scoring)
+        return errors
+
+    def _by_id(self, curriculum) -> dict:
+        return {p["id"]: p for p in curriculum["problems"]}
+
+    def test_live_lc_ids_pass(self) -> None:
+        errors = [e for e in self._errors(self.curriculum) if "lc_id" in e]
+        self.assertFalse(errors, msg="\n".join(errors))
+
+    def test_negative_lc_id_fails(self) -> None:
+        curriculum = copy.deepcopy(self.curriculum)
+        self._by_id(curriculum)["CPX-001"]["lc_id"] = -5
+        self.assertTrue(any("positive integer or null" in e for e in self._errors(curriculum)))
+
+    def test_duplicate_lc_id_unrelated_fails(self) -> None:
+        curriculum = copy.deepcopy(self.curriculum)
+        # OBS-001 is unrelated to CPX-001 (lc_id 1); forcing a shared id must error.
+        self._by_id(curriculum)["OBS-001"]["lc_id"] = self._by_id(curriculum)["CPX-001"]["lc_id"]
+        self.assertTrue(any("shared by unrelated problems" in e for e in self._errors(curriculum)))
+
+    def test_revisit_lc_id_mismatch_fails(self) -> None:
+        curriculum = copy.deepcopy(self.curriculum)
+        # DES-029 is revisit_of RNG-008; a divergent lc_id must error.
+        self._by_id(curriculum)["DES-029"]["lc_id"] = 999999
+        self.assertTrue(any("must match its revisit_of twin" in e for e in self._errors(curriculum)))
+
+
 class F18DependencyDagTests(unittest.TestCase):
     """F18: real skill DAG, difficulty_gates, meta skill, Easy-depth guard."""
 
