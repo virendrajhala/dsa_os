@@ -348,6 +348,26 @@ def validate_curriculum(
     if set(skill_order) != set(skill_defs):
         add_error(errors, "knowledge/skills.json: `skill_order` and `skills` keys must match exactly.")
 
+    # F18 follow-up: the graph keeps its own skill_order copy; it must stay
+    # byte-synced with knowledge/skills.json or the two silently drift.
+    graph_skill_order = graph.get("skill_order")
+    if not isinstance(graph_skill_order, list):
+        add_error(errors, "dependency_graph.json: `skill_order` must be a list.")
+    elif graph_skill_order != skill_order:
+        missing = sorted(set(skill_order) - set(graph_skill_order))
+        extra = sorted(set(graph_skill_order) - set(skill_order))
+        detail = ""
+        if missing:
+            detail += f" missing: {', '.join(missing[:10])}."
+        if extra:
+            detail += f" extra: {', '.join(extra[:10])}."
+        if not detail:
+            detail = " same members, different order."
+        add_error(
+            errors,
+            "dependency_graph.json: `skill_order` must match knowledge/skills.json `skill_order` exactly." + detail,
+        )
+
     # Meta skills (SK-IE-00 Implementation Engineering) are problemless
     # cross-cutting skills registered under a stage; every other skill maps to
     # exactly one stage and owns problems.

@@ -246,6 +246,46 @@ class F19MetadataTests(unittest.TestCase):
         self.assertTrue(any("unknown stage `Foundational`" in e for e in errors), msg=errors)
 
 
+class F18SkillOrderSyncTests(unittest.TestCase):
+    """F18 follow-up: dependency_graph.json `skill_order` must stay byte-synced
+    with knowledge/skills.json `skill_order` (it went stale when SK-OB-07 and
+    SK-SC-07 were added without updating the graph copy)."""
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.curriculum = load_json_file(_shared.CURRICULUM_PATH)
+        cls.graph = load_json_file(_shared.GRAPH_PATH)
+        cls.stages = load_json_file(_shared.STAGES_PATH)
+        cls.skills = load_json_file(_shared.SKILLS_PATH)
+        cls.scoring = load_json_file(_shared.SCORING_PATH)
+
+    def _errors(self, graph) -> list[str]:
+        errors, _ = validate_curriculum(self.curriculum, graph, self.stages, self.skills, self.scoring)
+        return errors
+
+    def test_live_graph_skill_order_matches_skills(self) -> None:
+        errors = [e for e in self._errors(self.graph) if "skill_order" in e]
+        self.assertFalse(errors, msg="\n".join(errors))
+
+    def test_missing_entry_in_graph_skill_order_fails(self) -> None:
+        graph = copy.deepcopy(self.graph)
+        graph["skill_order"] = [s for s in graph["skill_order"] if s != "SK-OB-01"]
+        errors = self._errors(graph)
+        self.assertTrue(
+            any("dependency_graph.json" in e and "skill_order" in e for e in errors),
+            msg=errors,
+        )
+
+    def test_reordered_graph_skill_order_fails(self) -> None:
+        graph = copy.deepcopy(self.graph)
+        graph["skill_order"] = list(reversed(self.skills["skill_order"]))
+        errors = self._errors(graph)
+        self.assertTrue(
+            any("dependency_graph.json" in e and "skill_order" in e for e in errors),
+            msg=errors,
+        )
+
+
 class F16LcIdTests(unittest.TestCase):
     """F16: lc_id / url schema, uniqueness, and revisit sharing."""
 
