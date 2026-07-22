@@ -217,9 +217,35 @@ python3 scripts/serve_dashboard.py --help
 python3 scripts/weakness_lab.py --help
 ```
 
-The browser dashboard is available at `http://127.0.0.1:8765/web_dashboard/`
-after running `make web-dashboard`. It reads the canonical repository files
-directly and does not mutate progress state.
+### The browser dashboard ("Mission Deck")
+
+Run `make web-dashboard` and open `http://127.0.0.1:8765/web_dashboard/`
+(`python3 scripts/serve_dashboard.py --port N` for any other port). It reads
+the canonical repository files directly and never mutates progress state.
+
+Four workspaces, reachable from the left rail:
+
+- **Today** — the briefing: next action, the readiness trajectory strip, the
+  due revision queue, a 14-day review-load forecast, and pace tiles.
+- **Practice** — weakness lab and the edge-case dry-run checklist.
+- **Curriculum** — the skill constellation (the 93-skill prerequisite DAG),
+  stage map, skills table, pattern index.
+- **Evidence** — problem history, thinking profile, hint independence, mock
+  trend, retention split, 30-day consistency, deferred learning.
+
+Everything derived is computed in Python and served as one payload:
+`GET /api/feed` calls `build_dashboard_feed` in `scripts/_shared.py`, the same
+functions `next_problem.py` and `revision_report.py` use, so the dashboard
+cannot disagree with the CLI. The browser renders that feed; it does not
+re-implement the scheduler.
+
+Opening the page without the server (or with a plain static server) still
+works: the tables, curriculum views and constellation read the JSON files
+directly, and every feed-backed module shows a "start the server" banner
+instead of stale numbers.
+
+The theme toggle in the rail footer switches dark/light and persists the
+choice; without a stored choice the OS preference decides.
 
 ## Contribution Guide
 

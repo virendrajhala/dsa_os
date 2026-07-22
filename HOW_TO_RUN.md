@@ -26,6 +26,20 @@ That's it. From here the agent should, on its own:
 
 Everything else — which script runs when, filling the case file, computing your stage, advancing or retrying revision state — is the agent's job, not yours.
 
+## Looking at where you stand
+
+Between sessions, run `make web-dashboard` and open
+`http://127.0.0.1:8765/web_dashboard/`. **Today** answers "what do I do now,
+and am I on trajectory" — next action, readiness gates, what recall is due,
+and how much review lands in the next 14 days. **Evidence** is where you
+check whether the practice is working: hint independence trending down, mock
+verdicts, and whether mature (R3+) recall is holding up. The page is
+read-only; `update_progress.py` remains the only writer.
+
+The briefing needs the server running — the numbers come from `/api/feed`,
+computed by the same code as the CLI. Opening the file directly still shows
+the tables and the curriculum map, with a banner where the live numbers go.
+
 ## If something looks wrong
 
 - Validation fails → the agent should stop and tell you exactly what's inconsistent. Don't let it push through a broken repo.

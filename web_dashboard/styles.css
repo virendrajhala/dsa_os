@@ -496,7 +496,8 @@ select {
   height: 100%;
   width: var(--width);
   border-radius: inherit;
-  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  /* One series, one color (slot 1). --accent stays an affordance color. */
+  background: var(--series-1);
 }
 
 .stage-board {
@@ -2521,7 +2522,12 @@ tbody tr:hover {
 .hint-band-edge {
   stroke: var(--line);
   stroke-width: 1;
-  stroke-dasharray: 3 4;
+}
+
+/* An invisible, generous hit target behind each 8px marker. */
+.insight-hit {
+  fill: transparent;
+  cursor: default;
 }
 
 .insight-band-label {

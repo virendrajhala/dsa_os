@@ -3339,23 +3339,27 @@
       }),
     );
     points.forEach((point, index) => {
-      const marker = svgNode("circle", {
+      const band = bandFor(levels[index]);
+      const label = `${point.problem_id || "solve"} · ${point.date} · hint ${levels[index]}${
+        band ? ` (${band.name})` : ""
+      }`;
+      svg.append(
+        svgNode("circle", {
+          cx: xAt(index),
+          cy: yAt(levels[index]),
+          r: 4,
+          class: "insight-marker",
+        }),
+      );
+      // The hover target is generous even though the mark is 8px.
+      const hit = svgNode("circle", {
         cx: xAt(index),
         cy: yAt(levels[index]),
-        r: 4,
-        class: "insight-marker",
+        r: 13,
+        class: "insight-hit",
       });
-      const band = bandFor(levels[index]);
-      marker.append(
-        svgNode(
-          "title",
-          {},
-          `${point.problem_id || "solve"} · ${point.date} · hint ${levels[index]}${
-            band ? ` (${band.name})` : ""
-          }`,
-        ),
-      );
-      svg.append(marker);
+      hit.append(svgNode("title", {}, label));
+      svg.append(hit);
     });
 
     // Dated x ticks: first, middle, last.
