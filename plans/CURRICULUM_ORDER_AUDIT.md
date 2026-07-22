@@ -92,8 +92,11 @@ the blast radius without changing interview outcomes.
   is a defensible follow-up.
 - **`SK-IN-06`'s four Easy problems don't integrate two concepts** (LC703
   duplicates HEP-003). Relabel or relocate later.
-- **The D4 edge is reversed at skill level only.** `problem_dependencies` is
+- **[CLOSED] The D4 edge was reversed at skill level only.** `problem_dependencies` is
   generated from `skill_dependencies`, but the plan scoped the reversal to
   the skill edge; the derived problem edge `RNG-004 → RNG-001` still encodes
-  the old direction, so LC307 continues to be served after LC315. Regenerating
-  problem dependencies from the skill DAG is the clean follow-up.
+  the old direction, so LC307 continued to be served after LC315. Fixed
+  surgically (the RNG-001/RNG-004 pair only — 11 of the 13 edges a wholesale
+  regeneration would touch are deliberate CHALLENGE anchors) and pinned by
+  `test_problem_deps_never_contradict_the_skill_dag`. LC307 now serves at 499,
+  LC315 at 501.

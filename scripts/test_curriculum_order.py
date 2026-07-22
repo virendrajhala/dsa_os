@@ -12,9 +12,6 @@ import unittest
 import _shared
 from _shared import load_json_file
 
-DW = {"Easy": 1, "Medium": 2, "Hard": 3}
-
-
 def _load():
     curriculum = load_json_file(_shared.CURRICULUM_PATH)
     skills = load_json_file(_shared.SKILLS_PATH)
@@ -86,6 +83,40 @@ class JourneyInvariantTests(unittest.TestCase):
     def test_entry_ramp_has_no_hard_in_first_fifteen(self):
         early = [p for p in self.served[:15] if self.by_id[p]["difficulty"] == "Hard"]
         self.assertEqual(early, [], f"Hard problems too early: {early}")
+
+    def test_problem_deps_never_contradict_the_skill_dag(self):
+        """D4 class of defect: a problem edge must never require a problem
+        whose skill sits *downstream* of it in skill_dependencies. That would
+        serve the application before the tool that teaches it."""
+        curriculum, _skills, _stages, graph = _load()
+        by_id = {p["id"]: p for p in curriculum["problems"]}
+        skill_deps = graph["skill_dependencies"]
+
+        def prereq_closure(skill_id):
+            seen, stack = set(), list(skill_deps.get(skill_id, []))
+            while stack:
+                current = stack.pop()
+                if current in seen:
+                    continue
+                seen.add(current)
+                stack.extend(skill_deps.get(current, []))
+            return seen
+
+        closure = {skill: prereq_closure(skill) for skill in skill_deps}
+        offenders = []
+        for problem_id, deps in graph["problem_dependencies"].items():
+            problem_skill = by_id[problem_id]["primary_skill"]
+            for dep_id in deps or []:
+                dep_skill = by_id[dep_id]["primary_skill"]
+                if dep_skill == problem_skill:
+                    continue
+                # dep_skill must not depend on problem_skill: that is backwards.
+                if problem_skill in closure.get(dep_skill, set()):
+                    offenders.append(
+                        f"{problem_id} ({problem_skill}) requires {dep_id} ({dep_skill}), "
+                        f"but {dep_skill} depends on {problem_skill}"
+                    )
+        self.assertEqual(offenders, [], "problem edges contradict the skill DAG: " + "; ".join(offenders))
 
     def test_no_forward_stage_dependencies(self):
         graph = load_json_file(_shared.GRAPH_PATH)

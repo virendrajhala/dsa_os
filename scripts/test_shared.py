@@ -1080,5 +1080,64 @@ class ChallengeStageGateTests(unittest.TestCase):
         self.assertTrue(gate(challenge, {"A-1", "A-2"}))
 
 
+class IsProblemUnlockedTests(unittest.TestCase):
+    """Direct coverage of the gate that guards the whole ordering guarantee.
+
+    It was previously exercised only indirectly through select_next_problem.
+    """
+
+    DEPS = {"P-2": ["P-1"], "P-3": ["P-1", "P-2"], "P-4": [], "P-BAD": "not-a-list"}
+
+    def _problem(self, problem_id, role="PRIMARY", stage="S1"):
+        return {"id": problem_id, "problem_role": role, "stage": stage}
+
+    def test_unlocked_when_all_dependencies_complete(self):
+        self.assertTrue(
+            _shared.is_problem_unlocked(self._problem("P-3"), {"P-1", "P-2"}, self.DEPS)
+        )
+
+    def test_locked_when_any_dependency_missing(self):
+        self.assertFalse(
+            _shared.is_problem_unlocked(self._problem("P-3"), {"P-1"}, self.DEPS)
+        )
+
+    def test_problem_with_no_dependencies_is_unlocked(self):
+        self.assertTrue(_shared.is_problem_unlocked(self._problem("P-4"), set(), self.DEPS))
+
+    def test_problem_absent_from_the_graph_is_unlocked(self):
+        # A missing key means "no recorded prerequisites", not "blocked".
+        self.assertTrue(_shared.is_problem_unlocked(self._problem("P-NEW"), set(), self.DEPS))
+
+    def test_malformed_dependency_list_locks_the_problem(self):
+        self.assertFalse(
+            _shared.is_problem_unlocked(self._problem("P-BAD"), {"P-1"}, self.DEPS)
+        )
+
+    def test_non_string_dependency_entry_locks_the_problem(self):
+        self.assertFalse(
+            _shared.is_problem_unlocked(self._problem("P-X"), {"P-1"}, {"P-X": ["P-1", 7]})
+        )
+
+    def test_challenge_gate_can_veto_a_dependency_complete_problem(self):
+        challenge = self._problem("P-3", role="CHALLENGE")
+        deny = lambda problem, completed: False
+        self.assertFalse(
+            _shared.is_problem_unlocked(challenge, {"P-1", "P-2"}, self.DEPS, deny)
+        )
+
+    def test_challenge_gate_is_not_consulted_when_omitted(self):
+        challenge = self._problem("P-3", role="CHALLENGE")
+        self.assertTrue(
+            _shared.is_problem_unlocked(challenge, {"P-1", "P-2"}, self.DEPS, None)
+        )
+
+    def test_gate_cannot_unlock_a_problem_with_missing_dependencies(self):
+        # The gate is a veto, never an override: deps still have to be met.
+        allow = lambda problem, completed: True
+        self.assertFalse(
+            _shared.is_problem_unlocked(self._problem("P-3"), {"P-1"}, self.DEPS, allow)
+        )
+
+
 if __name__ == "__main__":
     unittest.main()

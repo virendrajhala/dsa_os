@@ -1,21 +1,6 @@
 {
   "schema_version": 3,
   "note": "skill_dependencies is the source of truth (see knowledge/skills.json): a real 1-4 prerequisite DAG over stage-ordered skills. problem_dependencies is generated from it: a skill's primary validation problem depends on the primary validation problems of its prerequisite skills; every reinforcement problem depends on its own skill's primary; every challenge problem depends on a reinforcement of the same skill (falling back to the primary when the skill has no reinforcements). difficulty_gates are cross-cutting mentor requirements (SK-IE-00) and do not add curriculum-order blockers.",
-  "stage_order": [
-    "Observation",
-    "State Construction",
-    "Constraint Maintenance",
-    "Ordered Reasoning",
-    "Query Processing",
-    "Decision Making",
-    "Recursive Thinking",
-    "Pattern Discovery",
-    "Graph Thinking",
-    "State Transition",
-    "Interval Reasoning",
-    "Mathematical Thinking",
-    "Integration"
-  ],
   "skill_order": [
     "SK-OB-01",
     "SK-OB-02",
@@ -1858,8 +1843,9 @@
       "MAT-012"
     ],
     "RNG-001": [
+      "BSR-003",
       "PFX-002",
-      "BSR-003"
+      "RNG-004"
     ],
     "RNG-002": [
       "RNG-001",
@@ -1869,7 +1855,7 @@
       "RNG-017"
     ],
     "RNG-004": [
-      "RNG-001",
+      "PFX-002",
       "TRE-011"
     ],
     "RNG-005": [
