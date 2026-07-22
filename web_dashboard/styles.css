@@ -256,7 +256,9 @@ select {
 
 .main {
   min-width: 0;
-  padding: 24px 28px 40px;
+  /* Generous tail padding: the last module on a long workspace should end
+     clearly, not sit flush against the bottom of the scroll. */
+  padding: 24px 28px 88px;
   display: grid;
   gap: 28px;
 }
