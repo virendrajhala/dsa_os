@@ -83,10 +83,6 @@ class JourneyInvariantTests(unittest.TestCase):
             expected = max(positions) - min(positions) + 1
             self.assertEqual(expected, len(positions), f"{stage} is interleaved")
 
-    # Fails today (D3): a CHALLENGE unlocks after one reinforcement, so
-    # CPX-003 and OBS-008 (both Hard) land in the first fifteen solves.
-    # Marker removed by Task 2 (challenge stage-fundamentals gate).
-    @unittest.expectedFailure
     def test_entry_ramp_has_no_hard_in_first_fifteen(self):
         early = [p for p in self.served[:15] if self.by_id[p]["difficulty"] == "Hard"]
         self.assertEqual(early, [], f"Hard problems too early: {early}")

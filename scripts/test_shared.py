@@ -1044,5 +1044,41 @@ class RevisionAdjustedScoreTests(unittest.TestCase):
         self.assertEqual(results[0]["average_weighted_thinking_score"], 2.6)
 
 
+class ChallengeStageGateTests(unittest.TestCase):
+    """A CHALLENGE problem must wait for its stage's fundamentals (every
+    PRIMARY/REINFORCEMENT problem of that stage), not just the single
+    reinforcement it names as a dependency."""
+
+    CURRICULUM = {
+        "problems": [
+            {"id": "A-1", "stage": "S1", "problem_role": "PRIMARY"},
+            {"id": "A-2", "stage": "S1", "problem_role": "REINFORCEMENT"},
+            {"id": "A-3", "stage": "S1", "problem_role": "CHALLENGE"},
+            {"id": "B-1", "stage": "S2", "problem_role": "PRIMARY"},
+        ]
+    }
+
+    def _gate_and(self, problem_id):
+        gate = _shared.challenge_stage_gate(self.CURRICULUM)
+        problem = next(p for p in self.CURRICULUM["problems"] if p["id"] == problem_id)
+        return gate, problem
+
+    def test_challenge_locked_until_stage_fundamentals_complete(self):
+        gate, challenge = self._gate_and("A-3")
+        self.assertFalse(gate(challenge, {"A-1"}))
+        self.assertTrue(gate(challenge, {"A-1", "A-2"}))
+
+    def test_non_challenge_never_gated_by_the_rule(self):
+        gate, reinforcement = self._gate_and("A-2")
+        self.assertTrue(gate(reinforcement, set()))
+        gate, other_stage = self._gate_and("B-1")
+        self.assertTrue(gate(other_stage, set()))
+
+    def test_other_stage_fundamentals_are_irrelevant(self):
+        gate, challenge = self._gate_and("A-3")
+        # B-1 (stage S2) is still incomplete and must not block an S1 challenge.
+        self.assertTrue(gate(challenge, {"A-1", "A-2"}))
+
+
 if __name__ == "__main__":
     unittest.main()

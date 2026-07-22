@@ -1026,24 +1026,47 @@ def derive_current_skill_id(state: RepositoryState) -> str | None:
 
 
 def challenge_stage_gate(curriculum: JsonDict):
-    """Return `is_unlocked(problem, completed_ids)` for the challenge rule.
+    """Return `is_unlocked(problem, completed_ids)` enforcing the challenge
+    rule: a CHALLENGE problem opens only once every PRIMARY/REINFORCEMENT
+    problem of its own stage is complete.
 
-    Placeholder until the stage-fundamentals gate lands (see the curriculum
-    ordering fix plan, Task 2); currently allows everything. The signature
-    mirrors `is_problem_unlocked`: it takes the problem DICT, not its id.
+    Rationale: challenges name a single reinforcement as their dependency,
+    so without this rule a stage's hardest problems unlock immediately after
+    one easy problem — putting Hard problems in the learner's first handful
+    of solves. Skill-level dependencies stay as they are; this only defers
+    the challenge tail to the end of its stage.
     """
 
+    problems = ensure_list(curriculum.get("problems"), "curriculum.problems")
+    fundamentals: dict[str, set[str]] = {}
+    for problem in problems:
+        if not isinstance(problem, dict) or not isinstance(problem.get("id"), str):
+            continue
+        stage = problem.get("stage")
+        fundamentals.setdefault(stage, set())
+        if problem.get("problem_role") != "CHALLENGE":
+            fundamentals[stage].add(problem["id"])
+
     def is_unlocked(problem: JsonDict, completed_ids: set[str]) -> bool:
-        return True
+        if problem.get("problem_role") != "CHALLENGE":
+            return True
+        return fundamentals.get(problem.get("stage"), set()) <= completed_ids
 
     return is_unlocked
 
 
-def is_problem_unlocked(problem: JsonDict, completed_ids: set[str], problem_deps: dict[str, list[str]]) -> bool:
+def is_problem_unlocked(
+    problem: JsonDict,
+    completed_ids: set[str],
+    problem_deps: dict[str, list[str]],
+    challenge_gate=None,
+) -> bool:
     """Return whether a curriculum problem is unlocked for first-pass solving."""
 
     dependencies = problem_deps.get(problem["id"], [])
     if not isinstance(dependencies, list):
+        return False
+    if challenge_gate is not None and not challenge_gate(problem, completed_ids):
         return False
     return all(isinstance(dep, str) and dep in completed_ids for dep in dependencies)
 
@@ -1173,6 +1196,7 @@ def select_next_problem(state: RepositoryState, on_date: date | None = None) -> 
     problems_by_id = problem_lookup(state.curriculum)
     problem_order = problem_order_index(state.curriculum)
     problem_deps = problem_dependencies_map(state.graph)
+    challenge_gate = challenge_stage_gate(state.curriculum)
     stage_order = ensure_list(state.stages.get("stage_order"), "stages.stage_order")
     stage_defs = state.stages.get("stages")
     if not isinstance(stage_defs, dict):
@@ -1247,13 +1271,13 @@ def select_next_problem(state: RepositoryState, on_date: date | None = None) -> 
         if isinstance(problem, dict)
         and isinstance(problem.get("id"), str)
         and problem["id"] not in completed_ids
-        and is_problem_unlocked(problem, completed_ids, problem_deps)
+        and is_problem_unlocked(problem, completed_ids, problem_deps, challenge_gate)
     ]
 
     active_problem_id = current_problem_id(state.progress)
     if active_problem_id and active_problem_id in problems_by_id and active_problem_id not in completed_ids:
         active_problem = problems_by_id[active_problem_id]
-        if is_problem_unlocked(active_problem, completed_ids, problem_deps):
+        if is_problem_unlocked(active_problem, completed_ids, problem_deps, challenge_gate):
             return SelectionResult(
                 mode="resume_current_problem",
                 reason="Current problem is still active and remains unlocked.",
