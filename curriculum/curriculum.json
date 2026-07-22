@@ -833,7 +833,8 @@
       "notes": "PDF subsection: Sliding Window. Original pattern note: Sliding Window \u2014 maintain a window of elements; expand/shrink to satisfy a constraint.",
       "lc_id": null,
       "url": null,
-      "source_section": "Arrays"
+      "source_section": "Arrays",
+      "source": "GFG"
     },
     {
       "id": "WIN-006",
@@ -1600,7 +1601,7 @@
       "revision_count": 0,
       "notes": "PDF subsection: Binary Search on Answer. Shared technique note for this skill group (general, not specific to this problem): Parametric Search \u2014 binary search on the answer space, validate with a feasibility function.",
       "lc_id": null,
-      "url": null,
+      "url": "https://www.spoj.com/problems/AGGRCOW/",
       "source": "SPOJ",
       "source_section": "Binary Search"
     },
@@ -1636,7 +1637,7 @@
       "revision_count": 0,
       "notes": "PDF subsection: Binary Search on Answer. Shared technique note for this skill group (general, not specific to this problem): Parametric Search \u2014 binary search on the answer space, validate with a feasibility function.",
       "lc_id": null,
-      "url": null,
+      "url": "https://www.spoj.com/problems/EKO/",
       "source": "SPOJ",
       "source_section": "Binary Search"
     },
@@ -4092,9 +4093,8 @@
       "status": "not_started",
       "revision_count": 0,
       "notes": "PDF subsection: Classic Design Problems. Original pattern note: OOP + Right Data Structures \u2014 combine hash maps, heaps, doubly linked lists for O(1) ops.",
-      "lc_id": null,
-      "url": null,
-      "source": "custom",
+      "lc_id": 1804,
+      "url": "https://leetcode.com/problems/implement-trie-ii-prefix-tree/",
       "source_section": "System Design & Data Structure Design"
     },
     {
@@ -7168,8 +7168,8 @@
       "status": "not_started",
       "revision_count": 0,
       "notes": "PDF subsection: Interval / Range DP. Original pattern note: Interval DP \u2014 solve subproblems over all intervals [i, j], merge results.",
-      "lc_id": null,
-      "url": null,
+      "lc_id": 1561,
+      "url": "https://leetcode.com/problems/maximum-number-of-coins-you-can-get/",
       "source_section": "Dynamic Programming"
     },
     {
@@ -7380,7 +7380,8 @@
       "notes": "PDF subsection: String & Array Greedy. Original pattern note: Greedy Selection \u2014 always pick the locally optimal choice; prove exchange argument.",
       "lc_id": null,
       "url": null,
-      "source_section": "Greedy Algorithms"
+      "source_section": "Greedy Algorithms",
+      "source": "GFG"
     },
     {
       "id": "GRD-014",
@@ -7642,7 +7643,7 @@
     {
       "id": "MAT-003",
       "original_number": 453,
-      "title": "Power of Two / Three / Four",
+      "title": "Power of Two",
       "difficulty": "Easy",
       "stage": "Mathematical Thinking",
       "primary_skill": "SK-MT-02",
@@ -7651,9 +7652,9 @@
       "importance": "COMMON",
       "status": "not_started",
       "revision_count": 0,
-      "notes": "PDF subsection: Math & Number Theory. Original pattern note: Number Theory \u2014 prime sieves, GCD/LCM, modular arithmetic, combinatorics.",
-      "lc_id": null,
-      "url": null,
+      "notes": "Power of Two (LC 231): a positive n is a power of two iff it has exactly one set bit, so n > 0 and n & (n-1) == 0; Power of Three (LC 326) and Power of Four (LC 342) are variants solved by repeated division or base-specific bit masks.",
+      "lc_id": 231,
+      "url": "https://leetcode.com/problems/power-of-two/",
       "source_section": "Hashing, Math & Bit Manipulation"
     },
     {
@@ -8582,7 +8583,8 @@
       "notes": "PDF subsection: Stream / Online Algorithms. Original pattern note: Online Algorithms \u2014 process data one element at a time without looking back.",
       "lc_id": null,
       "url": null,
-      "source_section": "System Design & Data Structure Design"
+      "source_section": "System Design & Data Structure Design",
+      "source": "custom"
     },
     {
       "id": "DES-023",
