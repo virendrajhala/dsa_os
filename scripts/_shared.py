@@ -1025,6 +1025,20 @@ def derive_current_skill_id(state: RepositoryState) -> str | None:
     return None
 
 
+def challenge_stage_gate(curriculum: JsonDict):
+    """Return `is_unlocked(problem, completed_ids)` for the challenge rule.
+
+    Placeholder until the stage-fundamentals gate lands (see the curriculum
+    ordering fix plan, Task 2); currently allows everything. The signature
+    mirrors `is_problem_unlocked`: it takes the problem DICT, not its id.
+    """
+
+    def is_unlocked(problem: JsonDict, completed_ids: set[str]) -> bool:
+        return True
+
+    return is_unlocked
+
+
 def is_problem_unlocked(problem: JsonDict, completed_ids: set[str], problem_deps: dict[str, list[str]]) -> bool:
     """Return whether a curriculum problem is unlocked for first-pass solving."""
 

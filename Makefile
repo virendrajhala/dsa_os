@@ -12,6 +12,7 @@ test:
 	$(PYTHON) scripts/test_run_checks.py
 	$(PYTHON) scripts/test_weakness_lab.py
 	$(PYTHON) scripts/test_dashboard_feed.py
+	$(PYTHON) scripts/test_curriculum_order.py
 
 dashboard:
 	$(PYTHON) scripts/dashboard.py
