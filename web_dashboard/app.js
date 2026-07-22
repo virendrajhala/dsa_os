@@ -11,6 +11,9 @@
 
   const state = {
     datasets: null,
+    // Computed view model from GET /api/feed (the Python brain). null when the
+    // server is not running — the page then degrades to the static views.
+    feed: null,
     problemsById: new Map(),
     completedById: new Map(),
     skillsById: new Map(),
@@ -24,7 +27,11 @@
   };
 
   const $ = (selector) => document.querySelector(selector);
-  const today = new Date();
+  // Recomputed on every render (not frozen at page load): a session that
+  // crosses midnight must not keep showing yesterday's reference date.
+  function todayDate() {
+    return new Date();
+  }
   const EDGE_CASE_GROUPS = [
     {
       title: "Size boundaries",
@@ -195,6 +202,20 @@
         .map((record) => [record.problem_id, record]),
     );
     state.filteredProblems = curriculum.problems;
+    state.feed = await fetchFeed();
+  }
+
+  // The live briefing. Returns null (never throws) when the server is not
+  // running or the feed errors, so the static views still render.
+  async function fetchFeed() {
+    try {
+      const response = await fetch("/api/feed", { cache: "no-store" });
+      if (!response.ok) return null;
+      const feed = await response.json();
+      return feed && !feed.error ? feed : null;
+    } catch (error) {
+      return null;
+    }
   }
 
   function skillMeta(skillId) {
@@ -271,9 +292,13 @@
   }
 
   function referenceDate() {
+    // Prefer the server feed's reference date so the UI and the CLI agree on
+    // "today"; fall back to the local clock for the static/degraded view.
+    if (state.feed && state.feed.reference_date) return state.feed.reference_date;
+    const now = todayDate();
     const lastUpdated = parseDate(state.datasets.progress.last_updated);
-    if (lastUpdated && lastUpdated > today) return isoDate(lastUpdated);
-    return isoDate(today);
+    if (lastUpdated && lastUpdated > now) return isoDate(lastUpdated);
+    return isoDate(now);
   }
 
   function unresolvedCompletions() {
@@ -353,227 +378,78 @@
     return haystack.includes(query);
   }
 
-  function nextAction() {
-    const due = dueEntries();
-    if (due.length) {
-      const entry = due[0];
-      return {
-        mode: entry.status === "FAILED" ? "revision retry" : "revision due",
-        problem: entry.problem,
-        reason: `${stageLabel(entry.stage)} for ${entry.nextDue}`,
-        revision: entry,
-      };
-    }
-    const current = state.problemsById.get(state.datasets.progress.current_problem);
-    if (current) {
-      return {
-        mode: "current problem",
-        problem: current,
-        reason: "Current active problem remains unlocked.",
-      };
-    }
-    const unsolved = state.datasets.curriculum.problems.find(
-      (problem) => !state.completedById.has(problem.id),
-    );
+  const FEED_REQUIRED_MESSAGE =
+    "Live briefing needs the server — run `python3 scripts/serve_dashboard.py`";
+
+  function feedAvailable() {
+    return state.feed != null;
+  }
+
+  // Display adapter over feed.next_action (resolves the problem object by id).
+  // Not a scheduler: the mode/reason/id are computed once, in Python.
+  function feedNextAction() {
+    if (!feedAvailable()) return null;
+    const action = state.feed.next_action || {};
     return {
-      mode: unsolved ? "next unsolved" : "complete",
-      problem: unsolved,
-      reason: unsolved ? "Earliest remaining problem." : "No remaining work.",
+      mode: action.mode || "unknown",
+      reason: action.reason || "",
+      stageLabel: action.stage_label || null,
+      codeGate: action.code_gate || null,
+      problem: action.problem_id ? state.problemsById.get(action.problem_id) || null : null,
     };
   }
 
-  // ---------------------------------------------------------------------
-  // F23: system-derived interview-readiness estimator (informational only;
-  // gates nothing). Mirrors scripts/_shared.py's compute_readiness family so
-  // the dashboard and `revision_report.py` agree without a server round trip.
-  // ---------------------------------------------------------------------
-  function readinessConfig() {
-    return state.datasets.scoring.readiness || {};
-  }
-
-  function coreSkillIdsInScope() {
-    const { curriculum, stages, skills } = state.datasets;
-    const cfg = readinessConfig();
-    const stageOrder = stages.stage_order || [];
-    const scopeCount = Number.isInteger(cfg.stage_scope_count) ? cfg.stage_scope_count : stageOrder.length;
-    const scopeStages = new Set(stageOrder.slice(0, scopeCount));
-    const coreSkillsFromProblems = new Set(
-      curriculum.problems
-        .filter((problem) => problem.importance === "CORE" && typeof problem.primary_skill === "string")
-        .map((problem) => problem.primary_skill),
-    );
-    const result = new Set();
-    Object.entries(skills.skills || {}).forEach(([skillId, skill]) => {
-      if (skill.scope === "global") return;
-      if (scopeStages.has(skill.stage) && coreSkillsFromProblems.has(skillId)) {
-        result.add(skillId);
-      }
-    });
-    return result;
-  }
-
-  function computeCoreMasteryStatus() {
-    const skillProgress = state.datasets.progress.skill_progress || {};
-    const coreIds = coreSkillIdsInScope();
-    let mastered = 0;
-    coreIds.forEach((id) => {
-      if (skillProgress[id]?.mastered) mastered += 1;
-    });
-    const total = coreIds.size;
-    return { mastered, total, fraction: total ? mastered / total : 0 };
-  }
-
-  function computeRevisionPassRate() {
-    const completed = state.datasets.progress.completed || [];
-    const events = completed.flatMap((record) => record.revision?.history || []);
-    // REACTIVATED events are excluded: a system-scheduled prerequisite
-    // reinforcement, not a graded recall attempt outcome.
-    const passCount = events.filter((event) => event.result === "PASS").length;
-    const failCount = events.filter((event) => event.result === "FAIL").length;
-    const total = passCount + failCount;
-    return { pass: passCount, total, fraction: total ? passCount / total : 0 };
-  }
-
-  function computeRecentMockStatus() {
-    const cfg = readinessConfig();
-    const entries = Array.isArray(state.datasets.progress.mock_interviews)
-      ? state.datasets.progress.mock_interviews
-      : [];
-    const required = Number.isInteger(cfg.recent_mock_count) ? cfg.recent_mock_count : 3;
-    const allowed = new Set(cfg.min_mock_verdicts || []);
-    const recent = entries.length ? entries.slice(-required) : [];
-    const met = entries.length >= required && recent.every((entry) => allowed.has(entry.verdict));
-    return {
-      recorded: entries.length,
-      required,
-      recentVerdicts: recent.map((entry) => entry.verdict),
-      met,
-    };
-  }
-
-  function skillMasteryDates() {
-    const { skills, progress } = state.datasets;
-    const skillProgress = progress.skill_progress || {};
-    const dates = {};
-    Object.entries(skills.skills || {}).forEach(([skillId, skill]) => {
-      if (!skillProgress[skillId]?.mastered) return;
-      const primaryRecord = state.completedById.get(skill.primary_validation_problem);
-      const primaryDate = primaryRecord ? parseDate(primaryRecord.completed_at) : null;
-      const reinforcementDates = (skill.reinforcement_problems || [])
-        .map((problemId) => state.completedById.get(problemId))
-        .filter(Boolean)
-        .map((record) => parseDate(record.completed_at))
-        .filter(Boolean);
-      if (!primaryDate || !reinforcementDates.length) {
-        dates[skillId] = null;
-        return;
-      }
-      const earliestReinforcement = reinforcementDates.reduce((min, d) => (d < min ? d : min));
-      dates[skillId] = primaryDate > earliestReinforcement ? primaryDate : earliestReinforcement;
-    });
-    return dates;
-  }
-
-  function computePace(onDate) {
-    const cfg = readinessConfig();
-    const windowDays = Number.isInteger(cfg.pace_window_days) ? cfg.pace_window_days : 28;
-    const windowStart = new Date(onDate);
-    windowStart.setDate(windowStart.getDate() - Math.max(windowDays - 1, 0));
-
-    const completed = state.datasets.progress.completed || [];
-    const problemsInWindow = completed.filter((record) => {
-      const completedOn = parseDate(record.completed_at);
-      return completedOn && completedOn >= windowStart && completedOn <= onDate;
-    }).length;
-
-    const masteryDates = skillMasteryDates();
-    const skillsInWindow = Object.values(masteryDates).filter(
-      (masteredOn) => masteredOn && masteredOn >= windowStart && masteredOn <= onDate,
-    ).length;
-
-    const weeks = windowDays / 7;
-    return {
-      windowDays,
-      problemsInWindow,
-      skillsInWindow,
-      problemsPerWeek: weeks ? problemsInWindow / weeks : 0,
-      skillsMasteredPerWeek: weeks ? skillsInWindow / weeks : 0,
-    };
-  }
-
-  function projectReadinessDate(remainingCore, skillsMasteredPerWeek, onDate) {
-    if (remainingCore <= 0) {
-      return {
-        status: "core_mastery_met",
-        message: "core-skill mastery target already met; other thresholds do not accrue via pace",
-      };
-    }
-    if (skillsMasteredPerWeek <= 0) {
-      return { status: "no_pace", message: "no projection yet (need consistent weekly activity)" };
-    }
-    const weeksNeeded = remainingCore / skillsMasteredPerWeek;
-    const projected = new Date(onDate);
-    projected.setDate(projected.getDate() + Math.round(weeksNeeded * 7));
-    const iso = isoDate(projected);
-    return { status: "projected", date: iso, message: `interview-ready around ${iso}` };
-  }
-
-  function computeReadiness() {
-    const cfg = readinessConfig();
-    const coreFractionTarget = typeof cfg.core_skill_fraction === "number" ? cfg.core_skill_fraction : 0.8;
-    const passRateTarget = typeof cfg.revision_pass_rate === "number" ? cfg.revision_pass_rate : 0.9;
-    const onDate = parseDate(referenceDate());
-
-    const core = computeCoreMasteryStatus();
-    const passRate = computeRevisionPassRate();
-    const mocks = computeRecentMockStatus();
-    const pace = computePace(onDate);
-
-    const coreMet = core.fraction >= coreFractionTarget;
-    const passMet = passRate.total > 0 && passRate.fraction >= passRateTarget;
-    const mocksMet = mocks.met;
-
-    const coreSkillsNeeded = Math.ceil(coreFractionTarget * core.total);
-    const remainingCore = Math.max(coreSkillsNeeded - core.mastered, 0);
-    const projection = projectReadinessDate(remainingCore, pace.skillsMasteredPerWeek, onDate);
-
-    return {
-      core: { ...core, met: coreMet, target: coreFractionTarget },
-      passRate: { ...passRate, met: passMet, target: passRateTarget },
-      mocks: { ...mocks, met: mocksMet },
-      pace,
-      projection,
-      allMet: coreMet && passMet && mocksMet,
-    };
+  function degradedBanner(message = FEED_REQUIRED_MESSAGE) {
+    const banner = document.createElement("div");
+    banner.className = "degraded-banner";
+    banner.setAttribute("role", "status");
+    banner.textContent = message;
+    return banner;
   }
 
   function renderReadiness() {
-    const readiness = computeReadiness();
     const rows = $("#readiness-rows");
+    if (!rows) return;
     rows.replaceChildren();
+    const overall = $("#readiness-overall");
+    const projection = $("#readiness-projection");
+
+    if (!feedAvailable()) {
+      rows.append(degradedBanner());
+      if (overall) {
+        overall.textContent = "Offline";
+        overall.className = "pill warn";
+      }
+      if (projection) projection.textContent = "";
+      return;
+    }
+
+    const readiness = state.feed.readiness || {};
+    const gates = readiness.gates || {};
+    const core = gates.core_mastery || {};
+    const pass = gates.revision_pass || {};
+    const mocks = gates.mocks || {};
+    const pct = (value) => `${((Number(value) || 0) * 100).toFixed(1)}%`;
+    const pctTarget = (value) => `${((Number(value) || 0) * 100).toFixed(0)}%`;
 
     const rowSpecs = [
       {
         label: "Core skill mastery",
-        met: readiness.core.met,
-        detail:
-          `${readiness.core.mastered}/${readiness.core.total} skills - ` +
-          `${(readiness.core.fraction * 100).toFixed(1)}% vs ${(readiness.core.target * 100).toFixed(0)}% target`,
+        met: core.met,
+        detail: `${core.mastered ?? 0}/${core.total ?? 0} skills - ${pct(core.current)} vs ${pctTarget(core.target)} target`,
       },
       {
         label: "Revision pass rate",
-        met: readiness.passRate.met,
-        detail:
-          `${readiness.passRate.pass}/${readiness.passRate.total} - ` +
-          `${(readiness.passRate.fraction * 100).toFixed(1)}% vs ${(readiness.passRate.target * 100).toFixed(0)}% target`,
+        met: pass.met,
+        detail: `${pct(pass.current)} vs ${pctTarget(pass.target)} target`,
       },
       {
         label: "Recent mocks",
-        met: readiness.mocks.met,
+        met: mocks.met,
         detail:
-          readiness.mocks.recorded >= readiness.mocks.required
-            ? `last ${readiness.mocks.required}: ${readiness.mocks.recentVerdicts.join(", ") || "none"}`
-            : `${readiness.mocks.recorded}/${readiness.mocks.required} mocks recorded`,
+          (mocks.current ?? 0) >= (mocks.required ?? 0)
+            ? `last ${mocks.required}: ${(mocks.verdicts || []).join(", ") || "none"}`
+            : `${mocks.current ?? 0}/${mocks.required ?? 0} mocks recorded`,
       },
     ];
 
@@ -590,13 +466,16 @@
       rows.append(row);
     });
 
-    const overall = $("#readiness-overall");
-    overall.textContent = readiness.allMet ? "All met" : "Not yet";
-    overall.className = `pill ${readiness.allMet ? "good" : "warn"}`;
-
-    $("#readiness-projection").textContent =
-      `Pace (trailing ${readiness.pace.windowDays}d): ${readiness.pace.problemsPerWeek.toFixed(2)} problems/week, ` +
-      `${readiness.pace.skillsMasteredPerWeek.toFixed(2)} skills mastered/week. ${readiness.projection.message}`;
+    if (overall) {
+      overall.textContent = readiness.all_met ? "All met" : "Not yet";
+      overall.className = `pill ${readiness.all_met ? "good" : "warn"}`;
+    }
+    if (projection) {
+      const pace = readiness.pace || {};
+      projection.textContent =
+        `Pace (trailing ${pace.window_days ?? 0}d): ${Number(pace.problems_per_week || 0).toFixed(2)} problems/week, ` +
+        `${Number(pace.skills_per_week || 0).toFixed(2)} skills mastered/week. ${readiness.projection_message || ""}`;
+    }
   }
 
   function renderMetrics() {
@@ -682,7 +561,11 @@
   function renderOperatingBoard() {
     const target = $("#operating-board");
     target.replaceChildren();
-    const action = nextAction();
+    const action = feedNextAction() || {
+      mode: "offline",
+      problem: null,
+      reason: FEED_REQUIRED_MESSAGE,
+    };
     const due = dueEntries();
     const latest = state.datasets.progress.completed.at(-1);
     const latestProblem = latest ? state.problemsById.get(latest.problem_id) : null;
@@ -774,12 +657,21 @@
   }
 
   function renderNextAction() {
-    const action = nextAction();
-    $("#selection-mode").textContent = action.mode;
     const wrap = $("#next-action");
+    if (!wrap) return;
     wrap.replaceChildren();
+    const modeLabel = $("#selection-mode");
+
+    if (!feedAvailable()) {
+      if (modeLabel) modeLabel.textContent = "offline";
+      wrap.append(degradedBanner());
+      return;
+    }
+
+    const action = feedNextAction();
+    if (modeLabel) modeLabel.textContent = action.mode;
     if (!action.problem) {
-      wrap.append(empty("No active problem."));
+      wrap.append(empty(action.reason || "No active problem."));
       return;
     }
 
@@ -3308,6 +3200,13 @@
         if (event.target === $("#skill-modal")) {
           $("#skill-modal").close();
         }
+      });
+      // Returning to the tab (e.g. after midnight, or once the server is up)
+      // refreshes the live feed and re-renders against the current date.
+      document.addEventListener("visibilitychange", async () => {
+        if (document.visibilityState !== "visible") return;
+        state.feed = await fetchFeed();
+        renderAll();
       });
     } catch (error) {
       document.body.innerHTML = `<main class="main"><section class="panel"><h2>Dashboard load failed</h2><p>${error.message}</p><p>Run it through <code>make web-dashboard</code> so the JSON files can be fetched.</p></section></main>`;

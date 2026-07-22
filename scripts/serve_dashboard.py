@@ -6,10 +6,14 @@ from __future__ import annotations
 import argparse
 import functools
 import http.server
+import json
 import socketserver
 import sys
 import webbrowser
+from datetime import date
 from pathlib import Path
+
+from _shared import build_dashboard_feed, load_repository_state
 
 # Serves the whole repo root (fine for localhost): the dashboard fetches
 # data via relative ../progress, ../curriculum, ../knowledge paths.
@@ -17,7 +21,32 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class DashboardHandler(http.server.SimpleHTTPRequestHandler):
-    """HTTP handler with a quieter request log."""
+    """HTTP handler with a quieter request log plus the live feed endpoint."""
+
+    def do_GET(self) -> None:  # noqa: N802 (http.server naming)
+        if self.path.split("?", 1)[0].rstrip("/") == "/api/feed":
+            self._serve_feed()
+            return
+        super().do_GET()
+
+    def _serve_feed(self) -> None:
+        """GET /api/feed: the dashboard's single source of computed truth,
+        built by the same engine the CLI uses. Never crashes the server on bad
+        data - a load/compute failure returns 500 with a JSON error body."""
+
+        try:
+            state = load_repository_state()
+            feed = build_dashboard_feed(state, date.today())
+            body = json.dumps(feed).encode("utf-8")
+            status = 200
+        except Exception as exc:  # noqa: BLE001 - surface, never kill the server
+            body = json.dumps({"error": str(exc)}).encode("utf-8")
+            status = 500
+        self.send_response(status)
+        self.send_header("Content-Type", "application/json")
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
 
     def end_headers(self) -> None:
         self.send_header("Cache-Control", "no-store")

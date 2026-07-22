@@ -128,5 +128,55 @@ class FeedShapeTests(unittest.TestCase):
         _json.dumps(feed)  # must not raise
 
 
+class FeedEndpointTests(unittest.TestCase):
+    """serve_dashboard.py must expose the feed at GET /api/feed."""
+
+    @staticmethod
+    def _free_port():
+        import socket
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+            sock.bind(("127.0.0.1", 0))
+            return sock.getsockname()[1]
+
+    def test_api_feed_endpoint_and_static_still_served(self):
+        import json as _json
+        import subprocess
+        import sys
+        import time
+        import urllib.error
+        import urllib.request
+
+        port = self._free_port()
+        proc = subprocess.Popen(
+            [sys.executable, str(_shared.ROOT / "scripts" / "serve_dashboard.py"),
+             "--host", "127.0.0.1", "--port", str(port)],
+            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+        )
+        try:
+            base = f"http://127.0.0.1:{port}"
+            feed = None
+            deadline = time.time() + 10
+            while time.time() < deadline:
+                try:
+                    with urllib.request.urlopen(f"{base}/api/feed", timeout=2) as resp:
+                        self.assertEqual(resp.status, 200)
+                        feed = _json.loads(resp.read().decode("utf-8"))
+                    break
+                except (urllib.error.URLError, ConnectionError):
+                    time.sleep(0.15)
+            self.assertIsNotNone(feed, "server did not answer /api/feed in time")
+            self.assertIn("next_action", feed)
+            with urllib.request.urlopen(
+                f"{base}/web_dashboard/index.html", timeout=2
+            ) as resp:
+                self.assertEqual(resp.status, 200)
+        finally:
+            proc.terminate()
+            try:
+                proc.wait(timeout=5)
+            except subprocess.TimeoutExpired:
+                proc.kill()
+
+
 if __name__ == "__main__":
     unittest.main()
