@@ -3324,3 +3324,123 @@ tbody tr:hover {
 .retention-status.bad {
   color: var(--bad);
 }
+
+/* ---------------------------------------------------------------------------
+   Skill constellation (design section 8). The one bold element on Curriculum:
+   stage-banded columns, prerequisite edges, hover/focus path isolation. The
+   skills table below it stays the accessible data view.
+   --------------------------------------------------------------------------- */
+.constellation {
+  overflow-x: auto;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+}
+
+.constellation-svg {
+  display: block;
+  max-width: none;
+}
+
+.constellation-band {
+  fill: color-mix(in srgb, var(--line) 18%, transparent);
+}
+
+.constellation-stage {
+  fill: var(--muted);
+  font-family: var(--mono);
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.constellation-edge {
+  fill: none;
+  stroke: var(--line);
+  stroke-width: 1;
+  opacity: 0.35;
+}
+
+.constellation-svg.is-isolating .constellation-edge {
+  opacity: 0.08;
+}
+
+.constellation-svg.is-isolating .constellation-edge.lit {
+  opacity: 1;
+  stroke: var(--accent);
+}
+
+.constellation-node {
+  fill: var(--surface);
+  stroke: var(--muted);
+  stroke-width: 2;
+  cursor: pointer;
+}
+
+.constellation-node.mastered {
+  fill: var(--good);
+  stroke: var(--good);
+}
+
+.constellation-node.current {
+  fill: var(--surface);
+  stroke: var(--accent);
+  stroke-width: 3;
+}
+
+.constellation-node.unlocked {
+  fill: var(--surface);
+  stroke: var(--text);
+}
+
+.constellation-node.locked {
+  opacity: 0.25;
+}
+
+.constellation-node.faded {
+  opacity: 0.12;
+}
+
+.constellation-node:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .constellation-node {
+    transition:
+      r 120ms ease,
+      opacity 120ms ease;
+  }
+
+  .constellation-node:hover,
+  .constellation-node:focus {
+    r: 13;
+  }
+}
+
+.chart-legend i.legend-node {
+  width: 11px;
+  height: 11px;
+  border-radius: 999px;
+  display: inline-block;
+  border: 2px solid var(--muted);
+  background: var(--surface);
+}
+
+.chart-legend i.legend-node.mastered {
+  background: var(--good);
+  border-color: var(--good);
+}
+
+.chart-legend i.legend-node.current {
+  border-color: var(--accent);
+}
+
+.chart-legend i.legend-node.unlocked {
+  border-color: var(--text);
+}
+
+.chart-legend i.legend-node.locked {
+  opacity: 0.25;
+}

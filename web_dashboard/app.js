@@ -2116,6 +2116,251 @@
     showModal();
   }
 
+  // ---------------------------------------------------------------------------
+  // Skill constellation (design section 8): the real curriculum DAG as a
+  // stage-banded SVG map. Layout is computed from skill_order + stage_order,
+  // never hand-placed; edges come from dependency_graph.json.skill_dependencies.
+  // ---------------------------------------------------------------------------
+
+  const CONSTELLATION = { COL_W: 128, ROW_H: 46, PAD: 32, HEADER: 40, R_MIN: 5, R_MAX: 11 };
+  const CONSTELLATION_STATE_LABEL = {
+    mastered: "mastered",
+    current: "current skill",
+    unlocked: "unlocked",
+    locked: "locked",
+  };
+
+  function constellationLayout() {
+    const stages = state.datasets.stages.stage_order || [];
+    const order = state.datasets.skills.skill_order || [];
+    const byStage = new Map(stages.map((stage) => [stage, []]));
+    order.forEach((skillId) => {
+      const stage = skillMeta(skillId)?.stage;
+      if (byStage.has(stage)) byStage.get(stage).push(skillId);
+    });
+    const { COL_W, ROW_H, PAD, HEADER } = CONSTELLATION;
+    const pos = new Map();
+    stages.forEach((stage, column) => {
+      byStage.get(stage).forEach((skillId, row) => {
+        pos.set(skillId, {
+          x: PAD + column * COL_W + COL_W / 2,
+          y: PAD + HEADER + row * ROW_H,
+          column,
+        });
+      });
+    });
+    const tallest = Math.max(1, ...stages.map((stage) => byStage.get(stage).length));
+    return {
+      pos,
+      byStage,
+      stages,
+      width: PAD * 2 + stages.length * COL_W,
+      height: PAD * 2 + HEADER + tallest * ROW_H,
+    };
+  }
+
+  function skillProblemCount(skillId) {
+    return state.datasets.curriculum.problems.filter((problem) => problem.primary_skill === skillId)
+      .length;
+  }
+
+  function isSkillMastered(skillId) {
+    return Boolean(state.datasets.progress.skill_progress?.[skillId]?.mastered);
+  }
+
+  // The skill the learner is on right now — read off the scheduler's current
+  // problem, not re-derived from stage order.
+  function currentSkillId() {
+    const current = state.datasets.progress.current_problem;
+    return current ? state.problemsById.get(current)?.primary_skill || null : null;
+  }
+
+  function constellationNodeState(skillId, deps, current) {
+    if (isSkillMastered(skillId)) return "mastered";
+    if (skillId === current) return "current";
+    const prerequisites = deps[skillId] || [];
+    return prerequisites.every((prereq) => isSkillMastered(prereq)) ? "unlocked" : "locked";
+  }
+
+  function skillAncestors(skillId, deps, seen = new Set()) {
+    (deps[skillId] || []).forEach((prereq) => {
+      if (seen.has(prereq)) return;
+      seen.add(prereq);
+      skillAncestors(prereq, deps, seen);
+    });
+    return seen;
+  }
+
+  function renderConstellation() {
+    const host = $("#constellation");
+    if (!host) return;
+    host.replaceChildren();
+    const badge = $("#constellation-count");
+    const legendHost = $("#constellation-legend");
+    if (legendHost) legendHost.replaceChildren();
+    host.append(empty("Loading the prerequisite map…"));
+
+    ensureDependencyGraph().then((edges) => {
+      const deps = edges?.skillDeps;
+      host.replaceChildren();
+      if (!deps) {
+        host.append(empty("Prerequisite map unavailable — dependency_graph.json could not be read."));
+        return;
+      }
+      drawConstellation(host, legendHost, badge, deps);
+    });
+  }
+
+  function drawConstellation(host, legendHost, badge, deps) {
+    const { pos, byStage, stages, width, height } = constellationLayout();
+    const { COL_W, PAD, R_MIN, R_MAX } = CONSTELLATION;
+    const ids = [...pos.keys()];
+    if (!ids.length) {
+      host.append(empty("No skills in the curriculum yet."));
+      return;
+    }
+
+    const current = currentSkillId();
+    const counts = new Map(ids.map((id) => [id, skillProblemCount(id)]));
+    const maxCount = Math.max(1, ...counts.values());
+    const radius = (id) => R_MIN + ((R_MAX - R_MIN) * Math.min(counts.get(id), maxCount)) / maxCount;
+    const dependents = new Map(ids.map((id) => [id, []]));
+    ids.forEach((id) => {
+      (deps[id] || []).forEach((prereq) => {
+        if (dependents.has(prereq)) dependents.get(prereq).push(id);
+      });
+    });
+
+    const svg = svgNode("svg", {
+      viewBox: `0 0 ${width} ${height}`,
+      width,
+      height,
+      class: "constellation-svg",
+      role: "group",
+      "aria-label": `Skill prerequisite map: ${ids.length} skills across ${stages.length} stages.`,
+    });
+
+    // Stage bands + wrapped column headers.
+    stages.forEach((stage, column) => {
+      if (column % 2 === 1) {
+        svg.append(
+          svgNode("rect", {
+            x: PAD + column * COL_W,
+            y: PAD,
+            width: COL_W,
+            height: height - PAD * 2,
+            class: "constellation-band",
+          }),
+        );
+      }
+      const words = stage.split(" ");
+      const lines = words.length > 1 ? [words[0], words.slice(1).join(" ")] : words;
+      lines.forEach((line, index) => {
+        svg.append(
+          svgNode(
+            "text",
+            {
+              x: PAD + column * COL_W + COL_W / 2,
+              y: PAD + 12 + index * 12,
+              "text-anchor": "middle",
+              class: "constellation-stage",
+            },
+            line,
+          ),
+        );
+      });
+    });
+
+    // Edges first, so nodes always sit on top of them.
+    const edgeLayer = svgNode("g", { class: "constellation-edges" });
+    const edgeIndex = [];
+    ids.forEach((id) => {
+      (deps[id] || []).forEach((prereq) => {
+        const from = pos.get(prereq);
+        const to = pos.get(id);
+        if (!from || !to) return;
+        const dx = Math.max(24, (to.x - from.x) / 2);
+        const path = svgNode("path", {
+          d: `M ${from.x} ${from.y} C ${from.x + dx} ${from.y}, ${to.x - dx} ${to.y}, ${to.x} ${to.y}`,
+          class: "constellation-edge",
+        });
+        edgeLayer.append(path);
+        edgeIndex.push({ path, from: prereq, to: id });
+      });
+    });
+    svg.append(edgeLayer);
+
+    const nodeLayer = svgNode("g", { class: "constellation-nodes" });
+    const nodeIndex = new Map();
+    ids.forEach((id) => {
+      const point = pos.get(id);
+      const nodeState = constellationNodeState(id, deps, current);
+      const count = counts.get(id);
+      const description =
+        `${skillTitle(id)} · ${skillMeta(id)?.stage || "unstaged"} · ` +
+        `${count} problem${count === 1 ? "" : "s"} · ${CONSTELLATION_STATE_LABEL[nodeState]}`;
+      const node = svgNode("circle", {
+        cx: point.x,
+        cy: point.y,
+        r: radius(id),
+        class: `constellation-node ${nodeState}`,
+        tabindex: "0",
+        role: "button",
+        "aria-label": description,
+      });
+      node.append(svgNode("title", {}, description));
+      nodeIndex.set(id, node);
+
+      const isolate = () => {
+        const related = new Set([id, ...skillAncestors(id, deps), ...(dependents.get(id) || [])]);
+        svg.classList.add("is-isolating");
+        edgeIndex.forEach(({ path, from, to }) => {
+          path.classList.toggle("lit", related.has(from) && related.has(to));
+        });
+        nodeIndex.forEach((other, otherId) => other.classList.toggle("faded", !related.has(otherId)));
+      };
+      const restore = () => {
+        svg.classList.remove("is-isolating");
+        edgeIndex.forEach(({ path }) => path.classList.remove("lit"));
+        nodeIndex.forEach((other) => other.classList.remove("faded"));
+      };
+      node.addEventListener("mouseenter", isolate);
+      node.addEventListener("mouseleave", restore);
+      node.addEventListener("focus", isolate);
+      node.addEventListener("blur", restore);
+      node.addEventListener("click", () => openSingleSkillModal(id));
+      node.addEventListener("keydown", (event) => {
+        if (event.key !== "Enter" && event.key !== " ") return;
+        event.preventDefault();
+        openSingleSkillModal(id);
+      });
+      nodeLayer.append(node);
+    });
+    svg.append(nodeLayer);
+    host.append(svg);
+
+    const masteredCount = ids.filter((id) => isSkillMastered(id)).length;
+    if (badge) {
+      badge.textContent = `${ids.length} skills · ${masteredCount} mastered`;
+      badge.className = "pill num";
+    }
+    if (legendHost) {
+      legendHost.append(
+        ...["mastered", "current", "unlocked", "locked"].map((nodeState) => {
+          const item = document.createElement("span");
+          const mark = document.createElement("i");
+          mark.className = `legend-node ${nodeState}`;
+          item.append(mark, document.createTextNode(CONSTELLATION_STATE_LABEL[nodeState]));
+          return item;
+        }),
+      );
+      const hint = document.createElement("span");
+      hint.className = "microlabel";
+      hint.textContent = "hover or focus a skill to isolate its prerequisite path · enter opens it";
+      legendHost.append(hint);
+    }
+  }
+
   function renderSkills() {
     const target = $("#skill-grid");
     target.replaceChildren();
@@ -2961,7 +3206,13 @@
               skillUnlocks.get(dep).push(skillId);
             });
           });
-          state.reverseEdges = { problemUnlocks, skillUnlocks };
+          // Forward skill edges kept raw for the constellation (design section 8:
+          // the map is the real dependency_graph.json DAG, not a re-derivation).
+          state.reverseEdges = {
+            problemUnlocks,
+            skillUnlocks,
+            skillDeps: graph.skill_dependencies || {},
+          };
           return state.reverseEdges;
         })
         .catch(() => null);
@@ -3687,6 +3938,7 @@
     renderDeferredLearnings();
     renderEdgeCases();
     renderStages();
+    renderConstellation();
     renderSkills();
     renderPatterns();
     renderProblemTable();
