@@ -1,0 +1,29 @@
+Execute the dashboard redesign for this repo (/home/virendra/DSA/dsa_os)
+fully autonomously.
+
+Your instructions, in priority order:
+1. plans/DASHBOARD_REDESIGN_AGENT_GUIDE.md — your execution loop. Follow it
+   exactly: bootstrap gates first, then Tasks 1-9 strictly in order.
+2. plans/DASHBOARD_REDESIGN_PLAN.md — the task definitions.
+3. plans/DASHBOARD_REDESIGN_DESIGN.md — the spec; its decisions are final,
+   do not re-litigate them.
+
+Permissions for this run: you MAY commit on main exactly as the plan
+specifies (one commit per task, conventional commit format, absolutely no
+Co-Authored-By or AI/agent attribution anywhere). You may NOT push, may NOT
+modify progress/progress.json, may NOT add dependencies, build steps, or
+CDN assets. Untracked files under plans/ (these instruction docs), the
+.xlsx files, and .playwright-mcp/ are expected — they do not fail the
+bootstrap clean-tree gate; commit the four DASHBOARD_REDESIGN_* docs as
+your first action with message "docs/plan: dashboard mission-deck design,
+plan and agent guide" before starting Task 1.
+
+Work through all 9 tasks without checking in with me unless you hit one of
+the guide's stop conditions — then halt and ask. If a background/server
+process is needed, run it yourself on a non-default port and kill it after.
+
+Done means: all 9 task commits landed green (make test && make validate
+after every task), the design-doc §3b alignment matrix audited with
+file:line evidence, the independent review subagent from the guide's final
+gate confirms, and plans/DASHBOARD_REDESIGN_REPORT.md is committed. Your
+final message: done/not-done, commit list, reviewer verdict, open minors.

@@ -226,7 +226,7 @@ Both Important findings were reproduced against staged fixtures before fixing
 withdrew its "solution path should be a link" sub-finding: plan Task 7 step 1b
 specifies mono text, and an anchor would 404 for every current record.
 
-### Open minors (reported, deliberately not fixed — owner's call)
+### Open minors — all five subsequently RESOLVED at the owner's request (see below)
 1. **`#readiness-rows` is permanently hidden** (`index.html:119`). Nothing ever
    clears the `hidden` attribute, so `renderReadiness()`'s per-gate rows are
    rendered into an invisible container; only its pill and projection line show.
@@ -247,3 +247,42 @@ specifies mono text, and an anchor would 404 for every current record.
 5. **Design §3b row 7 says "link" the solution path; plan Task 7 says "mono
    text".** Implemented as mono text. A wording divergence for the owner to
    settle if solution files start existing.
+
+### Resolution of the five minors
+
+The owner asked for all five to be resolved rather than carried. Done in one
+commit; feed changes are TDD'd (failing test first) and the client changes were
+verified in the browser against staged fixtures and live data.
+
+1. **`#readiness-rows`** — deleted. The row-building half of `renderReadiness`
+   wrote into a container that was never unhidden; the trajectory strip is the
+   readiness visual and its `aria-label` is the text equivalent. The `<div>`
+   and four `.readiness-row*` CSS rules went with it. The pill and projection
+   line, which were always visible, are untouched.
+2. **`feed.policy` unread / hardcoded copy** — the retention tiles now build
+   their interval notes from `feed.policy.intervals` (young = R1-R2, mature =
+   R3+), and `HINT_MAX` became `hintMax()`, reading the top rung from
+   `scoring.json.hint_levels` with the old literal as fallback. Widening the
+   ladder or changing an interval in config now moves the UI.
+3. **Forecast vs due queue** — `review_forecast` folds quarterly maintenance
+   *due now* into day 0 (deduped against scheduled revisions). Future
+   maintenance stays out: it derives from a 90-day anchor and is not
+   projectable per-day. Pinned by two tests, including one asserting day 0
+   equals the set of queue rows due on or before the reference date. Verified
+   on a staged fixture: queue 3 rows, day-0 bar "⚠ 3".
+4. **Mock sparkline `0` coercion** — an ungraded dimension is `null`, not `0`.
+   The polyline breaks into segments across gaps, the end marker sits on the
+   last *graded* point, the value reads "not graded" when nothing was scored,
+   and the card states "N of M mocks ungraded". Verified with a two-mock
+   fixture where the second omits `testing`: it renders "2 / 4 · 1 of 2 mocks
+   ungraded" instead of a drop to zero.
+5. **design "link" vs plan "mono text"** — resolved in favour of both. The feed
+   now publishes `solutions_present` (problem ids with a real
+   `solutions/<ID>.py`), so the modal renders an anchor when the file exists
+   and plain mono text when it does not. Verified both branches: `OBS-001`
+   with a staged solution file rendered
+   `<a href="../solutions/OBS-001.py">`, `OBS-005` without one stayed text.
+
+Post-fix gate: `make test` 6 suites / 160 tests, `make validate` PASS,
+`node --check` clean, `progress/progress.json` byte-identical, zero console
+messages across 4 workspaces × 2 themes, no horizontal page overflow.
