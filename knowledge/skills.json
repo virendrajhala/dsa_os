@@ -832,7 +832,6 @@
         "TRE-023",
         "TRE-024",
         "TRE-025",
-        "TRE-028",
         "TRE-029",
         "TRE-030"
       ],
@@ -848,8 +847,9 @@
       "prerequisites": [
         "SK-RT-02"
       ],
-      "primary_validation_problem": "TRE-026",
+      "primary_validation_problem": "TRE-028",
       "reinforcement_problems": [
+        "TRE-026",
         "TRE-027"
       ],
       "challenge_problems": []
