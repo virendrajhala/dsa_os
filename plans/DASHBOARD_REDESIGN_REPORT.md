@@ -139,19 +139,19 @@ findings below.
 
 | # | Repo mechanism | Dashboard surface | Evidence |
 |---|---|---|---|
-| 1 | Scheduler priority (`select_next_problem`) | Next Action, 4 mode treatments | `app.js:487` mode labels, `app.js:509` `renderNextAction`, `app.js:551` mock treatment |
-| 2 | Revision protocol R1-R4 / PASS-FAIL | Due queue stage pills; modal per-event recall + misconception | `app.js:652` `renderDueQueue`, `app.js:676` stage pill, `app.js:2955` `revisionHistoryItem` |
-| 3 | Quarterly maintenance (90d) | "Q-MAINT" pill, distinct from R-stages | `app.js:490` label, `app.js:675` kind→tone, feed `_shared.py:37` |
-| 4 | Reactivation | "reactivated" pill; modal shows the event **and its reason/prior state** | `app.js:675` pill tone, `app.js:2957` reason block; feed normalizes `_shared.py:625` `reactivation`→`reactivated` |
-| 5 | Weekend mock protocol | Mock briefing card + Evidence mock trend | `app.js:551` accent treatment, `app.js:554` protocol line, `app.js:3421` `renderMockTrend`, `app.js:3380` rubric sparklines |
-| 6 | Mentor-graded pass (F7) | Self vs mentor columns, >2 flagged | `app.js:2861` threshold, `app.js:2863` `mentorScoreBlock`, `app.js:2910` `mentorScoreCard` |
-| 7 | Code-execution gate (F9) | Next Action gate line; modal solution path + ran/--no-code state | `app.js:556` briefing line, `app.js:2836` `codeGateCard` |
-| 8 | Hint ladder + mastery discount (F6) | Hint-independence chart, bands from `hint_mastery_discount` | `app.js:3170` `hintBands`, `app.js:3215` `renderHintIndependence` |
-| 9 | Readiness estimator (F23) | Trajectory strip (the hero) | `index.html:118` host, `app.js:577` `renderTrajectory` |
-| 10 | Weakness loop (F20) | Weakness lab, source-tagged, resolved excluded | `app.js:1128` `renderWeaknessLab`, `app.js:1153` source chips, `app.js:1049` resolved filter |
-| 11 | Deferred learning | Evidence deferred list with resolve-evidence copy | `app.js:1230` `renderDeferredLearnings`, `app.js:1293` card builder |
-| 12 | Mistake catalog (F14) | Mistakes modal: **taxonomy chip** + source problem link | `app.js:1414` taxonomy passthrough, `app.js:1445` chip, `app.js:1452` problem link |
-| 13 | Curriculum DAG + stage order (F18) | Constellation + "unlocks next" in modal | `app.js:1856` `renderConstellation`, `app.js:3001` `appendDependencyCard` |
+| 1 | Scheduler priority (`select_next_problem`) | Next Action, 4 mode treatments | `app.js:482` mode labels, `app.js:504` `renderNextAction`, `app.js:508`/`549` mock treatment |
+| 2 | Revision protocol R1-R4 / PASS-FAIL | Due queue stage pills; modal per-event recall + misconception | `app.js:647` `renderDueQueue`, `app.js:670` kind pill, `app.js:2961` `revisionHistoryItem` |
+| 3 | Quarterly maintenance (90d) | "Q-MAINT" pill, distinct from R-stages | `app.js:485` label, `app.js:669` kind→tone, feed `_shared.py:1865` `_feed_queue_stage_label` |
+| 4 | Reactivation | pill reads `R# · reactivated` (words, not tone); modal shows the event **and its reason/prior state** | `app.js:670` kind pill, `app.js:2970` reason block; feed normalizes `_shared.py:625` `reactivation`→`reactivated` |
+| 5 | Weekend mock protocol | Mock briefing card + Evidence mock trend | `app.js:508` accent treatment, `app.js:549` protocol line, `app.js:3449` `renderMockTrend`, `app.js:3408` rubric sparklines |
+| 6 | Mentor-graded pass (F7) | Self vs mentor columns, >2 flagged | `app.js:2876` threshold, `app.js:2878` `mentorScoreBlock`, `app.js:2925` `mentorScoreCard` |
+| 7 | Code-execution gate (F9) | Next Action gate line (feed-backed `solution_exists`); modal solution path + `--no-code` state | `app.js:551` briefing line, `app.js:2848` `codeGateCard` |
+| 8 | Hint ladder + mastery discount (F6) | Hint-independence chart, bands from `hint_mastery_discount` | `app.js:3194` `hintBands`, `app.js:3239` `renderHintIndependence` |
+| 9 | Readiness estimator (F23) | Trajectory strip (the hero) | `index.html:118` host, `app.js:572` `renderTrajectory` |
+| 10 | Weakness loop (F20) | Weakness lab, source-tagged, resolved excluded | `app.js:1131` `renderWeaknessLab`, `app.js:1156` source chips, `app.js:1052` resolved filter |
+| 11 | Deferred learning | Evidence deferred list with resolve-evidence copy | `app.js:1233` `renderDeferredLearnings`, `app.js:1296` card builder |
+| 12 | Mistake catalog (F14) | Mistakes modal: **taxonomy chip** + source problem link | `app.js:1425` taxonomy passthrough, `app.js:1451` chip + label, `app.js:1458` problem link |
+| 13 | Curriculum DAG + stage order (F18) | Constellation + "unlocks next" in modal | `app.js:1868` `renderConstellation`, `app.js:3025` `appendDependencyCard` |
 | 14 | Interview scope (DSA only) | No system-design/behavioral modules anywhere | grep for `system.design`/`behavioral` in app.js + index.html returns nothing |
 
 ## Dataviz anti-pattern check
@@ -192,3 +192,58 @@ filter, status colors never used as series colors and never color-alone.
 ## Stop conditions hit
 None. No palette hex changed, no dependency, build step or CDN asset added,
 nothing pushed, `progress/progress.json` never touched.
+
+## Independent review (final gate step 3)
+
+A fresh-context reviewer was given the design doc, the commit range and the
+four mandated checks (matrix completeness, palette fidelity, parity tests, no
+JS recomputation), with instructions to be adversarial and to change nothing.
+
+**First pass: PASS**, no Critical, 2 Important, 6 Minor. It independently
+confirmed: all 36 §7 palette values byte-exact in `styles.css` with zero hex
+literals anywhere in `app.js`; the parity suite real, Makefile-wired and green
+(6 suites / 156 tests); and **zero** surviving scheduler, readiness, due-date
+or pace recomputation in the client — only `rollingMean`, date grouping and a
+unique-solve-day count, all sanctioned display transforms.
+
+Both Important findings were reproduced against staged fixtures before fixing
+(commit `a26c40d`; live `progress/progress.json` byte-identical throughout):
+- **I-1** A reactivated due-queue row kept a plain `R#` pill and differed from
+  an ordinary recall by tone alone — a §10 "never color-alone" violation on
+  precisely the signal reactivation exists to send. The pill now reads
+  `R2 · reactivated`.
+- **I-2** The code-gate card asserted "✓ the solution file ran", which the
+  record cannot prove: `update_progress.py` writes a note only when the gate
+  is *bypassed* with `--no-code` and writes nothing on success, so the claim
+  was false for all 10 live (pre-F9) completions. It now states only what is
+  known — "· no --no-code override on this record".
+- Also folded in **M-4**: the dead `stageLabel(stage)` helper, which was the
+  exact hardcoded `stage >= 4` mirror design §9 asked to remove and which
+  Task 8's sweep missed.
+
+**Re-confirmation pass on `a26c40d`: PASS.** All three resolved, no new defect,
+`make test` 156/156, `node --check` clean, zero console messages. The reviewer
+withdrew its "solution path should be a link" sub-finding: plan Task 7 step 1b
+specifies mono text, and an anchor would 404 for every current record.
+
+### Open minors (reported, deliberately not fixed — owner's call)
+1. **`#readiness-rows` is permanently hidden** (`index.html:119`). Nothing ever
+   clears the `hidden` attribute, so `renderReadiness()`'s per-gate rows are
+   rendered into an invisible container; only its pill and projection line show.
+   The trajectory strip supersedes those rows — either delete the dead half of
+   `renderReadiness` or unhide it as the strip's text equivalent.
+2. **`feed.policy` is never read by the client.** The design's intent (no
+   hardcoded R-labels or mastery stage in JS) is met structurally — every label
+   is server-computed — but two residues remain: the retention tile copy
+   "21-day and 60-day intervals" (`app.js`) and `HINT_MAX = 7` are literals
+   that would go stale if `scoring.json` changed.
+3. **Due queue and day-0 forecast bar can disagree.** `revision_queue` includes
+   quarterly maintenance; `review_forecast` does not (maintenance is not
+   projectable forward). Defensible, but when maintenance is due the bar
+   undercounts the list directly above it.
+4. **Mock sparklines coerce a missing rubric dimension to `0`**, which would
+   read as a catastrophic regression rather than "not graded". Unreachable
+   today (0 mocks recorded).
+5. **Design §3b row 7 says "link" the solution path; plan Task 7 says "mono
+   text".** Implemented as mono text. A wording divergence for the owner to
+   settle if solution files start existing.

@@ -2872,10 +2872,6 @@ tbody tr:hover {
   margin: 0;
 }
 
-.gate-status.good {
-  color: var(--good);
-}
-
 .gate-status.warn {
   color: var(--warn);
 }
