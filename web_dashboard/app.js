@@ -18,24 +18,13 @@
     filteredProblems: [],
     analyticsView: "acquisition",
     activeWorkspace: "today",
+    // Lazy-loaded on first problem-modal open; never in the critical Promise.all.
+    graphPromise: null,
+    reverseEdges: null,
   };
 
   const $ = (selector) => document.querySelector(selector);
   const today = new Date();
-  const EDGE_CASE_CHECKLIST = [
-    "Empty input, if allowed",
-    "Single element input",
-    "Two element input",
-    "First index is the answer or triggers the key condition",
-    "Last index is the answer or triggers the key condition",
-    "All negative values, when numbers can be negative",
-    "All positive values, when sign matters",
-    "Zeros mixed with positive/negative values",
-    "Duplicate values",
-    "Already sorted and reverse sorted input",
-    "Minimum and maximum constraint sizes",
-    "No valid answer exists",
-  ];
   const EDGE_CASE_GROUPS = [
     {
       title: "Size boundaries",
@@ -95,6 +84,14 @@
 
   function clamp(value, min, max) {
     return Math.min(max, Math.max(min, value));
+  }
+
+  function debounce(fn, waitMs) {
+    let timer = null;
+    return (...args) => {
+      clearTimeout(timer);
+      timer = setTimeout(() => fn(...args), waitMs);
+    };
   }
 
   function avg(values) {
@@ -1066,7 +1063,6 @@
 
   function buildMistakeSignals() {
     const profile = state.datasets.progress.thinking_profile || {};
-    const detected = state.datasets.progress.weaknesses_detected || {};
     const completedMistakes = state.datasets.progress.completed
       .map((record) => ({
         problemId: record.problem_id,
@@ -1076,7 +1072,6 @@
     const catalog = state.datasets.mistakes.entries || [];
     return {
       profileGaps: [...(profile.gaps || []), ...(profile.common_failures || [])],
-      detected,
       completedMistakes,
       catalog,
     };
@@ -1086,7 +1081,6 @@
     const target = $("#weakness-grid");
     target.replaceChildren();
     const weakest = collectQuestionWeaknesses().slice(0, 4);
-    const signals = buildMistakeSignals();
 
     weakest.forEach((weakness) => {
       const card = document.createElement("article");
@@ -1138,7 +1132,7 @@
           <h4>Frequent mistakes and correction drills</h4>
           <span class="small-muted">Short labels first; details stay inside review.</span>
         </div>
-        <span class="pill bad">${signals.profileGaps.length + signals.completedMistakes.length} signals</span>
+        <span class="pill bad">${combinedMistakeItems().length} signals</span>
       </div>
       <div class="weakness-cues">
         <div><span>Look for</span><strong>Repeated misses</strong></div>
@@ -1369,14 +1363,16 @@
         fix: entry.fix,
         problemId: entry.source_problem,
       })),
-    ].slice(-12);
+    ];
   }
 
   function openMistakesModal() {
-    const items = combinedMistakeItems();
+    // Same underlying list as the "Frequent mistakes" badge count.
+    const allItems = combinedMistakeItems();
+    const items = allItems.slice(-12);
     const body = setModal(
       "Frequent mistakes and correction drills",
-      `${items.length} mistake signal${items.length === 1 ? "" : "s"}`,
+      `${allItems.length} mistake signal${allItems.length === 1 ? "" : "s"}${allItems.length > items.length ? ` · showing latest ${items.length}` : ""}`,
       "Mistake review",
     );
     const list = document.createElement("div");
@@ -2174,56 +2170,10 @@
   }
 
   function patternQuickCues(pattern) {
-    const cues = {
-      "PAT-001": {
-        trigger: "Running state must stay true",
-        state: "Precise invariant",
-        trap: "Code before state meaning",
-      },
-      "PAT-002": {
-        trigger: "Extend or restart segment",
-        state: "Best ending here + global best",
-        trap: "Zero init for non-empty answer",
-      },
-      "PAT-003": {
-        trigger: "Negative can flip best/worst",
-        state: "runningMax + runningMin",
-        trap: "Updating without prev values",
-      },
-      "PAT-004": {
-        trigger: "Current needs best past value",
-        state: "Prefix min/max",
-        trap: "Using future or wrong order",
-      },
-      "PAT-005": {
-        trigger: "Every positive step can count",
-        state: "Accumulated local gains",
-        trap: "Searching one global pair",
-      },
-      "PAT-006": {
-        trigger: "Reach/coverage grows forward",
-        state: "Farthest frontier",
-        trap: "Treating it like BFS/DP",
-      },
-      "PAT-007": {
-        trigger: "Failure discards a range",
-        state: "Candidate + local balance",
-        trap: "Restarting the scan pointer",
-      },
-      "PAT-008": {
-        trigger: "Left and right constraints",
-        state: "Two directional requirements",
-        trap: "Trusting one pass",
-      },
-      "PAT-009": {
-        trigger: "Same lookup asked repeatedly",
-        state: "Minimal set/map state",
-        trap: "Choosing DS before query",
-      },
-    };
-    return cues[pattern.id] || {
+    // Derived from patterns.json fields so PAT-010+ works without code edits.
+    return {
       trigger: shortCue((pattern.recognition_signals || [])[0], "Open details"),
-      state: shortCue(patternDecisionCue(pattern), "Maintained state"),
+      state: shortCue(pattern.core_invariant || patternDecisionCue(pattern), "Maintained state"),
       trap: shortCue((pattern.common_mistakes || [])[0], "Wrong mental model"),
     };
   }
@@ -2262,33 +2212,14 @@
   }
 
   function simplePatternLabel(pattern) {
-    const labels = {
-      "PAT-001": "State stays correct",
-      "PAT-002": "Restart bad segment",
-      "PAT-003": "Track best and worst",
-      "PAT-004": "Remember best past value",
-      "PAT-005": "Add every useful gain",
-      "PAT-006": "Grow reachable range",
-      "PAT-007": "Discard failed candidates",
-      "PAT-008": "Check both directions",
-      "PAT-009": "Use lookup memory",
-    };
-    return labels[pattern.id] || pattern.name || pattern.id;
+    return pattern.name || pattern.id;
   }
 
   function simplePatternHint(pattern) {
-    const hints = {
-      "PAT-001": "A variable must mean the right thing after every step.",
-      "PAT-002": "A harmful running segment should be dropped.",
-      "PAT-003": "A negative value can turn worst into best.",
-      "PAT-004": "The current answer needs only the best earlier value.",
-      "PAT-005": "Independent positive moves can all be taken.",
-      "PAT-006": "Each scan step expands how far you can reach.",
-      "PAT-007": "One failure can prove many starts impossible.",
-      "PAT-008": "Left and right neighbor rules must both hold.",
-      "PAT-009": "Repeated lookup questions need set/map memory.",
-    };
-    return hints[pattern.id] || shortCue((pattern.recognition_signals || [])[0], pattern.idea_family || "Related thinking model");
+    return shortCue(
+      pattern.core_invariant || (pattern.recognition_signals || [])[0],
+      pattern.idea_family || "Related thinking model",
+    );
   }
 
   function openPatternModal(patternId) {
@@ -2596,7 +2527,7 @@
     const problemPatterns = patternsForProblem(problemId);
     const body = setModal(
       `${problem.id} - ${problem.title}`,
-      `${problem.stage} · ${skillLabel(problem.primary_skill)} · ${problem.difficulty}${problem.original_number ? ` · LeetCode ${problem.original_number}` : ""}`,
+      `${problem.stage} · ${skillLabel(problem.primary_skill)} · ${problem.difficulty}${problem.lc_id ? ` · LC ${problem.lc_id}` : problem.original_number ? ` · #${problem.original_number} (source index)` : ""}`,
       "Problem detail",
     );
 
@@ -2645,7 +2576,6 @@
       ),
     );
     body.append(grid);
-    body.append(edgeCaseCard());
 
     if (lesson) {
       const lessonCard = document.createElement("article");
@@ -2716,19 +2646,91 @@
       historyCard.className = "note-card";
       historyCard.innerHTML = `
         <h4>Revision history</h4>
-        <ul>
-          ${history
-            .map(
-              (event) =>
-                `<li><strong>${event.date}</strong>: ${event.result} stage ${event.stage} · confidence ${event.confidence ?? "-"}</li>`,
-            )
-            .join("")}
+        <ul class="revision-history-list">
+          ${history.map((event) => revisionHistoryItem(event)).join("")}
         </ul>
       `;
       body.append(historyCard);
     }
 
+    appendDependencyCard(body, problem);
     showModal();
+  }
+
+  function revisionHistoryItem(event) {
+    const recall = event.thinking_score && typeof event.thinking_score === "object"
+      ? Object.entries(event.thinking_score)
+          .filter(([, value]) => typeof value === "number")
+          .map(([key, value]) => `${key.replaceAll("_", " ")} ${value}`)
+          .join(" · ")
+      : "";
+    const details = [
+      event.misconception_corrected
+        ? `<p><strong>Misconception corrected:</strong> ${event.misconception_corrected}</p>`
+        : "",
+      event.notes ? `<p>${event.notes}</p>` : "",
+      recall ? `<p class="small-muted">Recall: ${recall}</p>` : "",
+    ].join("");
+    return `
+      <li>
+        <strong>${event.date}</strong>: ${event.result} stage ${event.stage}
+        · confidence ${event.confidence ?? "-"} · hint ${event.hint_level ?? "-"}
+        ${details}
+      </li>
+    `;
+  }
+
+  function ensureDependencyGraph() {
+    if (!state.graphPromise) {
+      state.graphPromise = fetchJson("../curriculum/dependency_graph.json")
+        .then((graph) => {
+          const problemUnlocks = new Map();
+          Object.entries(graph.problem_dependencies || {}).forEach(([problemId, deps]) => {
+            (Array.isArray(deps) ? deps : []).forEach((dep) => {
+              if (!problemUnlocks.has(dep)) problemUnlocks.set(dep, []);
+              problemUnlocks.get(dep).push(problemId);
+            });
+          });
+          const skillUnlocks = new Map();
+          Object.entries(graph.skill_dependencies || {}).forEach(([skillId, deps]) => {
+            (Array.isArray(deps) ? deps : []).forEach((dep) => {
+              if (!skillUnlocks.has(dep)) skillUnlocks.set(dep, []);
+              skillUnlocks.get(dep).push(skillId);
+            });
+          });
+          state.reverseEdges = { problemUnlocks, skillUnlocks };
+          return state.reverseEdges;
+        })
+        .catch(() => null);
+    }
+    return state.graphPromise;
+  }
+
+  function appendDependencyCard(body, problem) {
+    const card = document.createElement("article");
+    card.className = "note-card";
+    body.append(card);
+    ensureDependencyGraph().then((edges) => {
+      if (!edges) {
+        card.remove();
+        return;
+      }
+      const unlockedProblems = edges.problemUnlocks.get(problem.id) || [];
+      const unlockedSkills = edges.skillUnlocks.get(problem.primary_skill) || [];
+      if (!unlockedProblems.length && !unlockedSkills.length) {
+        card.remove();
+        return;
+      }
+      const problemLine = unlockedProblems.length
+        ? `<p><strong>Unlocks problems:</strong> ${unlockedProblems
+            .map((id) => `${id}${state.problemsById.get(id) ? ` (${state.problemsById.get(id).title})` : ""}`)
+            .join(", ")}</p>`
+        : "";
+      const skillLine = unlockedSkills.length
+        ? `<p><strong>Its skill unlocks:</strong> ${unlockedSkills.map((id) => skillLabel(id)).join(", ")}</p>`
+        : "";
+      card.innerHTML = `<h4>Dependency context</h4>${problemLine}${skillLine}`;
+    });
   }
 
   function detailObjectCard(title, values) {
@@ -2751,16 +2753,6 @@
     card.innerHTML = `
       <h4>${title}</h4>
       <ul>${values.map((value) => `<li>${value}</li>`).join("")}</ul>
-    `;
-    return card;
-  }
-
-  function edgeCaseCard() {
-    const card = document.createElement("article");
-    card.className = "note-card";
-    card.innerHTML = `
-      <h4>Before final answer: dry-run these cases</h4>
-      <ul>${EDGE_CASE_CHECKLIST.map((item) => `<li>${item}</li>`).join("")}</ul>
     `;
     return card;
   }
@@ -2891,16 +2883,6 @@
     body.className = "analytics-layout";
     const cards = [
       [
-        analyticsHeroCard({
-        completed: completed.length,
-        total: curriculum.problems.length,
-        mastered: masteredSkills.length,
-        totalSkills: skillEntries.length,
-        dueNow,
-        }),
-        ["acquisition", "performance"],
-      ],
-      [
         analyticsSkillCard("Skill achievement", [
         ["Started", startedSkills.length, skillEntries.length],
         ["Primary solved", primarySolved.length, skillEntries.length],
@@ -2909,7 +2891,6 @@
         ]),
         ["acquisition"],
       ],
-      [analyticsSkillMasteryGraph(startedSkills.length, reinforcement.length, masteredSkills.length, skillEntries.length), ["acquisition"]],
       [
         analyticsListCard(
         "Mastered topics",
@@ -2924,7 +2905,6 @@
       [analyticsScoreGraph(scoring), ["performance"]],
       [analyticsConsistencyLineChart(completed), ["performance"]],
       [analyticsRevisionCard(revisionPasses, revisionFailures, activeRevisions, dueNow), ["retention", "risks"]],
-      [analyticsRevisionFunnel(revisions), ["retention"]],
       [analyticsStageCoverageCard(stages), ["acquisition"]],
       [analyticsStageDistributionChart(stages), ["acquisition"]],
       [
@@ -2966,25 +2946,6 @@
         ${label}
       </button>
     `;
-  }
-
-  function analyticsHeroCard({ completed, total, mastered, totalSkills, dueNow }) {
-    const card = document.createElement("article");
-    card.className = "analytics-card analytics-hero";
-    const problemPercent = total ? Math.round((completed / total) * 100) : 0;
-    const skillPercent = totalSkills ? Math.round((mastered / totalSkills) * 100) : 0;
-    card.innerHTML = `
-      <div>
-        <p class="eyebrow">Overall readiness</p>
-        <h4>${completed}/${total} problems completed</h4>
-        <p>Skill mastery is at ${mastered}/${totalSkills}. Revision pressure is ${dueNow} due item${dueNow === 1 ? "" : "s"}.</p>
-      </div>
-      <div class="analytics-dials">
-        ${dial("Problems", problemPercent)}
-        ${dial("Skills", skillPercent)}
-      </div>
-    `;
-    return card;
   }
 
   function analyticsSkillCard(title, rows) {
@@ -3056,28 +3017,6 @@
     return card;
   }
 
-  function analyticsSkillMasteryGraph(started, reinforced, mastered, total) {
-    const notStarted = Math.max(total - started, 0);
-    const learning = Math.max(started - mastered, 0);
-    const card = document.createElement("article");
-    card.className = "analytics-card wide";
-    card.innerHTML = `
-      <h4>Skill mastery graph</h4>
-      <div class="stacked-chart" aria-label="Skill mastery distribution">
-        ${stackSegment("Not started", notStarted, total, "#dfe8f0")}
-        ${stackSegment("Learning", learning, total, "#8ab4f8")}
-        ${stackSegment("Mastered", mastered, total, "#0f766e")}
-      </div>
-      <div class="chart-legend">
-        ${legendItem("Not started", notStarted, "#dfe8f0")}
-        ${legendItem("Learning", learning, "#8ab4f8")}
-        ${legendItem("Mastered", mastered, "#0f766e")}
-        ${legendItem("Reinforced checkpoint", reinforced, "#34a853")}
-      </div>
-    `;
-    return card;
-  }
-
   function analyticsStageDistributionChart(stages) {
     const card = document.createElement("article");
     card.className = "analytics-card wide";
@@ -3122,31 +3061,6 @@
     return card;
   }
 
-  function analyticsRevisionFunnel(revisions) {
-    const stages = [
-      ["R1 due", revisions.filter((entry) => entry.status !== "MASTERED" && entry.stage === 0).length],
-      ["R2 due", revisions.filter((entry) => entry.status !== "MASTERED" && entry.stage === 1).length],
-      ["R3 due", revisions.filter((entry) => entry.status !== "MASTERED" && entry.stage === 2).length],
-      ["R4 due", revisions.filter((entry) => entry.status !== "MASTERED" && entry.stage >= 3).length],
-      ["Mastered", revisions.filter((entry) => entry.status === "MASTERED").length],
-    ];
-    const max = Math.max(...stages.map(([, count]) => count), 1);
-    const card = document.createElement("article");
-    card.className = "analytics-card wide";
-    card.innerHTML = `<h4>Revision stage funnel</h4><div class="funnel-chart"></div>`;
-    const chart = card.querySelector(".funnel-chart");
-    stages.forEach(([label, count]) => {
-      const row = document.createElement("div");
-      row.className = "funnel-row";
-      row.innerHTML = `
-        <span>${label}</span>
-        <div><strong style="width:${Math.max(8, Math.round((count / max) * 100))}%">${count}</strong></div>
-      `;
-      chart.append(row);
-    });
-    return card;
-  }
-
   function analyticsConsistencyLineChart(completed) {
     const timeline = cumulativeCompletionTimeline(completed);
     const card = document.createElement("article");
@@ -3158,21 +3072,30 @@
       `;
       return card;
     }
-    const xMaxDays = 30;
+    // Rolling last-30-days window (today-29 .. today), not the first 30 days.
+    const xMaxDays = 29;
     const yMax = 100;
-    const problemPoints = linePoints(timeline, "problems", yMax, xMaxDays);
-    const skillPoints = linePoints(timeline, "skills", yMax, xMaxDays);
-    const last = timeline.at(-1);
-    const startDate = timeline[0].date;
+    const endDate = referenceDate();
+    const startDate = addDays(endDate, -xMaxDays);
+    const windowPoints = timeline.filter((point) => point.date >= startDate && point.date <= endDate);
+    if (!windowPoints.length) {
+      card.innerHTML = `
+        <h4>Showing-up graph</h4>
+        <p>No completions in the last 30 days. The cumulative count resumes with the next solve.</p>
+      `;
+      return card;
+    }
+    const problemPoints = linePoints(windowPoints, "problems", yMax, xMaxDays, startDate);
+    const skillPoints = linePoints(windowPoints, "skills", yMax, xMaxDays, startDate);
+    const last = windowPoints.at(-1);
     const midDate = addDays(startDate, Math.floor(xMaxDays / 2));
-    const endDate = addDays(startDate, xMaxDays);
     card.innerHTML = `
       <div class="section-head">
         <div>
           <h4>Showing-up graph</h4>
-          <p>X-axis is a fixed 30-day window. Y-axis is a fixed 100-count target. Progress stays proportional to that perspective.</p>
+          <p>X-axis is the rolling last-30-days window. Y-axis is a fixed 100-count target. Progress stays proportional to that perspective.</p>
         </div>
-        <span class="pill good">${timeline.length} active day${timeline.length === 1 ? "" : "s"}</span>
+        <span class="pill good">${windowPoints.length} active day${windowPoints.length === 1 ? "" : "s"} in window</span>
       </div>
       <div class="line-chart-wrap">
         <span class="axis-title y">Cumulative count</span>
@@ -3191,7 +3114,7 @@
             <span>${endDate}</span>
           </div>
         </div>
-        <span class="axis-title x">30-day study window</span>
+        <span class="axis-title x">Rolling 30-day study window</span>
       </div>
       <div class="chart-legend">
         ${legendItem("Problems completed", last.problems, "#1a73e8")}
@@ -3252,15 +3175,6 @@
     return row;
   }
 
-  function dial(label, percent) {
-    return `
-      <div class="analytics-dial" style="--value:${clamp(percent, 0, 100)}">
-        <strong>${percent}%</strong>
-        <span>${label}</span>
-      </div>
-    `;
-  }
-
   function kpi(label, value) {
     return `<div class="analytics-kpi"><span>${label}</span><strong>${value}</strong></div>`;
   }
@@ -3290,9 +3204,9 @@
     });
   }
 
-  function linePoints(points, key, maxValue, maxDays) {
-    const start = parseDate(points[0].date);
-    if (points.length === 1) {
+  function linePoints(points, key, maxValue, maxDays, startDate) {
+    const start = parseDate(startDate || points[0].date);
+    if (points.length === 1 && !startDate) {
       const y = 100 - (clamp(points[0][key], 0, maxValue) / maxValue) * 92;
       return `0,${y.toFixed(2)}`;
     }
@@ -3319,11 +3233,6 @@
     const date = parseDate(dateValue);
     date.setDate(date.getDate() + days);
     return isoDate(date);
-  }
-
-  function stackSegment(label, value, total, color) {
-    const width = total ? (value / total) * 100 : 0;
-    return `<span title="${label}: ${value}" style="width:${width}%; background:${color}"></span>`;
   }
 
   function legendItem(label, value, color) {
@@ -3382,7 +3291,7 @@
       $("#data-warning-dismiss").addEventListener("click", () => {
         $("#data-warning").hidden = true;
       });
-      $("#search").addEventListener("input", applyFilters);
+      $("#search").addEventListener("input", debounce(applyFilters, 150));
       $("#stage-filter").addEventListener("change", applyFilters);
       $("#status-filter").addEventListener("change", applyFilters);
       document.querySelectorAll(".workspace-tab").forEach((tab) => {
