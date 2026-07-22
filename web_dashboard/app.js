@@ -19,7 +19,6 @@
     skillsById: new Map(),
     patternsById: new Map(),
     filteredProblems: [],
-    analyticsView: "acquisition",
     activeWorkspace: "today",
     // Lazy-loaded on first problem-modal open; never in the critical Promise.all.
     graphPromise: null,
@@ -3102,240 +3101,453 @@
     }
   }
 
-  function renderAnalytics() {
-    const target = $("#analytics-grid");
-    target.replaceChildren();
-    const { progress, curriculum, stages, scoring } = state.datasets;
-    const completed = [...state.completedById.values()];
-    const skillProgress = progress.skill_progress || {};
-    const skillEntries = Object.entries(skillProgress);
-    const masteredSkills = skillEntries.filter(([, skill]) => skill.mastered);
-    const startedSkills = skillEntries.filter(([, skill]) => skill.primary_solved || skill.reinforcement_attempted);
-    const primarySolved = skillEntries.filter(([, skill]) => skill.primary_solved);
-    const reinforcement = skillEntries.filter(([, skill]) => skill.reinforcement_attempted);
-    const revisions = getRevisionEntries();
-    const revisionEvents = completed.flatMap((record) => record.revision?.history || []);
-    const revisionPasses = revisionEvents.filter((event) => event.result === "PASS").length;
-    const revisionFailures = revisionEvents.filter((event) => event.result === "FAIL").length;
-    const confidenceLift = avg(completed.map((record) => (record.confidence_after || 0) - (record.confidence_before || 0)));
-    const hintAverage = avg(completed.map((record) => record.hint_level_used));
-    const timeAverage = avg(completed.map((record) => record.time_taken_minutes));
-    const activeRevisions = revisions.filter((entry) => entry.status === "ACTIVE").length;
-    const dueNow = dueEntries().length;
-    const openDeferred = openDeferredLearnings();
-    const masteredTopics = masteredSkills
-      .map(([skillId]) => skillTitle(skillId))
-      .slice(0, 8);
+  // ---------------------------------------------------------------------------
+  // Evidence workspace (design section 5): the leading indicators that say
+  // whether the practice is working — hint independence, mock verdict trend,
+  // young/mature retention split, and the 30-day showing-up chart. All four
+  // read the feed or raw datasets; none of them recompute scheduler logic.
+  // ---------------------------------------------------------------------------
 
-    const shell = document.createElement("div");
-    shell.className = "analytics-console";
-    const header = document.createElement("div");
-    header.className = "analytics-console-head";
-    header.innerHTML = `
-      <div>
-        <p class="eyebrow">Analytics overview</p>
-        <h4>Preparation health</h4>
-      </div>
-      <div class="analytics-tabs" role="tablist" aria-label="Analytics views">
-        ${analyticsTab("acquisition", "Acquisition")}
-        ${analyticsTab("retention", "Retention")}
-        ${analyticsTab("performance", "Performance")}
-        ${analyticsTab("risks", "Risks")}
-      </div>
-    `;
-    const body = document.createElement("div");
-    body.className = "analytics-layout";
-    const cards = [
-      [
-        analyticsSkillCard("Skill achievement", [
-        ["Started", startedSkills.length, skillEntries.length],
-        ["Primary solved", primarySolved.length, skillEntries.length],
-        ["Reinforced", reinforcement.length, skillEntries.length],
-        ["Mastered", masteredSkills.length, skillEntries.length],
-        ]),
-        ["acquisition"],
-      ],
-      [
-        analyticsListCard(
-        "Mastered topics",
-        masteredTopics.length
-          ? masteredTopics
-          : ["No mastered topics yet. Complete primary and reinforcement problems to unlock this list."],
-        masteredTopics.length ? `${masteredTopics.length} shown` : "0 mastered",
+  const SVG_NS = "http://www.w3.org/2000/svg";
+  const HINT_MAX = 7;
+  const HINT_BAND_FALLBACK = [
+    { from: 0, to: 2, name: "independent", note: "full mastery credit", tone: "good" },
+    { from: 3, to: 4, name: "guided", note: "half credit", tone: "warn" },
+    { from: 5, to: 7, name: "rescued", note: "attempt only", tone: "bad" },
+  ];
+  const HINT_BAND_STYLE = {
+    1: { name: "independent", note: "full mastery credit", tone: "good" },
+    0.5: { name: "guided", note: "half credit", tone: "warn" },
+    0: { name: "rescued", note: "attempt only", tone: "bad" },
+  };
+  const MOCK_VERDICT_TONE = {
+    strong_hire: "good",
+    hire: "good",
+    no_hire: "warn",
+    strong_no_hire: "bad",
+  };
+  const MOCK_SCORE_MAX = 4;
+
+  function svgNode(name, attrs = {}, textContent = null) {
+    const el = document.createElementNS(SVG_NS, name);
+    Object.entries(attrs).forEach(([key, value]) => el.setAttribute(key, String(value)));
+    if (textContent != null) el.textContent = textContent;
+    return el;
+  }
+
+  // Bands mirror scoring.json `hint_mastery_discount`: consecutive hint levels
+  // carrying the same mastery weight form one band, so the chart can never
+  // disagree with the tier the scorer actually applies.
+  function hintBands() {
+    const discount = state.datasets.scoring?.hint_mastery_discount || {};
+    const bands = [];
+    for (let level = 0; level <= HINT_MAX; level += 1) {
+      const weight = discount[String(level)];
+      if (typeof weight !== "number") return HINT_BAND_FALLBACK;
+      const last = bands.at(-1);
+      if (last && last.weight === weight) last.to = level;
+      else bands.push({ from: level, to: level, weight });
+    }
+    return bands.map((band) => ({
+      ...band,
+      ...(HINT_BAND_STYLE[band.weight] || { name: `weight ${band.weight}`, note: "", tone: "" }),
+    }));
+  }
+
+  // Pure display transform (design section 3b allows rolling means client-side).
+  function rollingMean(values, window) {
+    return values.map((_, index) => {
+      const slice = values.slice(Math.max(0, index - window + 1), index + 1);
+      return slice.reduce((sum, value) => sum + value, 0) / slice.length;
+    });
+  }
+
+  function chartLegend(entries) {
+    const legend = document.createElement("div");
+    legend.className = "chart-legend";
+    entries.forEach(({ label, shape, color }) => {
+      const item = document.createElement("span");
+      const mark = document.createElement("i");
+      mark.className = `legend-${shape || "dot"}`;
+      mark.style.background = color;
+      item.append(mark, document.createTextNode(label));
+      legend.append(item);
+    });
+    return legend;
+  }
+
+  function chartNote(message) {
+    const note = document.createElement("p");
+    note.className = "chart-note microlabel";
+    note.textContent = message;
+    return note;
+  }
+
+  function renderHintIndependence() {
+    const host = $("#hint-chart");
+    if (!host) return;
+    host.replaceChildren();
+    const badge = $("#hint-latest");
+    if (!feedAvailable()) {
+      host.removeAttribute("aria-label");
+      if (badge) {
+        badge.textContent = "offline";
+        badge.className = "pill num warn";
+      }
+      host.append(degradedBanner());
+      return;
+    }
+
+    const points = state.feed.hint_trajectory || [];
+    if (!points.length) {
+      host.removeAttribute("aria-label");
+      if (badge) {
+        badge.textContent = "0 solves";
+        badge.className = "pill num";
+      }
+      host.append(empty("No solves recorded yet — the trajectory starts with your first completion."));
+      return;
+    }
+
+    const levels = points.map((point) => clamp(Number(point.hint_level) || 0, 0, HINT_MAX));
+    const means = rollingMean(levels, 5);
+    const bands = hintBands();
+    const bandFor = (level) => bands.find((band) => level >= band.from && level <= band.to);
+    const latest = levels.at(-1);
+    const latestBand = bandFor(latest);
+    if (badge) {
+      badge.textContent = `latest ${latest} · ${latestBand ? latestBand.name : "unbanded"}`;
+      badge.className = `pill num ${latestBand?.tone || ""}`.trim();
+    }
+
+    const W = 660;
+    const H = 220;
+    const PAD_L = 30;
+    const PAD_R = 118;
+    const PAD_TOP = 12;
+    const PAD_BOTTOM = 30;
+    const plotW = W - PAD_L - PAD_R;
+    const plotH = H - PAD_TOP - PAD_BOTTOM;
+    const xAt = (index) =>
+      PAD_L + (points.length === 1 ? plotW / 2 : (plotW * index) / (points.length - 1));
+    const yAt = (level) => PAD_TOP + plotH - (plotH * clamp(level, 0, HINT_MAX)) / HINT_MAX;
+
+    const svg = svgNode("svg", { viewBox: `0 0 ${W} ${H}`, class: "insight-svg" });
+
+    // Mastery-tier bands, tinted; the name beside each carries the meaning so
+    // the tier is never communicated by color alone.
+    bands.forEach((band) => {
+      const top = yAt(Math.min(HINT_MAX, band.to + 0.5));
+      const bottom = yAt(Math.max(0, band.from - 0.5));
+      svg.append(
+        svgNode("rect", {
+          x: PAD_L,
+          y: top,
+          width: plotW,
+          height: Math.max(1, bottom - top),
+          class: `hint-band ${band.tone}`.trim(),
+        }),
+      );
+      // A hairline at each band edge: the 4% tint alone is deliberately faint.
+      if (top > PAD_TOP) {
+        svg.append(
+          svgNode("line", { x1: PAD_L, y1: top, x2: PAD_L + plotW, y2: top, class: "hint-band-edge" }),
+        );
+      }
+      svg.append(
+        svgNode(
+          "text",
+          { x: W - PAD_R + 10, y: (top + bottom) / 2 + 4, class: "insight-band-label" },
+          `${band.name} ${band.from}-${band.to}`,
         ),
-        ["retention", "acquisition"],
-      ],
-      [analyticsPerformanceCard(scoring), ["performance"]],
-      [analyticsScoreGraph(scoring), ["performance"]],
-      [analyticsConsistencyLineChart(completed), ["performance"]],
-      [analyticsRevisionCard(revisionPasses, revisionFailures, activeRevisions, dueNow), ["retention", "risks"]],
-      [analyticsStageCoverageCard(stages), ["acquisition"]],
-      [analyticsStageDistributionChart(stages), ["acquisition"]],
-      [
-        analyticsSignalCard("Preparation behavior", [
-        ["Avg confidence lift", `${confidenceLift.toFixed(2)} / 10`],
-        ["Avg hint level", `${hintAverage.toFixed(2)}`],
-        ["Avg solve time", `${timeAverage.toFixed(0)} min`],
-        ["Completed days", `${uniqueSolvedDays(completed).length}`],
-        ]),
-        ["performance"],
-      ],
-      [
-        analyticsSignalCard("Deferred learning loop", [
-        ["Open", openDeferred.length],
-        ["Resolved", deferredLearningEntries().filter((entry) => entry.status === "RESOLVED").length],
-        ["High priority", openDeferred.filter((entry) => entry.priority === "HIGH").length],
-        ["Evidence linked", deferredLearningEntries().filter((entry) => entry.evidence).length],
-        ]),
-        ["retention", "risks"],
-      ],
-      [analyticsFocusCard(), ["risks"]],
-    ];
-    cards
-      .filter(([, views]) => views.includes(state.analyticsView))
-      .forEach(([card]) => body.append(card));
-    shell.append(header, body);
-    target.append(shell);
-    target.querySelectorAll(".analytics-tab").forEach((tab) => {
-      tab.addEventListener("click", () => {
-        state.analyticsView = tab.dataset.view;
-        renderAnalytics();
+      );
+    });
+
+    // Recessive y ticks at the band edges.
+    const ticks = [...new Set([0, ...bands.map((band) => band.from), HINT_MAX])].sort((a, b) => a - b);
+    ticks.forEach((tick) => {
+      svg.append(
+        svgNode(
+          "text",
+          { x: PAD_L - 8, y: yAt(tick) + 4, "text-anchor": "end", class: "insight-axis" },
+          String(tick),
+        ),
+      );
+    });
+    svg.append(
+      svgNode("line", {
+        x1: PAD_L,
+        y1: yAt(0),
+        x2: PAD_L + plotW,
+        y2: yAt(0),
+        class: "insight-baseline",
+      }),
+    );
+
+    // Rolling mean is the trend line; raw solves are the markers.
+    svg.append(
+      svgNode("polyline", {
+        points: means.map((mean, index) => `${xAt(index).toFixed(1)},${yAt(mean).toFixed(1)}`).join(" "),
+        class: "insight-line",
+      }),
+    );
+    points.forEach((point, index) => {
+      const marker = svgNode("circle", {
+        cx: xAt(index),
+        cy: yAt(levels[index]),
+        r: 4,
+        class: "insight-marker",
+      });
+      const band = bandFor(levels[index]);
+      marker.append(
+        svgNode(
+          "title",
+          {},
+          `${point.problem_id || "solve"} · ${point.date} · hint ${levels[index]}${
+            band ? ` (${band.name})` : ""
+          }`,
+        ),
+      );
+      svg.append(marker);
+    });
+
+    // Dated x ticks: first, middle, last.
+    const tickIndexes = [...new Set([0, Math.floor((points.length - 1) / 2), points.length - 1])];
+    tickIndexes.forEach((index) => {
+      svg.append(
+        svgNode(
+          "text",
+          {
+            x: xAt(index),
+            y: H - 10,
+            "text-anchor": index === 0 ? "start" : index === points.length - 1 ? "end" : "middle",
+            class: "insight-axis",
+          },
+          points[index].date,
+        ),
+      );
+    });
+
+    host.append(svg);
+    host.append(
+      chartLegend([
+        { label: "solve · hint level used", shape: "dot", color: "var(--series-1)" },
+        { label: "5-solve rolling mean", shape: "line", color: "var(--series-1)" },
+      ]),
+    );
+    host.append(
+      chartNote(
+        "Lower is better. Bands mirror hint_mastery_discount in scoring.json: independent solves earn full skill-mastery credit, guided half, rescued none.",
+      ),
+    );
+    host.setAttribute(
+      "aria-label",
+      `Hint independence over ${points.length} solve${points.length === 1 ? "" : "s"}. ` +
+        `Latest hint level ${latest}${latestBand ? ` (${latestBand.name})` : ""}. ` +
+        `Rolling mean now ${means.at(-1).toFixed(1)} of a maximum ${HINT_MAX}.`,
+    );
+  }
+
+  function mockSparkline(dimension, mocks) {
+    const values = mocks.map((mock) => Number(mock.scores?.[dimension]) || 0);
+    const card = document.createElement("article");
+    card.className = "sparkline-card";
+
+    const label = document.createElement("span");
+    label.className = "microlabel";
+    label.textContent = dimension.replaceAll("_", " ");
+
+    const W = 120;
+    const H = 34;
+    const svg = svgNode("svg", { viewBox: `0 0 ${W} ${H}`, class: "sparkline-svg" });
+    const xAt = (index) => (values.length === 1 ? W / 2 : (W * index) / (values.length - 1));
+    const yAt = (value) => H - 3 - ((H - 6) * clamp(value, 0, MOCK_SCORE_MAX)) / MOCK_SCORE_MAX;
+    if (values.length > 1) {
+      svg.append(
+        svgNode("polyline", {
+          points: values.map((value, index) => `${xAt(index).toFixed(1)},${yAt(value).toFixed(1)}`).join(" "),
+          class: "sparkline-stroke",
+        }),
+      );
+    }
+    svg.append(
+      svgNode("circle", { cx: xAt(values.length - 1), cy: yAt(values.at(-1)), r: 4, class: "sparkline-end" }),
+    );
+
+    const value = document.createElement("strong");
+    value.className = "num";
+    value.textContent = `${values.at(-1)} / ${MOCK_SCORE_MAX}`;
+
+    card.append(label, svg, value);
+    card.setAttribute(
+      "aria-label",
+      `${dimension.replaceAll("_", " ")}: ${values.join(", ")} out of ${MOCK_SCORE_MAX} across ${values.length} mock${
+        values.length === 1 ? "" : "s"
+      }.`,
+    );
+    card.setAttribute("role", "img");
+    return card;
+  }
+
+  function renderMockTrend() {
+    const host = $("#mock-trend-body");
+    if (!host) return;
+    host.replaceChildren();
+    if (!feedAvailable()) {
+      host.append(degradedBanner());
+      return;
+    }
+    const mocks = state.feed.mock_history || [];
+    if (!mocks.length) {
+      host.append(empty("No mocks recorded yet — the first weekend mock is scheduled automatically."));
+      return;
+    }
+
+    const timeline = document.createElement("div");
+    timeline.className = "mock-timeline";
+    mocks.forEach((mock) => {
+      const row = document.createElement("button");
+      row.type = "button";
+      row.className = "mock-row";
+
+      const tone = MOCK_VERDICT_TONE[mock.verdict] || "";
+      const dot = document.createElement("span");
+      dot.className = `mock-dot ${tone}`.trim();
+      dot.setAttribute("aria-hidden", "true");
+
+      const date = document.createElement("span");
+      date.className = "mock-date num";
+      date.textContent = mock.date || "undated";
+
+      const problem = state.problemsById.get(mock.problem_id);
+      const title = document.createElement("span");
+      title.className = "mock-problem";
+      title.textContent = problem
+        ? `${mock.problem_id} · ${problem.title}`
+        : mock.problem_id || "problem not in curriculum";
+
+      // The verdict always carries its own text chip — never color alone.
+      const chip = pill(String(mock.verdict || "unscored").replaceAll("_", " "), tone);
+      chip.classList.add("num");
+
+      const duration = document.createElement("span");
+      duration.className = "mock-duration num";
+      duration.textContent = mock.duration_minutes != null ? `${mock.duration_minutes} min` : "—";
+
+      row.append(dot, date, title, chip, duration);
+      if (mock.problem_id) row.addEventListener("click", () => openProblemModal(mock.problem_id));
+      timeline.append(row);
+    });
+    host.append(timeline);
+
+    const dimensions = [];
+    mocks.forEach((mock) => {
+      Object.keys(mock.scores || {}).forEach((key) => {
+        if (!dimensions.includes(key)) dimensions.push(key);
       });
     });
-  }
-
-  function analyticsTab(view, label) {
-    return `
-      <button class="analytics-tab ${state.analyticsView === view ? "active" : ""}" type="button" role="tab" aria-selected="${state.analyticsView === view ? "true" : "false"}" data-view="${view}">
-        ${label}
-      </button>
-    `;
-  }
-
-  function analyticsSkillCard(title, rows) {
-    const card = document.createElement("article");
-    card.className = "analytics-card";
-    card.innerHTML = `<h4>${title}</h4><div class="analytics-bars"></div>`;
-    const bars = card.querySelector(".analytics-bars");
-    rows.forEach(([label, value, total]) => {
-      const percent = total ? Math.round((value / total) * 100) : 0;
-      bars.append(analyticsBar(label, `${value}/${total}`, percent));
-    });
-    return card;
-  }
-
-  function analyticsPerformanceCard(scoring) {
-    const averages = state.datasets.progress.scores?.averages || {};
-    const thinkingMax = scoring.scale?.maximum || 4;
-    const interviewMax = scoring.interview_scale?.maximum || 10;
-    const completed = [...state.completedById.values()];
-    const algorithmAvg = avg(completed.map((record) => record.algorithm_thinking_score));
-    const implementationAvg = avg(completed.map((record) => record.implementation_engineering_score));
-    const dimensions = [
-      ["Algorithm Thinking", algorithmAvg || 0, 10],
-      ["Implementation Eng", implementationAvg || 0, 10],
-      ["Thinking", averages.thinking_weighted || 0, thinkingMax],
-      ["Interview", averages.interview_average || 0, interviewMax],
-      ["Confidence before", averages.confidence_before || 0, 10],
-      ["Confidence after", averages.confidence_after || 0, 10],
-    ];
-    const card = document.createElement("article");
-    card.className = "analytics-card";
-    card.innerHTML = `<h4>Performance</h4><div class="analytics-bars"></div>`;
-    const bars = card.querySelector(".analytics-bars");
-    dimensions.forEach(([label, value, max]) => {
-      bars.append(analyticsBar(label, `${Number(value).toFixed(2)} / ${max}`, max ? Math.round((value / max) * 100) : 0));
-    });
-    return card;
-  }
-
-  function analyticsRevisionCard(passes, failures, active, dueNow) {
-    const total = passes + failures;
-    const passRate = total ? Math.round((passes / total) * 100) : 0;
-    const card = document.createElement("article");
-    card.className = "analytics-card";
-    card.innerHTML = `
-      <h4>Revision impact</h4>
-      <div class="analytics-kpi-grid">
-        ${kpi("Pass rate", `${passRate}%`)}
-        ${kpi("Passes", passes)}
-        ${kpi("Failures", failures)}
-        ${kpi("Active", active)}
-      </div>
-      <p>${dueNow ? `${dueNow} revision item${dueNow === 1 ? "" : "s"} need attention now.` : "No due revision pressure right now."}</p>
-    `;
-    return card;
-  }
-
-  function analyticsStageCoverageCard(stages) {
-    const card = document.createElement("article");
-    card.className = "analytics-card wide";
-    card.innerHTML = `<h4>Stage coverage</h4><div class="stage-mini-bars"></div>`;
-    const wrap = card.querySelector(".stage-mini-bars");
-    stages.stage_order.forEach((stageName, index) => {
-      const problems = state.datasets.curriculum.problems.filter((problem) => problem.stage === stageName);
-      const solved = problems.filter((problem) => state.completedById.has(problem.id)).length;
-      const percent = problems.length ? Math.round((solved / problems.length) * 100) : 0;
-      wrap.append(analyticsBar(`${index + 1}. ${stageName}`, `${solved}/${problems.length}`, percent));
-    });
-    return card;
-  }
-
-  function analyticsStageDistributionChart(stages) {
-    const card = document.createElement("article");
-    card.className = "analytics-card wide";
-    card.innerHTML = `<h4>Problem distribution by stage</h4><div class="column-chart"></div>`;
-    const wrap = card.querySelector(".column-chart");
-    const rows = stages.stage_order.map((stageName) => {
-      const total = state.datasets.curriculum.problems.filter((problem) => problem.stage === stageName).length;
-      const solved = state.datasets.curriculum.problems.filter(
-        (problem) => problem.stage === stageName && state.completedById.has(problem.id),
-      ).length;
-      return { stageName, total, solved };
-    });
-    const maxTotal = Math.max(...rows.map((row) => row.total), 1);
-    rows.forEach((row, index) => {
-      const height = Math.max(6, Math.round((row.total / maxTotal) * 100));
-      const solvedHeight = row.total ? Math.round((row.solved / row.total) * height) : 0;
-      const bar = document.createElement("div");
-      bar.className = "column-bar";
-      bar.innerHTML = `
-        <div class="column-track" style="--height:${height}%">
-          <span style="--height:${solvedHeight}%"></span>
-        </div>
-        <strong>${index + 1}</strong>
-        <small>${row.solved}/${row.total}</small>
-      `;
-      bar.title = row.stageName;
-      wrap.append(bar);
-    });
-    return card;
-  }
-
-  function analyticsScoreGraph(scoring) {
-    const dimensions = state.datasets.progress.scores?.averages?.thinking_dimensions || {};
-    const max = scoring.scale?.maximum || 4;
-    const card = document.createElement("article");
-    card.className = "analytics-card wide";
-    card.innerHTML = `<h4>Thinking dimension graph</h4><div class="radar-list"></div>`;
-    const list = card.querySelector(".radar-list");
-    Object.entries(dimensions).forEach(([label, value]) => {
-      list.append(analyticsBar(label.replaceAll("_", " "), `${Number(value).toFixed(2)} / ${max}`, Math.round((value / max) * 100)));
-    });
-    return card;
-  }
-
-  function analyticsConsistencyLineChart(completed) {
-    const timeline = cumulativeCompletionTimeline(completed);
-    const card = document.createElement("article");
-    card.className = "analytics-card wide";
-    if (!timeline.length) {
-      card.innerHTML = `
-        <h4>Showing-up graph</h4>
-        <p>Complete the first problem to start the consistency graph.</p>
-      `;
-      return card;
+    if (!dimensions.length) {
+      host.append(chartNote("Rubric scores appear once a mock is graded on the five dimensions."));
+      return;
     }
+    const grid = document.createElement("div");
+    grid.className = "sparkline-grid";
+    dimensions.forEach((dimension) => grid.append(mockSparkline(dimension, mocks)));
+    host.append(grid, chartNote(`Rubric dimensions, 1-${MOCK_SCORE_MAX}, oldest to newest mock.`));
+  }
+
+  function renderRetentionTiles() {
+    const host = $("#retention-tiles");
+    if (!host) return;
+    host.replaceChildren();
+    if (!feedAvailable()) {
+      host.append(degradedBanner());
+      return;
+    }
+    const retention = state.feed.retention || {};
+    const counts = retention.counts || {};
+    const target = state.feed.readiness?.gates?.revision_pass?.target ?? 0.9;
+    const youngTotal = counts.young_total || 0;
+    const matureTotal = counts.mature_total || 0;
+    const youngPass = counts.young_pass || 0;
+    const maturePass = counts.mature_pass || 0;
+
+    const tiles = [
+      {
+        label: "Overall recall",
+        rate: retention.overall_pass_rate,
+        detail: `${youngPass + maturePass}/${youngTotal + matureTotal} reviews passed`,
+        note: `target ≥ ${formatPct(target)}`,
+      },
+      {
+        label: "Young · R1-R2",
+        rate: retention.young_pass_rate,
+        detail: youngTotal ? `${youngPass}/${youngTotal} reviews passed` : "no R1-R2 reviews yet",
+        note: "short intervals",
+      },
+      {
+        label: "Mature · R3+",
+        rate: retention.mature_pass_rate,
+        detail: matureTotal ? `${maturePass}/${matureTotal} reviews passed` : "no R3+ reviews yet",
+        note: "21-day and 60-day intervals",
+      },
+    ];
+
+    tiles.forEach((tile) => {
+      const node = document.createElement("article");
+      node.className = "retention-tile";
+
+      const label = document.createElement("span");
+      label.className = "microlabel";
+      label.textContent = tile.label;
+
+      const value = document.createElement("strong");
+      value.className = "num";
+      value.textContent = tile.rate == null ? "—" : formatPct(tile.rate);
+
+      const status = document.createElement("span");
+      if (tile.rate == null) {
+        status.className = "retention-status microlabel";
+        status.textContent = "· not enough data";
+      } else if (tile.rate >= target) {
+        status.className = "retention-status microlabel good";
+        status.textContent = "✓ healthy";
+      } else {
+        status.className = "retention-status microlabel bad";
+        status.textContent = "⚠ below target";
+      }
+
+      const detail = document.createElement("small");
+      detail.className = "num";
+      detail.textContent = tile.detail;
+
+      const note = document.createElement("small");
+      note.className = "microlabel";
+      note.textContent = tile.note;
+
+      node.append(label, value, status, detail, note);
+      host.append(node);
+    });
+  }
+
+  function renderConsistency() {
+    const host = $("#consistency-chart");
+    if (!host) return;
+    host.replaceChildren();
+    const badge = $("#consistency-days");
+    const timeline = cumulativeCompletionTimeline([...state.completedById.values()]);
+    const setBadge = (label, tone = "") => {
+      if (badge) {
+        badge.textContent = label;
+        badge.className = `pill num ${tone}`.trim();
+      }
+    };
+    if (!timeline.length) {
+      setBadge("0 active days");
+      host.append(empty("Complete the first problem to start the consistency graph."));
+      return;
+    }
+
     // Rolling last-30-days window (today-29 .. today), not the first 30 days.
     const xMaxDays = 29;
     const yMax = 100;
@@ -3343,108 +3555,45 @@
     const startDate = addDays(endDate, -xMaxDays);
     const windowPoints = timeline.filter((point) => point.date >= startDate && point.date <= endDate);
     if (!windowPoints.length) {
-      card.innerHTML = `
-        <h4>Showing-up graph</h4>
-        <p>No completions in the last 30 days. The cumulative count resumes with the next solve.</p>
-      `;
-      return card;
+      setBadge("0 active days", "warn");
+      host.append(
+        empty("No completions in the last 30 days. The cumulative count resumes with the next solve."),
+      );
+      return;
     }
-    const problemPoints = linePoints(windowPoints, "problems", yMax, xMaxDays, startDate);
-    const skillPoints = linePoints(windowPoints, "skills", yMax, xMaxDays, startDate);
+    setBadge(`${windowPoints.length} active day${windowPoints.length === 1 ? "" : "s"}`, "good");
+
     const last = windowPoints.at(-1);
     const midDate = addDays(startDate, Math.floor(xMaxDays / 2));
-    card.innerHTML = `
-      <div class="section-head">
-        <div>
-          <h4>Showing-up graph</h4>
-          <p>X-axis is the rolling last-30-days window. Y-axis is a fixed 100-count target. Progress stays proportional to that perspective.</p>
+    const wrap = document.createElement("div");
+    wrap.className = "line-chart-wrap";
+    wrap.innerHTML = `
+      <span class="axis-title microlabel y">Cumulative count</span>
+      <div class="line-y-axis num">
+        ${lineTicks(yMax).map((tick) => `<span>${tick}</span>`).join("")}
+      </div>
+      <div class="line-chart" role="img" aria-label="Cumulative completed problems and skills over the rolling 30-day window. ${last.problems} problems and ${last.skills} skills so far.">
+        <svg viewBox="0 0 100 100" preserveAspectRatio="none">
+          <polyline class="line-area problems" points="${linePoints(windowPoints, "problems", yMax, xMaxDays, startDate)} 100,100 0,100" />
+          <polyline class="line-stroke problems" points="${linePoints(windowPoints, "problems", yMax, xMaxDays, startDate)}" />
+          <polyline class="line-stroke skills" points="${linePoints(windowPoints, "skills", yMax, xMaxDays, startDate)}" />
+        </svg>
+        <div class="line-axis num">
+          <span>${startDate}</span>
+          <span>${midDate}</span>
+          <span>${endDate}</span>
         </div>
-        <span class="pill good">${windowPoints.length} active day${windowPoints.length === 1 ? "" : "s"} in window</span>
       </div>
-      <div class="line-chart-wrap">
-        <span class="axis-title y">Cumulative count</span>
-        <div class="line-y-axis">
-          ${lineTicks(yMax).map((tick) => `<span>${tick}</span>`).join("")}
-        </div>
-        <div class="line-chart" role="img" aria-label="Cumulative completed problems and skills over time">
-          <svg viewBox="0 0 100 100" preserveAspectRatio="none">
-            <polyline class="line-area problems" points="${problemPoints} 100,100 0,100" />
-            <polyline class="line-stroke problems" points="${problemPoints}" />
-            <polyline class="line-stroke skills" points="${skillPoints}" />
-          </svg>
-          <div class="line-axis">
-            <span>${startDate}</span>
-            <span>${midDate}</span>
-            <span>${endDate}</span>
-          </div>
-        </div>
-        <span class="axis-title x">Rolling 30-day study window</span>
-      </div>
-      <div class="chart-legend">
-        ${legendItem("Problems completed", last.problems, "#1a73e8")}
-        ${legendItem("Skills touched", last.skills, "#0f766e")}
-        ${legendItem("Y-axis target", yMax, "#dfe8f0")}
-      </div>
+      <span class="axis-title microlabel x">Rolling 30-day study window</span>
     `;
-    return card;
-  }
-
-  function analyticsSignalCard(title, rows) {
-    const card = document.createElement("article");
-    card.className = "analytics-card";
-    card.innerHTML = `
-      <h4>${title}</h4>
-      <div class="analytics-kpi-grid">
-        ${rows.map(([label, value]) => kpi(label, value)).join("")}
-      </div>
-    `;
-    return card;
-  }
-
-  function analyticsFocusCard() {
-    const profile = state.datasets.progress.thinking_profile || {};
-    const gaps = [...(profile.gaps || []), ...(profile.common_failures || [])].slice(-5);
-    const card = document.createElement("article");
-    card.className = "analytics-card";
-    card.innerHTML = `
-      <h4>Focus risks</h4>
-      <ul>${(gaps.length ? gaps : ["No focus risks recorded yet."]).map((item) => `<li>${item}</li>`).join("")}</ul>
-    `;
-    return card;
-  }
-
-  function analyticsListCard(title, items, badge) {
-    const card = document.createElement("article");
-    card.className = "analytics-card";
-    card.innerHTML = `
-      <div class="section-head">
-        <h4>${title}</h4>
-        <span class="pill good">${badge}</span>
-      </div>
-      <ul>${items.map((item) => `<li>${item}</li>`).join("")}</ul>
-    `;
-    return card;
-  }
-
-  function analyticsBar(label, value, percent) {
-    const row = document.createElement("div");
-    row.className = "analytics-bar";
-    row.innerHTML = `
-      <div>
-        <strong>${label}</strong>
-        <span>${value}</span>
-      </div>
-      <div class="track"><div class="fill" style="--width:${clamp(percent, 0, 100)}%"></div></div>
-    `;
-    return row;
-  }
-
-  function kpi(label, value) {
-    return `<div class="analytics-kpi"><span>${label}</span><strong>${value}</strong></div>`;
-  }
-
-  function uniqueSolvedDays(records) {
-    return [...new Set(records.map((record) => record.completed_at).filter(Boolean))];
+    host.append(wrap);
+    host.append(
+      chartLegend([
+        { label: `problems completed · ${last.problems}`, shape: "line", color: "var(--series-1)" },
+        { label: `skills touched · ${last.skills}`, shape: "line", color: "var(--series-2)" },
+      ]),
+    );
+    host.append(chartNote(`Y-axis is a fixed ${yMax}-count target, so progress stays proportional to the goal.`));
   }
 
   function cumulativeCompletionTimeline(records) {
@@ -3543,7 +3692,10 @@
     renderProblemTable();
     renderThinkingProfile();
     renderLearningNotes();
-    renderAnalytics();
+    renderHintIndependence();
+    renderMockTrend();
+    renderRetentionTiles();
+    renderConsistency();
     switchWorkspace(state.activeWorkspace);
   }
 

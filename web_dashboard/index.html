@@ -32,7 +32,10 @@
           <span class="nav-group microlabel">Evidence</span>
           <a href="#history" data-workspace-link="evidence">Problem History</a>
           <a href="#thinking" data-workspace-link="evidence">Thinking Profile</a>
-          <a href="#insights" data-workspace-link="evidence">Insights</a>
+          <a href="#hint-independence" data-workspace-link="evidence">Hint Independence</a>
+          <a href="#mock-trend" data-workspace-link="evidence">Mock Trend</a>
+          <a href="#retention" data-workspace-link="evidence">Retention</a>
+          <a href="#consistency" data-workspace-link="evidence">Consistency</a>
           <a href="#deferred" data-workspace-link="evidence">Deferred Learning</a>
         </nav>
         <div class="rail-footer">
@@ -270,14 +273,46 @@
           <div id="thinking-bars" class="bar-list"></div>
         </section>
 
-        <section id="insights" class="section" data-workspace-section="evidence">
+        <section id="hint-independence" class="section" data-workspace-section="evidence">
           <div class="section-head">
             <div>
-              <p class="eyebrow microlabel">Leading indicators</p>
-              <h3>Insights</h3>
+              <p class="eyebrow microlabel">Autonomy</p>
+              <h3>Hint independence</h3>
+            </div>
+            <span class="pill num" id="hint-latest">-</span>
+          </div>
+          <div id="hint-chart" class="insight-chart" role="img"></div>
+        </section>
+
+        <section id="mock-trend" class="section" data-workspace-section="evidence">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow microlabel">The goal metric</p>
+              <h3>Mock interview trend</h3>
             </div>
           </div>
-          <div id="analytics-grid" class="analytics-grid"></div>
+          <div id="mock-trend-body" class="insight-stack"></div>
+        </section>
+
+        <section id="retention" class="section" data-workspace-section="evidence">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow microlabel">Recall health</p>
+              <h3>Retention split</h3>
+            </div>
+          </div>
+          <div id="retention-tiles" class="retention-tiles"></div>
+        </section>
+
+        <section id="consistency" class="section" data-workspace-section="evidence">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow microlabel">Showing up</p>
+              <h3>30-day consistency</h3>
+            </div>
+            <span class="pill num" id="consistency-days">-</span>
+          </div>
+          <div id="consistency-chart" class="insight-chart"></div>
         </section>
       </main>
     </div>

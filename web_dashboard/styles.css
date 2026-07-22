@@ -1969,9 +1969,9 @@ select {
   border: 1px solid var(--line);
   border-radius: var(--radius);
   background:
-    linear-gradient(to right, rgba(223, 232, 240, 0.8) 1px, transparent 1px) 0 0 / 20% 100%,
-    linear-gradient(to bottom, rgba(223, 232, 240, 0.8) 1px, transparent 1px) 0 0 / 100% 25%,
-    #ffffff;
+    linear-gradient(to right, var(--line) 1px, transparent 1px) 0 0 / 20% 100%,
+    linear-gradient(to bottom, var(--line) 1px, transparent 1px) 0 0 / 100% 25%,
+    var(--surface-2);
 }
 
 .line-stroke,
@@ -1987,16 +1987,16 @@ select {
 }
 
 .line-stroke.problems {
-  stroke: #1a73e8;
+  stroke: var(--series-1);
 }
 
 .line-stroke.skills {
-  stroke: #0f766e;
+  stroke: var(--series-2);
   stroke-dasharray: 5 4;
 }
 
 .line-area.problems {
-  fill: rgba(26, 115, 232, 0.1);
+  fill: color-mix(in srgb, var(--series-1) 14%, transparent);
   stroke: none;
 }
 
@@ -3087,4 +3087,240 @@ tbody tr:hover {
   .briefing-grid {
     grid-template-columns: 1fr;
   }
+}
+
+/* ---------------------------------------------------------------------------
+   Evidence workspace (design section 5): hint independence, mock trend,
+   retention split, consistency. Charts use --series-* only; status colors
+   (--good/--warn/--bad) always ship with an icon or word beside them.
+   --------------------------------------------------------------------------- */
+.insight-chart,
+.insight-stack {
+  display: grid;
+  gap: 12px;
+}
+
+.insight-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+}
+
+.chart-note {
+  margin: 0;
+  color: var(--muted);
+  text-transform: none;
+  letter-spacing: 0.02em;
+  line-height: 1.5;
+}
+
+/* Legend marks echo the mark they label — a dot for markers, a rule for
+   lines — so two same-hue series stay tellable apart. */
+.chart-legend i.legend-dot,
+.chart-legend i.legend-line {
+  display: inline-block;
+}
+
+.chart-legend i.legend-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 999px;
+}
+
+.chart-legend i.legend-line {
+  width: 16px;
+  height: 2px;
+  border-radius: 2px;
+}
+
+/* Hint independence: mastery-tier bands + rolling-mean line. */
+.hint-band {
+  fill: color-mix(in srgb, var(--muted) 4%, transparent);
+}
+
+.hint-band.good {
+  fill: color-mix(in srgb, var(--good) 4%, transparent);
+}
+
+.hint-band.warn {
+  fill: color-mix(in srgb, var(--warn) 4%, transparent);
+}
+
+.hint-band.bad {
+  fill: color-mix(in srgb, var(--bad) 4%, transparent);
+}
+
+.hint-band-edge {
+  stroke: var(--line);
+  stroke-width: 1;
+  stroke-dasharray: 3 4;
+}
+
+.insight-band-label {
+  fill: var(--muted);
+  font-family: var(--mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.insight-axis {
+  fill: var(--muted);
+  font-family: var(--mono);
+  font-size: 10px;
+}
+
+.insight-baseline {
+  stroke: var(--line);
+  stroke-width: 1;
+}
+
+.insight-line {
+  fill: none;
+  stroke: var(--series-1);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.insight-marker {
+  fill: var(--series-1);
+  stroke: var(--surface-2);
+  stroke-width: 2;
+}
+
+/* Mock trend: verdict timeline + per-dimension sparklines. */
+.mock-timeline {
+  display: grid;
+  gap: 6px;
+}
+
+.mock-row {
+  display: grid;
+  grid-template-columns: 12px auto minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 10px;
+  text-align: left;
+  padding: 9px 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.mock-row:hover {
+  border-color: var(--accent);
+}
+
+.mock-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: var(--muted);
+}
+
+.mock-dot.good {
+  background: var(--good);
+}
+
+.mock-dot.warn {
+  background: var(--warn);
+}
+
+.mock-dot.bad {
+  background: var(--bad);
+}
+
+.mock-date,
+.mock-duration {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.mock-problem {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sparkline-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 10px;
+}
+
+.sparkline-card {
+  display: grid;
+  gap: 4px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+}
+
+.sparkline-svg {
+  width: 100%;
+  height: 34px;
+  display: block;
+}
+
+.sparkline-stroke {
+  fill: none;
+  stroke: var(--series-1);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.sparkline-end {
+  fill: var(--series-1);
+}
+
+.sparkline-card strong {
+  font-size: 15px;
+  color: var(--text);
+}
+
+/* Retention split tiles. */
+.retention-tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+}
+
+.retention-tile {
+  display: grid;
+  gap: 3px;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+}
+
+.retention-tile strong {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.retention-tile small {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.retention-status {
+  font-weight: 700;
+}
+
+.retention-status.good {
+  color: var(--good);
+}
+
+.retention-status.bad {
+  color: var(--bad);
 }
