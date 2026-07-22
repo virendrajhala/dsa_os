@@ -148,14 +148,15 @@ def load_repository_state(explicit_progress_path: str | None = None) -> Reposito
 
     progress_path = resolve_progress_path(explicit_progress_path)
     progress = load_json_file(progress_path)
-    migrate_progress_payload(progress)
+    scoring = load_json_file(SCORING_PATH)
+    migrate_progress_payload(progress, scoring=scoring)
     return RepositoryState(
         curriculum=load_json_file(CURRICULUM_PATH),
         graph=load_json_file(GRAPH_PATH),
         stages=load_json_file(STAGES_PATH),
         skills=load_json_file(SKILLS_PATH),
         patterns=load_json_file(PATTERNS_PATH),
-        scoring=load_json_file(SCORING_PATH),
+        scoring=scoring,
         progress=progress,
         progress_path=progress_path,
     )
@@ -439,8 +440,29 @@ def normalize_weakness_entry(entry: Any) -> JsonDict:
     return {"text": text, "status": status, "source": source, "resolved_on": None}
 
 
-def migrate_progress_payload(payload: JsonDict) -> JsonDict:
+# Fallback for the algorithm_thinking_score backfill when scoring.json has no
+# `algorithm_thinking.weights` block (F22: config lives in scoring.json).
+DEFAULT_ALGORITHM_THINKING_WEIGHTS = {
+    "understanding": 0.18,
+    "examples": 0.12,
+    "brute_force": 0.12,
+    "pattern_detection": 0.24,
+    "algorithm_design": 0.24,
+    "complexity_analysis": 0.10,
+}
+
+
+def migrate_progress_payload(payload: JsonDict, scoring: JsonDict | None = None) -> JsonDict:
     """Upgrade old date-queue progress payloads to per-problem revision state in memory."""
+
+    if scoring is None:
+        try:
+            scoring = load_json_file(SCORING_PATH)
+        except RepositoryError:
+            scoring = {}
+    algorithm_weights = scoring.get("algorithm_thinking", {}).get("weights")
+    if not isinstance(algorithm_weights, dict) or not algorithm_weights:
+        algorithm_weights = DEFAULT_ALGORITHM_THINKING_WEIGHTS
 
     schema_version = int(payload.get("schema_version", 0) or 0)
     legacy_schedule = payload.pop("revision_schedule", []) if schema_version < 6 else []
@@ -489,14 +511,7 @@ def migrate_progress_payload(payload: JsonDict) -> JsonDict:
                 rev_score.setdefault("code_from_memory", rev_score.get("implementation", 0))
 
         if "algorithm_thinking_score" not in record:
-            score = weighted_thinking_score(record, {"weights": {
-                "understanding": 0.18,
-                "examples": 0.12,
-                "brute_force": 0.12,
-                "pattern_detection": 0.24,
-                "algorithm_design": 0.24,
-                "complexity_analysis": 0.10,
-            }})
+            score = weighted_thinking_score(record, {"weights": algorithm_weights})
             record["algorithm_thinking_score"] = round((score or 0) * 2.5, 2)
         if "implementation_engineering_score" not in record:
             impl_score = record.get("thinking_score", {}).get("implementation")
@@ -919,6 +934,22 @@ def normalize_progress(state: RepositoryState, payload: JsonDict) -> JsonDict:
         "percent": round(100 * len(payload["mastered_skills"]) / total_skills, 2) if total_skills else 0.0,
     }
     payload["current_stage"] = determine_stage(payload, state.stages, state.scoring, state.skills)
+
+    # F22: implementation_engineering.score is a running average over
+    # completion records, not last-write-wins - recomputed here so the
+    # validator's recompute-vs-cache check stays consistent.
+    implementation_engineering = payload.get("implementation_engineering")
+    if not isinstance(implementation_engineering, dict):
+        implementation_engineering = {}
+        payload["implementation_engineering"] = implementation_engineering
+    engineering_scores = [
+        float(record["implementation_engineering_score"])
+        for record in completed_records(payload)
+        if isinstance(record.get("implementation_engineering_score"), (int, float))
+    ]
+    implementation_engineering["score"] = (
+        round(mean(engineering_scores), 2) if engineering_scores else 0
+    )
     return payload
 
 
@@ -1102,7 +1133,9 @@ def select_next_problem(state: RepositoryState, on_date: date | None = None) -> 
                 "Revision is due today and takes priority over new work."
             )
         return SelectionResult(
-            mode=str(chosen_entry.get("kind", "revision_due")),
+            # Fallback must be a real kind name ("revision"), not the old
+            # "revision_due" string that matched nothing downstream (F22).
+            mode=str(chosen_entry.get("kind", "revision")),
             reason=reason,
             problem=chosen_problem,
             suggested_stage=chosen_problem.get("stage"),

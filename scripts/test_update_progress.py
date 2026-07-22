@@ -423,6 +423,23 @@ class CodeExecutionGateTests(unittest.TestCase):
         self.assertTrue(notes, "expected a --no-code note recorded on the new record")
         self.assertTrue(any("no-code" in note.lower() for note in notes))
 
+    def test_note_appended_as_dated_object(self) -> None:
+        # F22: progress.notes entries append as {"date", "text"} objects going
+        # forward; historical string entries are never rewritten.
+        payload = json.loads(self.tmp_progress.read_text())
+        payload.setdefault("notes", []).append("legacy string note")
+        self.tmp_progress.write_text(json.dumps(payload, indent=2))
+
+        result = self._run([*BASE_ARGS, "--no-code", "--note", "structured note text"])
+
+        self.assertEqual(result.returncode, 0, msg=result.stdout + result.stderr)
+        updated = json.loads(self.tmp_progress.read_text())
+        self.assertIn("legacy string note", updated["notes"])
+        self.assertIn(
+            {"date": "2026-07-21", "text": "structured note text"},
+            updated["notes"],
+        )
+
     def test_revision_mode_unaffected_by_missing_solution_file(self) -> None:
         # No solution file exists for REVISION_PROBLEM_ID in the temp
         # solutions dir, and --no-code is not passed; revision mode must not

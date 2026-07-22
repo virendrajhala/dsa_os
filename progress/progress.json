@@ -2027,7 +2027,7 @@
     "When the repeated query only asks whether a value exists, store membership in a HashSet; use a HashMap only when the answer also needs metadata such as an index, count, or group."
   ],
   "implementation_engineering": {
-    "score": 9.0,
+    "score": 8.8,
     "strengths": [
       "State definition",
       "DP recurrence",

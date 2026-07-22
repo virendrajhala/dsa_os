@@ -501,9 +501,8 @@ def update_implementation_engineering(progress: dict[str, Any], args: argparse.N
             "improvement_notes": [],
         },
     )
-    score = validate_zero_to_ten(args.implementation_engineering_score, "--implementation-engineering-score")
-    if score is not None:
-        section["score"] = score
+    # F22: section["score"] is no longer written here - it is a running
+    # average over completion records, recomputed by normalize_progress.
     section.setdefault("strengths", []).extend(
         item.strip() for item in args.implementation_strength if item.strip()
     )
@@ -921,7 +920,13 @@ def main() -> int:
             )
 
         if args.note:
-            progress.setdefault("notes", []).extend(note for note in args.note if note.strip())
+            # F22: notes append as {"date", "text"} objects going forward;
+            # historical string entries are left untouched.
+            progress.setdefault("notes", []).extend(
+                {"date": format_iso_date(completed_on), "text": note.strip()}
+                for note in args.note
+                if note.strip()
+            )
         update_implementation_engineering(progress, args)
 
         progress["last_updated"] = format_iso_date(completed_on)

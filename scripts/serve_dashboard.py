@@ -11,6 +11,8 @@ import sys
 import webbrowser
 from pathlib import Path
 
+# Serves the whole repo root (fine for localhost): the dashboard fetches
+# data via relative ../progress, ../curriculum, ../knowledge paths.
 ROOT = Path(__file__).resolve().parents[1]
 
 

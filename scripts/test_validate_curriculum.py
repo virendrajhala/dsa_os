@@ -433,5 +433,54 @@ class F20WeaknessShapeValidationTests(unittest.TestCase):
         self.assertTrue(any("personal_playbook" in e for e in errors), msg=errors)
 
 
+class F22HygieneValidationTests(unittest.TestCase):
+    """F22: notes entries may be strings (legacy) or {date, text} objects;
+    unknown completion-record keys warn instead of passing silently."""
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.curriculum = load_json_file(_shared.CURRICULUM_PATH)
+        cls.graph = load_json_file(_shared.GRAPH_PATH)
+        cls.stages = load_json_file(_shared.STAGES_PATH)
+        cls.skills = load_json_file(_shared.SKILLS_PATH)
+        cls.scoring = load_json_file(_shared.SCORING_PATH)
+        cls.progress = _shared.migrate_progress_payload(load_json_file(_shared.PROGRESS_PATH))
+
+    def _validate(self, progress) -> tuple[list[str], list[str]]:
+        return validate_progress_payload(
+            label="test", progress=progress, curriculum=self.curriculum,
+            graph=self.graph, stages=self.stages, skills=self.skills, scoring=self.scoring,
+        )
+
+    def test_notes_accept_strings_and_dated_objects(self) -> None:
+        progress = copy.deepcopy(self.progress)
+        progress["notes"] = ["legacy string", {"date": "2026-07-21", "text": "structured"}]
+        errors, _ = self._validate(progress)
+        self.assertFalse(any("`notes`" in e for e in errors), msg=errors)
+
+    def test_notes_object_without_text_fails(self) -> None:
+        progress = copy.deepcopy(self.progress)
+        progress["notes"] = [{"date": "2026-07-21"}]
+        errors, _ = self._validate(progress)
+        self.assertTrue(any("notes" in e and "text" in e for e in errors), msg=errors)
+
+    def test_unknown_completion_key_warns(self) -> None:
+        progress = copy.deepcopy(self.progress)
+        progress["completed"][0]["totally_unknown_key"] = "x"
+        errors, warnings = self._validate(progress)
+        self.assertTrue(any("totally_unknown_key" in w for w in warnings), msg=warnings)
+        self.assertFalse(any("totally_unknown_key" in e for e in errors), msg=errors)
+
+    def test_documented_optional_completion_fields_do_not_warn(self) -> None:
+        progress = copy.deepcopy(self.progress)
+        progress["completed"][0]["session_summary"] = {"summary": "x"}
+        progress["completed"][0]["revision_material"] = {"focus": "x", "questions": []}
+        _, warnings = self._validate(progress)
+        self.assertFalse(
+            any("session_summary" in w or "revision_material" in w for w in warnings),
+            msg=warnings,
+        )
+
+
 if __name__ == "__main__":
     unittest.main()

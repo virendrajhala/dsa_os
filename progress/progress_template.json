@@ -4,6 +4,12 @@
   "current_stage": "Observation",
   "current_problem": null,
   "completed": [],
+  "completion_record_optional_fields": {
+    "session_summary": "Optional object: free-form end-of-session summary keyed by topic.",
+    "conceptual_discoveries": "Optional list of strings: conceptual insights captured during the solve.",
+    "variable_semantics": "Optional object: variable-name -> meaning notes for the final solution.",
+    "revision_material": "Optional object: {focus, questions[]} used to drive future active recall."
+  },
   "deferred_learnings": [],
   "mock_interviews": [],
   "mastered_skills": [],

@@ -687,6 +687,125 @@ class StageMasteryMetaSkillTests(unittest.TestCase):
         self.assertEqual(result["Only"]["status"], "mastered")
 
 
+class ImplementationEngineeringAverageTests(unittest.TestCase):
+    """F22: implementation_engineering.score is a running average over
+    completions, recomputed in the normalize path (not last-write-wins)."""
+
+    STAGES = {"stage_order": ["Stage1"], "stages": {"Stage1": {"skills": ["SK-TEST"]}}}
+
+    def _state(self, payload):
+        from pathlib import Path
+
+        return RepositoryState(
+            curriculum={"problems": [{"id": "PRIMARY-001", "primary_skill": "SK-TEST"}]},
+            graph={},
+            stages=self.STAGES,
+            skills=_SKILLS,
+            patterns={},
+            scoring=_SCORING,
+            progress=payload,
+            progress_path=Path("test"),
+        )
+
+    def test_normalize_sets_running_average_over_completions(self):
+        payload = {
+            "completed": [
+                {"problem_id": "PRIMARY-001", "completed_at": "2026-01-01", "implementation_engineering_score": 8},
+                {"problem_id": "PRIMARY-001", "completed_at": "2026-01-02", "implementation_engineering_score": 9},
+            ],
+            "implementation_engineering": {"score": 3, "strengths": [], "weaknesses": [], "common_errors": [], "improvement_notes": []},
+        }
+        _shared.normalize_progress(self._state(payload), payload)
+        self.assertEqual(payload["implementation_engineering"]["score"], 8.5)
+
+    def test_normalize_keeps_zero_score_with_no_completions(self):
+        payload = {
+            "completed": [],
+            "implementation_engineering": {"score": 7, "strengths": [], "weaknesses": [], "common_errors": [], "improvement_notes": []},
+        }
+        _shared.normalize_progress(self._state(payload), payload)
+        self.assertEqual(payload["implementation_engineering"]["score"], 0)
+
+
+class MigrateAlgorithmWeightsTests(unittest.TestCase):
+    """F22: migrate's algorithm_thinking_score backfill weights come from
+    scoring.json's `algorithm_thinking.weights`, not a hardcoded table."""
+
+    @staticmethod
+    def _payload():
+        return {
+            "completed": [
+                {
+                    "problem_id": "P-1",
+                    "completed_at": "2026-01-01",
+                    "thinking_score": {
+                        "understanding": 4,
+                        "examples": 4,
+                        "brute_force": 4,
+                        "pattern_detection": 4,
+                        "algorithm_design": 4,
+                        "complexity_analysis": 4,
+                    },
+                    "revision": {"status": "ACTIVE", "stage": 0, "completed": [], "next_due": "2026-01-04", "history": []},
+                }
+            ]
+        }
+
+    def test_backfill_uses_scoring_algorithm_thinking_weights(self):
+        payload = self._payload()
+        scoring = {"algorithm_thinking": {"weights": {"understanding": 1.0}}}
+        _shared.migrate_progress_payload(payload, scoring=scoring)
+        self.assertEqual(payload["completed"][0]["algorithm_thinking_score"], 10.0)
+
+    def test_backfill_default_weights_without_scoring_block(self):
+        payload = self._payload()
+        _shared.migrate_progress_payload(payload, scoring={})
+        # All-4 thinking scores at any normalized weight table -> 4 * 2.5 = 10.
+        self.assertEqual(payload["completed"][0]["algorithm_thinking_score"], 10.0)
+
+
+class QuarterlyMaintenanceSelectionTests(unittest.TestCase):
+    """F22: pin the quarterly-maintenance selection path and its mode name
+    (the old fallback string "revision_due" was not a real kind name)."""
+
+    def _state(self, progress):
+        return RepositoryState(
+            curriculum=load_json_file(_shared.CURRICULUM_PATH),
+            graph=load_json_file(_shared.GRAPH_PATH),
+            stages=load_json_file(_shared.STAGES_PATH),
+            skills=load_json_file(_shared.SKILLS_PATH),
+            patterns={},
+            scoring=load_json_file(_shared.SCORING_PATH),
+            progress=progress,
+            progress_path=_shared.PROGRESS_PATH,
+        )
+
+    def test_maintenance_due_selects_quarterly_maintenance_mode(self):
+        progress = {
+            "completed": [
+                {
+                    "problem_id": "OBS-001",
+                    "completed_at": "2026-01-01",
+                    "revision": {
+                        "status": "MASTERED",
+                        "stage": 5,
+                        "completed": ["2026-01-01"],
+                        "next_due": None,
+                        "history": [],
+                        "last_maintenance": "2026-01-01",
+                    },
+                }
+            ],
+            "mastered_skills": [],
+            "current_problem": None,
+            "current_stage": "Observation",
+        }
+        # 90+ days after last_maintenance on a weekday -> maintenance recall due.
+        selection = select_next_problem(self._state(progress), on_date=date(2026, 7, 22))
+        self.assertEqual(selection.mode, "quarterly_maintenance")
+        self.assertEqual(selection.problem["id"], "OBS-001")
+
+
 class NormalizeWeaknessEntryTests(unittest.TestCase):
     """F20a: weaknesses_detected entries become structured objects; legacy
     strings (with "Resolved: "/"Mock: " prefixes) keep working in all readers."""

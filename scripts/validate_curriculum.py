@@ -120,6 +120,18 @@ REQUIRED_COMPLETION_FIELDS = {
     "interview_score",
     "revision",
 }
+# F22: free-form completion fields seen in live data - documented-optional
+# (also listed in progress_template.json's completion_record_optional_fields).
+# Anything outside REQUIRED + OPTIONAL warns instead of passing silently.
+OPTIONAL_COMPLETION_FIELDS = {
+    "mentor_scores",
+    "notes",
+    "session_summary",
+    "conceptual_discoveries",
+    "implementation_discoveries",
+    "variable_semantics",
+    "revision_material",
+}
 REQUIRED_REVISION_FIELDS = {"status", "stage", "completed", "next_due", "history"}
 REQUIRED_REVISION_HISTORY_FIELDS = {
     "date",
@@ -990,8 +1002,32 @@ def validate_progress_payload(
         if not isinstance(thinking_profile.get("notes"), str):
             add_error(errors, f"{label}: `thinking_profile.notes` must be a string.")
 
-    if not isinstance(progress.get("notes"), list):
+    notes = progress.get("notes")
+    if not isinstance(notes, list):
         add_error(errors, f"{label}: `notes` must be a list.")
+    else:
+        # F22: entries are legacy strings or {"date", "text"} objects going
+        # forward - readers handle both; historical strings stay untouched.
+        for index, note in enumerate(notes, start=1):
+            if isinstance(note, str):
+                continue
+            if not isinstance(note, dict):
+                add_error(errors, f"{label}: notes entry #{index} must be a string or object.")
+                continue
+            # New entries use `text`; historical hand-authored objects use
+            # `note` - both are valid, neither gets rewritten.
+            body = note.get("text", note.get("note"))
+            if not isinstance(body, str) or not body.strip():
+                add_error(errors, f"{label}: notes entry #{index} requires non-empty `text` (or legacy `note`).")
+            note_date = note.get("date")
+            if note_date is not None:
+                if not isinstance(note_date, str):
+                    add_error(errors, f"{label}: notes entry #{index} `date` must be YYYY-MM-DD.")
+                else:
+                    try:
+                        parse_iso_date(note_date, f"{label}.notes[{index}].date")
+                    except RepositoryError as exc:
+                        add_error(errors, f"{label}: {exc}")
     if not isinstance(progress.get("history"), list):
         add_error(errors, f"{label}: `history` must be a list.")
 
@@ -1300,6 +1336,13 @@ def validate_progress_payload(
             add_error(errors, f"{label}: completion #{index} missing fields: {', '.join(missing)}.")
             continue
 
+        unknown = sorted(record.keys() - REQUIRED_COMPLETION_FIELDS - OPTIONAL_COMPLETION_FIELDS)
+        if unknown:
+            add_warning(
+                warnings,
+                f"{label}: completion #{index} has unknown fields: {', '.join(unknown)}.",
+            )
+
         problem_id = record.get("problem_id")
         if problem_id not in problems:
             add_error(errors, f"{label}: completion #{index} references missing problem `{problem_id}`.")
@@ -1572,7 +1615,7 @@ def validate_progress_payload(
     except RepositoryError as exc:
         add_error(errors, f"{label}: failed to recompute derived progress state: {exc}")
     else:
-        for field in ("scores", "current_stage", "mastered_skills", "skill_progress", "stage_mastery", "competency_completion"):
+        for field in ("scores", "current_stage", "mastered_skills", "skill_progress", "stage_mastery", "competency_completion", "implementation_engineering"):
             if expected_progress.get(field) != progress.get(field):
                 add_error(errors, f"{label}: cached `{field}` does not match the recomputed value.")
 
@@ -1595,14 +1638,17 @@ def main() -> int:
         progress_payloads: list[tuple[str, dict[str, Any]]] = [
             (
                 str(Path(args.progress_file)),
-                migrate_progress_payload(load_json_file(Path(args.progress_file))),
+                migrate_progress_payload(load_json_file(Path(args.progress_file)), scoring=scoring),
             ),
         ]
         template_path = PROGRESS_TEMPLATE_PATH.resolve()
         live_path = Path(args.progress_file).resolve()
         if not args.skip_template_progress and template_path != live_path:
             progress_payloads.append(
-                (str(template_path), migrate_progress_payload(load_json_file(template_path)))
+                (
+                    str(template_path),
+                    migrate_progress_payload(load_json_file(template_path), scoring=scoring),
+                )
             )
     except RepositoryError as exc:
         print(str(exc), file=sys.stderr)

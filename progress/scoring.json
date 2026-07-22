@@ -179,6 +179,15 @@
       "maximum": 10
     },
     "description": "Independent session score for algorithm discovery and reasoning. Never mix with implementation engineering mistakes.",
+    "weights": {
+      "understanding": 0.18,
+      "examples": 0.12,
+      "brute_force": 0.12,
+      "pattern_detection": 0.24,
+      "algorithm_design": 0.24,
+      "complexity_analysis": 0.1
+    },
+    "weights_note": "Used by migrate_progress_payload to backfill algorithm_thinking_score from 6 algorithm-side thinking dimensions (x2.5 to the 0-10 scale).",
     "dimensions": {
       "pattern_recognition": "Identifies the relevant invariant or reasoning family.",
       "state_design": "Defines the right state, invariant, or data representation.",
@@ -215,7 +224,10 @@
     "stage_scope_count": 9,
     "revision_pass_rate": 0.9,
     "recent_mock_count": 3,
-    "min_mock_verdicts": ["hire", "strong-hire"],
+    "min_mock_verdicts": [
+      "hire",
+      "strong-hire"
+    ],
     "pace_window_days": 28
   }
 }
