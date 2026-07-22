@@ -11,6 +11,7 @@ test:
 	$(PYTHON) scripts/test_validate_curriculum.py
 	$(PYTHON) scripts/test_run_checks.py
 	$(PYTHON) scripts/test_weakness_lab.py
+	$(PYTHON) scripts/test_dashboard_feed.py
 
 dashboard:
 	$(PYTHON) scripts/dashboard.py

@@ -1839,3 +1839,294 @@ def compute_readiness(
         "projection": projection,
         "all_met": core_met and pass_met and mock_met,
     }
+
+
+# ---------------------------------------------------------------------------
+# Dashboard feed: the single view model the web dashboard renders. Every value
+# comes from the functions above (the same ones the CLI uses), so the browser
+# can never contradict next_problem.py or revision_report.py. Design spec:
+# plans/DASHBOARD_REDESIGN_DESIGN.md section 3. Pure function; JSON-serializable
+# output; never mutates state.
+# ---------------------------------------------------------------------------
+
+_FORECAST_DAYS = 14
+
+
+def _feed_queue_kind(raw_kind: object) -> str:
+    """Normalize a due-entry kind to the feed contract (design section 3).
+
+    `_shared` due-entry helpers emit `reactivation`; the feed/UI contract uses
+    `reactivated`. `revision` and `quarterly_maintenance` pass through.
+    """
+
+    return "reactivated" if raw_kind == "reactivation" else str(raw_kind)
+
+
+def _feed_queue_stage_label(kind: str, stage: int) -> str:
+    """Pill text for a revision-queue row: the R-label for revisions, an
+    explicit tag for maintenance so the R-scale is not misapplied."""
+
+    if kind == "quarterly_maintenance":
+        return "Q-maint"
+    return revision_stage_label(stage)
+
+
+def review_forecast(progress: JsonDict, on_date: date) -> list[JsonDict]:
+    """A 14-day review-load forecast from `on_date`. Overdue open revisions
+    fold into day 0 (flagged `overdue`); items due beyond the window are
+    dropped. Sourced from `open_revision_entries` so it matches the scheduler's
+    view of scheduled recall work."""
+
+    buckets = [
+        {
+            "date": format_iso_date(on_date + timedelta(days=offset)),
+            "count": 0,
+            "overdue": False,
+            "problem_ids": [],
+        }
+        for offset in range(_FORECAST_DAYS)
+    ]
+    for entry in open_revision_entries(progress):
+        due = parse_iso_date(entry["date"], "revision.next_due")
+        offset = (due - on_date).days
+        if offset < 0:
+            index = 0
+            buckets[0]["overdue"] = True
+        elif offset < _FORECAST_DAYS:
+            index = offset
+        else:
+            continue
+        bucket = buckets[index]
+        bucket["count"] += 1
+        bucket["problem_ids"].append(entry["problem"])
+    return buckets
+
+
+def retention_split(progress: JsonDict) -> JsonDict:
+    """Young (attempted at R1-R2) vs mature (R3+) active-recall pass rates,
+    the Anki-style leading indicator (design section 2). Walks every completion
+    record's revision history; only graded PASS/FAIL events count."""
+
+    young_pass = young_total = mature_pass = mature_total = 0
+    for record in completed_records(progress):
+        revision = record.get("revision")
+        if not isinstance(revision, dict):
+            continue
+        history = revision.get("history")
+        if not isinstance(history, list):
+            continue
+        for event in history:
+            if not isinstance(event, dict):
+                continue
+            result = event.get("result")
+            if result not in {"PASS", "FAIL"}:
+                continue
+            attempted = event.get("attempted_stage")
+            try:
+                attempted_stage = int(attempted)
+            except (TypeError, ValueError):
+                continue
+            is_pass = result == "PASS"
+            if attempted_stage <= 2:
+                young_total += 1
+                young_pass += 1 if is_pass else 0
+            else:
+                mature_total += 1
+                mature_pass += 1 if is_pass else 0
+
+    overall_pass = young_pass + mature_pass
+    overall_total = young_total + mature_total
+
+    def _rate(passed: int, total: int) -> float | None:
+        return round(passed / total, 4) if total else None
+
+    return {
+        "overall_pass_rate": _rate(overall_pass, overall_total),
+        "young_pass_rate": _rate(young_pass, young_total),
+        "mature_pass_rate": _rate(mature_pass, mature_total),
+        "counts": {
+            "young_pass": young_pass,
+            "young_total": young_total,
+            "mature_pass": mature_pass,
+            "mature_total": mature_total,
+        },
+    }
+
+
+def hint_trajectory_events(progress: JsonDict) -> list[JsonDict]:
+    """Hint level per solve over time, oldest first (design section 4: hint
+    independence). Display transform only; the discount tiers live in
+    `scoring.json.hint_mastery_discount`."""
+
+    events: list[JsonDict] = []
+    for record in completed_records(progress):
+        completed_on = _completion_date(record)
+        if completed_on is None:
+            continue
+        hint_level = record.get("hint_level_used")
+        try:
+            hint_value = int(hint_level)
+        except (TypeError, ValueError):
+            continue
+        events.append(
+            {
+                "date": format_iso_date(completed_on),
+                "hint_level": hint_value,
+                "problem_id": record.get("problem_id"),
+            }
+        )
+    events.sort(key=lambda event: event["date"])
+    return events
+
+
+def _feed_mock_history(progress: JsonDict) -> list[JsonDict]:
+    """Pass-through of recorded weekend mocks in append order (design section
+    3). Verdict + five 1-4 rubric scores drive the Evidence mock trend."""
+
+    history: list[JsonDict] = []
+    mocks = progress.get("mock_interviews")
+    if not isinstance(mocks, list):
+        return history
+    for mock in mocks:
+        if not isinstance(mock, dict):
+            continue
+        scores = mock.get("scores")
+        history.append(
+            {
+                "date": mock.get("date"),
+                "problem_id": mock.get("problem_id"),
+                "verdict": mock.get("verdict"),
+                "duration_minutes": mock.get("duration_minutes"),
+                "scores": scores if isinstance(scores, dict) else {},
+            }
+        )
+    return history
+
+
+def _feed_readiness(state: RepositoryState, on_date: date) -> JsonDict:
+    """Reshape `compute_readiness` into the design section 3 gate dict. No
+    recomputation - the same numbers the CLI readiness report shows."""
+
+    readiness = compute_readiness(
+        state.curriculum, state.stages, state.skills, state.scoring,
+        state.progress, on_date,
+    )
+    thresholds = readiness["thresholds"]
+    core = thresholds["core_skill_mastery"]
+    pass_rate = thresholds["revision_pass_rate"]
+    mocks = thresholds["recent_mocks"]
+    projection = readiness["projection"]
+    pace = readiness["pace"]
+    return {
+        "gates": {
+            "core_mastery": {
+                "met": core["met"],
+                "current": core["actual"],
+                "target": core["target"],
+                "mastered": core["mastered"],
+                "total": core["total"],
+            },
+            "revision_pass": {
+                "met": pass_rate["met"],
+                "current": pass_rate["actual"],
+                "target": pass_rate["target"],
+            },
+            "mocks": {
+                "met": mocks["met"],
+                "current": mocks["recorded"],
+                "required": mocks["required"],
+                "verdicts": mocks["recent_verdicts"],
+            },
+        },
+        "projected_date": projection.get("date"),
+        "projection_status": projection.get("status"),
+        "projection_message": projection.get("message"),
+        "all_met": readiness["all_met"],
+        "pace": {
+            "problems_per_week": pace["problems_per_week"],
+            "skills_per_week": pace["skills_mastered_per_week"],
+            "window_days": pace["window_days"],
+        },
+    }
+
+
+def build_dashboard_feed(state: RepositoryState, on_date: date) -> JsonDict:
+    """Everything the web dashboard renders, computed by the same engine as the
+    CLI (design: plans/DASHBOARD_REDESIGN_DESIGN.md section 3). Pure function;
+    JSON-serializable output; never mutates state."""
+
+    from datetime import datetime
+
+    problems = problem_lookup(state.curriculum)
+    selection = select_next_problem(state, on_date=on_date)
+
+    next_action: JsonDict = {
+        "mode": selection.mode,
+        "problem_id": None,
+        "title": None,
+        "url": None,
+        "reason": selection.reason,
+        "stage_label": None,
+    }
+    if selection.problem:
+        problem = selection.problem
+        next_action["problem_id"] = problem.get("id")
+        next_action["title"] = problem.get("title")
+        next_action["url"] = problem.get("url")
+
+    revision_modes = {"revision", "reactivation", "quarterly_maintenance"}
+    if selection.mode in revision_modes and isinstance(selection.revision_entry, dict):
+        entry_kind = _feed_queue_kind(selection.revision_entry.get("kind"))
+        next_action["stage_label"] = _feed_queue_stage_label(
+            "quarterly_maintenance"
+            if selection.mode == "quarterly_maintenance"
+            else entry_kind,
+            int(selection.revision_entry.get("stage", 0)),
+        )
+
+    solve_modes = {"resume_current_problem", "current_skill",
+                   "current_stage", "earliest_unlocked"}
+    if selection.mode in solve_modes and next_action["problem_id"]:
+        solution_path = ROOT / "solutions" / f"{next_action['problem_id']}.py"
+        next_action["code_gate"] = {
+            "solution_expected": f"solutions/{next_action['problem_id']}.py",
+            "solution_exists": solution_path.exists(),
+        }
+
+    revision_queue: list[JsonDict] = []
+    for entry in open_revision_entries_due_on_or_before(state.progress, on_date):
+        kind = _feed_queue_kind(entry.get("kind"))
+        stage = int(entry.get("stage", 0))
+        problem = problems.get(entry["problem"], {})
+        revision_queue.append(
+            {
+                "problem_id": entry["problem"],
+                "title": problem.get("title"),
+                "stage": stage,
+                "stage_label": _feed_queue_stage_label(kind, stage),
+                "next_due": entry["date"],
+                "status": entry.get("status"),
+                "kind": kind,
+                "overdue": parse_iso_date(entry["date"], "revision.date") < on_date,
+            }
+        )
+
+    feed: JsonDict = {
+        "generated_at": datetime.now().isoformat(timespec="seconds"),
+        "reference_date": format_iso_date(on_date),
+        "next_action": next_action,
+        "revision_queue": revision_queue,
+        "review_forecast": review_forecast(state.progress, on_date),
+        "readiness": _feed_readiness(state, on_date),
+        "retention": retention_split(state.progress),
+        "hint_trajectory": hint_trajectory_events(state.progress),
+        "mock_history": _feed_mock_history(state.progress),
+        "policy": {
+            "mastered_after_stage": MASTERED_AFTER_STAGE,
+            "intervals": {
+                f"R{index + 1}": REVISION_INTERVAL_DAYS[index]
+                for index in sorted(REVISION_INTERVAL_DAYS)
+            },
+        },
+    }
+    return feed
