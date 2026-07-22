@@ -11,43 +11,55 @@
     <div class="app-shell">
       <aside class="sidebar" aria-label="Dashboard navigation">
         <div class="brand">
-          <div class="brand-mark">DS</div>
+          <div class="brand-mark num">DS</div>
           <div>
             <h1>DSA OS</h1>
-            <p>Learning cockpit</p>
+            <p class="microlabel">Mission Deck</p>
           </div>
         </div>
         <nav class="nav-list">
-          <span class="nav-group">Daily</span>
-          <a href="#overview" data-workspace-link="today">Command Center</a>
+          <span class="nav-group microlabel">Today</span>
+          <a href="#overview" data-workspace-link="today">Mission Briefing</a>
           <a href="#revisions" data-workspace-link="today">Revision Queue</a>
+          <span class="nav-group microlabel">Practice</span>
           <a href="#weakness-lab" data-workspace-link="practice">Weakness Lab</a>
           <a href="#edge-cases" data-workspace-link="practice">Edge Checklist</a>
-          <span class="nav-group">Curriculum</span>
+          <span class="nav-group microlabel">Curriculum</span>
+          <a href="#skills-constellation" data-workspace-link="curriculum">Constellation</a>
           <a href="#stages" data-workspace-link="curriculum">Stage Map</a>
           <a href="#skills" data-workspace-link="curriculum">Skills</a>
           <a href="#patterns" data-workspace-link="curriculum">Pattern Index</a>
-          <span class="nav-group">Evidence</span>
-          <a href="#deferred" data-workspace-link="evidence">Deferred Learning</a>
+          <span class="nav-group microlabel">Evidence</span>
           <a href="#history" data-workspace-link="evidence">Problem History</a>
           <a href="#thinking" data-workspace-link="evidence">Thinking Profile</a>
-          <a href="#analytics" data-workspace-link="analytics">Analytics</a>
+          <a href="#insights" data-workspace-link="evidence">Insights</a>
+          <a href="#deferred" data-workspace-link="evidence">Deferred Learning</a>
         </nav>
-        <div class="source-card">
-          <span class="label">Source</span>
-          <strong>progress/progress.json</strong>
-          <small id="last-updated">Loading...</small>
+        <div class="rail-footer">
+          <button
+            type="button"
+            id="theme-toggle"
+            class="theme-toggle microlabel"
+            aria-label="Toggle light and dark theme"
+          >
+            Theme
+          </button>
+          <div class="source-card">
+            <span class="microlabel">Source</span>
+            <strong class="num">progress.json</strong>
+            <small id="last-updated" class="num">Loading...</small>
+          </div>
         </div>
       </aside>
 
       <main class="main">
         <header class="topbar">
           <div>
-            <p class="eyebrow">Developer dashboard</p>
-            <h2>DSA preparation command center</h2>
-            <p class="topbar-subtitle">Track today’s work, long-term mastery, revision pressure, and learning evidence from one operating view.</p>
+            <p class="eyebrow microlabel" id="workspace-eyebrow">Today</p>
+            <h2 id="workspace-title">Mission briefing</h2>
+            <p class="topbar-subtitle" id="workspace-subtitle">What to do right now, and whether you are on trajectory for interviews.</p>
           </div>
-          <div class="toolbar">
+          <div class="toolbar" id="list-toolbar" hidden>
             <input id="search" type="search" placeholder="Search problems, skills, notes" />
             <select id="stage-filter" aria-label="Filter by stage">
               <option value="">All stages</option>
@@ -61,13 +73,6 @@
               <option value="not_started">Not started</option>
             </select>
           </div>
-          <nav class="workspace-tabs" aria-label="Dashboard workspaces">
-            <button type="button" class="workspace-tab active" data-workspace="today">Today</button>
-            <button type="button" class="workspace-tab" data-workspace="practice">Practice</button>
-            <button type="button" class="workspace-tab" data-workspace="curriculum">Curriculum</button>
-            <button type="button" class="workspace-tab" data-workspace="evidence">Evidence</button>
-            <button type="button" class="workspace-tab" data-workspace="analytics">Analytics</button>
-          </nav>
         </header>
 
         <section id="overview" class="section" data-workspace-section="today">
@@ -246,11 +251,11 @@
           </section>
         </section>
 
-        <section id="analytics" class="section" data-workspace-section="analytics">
+        <section id="insights" class="section" data-workspace-section="evidence">
           <div class="section-head">
             <div>
-              <p class="eyebrow">Preparation analytics</p>
-              <h3>DSA performance dashboard</h3>
+              <p class="eyebrow microlabel">Leading indicators</p>
+              <h3>Insights</h3>
             </div>
           </div>
           <div id="analytics-grid" class="analytics-grid"></div>

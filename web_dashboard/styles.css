@@ -1,27 +1,110 @@
-:root {
-  --bg: #f8fafc;
+/* Mission Deck token system (design spec section 7). Dark-first: the default
+   selector is :root without a light override; the theme toggle stamps
+   data-theme on <html> and localStorage persists it. */
+:root,
+:root[data-theme="dark"],
+:root:not([data-theme="light"]) {
+  --bg: #0e1620; /* ink blue-black, not near-black */
+  --surface: #16212e; /* panels */
+  --surface-2: #1d2a3a; /* nested cards */
+  --line: #263548;
+  --text: #e8eef5;
+  --muted: #8fa1b3;
+  --good: #34d399;
+  --warn: #fbbf24;
+  --bad: #f87171;
+  --accent: #3987e5; /* interactive affordances only, never a series rank */
+  --series-1: #3987e5;
+  --series-2: #d95926;
+  --series-3: #199e70;
+  --series-4: #c98500;
+  --series-5: #d55181;
+  --series-6: #008300;
+  --series-7: #9085e9;
+  --series-8: #e66767;
+}
+
+:root[data-theme="light"] {
+  --bg: #f6f8f7;
   --surface: #ffffff;
-  --surface-2: #f1f5f9;
+  --surface-2: #f0f3f2;
   --line: #dde3ea;
-  --line-strong: #c8d1dc;
   --text: #1f2937;
-  --muted: #64748b;
-  --accent: #1a73e8;
-  --accent-2: #0f766e;
+  --muted: #5b6b7b;
+  --good: #137333;
   --warn: #b45309;
   --bad: #b42318;
-  --good: #137333;
-  --shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
+  --accent: #2a78d6;
+  --series-1: #2a78d6;
+  --series-2: #eb6834;
+  --series-3: #1baf7a;
+  --series-4: #eda100;
+  --series-5: #e87ba4;
+  --series-6: #008300;
+  --series-7: #4a3aa7;
+  --series-8: #e34948;
+}
+
+:root {
+  /* Back-compat aliases so components not yet restyled keep working. */
+  --line-strong: var(--line);
+  --accent-2: var(--series-3);
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
   --radius: 8px;
-  font-family:
-    Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
-    sans-serif;
+  --mono: ui-monospace, "JetBrains Mono", "Cascadia Code", "Fira Code", monospace;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
   color: var(--text);
   background: var(--bg);
+  color-scheme: dark light;
 }
 
 * {
   box-sizing: border-box;
+}
+
+/* The hidden attribute must win over component display rules (e.g. the
+   contextual toolbar's display:grid), so workspace/toolbar toggling works. */
+[hidden] {
+  display: none !important;
+}
+
+/* Identity carriers (design section 7): tabular mono numerals, uppercase
+   micro-labels, a faint graph-paper texture behind the briefing band. */
+.num {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.microlabel {
+  font-family: var(--mono);
+  text-transform: uppercase;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+
+.gridpaper {
+  background-image:
+    repeating-linear-gradient(
+      0deg,
+      color-mix(in srgb, var(--line) 4%, transparent) 0 1px,
+      transparent 1px 24px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--line) 4%, transparent) 0 1px,
+      transparent 1px 24px
+    );
+}
+
+.degraded-banner {
+  font-size: 13px;
+  color: var(--muted);
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 10px 12px;
+  font-family: var(--mono);
 }
 
 html {
@@ -147,6 +230,31 @@ select {
   color: #88a4b6;
 }
 
+.rail-footer {
+  margin-top: auto;
+  display: grid;
+  gap: 12px;
+}
+
+.theme-toggle {
+  min-height: 34px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  color: #dce8ee;
+  cursor: pointer;
+  padding: 0 14px;
+  text-align: center;
+}
+
+.theme-toggle:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.rail-footer .source-card {
+  margin-top: 0;
+}
+
 .main {
   min-width: 0;
   padding: 24px 28px 40px;
@@ -163,7 +271,7 @@ select {
   gap: 18px;
   align-items: end;
   padding: 0 0 18px;
-  background: rgba(248, 250, 252, 0.94);
+  background: color-mix(in srgb, var(--bg) 92%, transparent);
   backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--line);
 }

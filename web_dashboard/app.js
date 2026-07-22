@@ -142,25 +142,81 @@
     }
   }
 
+  const WORKSPACE_META = {
+    today: {
+      eyebrow: "Today",
+      title: "Mission briefing",
+      subtitle: "What to do right now, and whether you are on trajectory for interviews.",
+      toolbar: false,
+    },
+    practice: {
+      eyebrow: "Practice",
+      title: "Weakness lab",
+      subtitle: "Targeted drilling from recorded mistakes and the edge-case checklist.",
+      toolbar: false,
+    },
+    curriculum: {
+      eyebrow: "Curriculum",
+      title: "Skill map",
+      subtitle: "The prerequisite constellation, stage meters, skills, and patterns.",
+      toolbar: true,
+    },
+    evidence: {
+      eyebrow: "Evidence",
+      title: "Learning evidence",
+      subtitle: "History, thinking profile, hint independence, mock trend, retention.",
+      toolbar: true,
+    },
+  };
+
   function switchWorkspace(workspace, targetHash = "") {
-    state.activeWorkspace = workspace || "today";
+    const active = WORKSPACE_META[workspace] ? workspace : "today";
+    state.activeWorkspace = active;
     document.querySelectorAll("[data-workspace-section]").forEach((section) => {
-      section.hidden = section.dataset.workspaceSection !== state.activeWorkspace;
-    });
-    document.querySelectorAll(".workspace-tab").forEach((tab) => {
-      const active = tab.dataset.workspace === state.activeWorkspace;
-      tab.classList.toggle("active", active);
-      tab.setAttribute("aria-selected", active ? "true" : "false");
+      section.hidden = section.dataset.workspaceSection !== active;
     });
     document.querySelectorAll("[data-workspace-link]").forEach((link) => {
-      link.classList.toggle("active", link.dataset.workspaceLink === state.activeWorkspace);
+      const isActive = link.dataset.workspaceLink === active;
+      link.classList.toggle("active", isActive);
+      if (isActive) link.setAttribute("aria-current", "page");
+      else link.removeAttribute("aria-current");
     });
+
+    const meta = WORKSPACE_META[active];
+    const eyebrow = $("#workspace-eyebrow");
+    const title = $("#workspace-title");
+    const subtitle = $("#workspace-subtitle");
+    if (eyebrow) eyebrow.textContent = meta.eyebrow;
+    if (title) title.textContent = meta.title;
+    if (subtitle) subtitle.textContent = meta.subtitle;
+    // Search + filters are contextual: only the list-bearing workspaces show them.
+    const toolbar = $("#list-toolbar");
+    if (toolbar) toolbar.hidden = !meta.toolbar;
+
     if (targetHash) {
       const target = document.querySelector(targetHash);
       if (target) target.scrollIntoView({ behavior: "smooth", block: "start" });
     } else {
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
+  }
+
+  // Theme: persisted choice wins, else the OS preference; dark is the design
+  // default when neither says otherwise.
+  function initTheme() {
+    const stored = localStorage.getItem("theme");
+    const prefersLight =
+      window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches;
+    const theme = stored || (prefersLight ? "light" : "dark");
+    document.documentElement.setAttribute("data-theme", theme);
+  }
+
+  function toggleTheme() {
+    const current =
+      document.documentElement.getAttribute("data-theme") === "light" ? "light" : "dark";
+    const next = current === "light" ? "dark" : "light";
+    document.documentElement.setAttribute("data-theme", next);
+    localStorage.setItem("theme", next);
   }
 
   async function fetchText(path) {
@@ -3177,18 +3233,25 @@
 
   async function main() {
     try {
+      initTheme();
       await loadData();
       buildStageOptions();
       renderAll();
-      $("#data-warning-dismiss").addEventListener("click", () => {
-        $("#data-warning").hidden = true;
-      });
-      $("#search").addEventListener("input", debounce(applyFilters, 150));
-      $("#stage-filter").addEventListener("change", applyFilters);
-      $("#status-filter").addEventListener("change", applyFilters);
-      document.querySelectorAll(".workspace-tab").forEach((tab) => {
-        tab.addEventListener("click", () => switchWorkspace(tab.dataset.workspace));
-      });
+      const themeToggle = $("#theme-toggle");
+      if (themeToggle) themeToggle.addEventListener("click", toggleTheme);
+      const dataWarningDismiss = $("#data-warning-dismiss");
+      if (dataWarningDismiss) {
+        dataWarningDismiss.addEventListener("click", () => {
+          $("#data-warning").hidden = true;
+        });
+      }
+      // Filters live only on list workspaces; guard so their absence is safe.
+      const search = $("#search");
+      if (search) search.addEventListener("input", debounce(applyFilters, 150));
+      const stageFilter = $("#stage-filter");
+      if (stageFilter) stageFilter.addEventListener("change", applyFilters);
+      const statusFilter = $("#status-filter");
+      if (statusFilter) statusFilter.addEventListener("change", applyFilters);
       document.querySelectorAll("[data-workspace-link]").forEach((link) => {
         link.addEventListener("click", (event) => {
           event.preventDefault();
