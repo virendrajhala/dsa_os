@@ -251,6 +251,28 @@ class RevisionPassMinimumTests(unittest.TestCase):
         record = next(r for r in updated["completed"] if r["problem_id"] == REVISION_PROBLEM_ID)
         self.assertEqual(record["revision"]["history"][-1]["result"], "PASS")
 
+    def test_mode_revision_without_revision_result_rejected(self) -> None:
+        # Footgun guard: `--mode revision` used to fall through to the
+        # new-solve path when --revision-result was forgotten, silently
+        # recording a bogus solve instead of a revision.
+        result = self._run([*REVISION_BASE_ARGS, "--mode", "revision"])
+
+        self.assertNotEqual(result.returncode, 0, msg=result.stdout + result.stderr)
+        self.assertIn("--revision-result", result.stderr)
+        self.assertEqual(self.tmp_progress.read_bytes(), self.original_bytes)
+
+    def test_mode_solve_with_revision_result_rejected(self) -> None:
+        # The mirror-image mismatch: an explicit solve mode combined with
+        # revision args must not silently record a revision.
+        result = self._run(
+            [*REVISION_BASE_ARGS, "--mode", "solve", "--revision-result", "PASS",
+             *_revision_score_args(9)]
+        )
+
+        self.assertNotEqual(result.returncode, 0, msg=result.stdout + result.stderr)
+        self.assertIn("--revision-result", result.stderr)
+        self.assertEqual(self.tmp_progress.read_bytes(), self.original_bytes)
+
     def test_fail_below_pass_minimum_recorded_without_force(self) -> None:
         result = self._run(
             [*REVISION_BASE_ARGS, "--revision-result", "FAIL", *_revision_score_args(3)]

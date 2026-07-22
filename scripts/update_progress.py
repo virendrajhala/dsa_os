@@ -639,6 +639,18 @@ def main() -> int:
                 "`--resolve-deferred-learning` requires `--deferred-learning-evidence`."
             )
 
+        # Guard the mode/args footgun: `--mode revision` without a result used
+        # to fall through to the new-solve path and record a bogus solve.
+        if args.mode == "revision" and not args.revision_result:
+            raise RepositoryError(
+                "`--mode revision` requires `--revision-result PASS|FAIL`."
+            )
+        if args.mode == "solve" and args.revision_result:
+            raise RepositoryError(
+                "`--mode solve` cannot be combined with `--revision-result`. "
+                "Drop `--mode solve` (or use `--mode revision`) to record a revision."
+            )
+
         is_revision = bool(args.revision_result)
 
         if args.hint_level_used is None:
