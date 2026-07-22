@@ -506,25 +506,35 @@ select {
   padding: 0 9px;
   border-radius: 999px;
   background: var(--surface-2);
-  color: #395064;
+  color: var(--muted);
+  border: 1px solid var(--line);
   font-size: 12px;
   font-weight: 700;
   white-space: nowrap;
 }
 
 .pill.good {
-  background: #dcfce7;
+  background: color-mix(in srgb, var(--good) 16%, var(--surface));
   color: var(--good);
+  border-color: color-mix(in srgb, var(--good) 40%, transparent);
 }
 
 .pill.warn {
-  background: #fef3c7;
+  background: color-mix(in srgb, var(--warn) 16%, var(--surface));
   color: var(--warn);
+  border-color: color-mix(in srgb, var(--warn) 40%, transparent);
 }
 
 .pill.bad {
-  background: #fee2e2;
+  background: color-mix(in srgb, var(--bad) 16%, var(--surface));
   color: var(--bad);
+  border-color: color-mix(in srgb, var(--bad) 40%, transparent);
+}
+
+.pill.accent {
+  background: color-mix(in srgb, var(--accent) 16%, var(--surface));
+  color: var(--accent);
+  border-color: color-mix(in srgb, var(--accent) 40%, transparent);
 }
 
 .bar-list,
@@ -2849,5 +2859,232 @@ tbody tr:hover {
 
   tbody td:nth-child(8)::before {
     content: "Signal";
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Today = mission briefing (design section 6). Five elements: next action,
+   trajectory strip (hero), due queue, forecast, pace tiles.
+   --------------------------------------------------------------------------- */
+.briefing-next.is-mock {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent) inset;
+}
+
+.next-reason {
+  margin: 4px 0 0;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.next-protocol,
+.next-codegate {
+  margin: 8px 0 0;
+  color: var(--muted);
+}
+
+.next-protocol {
+  color: var(--accent);
+}
+
+/* Trajectory strip (the hero). Stations draw in staggered on load. */
+.trajectory {
+  overflow: hidden;
+}
+
+.trajectory-strip {
+  margin-top: 6px;
+}
+
+.trajectory-line {
+  display: flex;
+  align-items: stretch;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.trajectory-station,
+.trajectory-terminus {
+  position: relative;
+  flex: 1 1 140px;
+  min-width: 130px;
+  display: grid;
+  gap: 4px;
+  padding: 14px 14px 14px 34px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--surface-2) 70%, transparent);
+}
+
+.station-dot {
+  position: absolute;
+  left: 12px;
+  top: 16px;
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  font-size: 10px;
+  color: var(--bg);
+  border: 2px solid var(--muted);
+}
+
+.trajectory-station.met .station-dot {
+  background: var(--good);
+  border-color: var(--good);
+}
+
+.trajectory-station.unmet .station-dot {
+  background: transparent;
+  border-color: var(--muted);
+}
+
+.station-value {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.trajectory-terminus {
+  padding-left: 14px;
+  background: color-mix(in srgb, var(--accent) 12%, var(--surface));
+  border-color: color-mix(in srgb, var(--accent) 35%, transparent);
+}
+
+.terminus-date {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .trajectory-station,
+  .trajectory-terminus {
+    opacity: 0;
+    transform: translateY(8px);
+    animation: trajectory-in 300ms ease forwards;
+    animation-delay: var(--stagger, 0ms);
+  }
+  @keyframes trajectory-in {
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+}
+
+/* Due queue + pace tiles share a row on wide screens. */
+.briefing-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  gap: 18px;
+}
+
+.due-queue {
+  display: grid;
+  gap: 6px;
+}
+
+.due-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto auto;
+  align-items: center;
+  gap: 10px;
+  text-align: left;
+  padding: 9px 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.due-row:hover {
+  border-color: var(--accent);
+}
+
+.due-row.overdue {
+  border-color: color-mix(in srgb, var(--bad) 55%, transparent);
+}
+
+.due-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.due-date {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.due-flag {
+  color: var(--bad);
+  font-size: 12px;
+  font-weight: 700;
+  min-width: 68px;
+  text-align: right;
+}
+
+.pace-tiles {
+  display: grid;
+  gap: 10px;
+}
+
+.pace-tile {
+  display: grid;
+  gap: 2px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+}
+
+.pace-tile strong {
+  font-size: 22px;
+  color: var(--text);
+}
+
+/* Forecast bar chart (dataviz: sequential single hue, overdue in status red). */
+.forecast-chart {
+  margin-top: 4px;
+}
+
+.forecast-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.forecast-bar {
+  fill: var(--series-1);
+}
+
+.forecast-bar.overdue {
+  fill: var(--bad);
+}
+
+.forecast-count {
+  fill: var(--muted);
+  font-family: var(--mono);
+  font-size: 11px;
+}
+
+.forecast-axis {
+  fill: var(--muted);
+  font-family: var(--mono);
+  font-size: 10px;
+  text-transform: uppercase;
+}
+
+.forecast-baseline {
+  stroke: var(--line);
+  stroke-width: 1;
+}
+
+@media (max-width: 900px) {
+  .briefing-grid {
+    grid-template-columns: 1fr;
   }
 }

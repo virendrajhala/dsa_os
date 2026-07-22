@@ -712,9 +712,34 @@
     });
   }
 
+  const REVISION_FAMILY = new Set(["revision", "reactivation", "quarterly_maintenance"]);
+  const NEXT_MODE_LABEL = {
+    revision: "REVISION",
+    reactivation: "REACTIVATED",
+    quarterly_maintenance: "Q-MAINT",
+    mock_due: "MOCK",
+    resume_current_problem: "SOLVE",
+    current_skill: "SOLVE",
+    current_stage: "SOLVE",
+    earliest_unlocked: "SOLVE",
+    complete: "COMPLETE",
+  };
+
+  function formatPct(value) {
+    return `${((Number(value) || 0) * 100).toFixed(0)}%`;
+  }
+
+  function weekdayShort(isoDay) {
+    const parsed = parseDate(isoDay);
+    if (!parsed) return "";
+    return ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"][parsed.getDay()];
+  }
+
   function renderNextAction() {
     const wrap = $("#next-action");
     if (!wrap) return;
+    const panel = wrap.closest(".briefing-next");
+    if (panel) panel.classList.remove("is-mock");
     wrap.replaceChildren();
     const modeLabel = $("#selection-mode");
 
@@ -725,36 +750,327 @@
     }
 
     const action = feedNextAction();
-    if (modeLabel) modeLabel.textContent = action.mode;
+    const mode = action.mode;
+    if (modeLabel) modeLabel.textContent = NEXT_MODE_LABEL[mode] || mode;
+
     if (!action.problem) {
-      wrap.append(empty(action.reason || "No active problem."));
+      wrap.append(empty(action.reason || "No active problem — the unlocked curriculum is complete."));
       return;
     }
 
+    const problem = action.problem;
     const title = document.createElement("h4");
     title.className = "problem-title";
-    title.textContent = `${action.problem.id} - ${action.problem.title}`;
+    title.textContent = `${problem.id} · ${problem.title}`;
 
     const meta = document.createElement("div");
     meta.className = "meta-row";
-    meta.append(
-      pill(action.problem.stage),
-      pill(skillLabel(action.problem.primary_skill)),
-      pill(action.problem.difficulty),
-      pill(action.problem.problem_role || "ROLE"),
-    );
+    if (mode !== "mock_due") {
+      meta.append(pill(problem.difficulty), pill(skillLabel(problem.primary_skill)));
+    }
+    if (action.stageLabel) meta.append(pill(action.stageLabel, "accent"));
 
     const reason = document.createElement("p");
+    reason.className = "next-reason";
     reason.textContent = action.reason;
 
-    const notes = document.createElement("p");
-    notes.textContent = action.problem.notes || "No notes recorded.";
-    const openButton = document.createElement("button");
-    openButton.className = "stage-skill-open";
-    openButton.type = "button";
-    openButton.textContent = "View problem details";
-    openButton.addEventListener("click", () => openProblemModal(action.problem.id));
-    wrap.append(title, meta, reason, notes, openButton);
+    wrap.append(title, meta, reason);
+
+    if (mode === "mock_due") {
+      if (panel) panel.classList.add("is-mock");
+      const protocol = document.createElement("p");
+      protocol.className = "next-protocol microlabel";
+      protocol.textContent = "45-minute cap · no hints · verdict at the end";
+      wrap.append(protocol);
+    } else if (action.codeGate) {
+      const gate = document.createElement("p");
+      gate.className = "next-codegate microlabel";
+      gate.textContent = action.codeGate.solution_exists
+        ? `Solution file present · ${action.codeGate.solution_expected}`
+        : `Solution file will be required · ${action.codeGate.solution_expected}`;
+      wrap.append(gate);
+    }
+
+    const cta = document.createElement("button");
+    cta.className = "stage-skill-open";
+    cta.type = "button";
+    cta.textContent = REVISION_FAMILY.has(mode)
+      ? "Start recall"
+      : mode === "mock_due"
+        ? "Open mock problem"
+        : "Open problem";
+    cta.addEventListener("click", () => openProblemModal(problem.id));
+    wrap.append(cta);
+  }
+
+  function renderTrajectory() {
+    const host = $("#trajectory-strip");
+    if (!host) return;
+    host.replaceChildren();
+    if (!feedAvailable()) {
+      host.removeAttribute("aria-label");
+      host.append(degradedBanner());
+      return;
+    }
+    const readiness = state.feed.readiness || {};
+    const gates = readiness.gates || {};
+    const stations = [
+      {
+        label: "Core skills",
+        met: !!gates.core_mastery?.met,
+        current: `${gates.core_mastery?.mastered ?? 0}/${gates.core_mastery?.total ?? 0}`,
+        target: formatPct(gates.core_mastery?.target),
+      },
+      {
+        label: "Revision pass",
+        met: !!gates.revision_pass?.met,
+        current: formatPct(gates.revision_pass?.current),
+        target: formatPct(gates.revision_pass?.target),
+      },
+      {
+        label: "Last 3 mocks",
+        met: !!gates.mocks?.met,
+        current: `${gates.mocks?.current ?? 0}/${gates.mocks?.required ?? 0}`,
+        target: "hire+",
+      },
+    ];
+
+    const line = document.createElement("div");
+    line.className = "trajectory-line";
+    stations.forEach((station, index) => {
+      const node = document.createElement("div");
+      node.className = `trajectory-station ${station.met ? "met" : "unmet"}`;
+      node.style.setProperty("--stagger", `${index * 80}ms`);
+
+      const dot = document.createElement("span");
+      dot.className = "station-dot";
+      dot.setAttribute("aria-hidden", "true");
+      dot.textContent = station.met ? "✓" : "";
+      const label = document.createElement("span");
+      label.className = "station-label microlabel";
+      label.textContent = station.label;
+      const value = document.createElement("span");
+      value.className = "station-value num";
+      value.textContent = `${station.current} / ${station.target}`;
+      node.append(dot, label, value);
+      line.append(node);
+    });
+
+    const terminus = document.createElement("div");
+    terminus.className = "trajectory-terminus";
+    terminus.style.setProperty("--stagger", `${stations.length * 80}ms`);
+    const projected = readiness.projected_date;
+    const tLabel = document.createElement("span");
+    tLabel.className = "station-label microlabel";
+    tLabel.textContent = "Projected ready";
+    const tDate = document.createElement("span");
+    tDate.className = "terminus-date num";
+    tDate.textContent = projected || "—";
+    terminus.append(tLabel, tDate);
+    line.append(terminus);
+    host.append(line);
+
+    host.setAttribute(
+      "aria-label",
+      `Interview readiness. ${stations
+        .map((s) => `${s.label} ${s.met ? "met" : "not met"} (${s.current} of ${s.target})`)
+        .join(". ")}. Projected ready ${projected || "unknown"}.`,
+    );
+  }
+
+  function renderDueQueue() {
+    const host = $("#due-queue");
+    if (!host) return;
+    host.replaceChildren();
+    if (!feedAvailable()) {
+      host.append(degradedBanner());
+      return;
+    }
+    const queue = state.feed.revision_queue || [];
+    if (!queue.length) {
+      host.append(empty("Nothing due today — new work is unlocked."));
+      return;
+    }
+    queue.forEach((item) => {
+      const row = document.createElement("button");
+      row.type = "button";
+      row.className = `due-row${item.overdue ? " overdue" : ""}`;
+
+      const title = document.createElement("span");
+      title.className = "due-title";
+      title.textContent = item.title || item.problem_id;
+
+      const tone =
+        item.kind === "quarterly_maintenance" ? "" : item.kind === "reactivated" ? "warn" : "accent";
+      const kind = pill(item.stage_label || item.kind, tone);
+      kind.classList.add("num");
+
+      const due = document.createElement("span");
+      due.className = "due-date num";
+      due.textContent = item.next_due;
+
+      const flag = document.createElement("span");
+      flag.className = "due-flag";
+      if (item.overdue) flag.textContent = "⚠ overdue";
+
+      row.append(title, kind, due, flag);
+      row.addEventListener("click", () => openProblemModal(item.problem_id));
+      host.append(row);
+    });
+  }
+
+  function renderForecast() {
+    const host = $("#forecast-chart");
+    if (!host) return;
+    host.replaceChildren();
+    if (!feedAvailable()) {
+      host.removeAttribute("aria-label");
+      host.append(degradedBanner());
+      return;
+    }
+    const days = state.feed.review_forecast || [];
+    const totalDue = days.reduce((sum, day) => sum + (day.count || 0), 0);
+    if (!totalDue) {
+      host.append(empty("Nothing due in the next 14 days."));
+      return;
+    }
+
+    const svgNS = "http://www.w3.org/2000/svg";
+    const W = 660;
+    const H = 170;
+    const PAD_X = 10;
+    const PAD_TOP = 22;
+    const PAD_BOTTOM = 26;
+    const maxCount = Math.max(1, ...days.map((day) => day.count || 0));
+    const bandW = (W - PAD_X * 2) / days.length;
+    const barW = Math.min(bandW - 2, 30);
+    const plotH = H - PAD_TOP - PAD_BOTTOM;
+
+    const svg = document.createElementNS(svgNS, "svg");
+    svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+    svg.setAttribute("class", "forecast-svg");
+
+    const make = (name, attrs, textContent) => {
+      const el = document.createElementNS(svgNS, name);
+      Object.entries(attrs).forEach(([key, val]) => el.setAttribute(key, String(val)));
+      if (textContent != null) el.textContent = textContent;
+      return el;
+    };
+
+    // baseline
+    svg.append(
+      make("line", {
+        x1: PAD_X,
+        y1: H - PAD_BOTTOM,
+        x2: W - PAD_X,
+        y2: H - PAD_BOTTOM,
+        class: "forecast-baseline",
+      }),
+    );
+
+    days.forEach((day, index) => {
+      const x = PAD_X + index * bandW + (bandW - barW) / 2;
+      const count = day.count || 0;
+      const h = count ? Math.max(4, (plotH * count) / maxCount) : 0;
+      const y = H - PAD_BOTTOM - h;
+      if (count) {
+        const rect = make("rect", {
+          x,
+          y,
+          width: barW,
+          height: h,
+          rx: 4,
+          class: day.overdue ? "forecast-bar overdue" : "forecast-bar",
+        });
+        rect.append(
+          make(
+            "title",
+            {},
+            `${day.date}: ${count} review${count === 1 ? "" : "s"}${
+              day.overdue ? " (includes overdue)" : ""
+            }${day.problem_ids?.length ? ` — ${day.problem_ids.join(", ")}` : ""}`,
+          ),
+        );
+        svg.append(rect);
+        svg.append(
+          make(
+            "text",
+            { x: x + barW / 2, y: y - 6, "text-anchor": "middle", class: "forecast-count" },
+            day.overdue ? `⚠ ${count}` : String(count),
+          ),
+        );
+      }
+      svg.append(
+        make(
+          "text",
+          { x: x + barW / 2, y: H - 9, "text-anchor": "middle", class: "forecast-axis" },
+          weekdayShort(day.date),
+        ),
+      );
+    });
+
+    host.append(svg);
+    host.setAttribute(
+      "aria-label",
+      `Fourteen-day review forecast: ${totalDue} review${totalDue === 1 ? "" : "s"} scheduled${
+        days[0]?.overdue ? `, including overdue items today` : ""
+      }.`,
+    );
+  }
+
+  function sessionsInWindow(days) {
+    const ref = parseDate(referenceDate()) || todayDate();
+    const start = new Date(ref);
+    start.setDate(start.getDate() - (days - 1));
+    const seen = new Set();
+    (state.datasets.progress.completed || []).forEach((record) => {
+      const when = parseDate(record.completed_at);
+      if (when && when >= start && when <= ref) seen.add(record.completed_at);
+    });
+    return seen.size;
+  }
+
+  function renderPaceTiles() {
+    const host = $("#pace-tiles");
+    if (!host) return;
+    host.replaceChildren();
+    if (!feedAvailable()) {
+      host.append(degradedBanner());
+      return;
+    }
+    const pace = (state.feed.readiness || {}).pace || {};
+    const tiles = [
+      {
+        label: "Problems / week",
+        value: Number(pace.problems_per_week || 0).toFixed(2),
+        note: `trailing ${pace.window_days ?? 0}d`,
+      },
+      {
+        label: "Skills / week",
+        value: Number(pace.skills_per_week || 0).toFixed(2),
+        note: "mastered",
+      },
+      {
+        label: "Sessions · 30d",
+        value: String(sessionsInWindow(30)),
+        note: "days with a solve",
+      },
+    ];
+    tiles.forEach((tile) => {
+      const node = document.createElement("div");
+      node.className = "pace-tile";
+      const label = document.createElement("span");
+      label.className = "microlabel";
+      label.textContent = tile.label;
+      const value = document.createElement("strong");
+      value.className = "num";
+      value.textContent = tile.value;
+      const note = document.createElement("small");
+      note.className = "microlabel";
+      note.textContent = tile.note;
+      node.append(label, value, note);
+      host.append(node);
+    });
   }
 
   function renderThinkingBars() {
@@ -3211,17 +3527,17 @@
     $("#last-updated").textContent = `Updated ${state.datasets.progress.last_updated}`;
     $("#reference-date-pill").textContent = `Reference date ${referenceDate()}`;
     renderDataWarning();
-    renderOperatingBoard();
-    renderMetrics();
-    renderReadiness();
     renderNextAction();
+    renderTrajectory();
+    renderReadiness();
+    renderDueQueue();
+    renderForecast();
+    renderPaceTiles();
     renderThinkingBars();
     renderWeaknessLab();
     renderDeferredLearnings();
     renderEdgeCases();
     renderStages();
-    renderRevisionLanes();
-    renderRevisionCalendar();
     renderSkills();
     renderPatterns();
     renderProblemTable();
