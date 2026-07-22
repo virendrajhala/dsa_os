@@ -19,24 +19,24 @@
         </div>
         <nav class="nav-list">
           <span class="nav-group microlabel">Today</span>
-          <a href="#overview" data-workspace-link="today">Mission Briefing</a>
-          <a href="#revisions" data-workspace-link="today">Revision Queue</a>
+          <a href="#overview" data-workspace-link="today"><span class="nav-icon num" aria-hidden="true">MB</span><span class="nav-text">Mission Briefing</span></a>
+          <a href="#revisions" data-workspace-link="today"><span class="nav-icon num" aria-hidden="true">RQ</span><span class="nav-text">Revision Queue</span></a>
           <span class="nav-group microlabel">Practice</span>
-          <a href="#weakness-lab" data-workspace-link="practice">Weakness Lab</a>
-          <a href="#edge-cases" data-workspace-link="practice">Edge Checklist</a>
+          <a href="#weakness-lab" data-workspace-link="practice"><span class="nav-icon num" aria-hidden="true">WL</span><span class="nav-text">Weakness Lab</span></a>
+          <a href="#edge-cases" data-workspace-link="practice"><span class="nav-icon num" aria-hidden="true">EC</span><span class="nav-text">Edge Checklist</span></a>
           <span class="nav-group microlabel">Curriculum</span>
-          <a href="#skills-constellation" data-workspace-link="curriculum">Constellation</a>
-          <a href="#stages" data-workspace-link="curriculum">Stage Map</a>
-          <a href="#skills" data-workspace-link="curriculum">Skills</a>
-          <a href="#patterns" data-workspace-link="curriculum">Pattern Index</a>
+          <a href="#skills-constellation" data-workspace-link="curriculum"><span class="nav-icon num" aria-hidden="true">CN</span><span class="nav-text">Constellation</span></a>
+          <a href="#stages" data-workspace-link="curriculum"><span class="nav-icon num" aria-hidden="true">SM</span><span class="nav-text">Stage Map</span></a>
+          <a href="#skills" data-workspace-link="curriculum"><span class="nav-icon num" aria-hidden="true">SK</span><span class="nav-text">Skills</span></a>
+          <a href="#patterns" data-workspace-link="curriculum"><span class="nav-icon num" aria-hidden="true">PI</span><span class="nav-text">Pattern Index</span></a>
           <span class="nav-group microlabel">Evidence</span>
-          <a href="#history" data-workspace-link="evidence">Problem History</a>
-          <a href="#thinking" data-workspace-link="evidence">Thinking Profile</a>
-          <a href="#hint-independence" data-workspace-link="evidence">Hint Independence</a>
-          <a href="#mock-trend" data-workspace-link="evidence">Mock Trend</a>
-          <a href="#retention" data-workspace-link="evidence">Retention</a>
-          <a href="#consistency" data-workspace-link="evidence">Consistency</a>
-          <a href="#deferred" data-workspace-link="evidence">Deferred Learning</a>
+          <a href="#history" data-workspace-link="evidence"><span class="nav-icon num" aria-hidden="true">PH</span><span class="nav-text">Problem History</span></a>
+          <a href="#thinking" data-workspace-link="evidence"><span class="nav-icon num" aria-hidden="true">TP</span><span class="nav-text">Thinking Profile</span></a>
+          <a href="#hint-independence" data-workspace-link="evidence"><span class="nav-icon num" aria-hidden="true">HI</span><span class="nav-text">Hint Independence</span></a>
+          <a href="#mock-trend" data-workspace-link="evidence"><span class="nav-icon num" aria-hidden="true">MT</span><span class="nav-text">Mock Trend</span></a>
+          <a href="#retention" data-workspace-link="evidence"><span class="nav-icon num" aria-hidden="true">RT</span><span class="nav-text">Retention</span></a>
+          <a href="#consistency" data-workspace-link="evidence"><span class="nav-icon num" aria-hidden="true">CS</span><span class="nav-text">Consistency</span></a>
+          <a href="#deferred" data-workspace-link="evidence"><span class="nav-icon num" aria-hidden="true">DL</span><span class="nav-text">Deferred Learning</span></a>
         </nav>
         <div class="rail-footer">
           <button
@@ -122,7 +122,7 @@
 
           <div class="briefing-grid">
             <!-- 3. Due queue -->
-            <section class="panel" aria-labelledby="due-queue-heading">
+            <section id="revisions" class="panel" aria-labelledby="due-queue-heading">
               <div class="panel-head">
                 <div>
                   <p class="eyebrow microlabel">Recall work</p>
@@ -282,7 +282,7 @@
               <h3>Thinking dimensions</h3>
             </div>
           </div>
-          <div id="thinking-bars" class="bar-list"></div>
+          <div id="thinking-bars" class="bar-list" role="img"></div>
         </section>
 
         <section id="hint-independence" class="section" data-workspace-section="evidence">

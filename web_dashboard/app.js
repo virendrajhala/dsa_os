@@ -83,11 +83,6 @@
     return `${year}-${month}-${day}`;
   }
 
-  function daysBetween(a, b) {
-    const day = 24 * 60 * 60 * 1000;
-    return Math.round((parseDate(a) - parseDate(b)) / day);
-  }
-
   function clamp(value, min, max) {
     return Math.min(max, Math.max(min, value));
   }
@@ -98,12 +93,6 @@
       clearTimeout(timer);
       timer = setTimeout(() => fn(...args), waitMs);
     };
-  }
-
-  function avg(values) {
-    const valid = values.filter((value) => typeof value === "number");
-    if (!valid.length) return 0;
-    return valid.reduce((sum, value) => sum + value, 0) / valid.length;
   }
 
   function text(value, fallback = "-") {
@@ -362,49 +351,10 @@
     );
   }
 
-  function getRevisionEntries() {
-    const ref = referenceDate();
-    return [...state.completedById.values()]
-      .filter((record) => state.problemsById.has(record.problem_id))
-      .map((record) => {
-        const problem = state.problemsById.get(record.problem_id) || {};
-        const revision = record.revision || {};
-        const nextDue = revision.next_due;
-        return {
-          problem,
-          record,
-          revision,
-          status: revision.status || "ACTIVE",
-          stage: revision.stage || 0,
-          nextDue,
-          daysUntil: nextDue ? daysBetween(nextDue, ref) : null,
-          historyCount: Array.isArray(revision.history) ? revision.history.length : 0,
-        };
-      })
-      .sort((a, b) => {
-        const aDue = a.nextDue || "9999-12-31";
-        const bDue = b.nextDue || "9999-12-31";
-        return aDue.localeCompare(bDue) || a.problem.id.localeCompare(b.problem.id);
-      });
-  }
-
-  function dueEntries() {
-    return getRevisionEntries().filter(
-      (entry) =>
-        ["ACTIVE", "FAILED"].includes(entry.status) &&
-        entry.nextDue &&
-        entry.daysUntil <= 0,
-    );
-  }
-
   function deferredLearningEntries() {
     return Array.isArray(state.datasets.progress.deferred_learnings)
       ? state.datasets.progress.deferred_learnings
       : [];
-  }
-
-  function openDeferredLearnings() {
-    return deferredLearningEntries().filter((entry) => entry.status === "OPEN");
   }
 
   function deferredLearningMatchesQuery(entry, query) {
@@ -531,184 +481,6 @@
         `Pace (trailing ${pace.window_days ?? 0}d): ${Number(pace.problems_per_week || 0).toFixed(2)} problems/week, ` +
         `${Number(pace.skills_per_week || 0).toFixed(2)} skills mastered/week. ${readiness.projection_message || ""}`;
     }
-  }
-
-  function renderMetrics() {
-    const { progress, curriculum, scoring } = state.datasets;
-    const completed = state.completedById.size;
-    const total = curriculum.problems.length;
-    const revisions = getRevisionEntries();
-    const masteredRevisions = revisions.filter((entry) => entry.status === "MASTERED").length;
-    const activeRevisions = revisions.filter((entry) => entry.status === "ACTIVE").length;
-    const failedRevisions = revisions.filter((entry) => entry.status === "FAILED").length;
-    const confidenceAfter = progress.completed.map((record) => record.confidence_after);
-    const latestConfidence = confidenceAfter.at(-1) || 0;
-    const avgConfidence = avg(confidenceAfter);
-    const competency = progress.competency_completion || {};
-    const implementationEngineering = progress.implementation_engineering || {};
-    const openDeferred = openDeferredLearnings();
-
-    const metrics = [
-      {
-        label: "Problems completed",
-        value: `${completed} / ${total}`,
-        note: `${total ? ((completed / total) * 100).toFixed(1) : "0.0"}% curriculum coverage`,
-      },
-      {
-        label: "Current stage",
-        value: text(progress.current_stage),
-        note: `${progress.stage_mastery?.[progress.current_stage]?.skills_mastered || 0} skills mastered in this stage`,
-      },
-      {
-        label: "Skill mastery",
-        value: `${competency.mastered_skills || 0} / ${competency.total_skills || 0}`,
-        note: `${competency.percent || 0}% competency completion`,
-      },
-      {
-        label: "Revision load",
-        value: `${dueEntries().length} due`,
-        note: `${activeRevisions} active, ${failedRevisions} failed, ${masteredRevisions} mastered`,
-      },
-      {
-        label: "Deferred learning",
-        value: `${openDeferred.length} open`,
-        note: "Tracked as future evidence opportunities, not scheduled tasks",
-      },
-      {
-        label: "Confidence",
-        value: `${latestConfidence.toFixed(1)} / 10`,
-        note: `Average after-session confidence ${avgConfidence.toFixed(2)} / 10`,
-      },
-      {
-        label: "Weighted thinking",
-        value: `${(progress.scores?.averages?.thinking_weighted || 0).toFixed(2)} / ${scoring.scale?.maximum || 4}`,
-        note: "Weighted average across completed problems",
-      },
-      {
-        label: "Implementation eng",
-        value: `${Number(implementationEngineering.score || 0).toFixed(1)} / 10`,
-        note: `${implementationEngineering.common_errors?.length || 0} recorded implementation errors`,
-      },
-      {
-        label: "Interview score",
-        value: `${(progress.scores?.averages?.interview_average || 0).toFixed(2)} / ${scoring.interview_scale?.maximum || 10}`,
-        note: "Average interview readiness score",
-      },
-      {
-        label: "Pattern evidence",
-        value: `${patternEntries().length}`,
-        note: "transferable thinking models in knowledge layer",
-      },
-    ];
-
-    const grid = $("#metric-grid");
-    grid.replaceChildren();
-    const template = $("#metric-template");
-    metrics.forEach((metric) => {
-      const node = template.content.cloneNode(true);
-      node.querySelector(".metric-label").textContent = metric.label;
-      node.querySelector(".metric-value").textContent = metric.value;
-      node.querySelector(".metric-note").textContent = metric.note;
-      grid.append(node);
-    });
-  }
-
-  function renderOperatingBoard() {
-    const target = $("#operating-board");
-    target.replaceChildren();
-    const action = feedNextAction() || {
-      mode: "offline",
-      problem: null,
-      reason: FEED_REQUIRED_MESSAGE,
-    };
-    const due = dueEntries();
-    const latest = state.datasets.progress.completed.at(-1);
-    const latestProblem = latest ? state.problemsById.get(latest.problem_id) : null;
-    const openDeferred = openDeferredLearnings();
-    const weakest = collectQuestionWeaknesses()[0];
-    const currentStage = state.datasets.progress.current_stage;
-    const stageMastery = state.datasets.progress.stage_mastery?.[currentStage] || {};
-    const stageTotal = stageMastery.skills_total || 0;
-    const stageDone = stageMastery.skills_mastered || 0;
-    const stagePercent = stageTotal ? Math.round((stageDone / stageTotal) * 100) : 0;
-
-    const cards = [
-      {
-        title: "Next best action",
-        eyebrow: action.mode,
-        value: action.problem ? `${action.problem.id} · ${action.problem.title}` : "No active problem",
-        body: action.reason,
-        tone: due.length ? "warn" : "good",
-        cta: action.problem ? "Open details" : null,
-        onClick: action.problem ? () => openProblemModal(action.problem.id) : null,
-      },
-      {
-        title: "Revision pressure",
-        eyebrow: "Spaced recall",
-        value: `${due.length} due now`,
-        body: due.length
-          ? `${due[0].problem.id} has priority. ${due.length > 1 ? `${due.length - 1} more item${due.length === 2 ? "" : "s"} waiting.` : "Finish this before new work."}`
-          : "No revision is due today.",
-        tone: due.length ? "bad" : "good",
-        cta: due.length ? "View queue" : "View schedule",
-        onClick: () => document.querySelector("#revisions").scrollIntoView({ behavior: "smooth" }),
-      },
-      {
-        title: "Latest evidence",
-        eyebrow: "Last completion",
-        value: latestProblem ? `${latest.problem_id} · ${latestProblem.title}` : "No solved problem yet",
-        body: latest
-          ? `${latest.confidence_before} -> ${latest.confidence_after} confidence · algorithm ${latest.algorithm_thinking_score}/10 · implementation ${latest.implementation_engineering_score}/10`
-          : "Complete a problem to populate evidence.",
-        tone: "info",
-        cta: latest ? "Open problem" : null,
-        onClick: latest ? () => openProblemModal(latest.problem_id) : null,
-      },
-      {
-        title: "Learning attention",
-        eyebrow: "Weakness + deferred",
-        value: weakest ? weakest.title : `${openDeferred.length} open deferred`,
-        body: weakest
-          ? `${weakest.evidence.length} signal${weakest.evidence.length === 1 ? "" : "s"} · ${openDeferred.length} open deferred learning${openDeferred.length === 1 ? "" : "s"}`
-          : openDeferred.length
-            ? "Open deferred learnings are waiting for natural evidence."
-            : "No open learning attention item.",
-        tone: openDeferred.length || weakest ? "warn" : "good",
-        cta: "Review focus",
-        onClick: () => document.querySelector("#weakness-lab").scrollIntoView({ behavior: "smooth" }),
-      },
-      {
-        title: "Stage mastery",
-        eyebrow: currentStage,
-        value: `${stagePercent}% complete`,
-        body: `${stageDone}/${stageTotal} skills mastered in the active stage.`,
-        tone: stagePercent >= 50 ? "good" : "info",
-        cta: "View stage map",
-        onClick: () => document.querySelector("#stages").scrollIntoView({ behavior: "smooth" }),
-      },
-    ];
-
-    cards.forEach((item) => {
-      const card = document.createElement("article");
-      card.className = `operating-card ${item.tone || ""}`.trim();
-      card.innerHTML = `
-        <div>
-          <p class="eyebrow">${item.eyebrow}</p>
-          <h4>${item.title}</h4>
-        </div>
-        <strong>${item.value}</strong>
-        <p>${item.body}</p>
-      `;
-      if (item.cta && item.onClick) {
-        const button = document.createElement("button");
-        button.className = "mini-button";
-        button.type = "button";
-        button.textContent = item.cta;
-        button.addEventListener("click", item.onClick);
-        card.append(button);
-      }
-      target.append(card);
-    });
   }
 
   const REVISION_FAMILY = new Set(["revision", "reactivation", "quarterly_maintenance"]);
@@ -1079,6 +851,17 @@
     const rows = Object.entries(dimensions).sort((a, b) => a[1] - b[1]);
     const target = $("#thinking-bars");
     target.replaceChildren();
+    if (!rows.length) {
+      target.removeAttribute("aria-label");
+      target.append(empty("No scored solves yet — dimension averages appear after the first completion."));
+      return;
+    }
+    target.setAttribute(
+      "aria-label",
+      `Thinking dimension averages out of ${max}, weakest first: ${rows
+        .map(([key, value]) => `${key.replaceAll("_", " ")} ${value.toFixed(2)}`)
+        .join(", ")}.`,
+    );
     rows.forEach(([key, value]) => {
       const row = document.createElement("div");
       row.className = "bar-row";
@@ -1993,139 +1776,6 @@
     }
     details.append(summary, list);
     return details;
-  }
-
-  function renderRevisionLanes() {
-    const entries = getRevisionEntries();
-    const due = entries.filter((entry) => entry.nextDue && entry.daysUntil <= 0);
-    const lanes = [
-      { key: "due", label: "Due now", entries: entries.filter((entry) => entry.nextDue && entry.daysUntil <= 0) },
-      { key: "r1", label: "R1", entries: entries.filter((entry) => entry.status !== "MASTERED" && entry.stage === 0) },
-      { key: "r2", label: "R2", entries: entries.filter((entry) => entry.status !== "MASTERED" && entry.stage === 1) },
-      { key: "r3", label: "R3", entries: entries.filter((entry) => entry.status !== "MASTERED" && entry.stage === 2) },
-      { key: "r4", label: "R4", entries: entries.filter((entry) => entry.status !== "MASTERED" && entry.stage >= 3) },
-      { key: "mastered", label: "Mastered", entries: entries.filter((entry) => entry.status === "MASTERED") },
-    ];
-
-    const wrap = $("#revision-lanes");
-    wrap.replaceChildren();
-    const consoleNode = document.createElement("div");
-    consoleNode.className = "revision-console";
-
-    const queue = document.createElement("article");
-    queue.className = "revision-focus";
-    const topDue = due[0] || entries.find((entry) => entry.nextDue && entry.status !== "MASTERED");
-    queue.innerHTML = `
-      <div>
-        <p class="eyebrow">${due.length ? "Urgent recall" : "Next scheduled recall"}</p>
-        <h4>${topDue ? `${topDue.problem.id} · ${topDue.problem.title}` : "No active revisions"}</h4>
-        <p>${topDue ? `${stageLabel(topDue.stage)} · ${topDue.nextDue || "maintenance"} · ${topDue.status}` : "All active recall queues are empty."}</p>
-      </div>
-      <div class="revision-focus-score">
-        <strong>${due.length}</strong>
-        <span>due now</span>
-      </div>
-    `;
-    if (topDue) {
-      const button = document.createElement("button");
-      button.className = "stage-skill-open";
-      button.type = "button";
-      button.textContent = "Open revision problem";
-      button.addEventListener("click", () => openProblemModal(topDue.problem.id));
-      queue.append(button);
-    }
-    consoleNode.append(queue);
-
-    const ladder = document.createElement("div");
-    ladder.className = "revision-ladder";
-    lanes.forEach((lane) => {
-      const node = document.createElement("button");
-      node.className = `lane ${lane.key === "due" && lane.entries.length ? "urgent" : ""}`.trim();
-      node.type = "button";
-      const next = lane.entries[0];
-      const totalActive = Math.max(entries.filter((entry) => entry.status !== "MASTERED").length, 1);
-      const width = Math.max(6, Math.round((lane.entries.length / totalActive) * 100));
-      node.innerHTML = `
-        <div>
-          <strong>${lane.label}</strong>
-          <span class="lane-count">${lane.entries.length}</span>
-        </div>
-        <div class="progress-track"><span style="width:${width}%"></span></div>
-        <small class="small-muted">${next ? `${next.problem.id} · ${next.nextDue || "maintenance"}` : "No items"}</small>
-      `;
-      node.addEventListener("click", () => openRevisionListModal(lane.label, lane.entries));
-      ladder.append(node);
-    });
-    consoleNode.append(ladder);
-
-    const summary = document.createElement("div");
-    summary.className = "revision-summary-grid";
-    const active = entries.filter((entry) => entry.status === "ACTIVE").length;
-    const failed = entries.filter((entry) => entry.status === "FAILED").length;
-    const mastered = entries.filter((entry) => entry.status === "MASTERED").length;
-    const nextDates = entries.filter((entry) => entry.nextDue).slice(0, 3);
-    summary.innerHTML = `
-      <article class="revision-stat"><span>Active</span><strong>${active}</strong><small>normal recall queue</small></article>
-      <article class="revision-stat"><span>Failed</span><strong>${failed}</strong><small>retry tomorrow policy</small></article>
-      <article class="revision-stat"><span>Mastered</span><strong>${mastered}</strong><small>maintenance only</small></article>
-      <article class="revision-stat wide"><span>Next dates</span><strong>${nextDates.map((entry) => entry.nextDue).join(" · ") || "None"}</strong><small>${nextDates.map((entry) => entry.problem.id).join(", ") || "No upcoming active revisions"}</small></article>
-    `;
-    consoleNode.append(summary);
-    wrap.append(consoleNode);
-  }
-
-  function renderRevisionCalendar() {
-    const target = $("#revision-calendar");
-    target.replaceChildren();
-    const upcoming = getRevisionEntries()
-      .filter((entry) => entry.nextDue && entry.status !== "MASTERED")
-      .slice(0, 10);
-    if (!upcoming.length) {
-      target.append(empty("No scheduled active revisions."));
-      return;
-    }
-    upcoming.forEach((entry) => {
-      const item = document.createElement("div");
-      item.className = "timeline-item";
-      const tone = entry.status === "FAILED" ? "bad" : entry.daysUntil <= 0 ? "warn" : "";
-      item.innerHTML = `
-        <div>
-          <span class="pill ${tone}">${entry.nextDue}</span>
-        </div>
-        <div>
-          <strong>${entry.problem.id} - ${entry.problem.title}</strong>
-          <p>${stageLabel(entry.stage)} · ${entry.status} · ${entry.daysUntil <= 0 ? "due now" : `${entry.daysUntil} days left`}</p>
-        </div>
-      `;
-      item.addEventListener("click", () => openProblemModal(entry.problem.id));
-      item.tabIndex = 0;
-      target.append(item);
-    });
-  }
-
-  function openRevisionListModal(title, entries) {
-    const body = setModal(title, `${entries.length} revision item${entries.length === 1 ? "" : "s"}`, "Revision details");
-    if (!entries.length) {
-      body.append(empty("No problems in this revision bucket."));
-      showModal();
-      return;
-    }
-    const list = document.createElement("div");
-    list.className = "problem-chip-list";
-    entries.forEach((entry) => {
-      const item = document.createElement("button");
-      item.className = "problem-chip";
-      item.type = "button";
-      item.innerHTML = `
-        <strong>${entry.problem.id}</strong>
-        <span>${entry.problem.title}</span>
-        <small>${entry.status} · ${stageLabel(entry.stage)} · ${entry.nextDue || "maintenance"}</small>
-      `;
-      item.addEventListener("click", () => openProblemModal(entry.problem.id));
-      list.append(item);
-    });
-    body.append(list);
-    showModal();
   }
 
   // ---------------------------------------------------------------------------
@@ -4025,10 +3675,6 @@
     const date = parseDate(dateValue);
     date.setDate(date.getDate() + days);
     return isoDate(date);
-  }
-
-  function legendItem(label, value, color) {
-    return `<span><i style="background:${color}"></i>${label}: ${value}</span>`;
   }
 
   function empty(message) {
