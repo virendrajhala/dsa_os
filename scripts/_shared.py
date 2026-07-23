@@ -1249,9 +1249,13 @@ def select_next_problem(state: RepositoryState, on_date: date | None = None) -> 
         elif chosen_entry.get("kind") == "reactivation":
             reason = "Prerequisite reinforcement is due and takes priority over new work."
         else:
+            # The backlog note only means something when a threshold is
+            # actually deferring work; at 0 the policy is plain revision-first.
             backlog_note = (
                 f" Recall backlog is {len(due_revisions)}, over the threshold of "
                 f"{backlog_threshold}, so revisions take priority until it drains."
+                if backlog_threshold > 0
+                else " Revisions take priority over new work."
             )
             reason = ("Revision is overdue." if due_date < today else
                       "Revision is due today.") + backlog_note

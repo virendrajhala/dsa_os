@@ -133,7 +133,7 @@
     "failure_retry_days": 1,
     "quarterly_maintenance_days": 90,
     "quarterly_maintenance_sample_size": 3,
-    "revision_backlog_threshold": 4,
+    "revision_backlog_threshold": 0,
     "failure_effect": "A failed revision does not advance stage. It is retried the next day at the same stage.",
     "maintenance_failure_effect": "A failed quarterly maintenance check restores the problem to ACTIVE at stage 3.",
     "revision_backlog_note": "New problem solving proceeds while the number of due revisions is at or below revision_backlog_threshold; past it, recall takes priority until the backlog drains. Reactivations and quarterly maintenance are never deferred. 0 restores strict revision-first order."

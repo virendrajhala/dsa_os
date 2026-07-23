@@ -644,6 +644,12 @@
       return;
     }
     const over = dueCount > threshold;
+    if (threshold === 0) {
+      // Strict revision-first: there is no allowance to count against.
+      badge.textContent = dueCount ? `${dueCount} due · recall first` : "none due";
+      badge.className = `pill num ${dueCount ? "warn" : "good"}`;
+      return;
+    }
     badge.textContent = `${dueCount} of ${threshold} · ${over ? "recall first" : "new work unlocked"}`;
     badge.className = `pill num ${over ? "warn" : "good"}`;
   }
@@ -668,9 +674,11 @@
       const note = document.createElement("p");
       note.className = "chart-note microlabel";
       note.textContent =
-        queue.length > threshold
-          ? `Backlog is over the threshold of ${threshold}, so recall is served before new problems until it drains.`
-          : `Up to ${threshold} due items may wait while you take new problems. These stay scheduled.`;
+        threshold === 0
+          ? "Recall is served before new problems while anything is due."
+          : queue.length > threshold
+            ? `Backlog is over the threshold of ${threshold}, so recall is served before new problems until it drains.`
+            : `Up to ${threshold} due items may wait while you take new problems. These stay scheduled.`;
       host.append(note);
     }
     queue.forEach((item) => {

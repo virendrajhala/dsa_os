@@ -325,18 +325,18 @@ class RevisionBacklogThresholdTests(unittest.TestCase):
     def test_backlog_at_threshold_still_allows_new_work(self):
         progress = self._progress_with_due(4)
         self.assertEqual(self._due_count(progress), 4)
-        selection = select_next_problem(self._state(progress), on_date=self.WEDNESDAY)
+        selection = select_next_problem(self._state(progress, threshold=4), on_date=self.WEDNESDAY)
         self.assertNotEqual(selection.mode, "revision")
 
     def test_backlog_below_threshold_allows_new_work(self):
         progress = self._progress_with_due(1)
-        selection = select_next_problem(self._state(progress), on_date=self.WEDNESDAY)
+        selection = select_next_problem(self._state(progress, threshold=4), on_date=self.WEDNESDAY)
         self.assertNotEqual(selection.mode, "revision")
 
     def test_backlog_past_threshold_forces_revision(self):
         progress = self._progress_with_due(5)
         self.assertEqual(self._due_count(progress), 5)
-        selection = select_next_problem(self._state(progress), on_date=self.WEDNESDAY)
+        selection = select_next_problem(self._state(progress, threshold=4), on_date=self.WEDNESDAY)
         self.assertEqual(selection.mode, "revision")
 
     def test_threshold_is_read_from_scoring_not_hardcoded(self):
@@ -366,14 +366,21 @@ class MockSelectionOrderingTests(unittest.TestCase):
     WEDNESDAY = date(2026, 7, 22)
     MASTERED = ["SK-OB-01", "SK-OB-03", "SK-OB-04"]
 
-    def _state(self, progress):
+    def _state(self, progress, threshold=None):
+        # Pin the backlog threshold rather than inheriting the owner's live
+        # scoring.json: these assertions are about ordering policy, and must
+        # not break when the owner retunes their own config.
+        scoring = load_json_file(_shared.SCORING_PATH)
+        if threshold is not None:
+            scoring = json.loads(json.dumps(scoring))
+            scoring["revision_policy"]["revision_backlog_threshold"] = threshold
         return RepositoryState(
             curriculum=load_json_file(_shared.CURRICULUM_PATH),
             graph=load_json_file(_shared.GRAPH_PATH),
             stages=load_json_file(_shared.STAGES_PATH),
             skills=load_json_file(_shared.SKILLS_PATH),
             patterns={},
-            scoring=load_json_file(_shared.SCORING_PATH),
+            scoring=scoring,
             progress=progress,
             progress_path=_shared.PROGRESS_PATH,
         )
@@ -428,7 +435,7 @@ class MockSelectionOrderingTests(unittest.TestCase):
         # the mock — itself forward progress, not new material — proceeds.
         progress = self._base_progress()
         progress["completed"][0] = self._completed("OBS-001", next_due="2026-07-01")
-        selection = select_next_problem(self._state(progress), on_date=self.SATURDAY)
+        selection = select_next_problem(self._state(progress, threshold=4), on_date=self.SATURDAY)
         self.assertEqual(selection.mode, "mock_due")
 
     def test_backlog_over_threshold_outranks_mock(self):
@@ -437,7 +444,7 @@ class MockSelectionOrderingTests(unittest.TestCase):
             progress["completed"][index] = self._completed(
                 progress["completed"][index]["problem_id"], next_due="2026-07-01"
             )
-        selection = select_next_problem(self._state(progress), on_date=self.SATURDAY)
+        selection = select_next_problem(self._state(progress, threshold=4), on_date=self.SATURDAY)
         self.assertEqual(selection.mode, "revision")
 
     def test_mock_never_serves_revisit_of_completed_problem(self):

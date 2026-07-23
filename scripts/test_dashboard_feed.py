@@ -11,14 +11,21 @@ from _shared import (
 )
 
 
-def _state(progress):
+def _state(progress, threshold=None):
+    # Pin the recall-backlog threshold when a test asserts ordering policy, so
+    # retuning the live scoring.json cannot break these assertions.
+    scoring = load_json_file(_shared.SCORING_PATH)
+    if threshold is not None:
+        import json as _j
+        scoring = _j.loads(_j.dumps(scoring))
+        scoring["revision_policy"]["revision_backlog_threshold"] = threshold
     return RepositoryState(
         curriculum=load_json_file(_shared.CURRICULUM_PATH),
         graph=load_json_file(_shared.GRAPH_PATH),
         stages=load_json_file(_shared.STAGES_PATH),
         skills=load_json_file(_shared.SKILLS_PATH),
         patterns=load_json_file(_shared.PATTERNS_PATH),
-        scoring=load_json_file(_shared.SCORING_PATH),
+        scoring=scoring,
         progress=progress,
         progress_path=_shared.PROGRESS_PATH,
     )
@@ -89,7 +96,7 @@ class FeedParityTests(unittest.TestCase):
         progress = _base_progress()
         progress["completed"][0] = _completed("OBS-001", next_due="2026-07-01")
         progress["mastered_skills"] = ["SK-OB-01"]
-        state = _state(progress)
+        state = _state(progress, threshold=4)
         on = date(2026, 7, 25)
         feed = build_dashboard_feed(state, on)
         selection = select_next_problem(state, on_date=on)
