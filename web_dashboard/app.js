@@ -603,18 +603,53 @@
     );
   }
 
+  // The backlog badge makes the scheduling rule legible: recall is deferred
+  // while the queue is at or under revision_backlog_threshold, and takes over
+  // past it. Without this the queue just reads "3 overdue" and the learner
+  // cannot tell whether they are meant to clear it now.
+  function renderBacklogBadge(dueCount) {
+    const badge = $("#due-queue-load");
+    if (!badge) return;
+    if (!feedAvailable()) {
+      badge.textContent = "offline";
+      badge.className = "pill num warn";
+      return;
+    }
+    const threshold = state.feed.policy?.revision_backlog_threshold;
+    if (typeof threshold !== "number") {
+      badge.textContent = `${dueCount} due`;
+      badge.className = "pill num";
+      return;
+    }
+    const over = dueCount > threshold;
+    badge.textContent = `${dueCount} of ${threshold} · ${over ? "recall first" : "new work unlocked"}`;
+    badge.className = `pill num ${over ? "warn" : "good"}`;
+  }
+
   function renderDueQueue() {
     const host = $("#due-queue");
     if (!host) return;
     host.replaceChildren();
     if (!feedAvailable()) {
+      renderBacklogBadge(0);
       host.append(degradedBanner());
       return;
     }
     const queue = state.feed.revision_queue || [];
+    renderBacklogBadge(queue.length);
     if (!queue.length) {
       host.append(empty("Nothing due today — new work is unlocked."));
       return;
+    }
+    const threshold = state.feed.policy?.revision_backlog_threshold;
+    if (typeof threshold === "number") {
+      const note = document.createElement("p");
+      note.className = "chart-note microlabel";
+      note.textContent =
+        queue.length > threshold
+          ? `Backlog is over the threshold of ${threshold}, so recall is served before new problems until it drains.`
+          : `Up to ${threshold} due items may wait while you take new problems. These stay scheduled.`;
+      host.append(note);
     }
     queue.forEach((item) => {
       const row = document.createElement("button");
