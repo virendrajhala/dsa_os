@@ -426,7 +426,11 @@
 
     const readiness = state.feed.readiness || {};
     if (overall) {
-      overall.textContent = readiness.all_met ? "All met" : "Not yet";
+      const gateValues = Object.values(readiness.gates || {});
+      const metCount = gateValues.filter((gate) => gate && gate.met).length;
+      overall.textContent = readiness.all_met
+        ? "All gates met"
+        : `${metCount} of ${gateValues.length} gates met`;
       overall.className = `pill ${readiness.all_met ? "good" : "warn"}`;
     }
     if (projection) {
@@ -539,24 +543,34 @@
     }
     const readiness = state.feed.readiness || {};
     const gates = readiness.gates || {};
+    // Each station reads as one headline number, what it is made of, and what
+    // it has to reach. Never "1/60 / 80%" — a count and a percentage either
+    // side of the same slash is unreadable.
+    const core = gates.core_mastery || {};
+    const pass = gates.revision_pass || {};
+    const mocks = gates.mocks || {};
+    const verdicts = mocks.verdicts || [];
     const stations = [
       {
         label: "Core skills",
-        met: !!gates.core_mastery?.met,
-        current: `${gates.core_mastery?.mastered ?? 0}/${gates.core_mastery?.total ?? 0}`,
-        target: formatPct(gates.core_mastery?.target),
+        met: !!core.met,
+        value: formatPct(core.current),
+        detail: `${core.mastered ?? 0} of ${core.total ?? 0} mastered`,
+        target: formatPct(core.target),
       },
       {
         label: "Revision pass",
-        met: !!gates.revision_pass?.met,
-        current: formatPct(gates.revision_pass?.current),
-        target: formatPct(gates.revision_pass?.target),
+        met: !!pass.met,
+        value: formatPct(pass.current),
+        detail: "of graded recalls",
+        target: formatPct(pass.target),
       },
       {
-        label: "Last 3 mocks",
-        met: !!gates.mocks?.met,
-        current: `${gates.mocks?.current ?? 0}/${gates.mocks?.required ?? 0}`,
-        target: "hire+",
+        label: "Recent mocks",
+        met: !!mocks.met,
+        value: `${mocks.current ?? 0} of ${mocks.required ?? 0}`,
+        detail: verdicts.length ? verdicts.join(", ") : "none recorded yet",
+        target: "hire or better",
       },
     ];
 
@@ -576,8 +590,16 @@
       label.textContent = station.label;
       const value = document.createElement("span");
       value.className = "station-value num";
-      value.textContent = `${station.current} / ${station.target}`;
-      node.append(dot, label, value);
+      value.textContent = station.value;
+      const detail = document.createElement("span");
+      detail.className = "station-detail num";
+      detail.textContent = station.detail;
+      const target = document.createElement("span");
+      target.className = "station-target microlabel";
+      target.textContent = station.met
+        ? `met · target ${station.target}`
+        : `needs ${station.target}`;
+      node.append(dot, label, value, detail, target);
       line.append(node);
     });
 
@@ -598,7 +620,7 @@
     host.setAttribute(
       "aria-label",
       `Interview readiness. ${stations
-        .map((s) => `${s.label} ${s.met ? "met" : "not met"} (${s.current} of ${s.target})`)
+        .map((s) => `${s.label}: ${s.value}, ${s.detail}, target ${s.target}, ${s.met ? "met" : "not met"}`)
         .join(". ")}. Projected ready ${projected || "unknown"}.`,
     );
   }

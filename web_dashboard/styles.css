@@ -2285,9 +2285,19 @@ tbody tr:hover {
 }
 
 .station-value {
-  font-size: 15px;
+  font-size: 22px;
   font-weight: 700;
   color: var(--text);
+  line-height: 1.15;
+}
+
+.station-detail {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.station-target {
+  font-size: 10px;
 }
 
 .trajectory-terminus {
