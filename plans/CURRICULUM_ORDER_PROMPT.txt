@@ -1,0 +1,154 @@
+Reorganize this repo's curriculum and stage progression (/home/virendra/DSA/dsa_os)
+so the learning journey climbs in proper order of cognitive load for DSA
+interview preparation. Work fully autonomously until the acceptance table at
+the bottom of this prompt is reproduced exactly.
+
+Read plans/CURRICULUM_ORDER_FIX_PLAN.md first and completely — it is the
+specification: 5 tasks (Task 0 through Task 4) with exact file edits, test
+code, verify blocks and commit messages. Its decisions were derived from a
+simulation of the real scheduler over all 581 problems; do not re-litigate
+them, and do not fix anything on its "Deliberately deferred" list.
+
+Everything else you need is in this prompt.
+
+=== WHAT MUST NEVER BREAK ===
+You are editing a curriculum a human is actively learning from. Three
+properties must survive every task:
+1. No problem is ever deleted and no stage is ever renamed. `make validate`
+   must keep reporting 581 problems and 93 skills. (Stages keep their names
+   so recorded history in progress.json stays valid.)
+2. progress/progress.json is never modified. `git diff --quiet --
+   progress/progress.json` must pass after every task.
+3. The dependency graph stays acyclic and stage-monotone: zero cycles, zero
+   dependencies pointing at a later stage. Both are zero today.
+
+=== PERMISSIONS ===
+You MAY commit on main exactly as the plan specifies: one commit per task,
+conventional format (type/scope: lowercase imperative subject <=72 chars)
+plus a concise body, written via HEREDOC. NO Co-Authored-By and no AI/agent
+attribution anywhere. You may NOT push. Untracked .xlsx, .playwright-mcp/
+and plans/*.md files belong to the human and do not fail the clean-tree gate.
+
+First action, before Task 0: commit plans/CURRICULUM_ORDER_FIX_PLAN.md with
+message "docs/plan: curriculum ordering audit fix plan".
+
+=== BOOTSTRAP (once) ===
+1. Baseline gate, all must hold before you touch anything: `make test`
+   passes; `make validate` passes reporting 581 problems / 93 skills;
+   `git status` clean apart from the human's untracked files; `git log
+   --oneline -5` shows no other agent committing while you work. If any
+   fails, STOP and report.
+2. Record the baseline: write the journey simulation from the plan's Task 0
+   into a scratch script under /tmp, run it against the CURRENT repo, and
+   save first-Hard position, Easy->Hard count and Subsets position. You will
+   compare against these at the end. (Expect roughly: first Hard at 3,
+   Easy->Hard 7, Subsets at 493.)
+
+=== THE JSON EDITING RULE (most common way to wreck this job) ===
+NEVER round-trip a whole data file through json.load -> json.dump.
+curriculum.json holds ~581 problem objects; a round-trip reformats
+indentation, key order and unicode escaping, producing a thousand-line diff
+that hides your real change. Instead:
+- Use surgical string edits for single-field changes (e.g. one problem's
+  "difficulty": "Hard" -> "Medium").
+- For genuinely list-shaped changes (reordering stage_order or skill_order),
+  hand-write the new list, or use a script that only PRINTS the list and
+  paste the result in.
+- After ANY data-file edit: `git diff --stat` must show a change
+  proportional to the edit (the stage_order reorder is ~a dozen lines, not
+  thousands). If it is huge, `git checkout -- <file>` and redo it
+  surgically. Then confirm `python3 -m json.tool <file> > /dev/null` parses.
+
+=== EXECUTION LOOP ===
+For TASK in 0,1,2,3,4 strictly in order:
+  a. Re-read the task section in the plan.
+  b. Read every file the task touches BEFORE editing.
+  c. Execute its steps in order. TDD is literal: write the failing test, RUN
+     it, watch it fail, then implement.
+  d. Run the task's full Verify block including its inline python3 snippets.
+  e. Gate — all four must pass:
+       make test
+       make validate            (still 581 problems / 93 skills)
+       git diff --quiet -- progress/progress.json
+       python3 -m json.tool on every JSON file you edited
+  f. Self-review `git diff` for scope creep and accidental reformatting.
+  g. Commit exactly one commit with the task's message. Do NOT push.
+  h. Append one line to plans/CURRICULUM_ORDER_REPORT.md:
+       Task N: <sha> — as planned | <deviation and why>
+
+=== THE expectedFailure CHOREOGRAPHY (do not get this wrong) ===
+Task 0 adds ordering tests marked @unittest.expectedFailure. Each later task
+removes exactly one marker as its fix makes that test pass:
+  test_backtracking_is_inside_the_readiness_scope  -> removed by Task 1
+  test_entry_ramp_has_no_hard_in_first_fifteen     -> removed by Task 2
+  test_tree_ladder_builds_before_serialize         -> removed by Task 3
+  (any fourth marker your Task 0 run produced)     -> the task that fixes it
+Two failure modes: leaving a marker on a test that now passes (unittest
+reports "unexpected success" — treat as FAILURE, remove the marker), and
+removing a marker before its fix landed (red suite). By the end of Task 3,
+`grep -c expectedFailure scripts/test_curriculum_order.py` must print 0.
+
+=== RETRY AND RECOVERY ===
+- A failing verify step gets at most 3 DISTINCT fix attempts (different
+  hypotheses, not the same edit retried). Still failing -> STOP.
+- If an edit breaks previously-green tests, `git checkout -- <files>` back to
+  the last commit and re-approach. Never stack fixes on a broken base.
+- If the plan contradicts the code (renamed function, moved line), the CODE
+  is truth for mechanics and the PLAN is truth for intent; note the deviation
+  in your report line. If the contradiction is about intent (the plan wants X
+  and the data makes X impossible) -> STOP.
+
+=== STOP CONDITIONS — halt, report, ask the human ===
+1. progress/progress.json would have to change.
+2. make validate reports anything other than 581 problems / 93 skills.
+3. A cycle or forward-stage dependency appears you cannot remove in-task.
+4. 3 failed fix attempts on the same step.
+5. A change would delete a problem or rename a stage.
+6. A baseline gate was already failing before you started.
+7. You believe a "Deliberately deferred" item must be fixed for the plan to
+   work — explain why; do not just do it.
+
+=== FINAL GATE (after Task 4) ===
+1. `make test && make validate && python3 scripts/next_problem.py &&
+   python3 scripts/revision_report.py && python3 scripts/dashboard.py` all
+   exit 0.
+2. `grep -c expectedFailure scripts/test_curriculum_order.py` prints 0.
+3. Re-run your simulation and reproduce this table EXACTLY. These are
+   acceptance criteria, not aspirations:
+
+     first Hard at journey position ......... 20   (was 3)
+     Easy->Hard adjacencies ................. 3    (was 7)
+     Hard PRIMARY skills .................... 6    (was 8)
+     Subsets (LC78) journey position ........ 274  (was 493)
+     served / unreachable ................... 581 / 0
+     forward-stage deps (skill + problem) ... 0
+     cycles (skill + problem) ............... none
+     stages contiguous in served order ...... 13 / 13
+
+   Canon ladders must hold, by journey position:
+     LC105 < LC297
+     LC78 < LC46 < LC79 < LC51
+     LC200 < LC207 < LC743
+     LC70 < LC322 < LC312
+
+   If any number does not match, do NOT rationalize it. Investigate; if you
+   cannot reconcile it, STOP and report both the expected and actual number.
+4. Dispatch ONE fresh-context review subagent. Give it
+   plans/CURRICULUM_ORDER_FIX_PLAN.md and `git log --oneline` for your
+   commits, and have it independently verify: no problems deleted,
+   progress.json untouched, stage_order identical in stages.json and
+   dependency_graph.json, skill_order identical in skills.json and
+   dependency_graph.json, zero expectedFailure markers, and its own
+   re-simulation reproducing the table above. Fix Critical/Important
+   findings (one fix commit per logical group), have it re-confirm, and
+   report Minors without fixing them.
+
+=== REPORTING ===
+Maintain plans/CURRICULUM_ORDER_REPORT.md from bootstrap; commit it in the
+Task 4 docs commit. It holds: your baseline numbers, one line per task, any
+stop conditions and how they resolved, the final acceptance table as
+actual-vs-required, the reviewer verdict, and open minors.
+
+Final message to the human: done/not-done, the commit list, the acceptance
+table with actual-vs-required numbers, the reviewer verdict, and anything
+left for them to decide. Do not push — they push after their own review.
