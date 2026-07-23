@@ -2,7 +2,7 @@
   "schema_version": 8,
   "last_updated": "2026-07-23",
   "current_stage": "Observation",
-  "current_problem": "OBS-008",
+  "current_problem": "CPX-004",
   "completed": [
     {
       "problem_id": "OBS-001",
@@ -607,10 +607,31 @@
       },
       "revision": {
         "status": "ACTIVE",
-        "stage": 0,
-        "completed": [],
-        "next_due": "2026-07-23",
-        "history": []
+        "stage": 1,
+        "completed": [
+          "2026-07-23"
+        ],
+        "next_due": "2026-07-30",
+        "history": [
+          {
+            "date": "2026-07-23",
+            "result": "PASS",
+            "stage": 1,
+            "attempted_stage": 1,
+            "confidence": 10,
+            "hint_level": 0,
+            "thinking_score": {
+              "concept_recall": 10,
+              "invariant_recall": 10,
+              "algorithm_reconstruction": 10,
+              "implementation_blueprint": 9,
+              "code_from_memory": 9,
+              "implementation": 10,
+              "hint_dependency": 10,
+              "confidence": 10
+            }
+          }
+        ]
       },
       "session_summary": {
         "pattern": "Bidirectional constraint satisfaction",
@@ -1053,6 +1074,22 @@
       "deferred_learnings_created": [],
       "deferred_learnings_resolved": [],
       "next_problem": "OBS-008"
+    },
+    {
+      "timestamp": "2026-07-23",
+      "event": "revision_recorded",
+      "problem_id": "OBS-008",
+      "mode": "revision",
+      "stage_before": "Observation",
+      "stage_after": "Observation",
+      "revision_result": "PASS",
+      "revision_stage": 1,
+      "revision_status": "ACTIVE",
+      "next_due": "2026-07-30",
+      "reactivated_problems": [],
+      "deferred_learnings_created": [],
+      "deferred_learnings_resolved": [],
+      "next_problem": "CPX-004"
     }
   ],
   "notes": [
@@ -1125,6 +1162,14 @@
     {
       "date": "2026-07-23",
       "text": "Misconception corrected during OBS-006 R1: used currentIndex == farthestReachableIndex as the jump-commit condition instead of currentIndex == currentRegionEnd. Corrected after Socratic probing (hint level 1, nothing revealed); the learner then explained why the current region boundary, not the newly discovered frontier, decides when a jump is committed."
+    },
+    {
+      "date": "2026-07-23",
+      "text": "OBS-008 R1: reconstructed the two-pass Candy Distribution solution from memory, O(n) time and O(n) extra space, with no hints. Retained why two directional scans are required, why one alone is insufficient, why left and right constraints are tracked separately, and why the answer is the maximum of both directional requirements."
+    },
+    {
+      "date": "2026-07-23",
+      "text": "OBS-008 R1 independence: an accumulation mistake in the first implementation was found and corrected by the learner without requesting a hint, on their own review. Genuine recall rather than guided reconstruction."
     }
   ],
   "scores": {
