@@ -36,6 +36,11 @@ DEFAULT_REVISION_POLICY = {
     "failure_retry_days": 1,
     "quarterly_maintenance_days": 90,
     "quarterly_maintenance_sample_size": 3,
+    # Owner policy: how many due revisions may sit in the queue before recall
+    # takes priority over new problems. At or below this, new work proceeds;
+    # past it, revisions are served until the backlog drains back under.
+    # 0 restores strict revision-first scheduling.
+    "revision_backlog_threshold": 4,
 }
 
 
@@ -87,6 +92,7 @@ MASTERED_AFTER_STAGE = REVISION_POLICY["mastered_after_stage"]
 FAILURE_RETRY_DAYS = REVISION_POLICY["failure_retry_days"]
 QUARTERLY_MAINTENANCE_DAYS = REVISION_POLICY["quarterly_maintenance_days"]
 QUARTERLY_MAINTENANCE_LIMIT = REVISION_POLICY["quarterly_maintenance_sample_size"]
+REVISION_BACKLOG_THRESHOLD = REVISION_POLICY["revision_backlog_threshold"]
 THINKING_DIMENSION_LABELS = {
     "understanding": "Understanding",
     "examples": "Examples",
@@ -1203,7 +1209,22 @@ def select_next_problem(state: RepositoryState, on_date: date | None = None) -> 
         raise RepositoryError("stages.json: `stages` must be an object.")
 
     due_revisions = open_revision_entries_due_on_or_before(state.progress, today)
-    if due_revisions:
+    # A small ordinary-recall backlog no longer blocks forward progress: new
+    # work proceeds while the due queue is at or under the configured
+    # threshold. The queue itself is untouched, so revision_report.py and the
+    # dashboard keep showing every due item.
+    #
+    # Two kinds are never deferred. A reactivation is a targeted response to a
+    # demonstrated weak prerequisite, and quarterly maintenance is generated
+    # fresh each day for mastered problems and capped at the daily sample size
+    # — it cannot accumulate, so a threshold would stop it firing at all
+    # rather than merely delaying it.
+    backlog_threshold = resolve_revision_policy(state.scoring)["revision_backlog_threshold"]
+    undeferrable = {"reactivation", "quarterly_maintenance"}
+    priority_due = [e for e in due_revisions if str(e.get("kind")) in undeferrable]
+    if priority_due:
+        due_revisions = priority_due
+    if due_revisions and (priority_due or len(due_revisions) > backlog_threshold):
         sorted_due = sorted(
             due_revisions,
             key=lambda entry: (
@@ -1228,9 +1249,12 @@ def select_next_problem(state: RepositoryState, on_date: date | None = None) -> 
         elif chosen_entry.get("kind") == "reactivation":
             reason = "Prerequisite reinforcement is due and takes priority over new work."
         else:
-            reason = "Revision is overdue." if due_date < today else (
-                "Revision is due today and takes priority over new work."
+            backlog_note = (
+                f" Recall backlog is {len(due_revisions)}, over the threshold of "
+                f"{backlog_threshold}, so revisions take priority until it drains."
             )
+            reason = ("Revision is overdue." if due_date < today else
+                      "Revision is due today.") + backlog_note
         return SelectionResult(
             # Fallback must be a real kind name ("revision"), not the old
             # "revision_due" string that matched nothing downstream (F22).
@@ -2184,6 +2208,7 @@ def build_dashboard_feed(state: RepositoryState, on_date: date) -> JsonDict:
         ),
         "policy": {
             "mastered_after_stage": MASTERED_AFTER_STAGE,
+            "revision_backlog_threshold": REVISION_BACKLOG_THRESHOLD,
             "intervals": {
                 f"R{index + 1}": REVISION_INTERVAL_DAYS[index]
                 for index in sorted(REVISION_INTERVAL_DAYS)

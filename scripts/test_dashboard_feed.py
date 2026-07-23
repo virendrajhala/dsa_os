@@ -66,14 +66,35 @@ class FeedParityTests(unittest.TestCase):
             self.assertEqual(feed["next_action"]["problem_id"],
                              selection.problem["id"])
 
-    def test_overdue_revision_wins_even_on_weekend(self):
+    def test_overdue_backlog_wins_even_on_weekend(self):
+        # A weekend must never hide recall once the backlog passes
+        # revision_policy.revision_backlog_threshold. Under it, the weekend
+        # mock proceeds instead — the feed must agree with the CLI either way.
+        progress = _base_progress()
+        for index, problem_id in enumerate(["OBS-001", "OBS-002", "OBS-003", "CPX-001"]):
+            progress["completed"][index] = _completed(problem_id, next_due="2026-07-01")
+        progress["completed"].append(_completed("OBS-004", next_due="2026-07-01"))
+        progress["mastered_skills"] = ["SK-OB-01"]
+        state = _state(progress)
+        on = date(2026, 7, 25)
+        feed = build_dashboard_feed(state, on)
+        selection = select_next_problem(state, on_date=on)
+        self.assertEqual(feed["next_action"]["mode"], selection.mode)
+        self.assertEqual(feed["next_action"]["mode"], "revision")
+        # Which of the equally-overdue items wins is the scheduler's call; the
+        # feed must simply agree with it.
+        self.assertEqual(feed["next_action"]["problem_id"], selection.problem["id"])
+
+    def test_small_backlog_lets_the_weekend_mock_through(self):
         progress = _base_progress()
         progress["completed"][0] = _completed("OBS-001", next_due="2026-07-01")
         progress["mastered_skills"] = ["SK-OB-01"]
         state = _state(progress)
-        feed = build_dashboard_feed(state, date(2026, 7, 25))
-        self.assertEqual(feed["next_action"]["mode"], "revision")
-        self.assertEqual(feed["next_action"]["problem_id"], "OBS-001")
+        on = date(2026, 7, 25)
+        feed = build_dashboard_feed(state, on)
+        selection = select_next_problem(state, on_date=on)
+        self.assertEqual(feed["next_action"]["mode"], selection.mode)
+        self.assertNotEqual(feed["next_action"]["mode"], "revision")
 
 
 class FeedShapeTests(unittest.TestCase):

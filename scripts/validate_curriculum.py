@@ -808,7 +808,7 @@ def validate_curriculum(
                         "scoring.json: revision intervals must be strictly increasing "
                         f"(found: {ordered}).",
                     )
-    for key, minimum in (("failure_retry_days", 1), ("quarterly_maintenance_days", 1), ("quarterly_maintenance_sample_size", 0)):
+    for key, minimum in (("failure_retry_days", 1), ("quarterly_maintenance_days", 1), ("quarterly_maintenance_sample_size", 0), ("revision_backlog_threshold", 0)):
         value = revision_policy.get(key)
         if not isinstance(value, int) or value < minimum:
             add_error(errors, f"scoring.json: `revision_policy.{key}` must be an integer >= {minimum}.")

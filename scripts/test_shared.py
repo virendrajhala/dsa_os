@@ -6,6 +6,7 @@ Run: python3 scripts/test_shared.py
 
 from __future__ import annotations
 
+import json
 import unittest
 from datetime import date, timedelta
 
@@ -262,6 +263,100 @@ class MockDueSchedulingTests(unittest.TestCase):
         self.assertTrue(is_mock_due(progress, self.SATURDAY))
 
 
+class RevisionBacklogThresholdTests(unittest.TestCase):
+    """Owner policy: a small recall backlog must not block forward progress.
+
+    New work is allowed while the number of due revisions is at or below
+    `revision_policy.revision_backlog_threshold`; past it, recall takes over
+    until the backlog drains back under the line.
+    """
+
+    WEDNESDAY = date(2026, 7, 22)
+    OVERDUE = "2026-07-01"
+
+    def _state(self, progress, threshold=None):
+        scoring = load_json_file(_shared.SCORING_PATH)
+        if threshold is not None:
+            scoring = json.loads(json.dumps(scoring))
+            scoring["revision_policy"]["revision_backlog_threshold"] = threshold
+        return RepositoryState(
+            curriculum=load_json_file(_shared.CURRICULUM_PATH),
+            graph=load_json_file(_shared.GRAPH_PATH),
+            stages=load_json_file(_shared.STAGES_PATH),
+            skills=load_json_file(_shared.SKILLS_PATH),
+            patterns={},
+            scoring=scoring,
+            progress=progress,
+            progress_path=_shared.PROGRESS_PATH,
+        )
+
+    @staticmethod
+    def _completed(problem_id, next_due):
+        return {
+            "problem_id": problem_id,
+            "completed_at": "2026-01-01",
+            "revision": {
+                "status": "ACTIVE",
+                "stage": 1,
+                "completed": ["2026-01-01"],
+                "next_due": next_due,
+                "history": [],
+            },
+        }
+
+    def _progress_with_due(self, due_count):
+        """Ten solved problems; the first `due_count` of them are overdue."""
+        solved = ["OBS-001", "OBS-002", "OBS-003", "OBS-004", "OBS-005",
+                  "OBS-006", "OBS-007", "OBS-008", "CPX-001", "CPX-002"]
+        completed = [
+            self._completed(pid, self.OVERDUE if i < due_count else "2099-01-01")
+            for i, pid in enumerate(solved)
+        ]
+        return {
+            "completed": completed,
+            "mastered_skills": [],
+            "current_problem": None,
+            "current_stage": "Observation",
+        }
+
+    def _due_count(self, progress):
+        return len(_shared.open_revision_entries_due_on_or_before(progress, self.WEDNESDAY))
+
+    def test_backlog_at_threshold_still_allows_new_work(self):
+        progress = self._progress_with_due(4)
+        self.assertEqual(self._due_count(progress), 4)
+        selection = select_next_problem(self._state(progress), on_date=self.WEDNESDAY)
+        self.assertNotEqual(selection.mode, "revision")
+
+    def test_backlog_below_threshold_allows_new_work(self):
+        progress = self._progress_with_due(1)
+        selection = select_next_problem(self._state(progress), on_date=self.WEDNESDAY)
+        self.assertNotEqual(selection.mode, "revision")
+
+    def test_backlog_past_threshold_forces_revision(self):
+        progress = self._progress_with_due(5)
+        self.assertEqual(self._due_count(progress), 5)
+        selection = select_next_problem(self._state(progress), on_date=self.WEDNESDAY)
+        self.assertEqual(selection.mode, "revision")
+
+    def test_threshold_is_read_from_scoring_not_hardcoded(self):
+        progress = self._progress_with_due(2)
+        # Tighten the policy to 1: two due revisions must now take priority.
+        selection = select_next_problem(self._state(progress, threshold=1), on_date=self.WEDNESDAY)
+        self.assertEqual(selection.mode, "revision")
+
+    def test_threshold_zero_restores_revision_first_behaviour(self):
+        progress = self._progress_with_due(1)
+        selection = select_next_problem(self._state(progress, threshold=0), on_date=self.WEDNESDAY)
+        self.assertEqual(selection.mode, "revision")
+
+    def test_deferred_revisions_are_still_reported_as_due(self):
+        # Deferring must not hide the backlog: the queue the report and the
+        # dashboard read is unchanged.
+        progress = self._progress_with_due(3)
+        self.assertEqual(self._due_count(progress), 3)
+
+
 class MockSelectionOrderingTests(unittest.TestCase):
     """F10: a due mock outranks new work but never an overdue revision, and
     the selected problem comes from a mastered/adjacent skill, never the
@@ -327,9 +422,21 @@ class MockSelectionOrderingTests(unittest.TestCase):
         selection = select_next_problem(self._state(progress), on_date=self.SATURDAY)
         self.assertNotEqual(selection.mode, "mock_due")
 
-    def test_overdue_revision_outranks_mock(self):
+    def test_small_backlog_no_longer_outranks_mock(self):
+        # Policy change: recall only pre-empts a weekend mock once the backlog
+        # passes revision_backlog_threshold. One overdue item is under it, so
+        # the mock — itself forward progress, not new material — proceeds.
         progress = self._base_progress()
         progress["completed"][0] = self._completed("OBS-001", next_due="2026-07-01")
+        selection = select_next_problem(self._state(progress), on_date=self.SATURDAY)
+        self.assertEqual(selection.mode, "mock_due")
+
+    def test_backlog_over_threshold_outranks_mock(self):
+        progress = self._base_progress()
+        for index in range(5):
+            progress["completed"][index] = self._completed(
+                progress["completed"][index]["problem_id"], next_due="2026-07-01"
+            )
         selection = select_next_problem(self._state(progress), on_date=self.SATURDAY)
         self.assertEqual(selection.mode, "revision")
 
