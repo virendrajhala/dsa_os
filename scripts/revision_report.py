@@ -148,6 +148,20 @@ def render_text(payload: dict[str, Any], today_only: bool) -> str:
     """Render the report as console text."""
 
     lines = [f"Revision Report: {payload['date']}", ""]
+    # Overdue prints first: the scheduler serves due work oldest-first, so
+    # listing today's items above older ones invites a reader to start with the
+    # least urgent. Section order here matches select_next_problem's order.
+    lines.append("Overdue Revisions (oldest first — these outrank today's)")
+    if payload["overdue_revisions"]:
+        for entry in payload["overdue_revisions"]:
+            lines.append(
+                f"- {entry['problem']} | {entry['date']} | {entry.get('kind', 'revision')} | "
+                f"{entry['status']} stage {entry['revision_stage']} | {entry['reason']}"
+            )
+    else:
+        lines.append("- None")
+    lines.append("")
+
     lines.append("Today's Revisions")
     if payload["todays_revisions"]:
         for entry in payload["todays_revisions"]:
@@ -160,15 +174,10 @@ def render_text(payload: dict[str, Any], today_only: bool) -> str:
         lines.append("- None")
     lines.append("")
 
-    lines.append("Overdue Revisions")
-    if payload["overdue_revisions"]:
-        for entry in payload["overdue_revisions"]:
-            lines.append(
-                f"- {entry['problem']} | {entry['date']} | {entry.get('kind', 'revision')} | "
-                f"{entry['status']} stage {entry['revision_stage']} | {entry['reason']}"
-            )
-    else:
-        lines.append("- None")
+    lines.append(
+        "This report is context, not the running order. "
+        "`scripts/next_problem.py` decides what to work now."
+    )
     lines.append("")
 
     lines.append("Quarterly Maintenance")

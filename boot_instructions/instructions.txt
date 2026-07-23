@@ -11,10 +11,18 @@ waiting for the learner to type commands:
 1. Run `scripts/validate_curriculum.py`. If it fails, stop and report the
    exact failure instead of proceeding — do not work a problem against a
    known-inconsistent repository.
-2. Run `scripts/revision_report.py --today-only`. If an active-recall revision
-   or quarterly maintenance check is due, that takes priority over new work —
-   start there instead of `next_problem.py`.
-3. Otherwise run `scripts/next_problem.py` to get today's problem. Open
+2. Run `scripts/next_problem.py`. It is the only authority on what to work
+   now: it already weighs overdue recall, quarterly maintenance, weekend mocks
+   and new problems against each other, and it honours the recall-backlog
+   threshold in `progress/scoring.json` (`revision_policy`), under which a
+   small number of due revisions may wait while new work continues. Work
+   whatever it returns, and note its `mode` — a `revision`, `reactivation` or
+   `quarterly_maintenance` mode means run the Revision Protocol in
+   `mentor/mentor_protocol.md`, not the teaching loop.
+3. Run `scripts/revision_report.py --today-only` for context on the recall
+   queue — what is overdue and by how long. Do not pick work from it: it lists
+   every due item, while the scheduler decides which single one is next. If the
+   two ever disagree, the scheduler wins. Open
    deferred learnings are mentor context only: do not schedule them as separate
    work, but watch whether today's normal problem or revision naturally
    provides evidence to resolve one.

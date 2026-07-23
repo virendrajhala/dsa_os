@@ -221,9 +221,13 @@ idea, and complexity reasoning.
 
 ## Revision Protocol
 
-Before every session, run the revision report and prefer due ACTIVE or FAILED
-revisions over new work. A revision is an active-recall interview, not a
-date-based reread.
+Before every session, run `scripts/next_problem.py`; it decides whether today
+is recall or new work. Due ACTIVE or FAILED revisions outrank new problems once
+the recall backlog passes `revision_policy.revision_backlog_threshold` in
+`progress/scoring.json` — under that line a few due items may wait while new
+work continues, and the scheduler says so. `scripts/revision_report.py` shows
+the whole queue as context, but it is not the running order. A revision is an
+active-recall interview, not a date-based reread.
 
 A problem is mastered only after four successful recall stages:
 
