@@ -2,7 +2,7 @@
   "schema_version": 8,
   "last_updated": "2026-07-23",
   "current_stage": "Observation",
-  "current_problem": "CPX-004",
+  "current_problem": "OBS-008",
   "completed": [
     {
       "problem_id": "OBS-001",
@@ -425,10 +425,31 @@
       },
       "revision": {
         "status": "ACTIVE",
-        "stage": 0,
-        "completed": [],
-        "next_due": "2026-07-18",
-        "history": []
+        "stage": 1,
+        "completed": [
+          "2026-07-23"
+        ],
+        "next_due": "2026-07-30",
+        "history": [
+          {
+            "date": "2026-07-23",
+            "result": "PASS",
+            "stage": 1,
+            "attempted_stage": 1,
+            "confidence": 8,
+            "hint_level": 1,
+            "thinking_score": {
+              "concept_recall": 9,
+              "invariant_recall": 8,
+              "algorithm_reconstruction": 9,
+              "implementation": 9,
+              "implementation_blueprint": 9,
+              "code_from_memory": 9,
+              "hint_dependency": 8,
+              "confidence": 8
+            }
+          }
+        ]
       },
       "algorithm_thinking_score": 10.0,
       "implementation_engineering_score": 10.0
@@ -1016,6 +1037,22 @@
       "deferred_learnings_created": [],
       "deferred_learnings_resolved": [],
       "next_problem": "CPX-004"
+    },
+    {
+      "timestamp": "2026-07-23",
+      "event": "revision_recorded",
+      "problem_id": "OBS-006",
+      "mode": "revision",
+      "stage_before": "Observation",
+      "stage_after": "Observation",
+      "revision_result": "PASS",
+      "revision_stage": 1,
+      "revision_status": "ACTIVE",
+      "next_due": "2026-07-30",
+      "reactivated_problems": [],
+      "deferred_learnings_created": [],
+      "deferred_learnings_resolved": [],
+      "next_problem": "OBS-008"
     }
   ],
   "notes": [
@@ -1076,6 +1113,18 @@
     {
       "date": "2026-07-23",
       "text": "Misconception raised and self-corrected during OBS-005 R1: assumed the same transition stays valid if jumps must be EXACT rather than AT MOST; corrected to the condition becoming equality instead of >=. Also reasoned why left-to-right traversal cannot use this single-state greedy: there is no initially known good index to propagate from. Fully resolved, no residual confusion."
+    },
+    {
+      "date": "2026-07-23",
+      "text": "OBS-006 R1: rebuilt the interval-expansion greedy from memory and wrote the full Java implementation. Explained initialization, why the loop ends at n-2, why currentRegionEnd is updated from farthestReachableIndex, and the update order."
+    },
+    {
+      "date": "2026-07-23",
+      "text": "Region expansion and jump commitment are two separate events. farthestReachableIndex is evidence gathered while scanning the current region; the region is only fully explored when the scan reaches currentRegionEnd, and only then does the next region begin."
+    },
+    {
+      "date": "2026-07-23",
+      "text": "Misconception corrected during OBS-006 R1: used currentIndex == farthestReachableIndex as the jump-commit condition instead of currentIndex == currentRegionEnd. Corrected after Socratic probing (hint level 1, nothing revealed); the learner then explained why the current region boundary, not the newly discovered frontier, decides when a jump is committed."
     }
   ],
   "scores": {

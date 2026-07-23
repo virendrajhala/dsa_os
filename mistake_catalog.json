@@ -29,6 +29,15 @@
       "source_problem": "OBS-001",
       "taxonomy": "D",
       "corrected_on": "2026-07-16"
+    },
+    {
+      "id": "M004",
+      "title": "Commit the jump at the newly found frontier",
+      "symptom": "Uses the farthest reachable index as the jump-commit boundary, so a jump is committed before the current region has been fully scanned.",
+      "fix": "Commit when the scan reaches the end of the current region, not when it reaches the farthest index found so far. The farthest index is evidence gathered while scanning; the region boundary is what decides. Region expansion and jump commitment are separate events.",
+      "source_problem": "OBS-006",
+      "taxonomy": "C",
+      "corrected_on": "2026-07-23"
     }
   ]
 }
