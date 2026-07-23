@@ -40,6 +40,11 @@ For a revision completion, also provide:
 - `--revision-result`
 - every `--revision-score` dimension
 
+Do not record a revision until Phase 4 of the Revision Protocol has succeeded.
+Concept recall alone is not a completed revision: if the learner could not
+rebuild the implementation from memory, the revision stays incomplete and no
+PASS is recorded.
+
 ### Mentor-Graded Scores (optional)
 
 Per `mentor/mentor_protocol.md`'s Scoring Rule, the mentor grades every
