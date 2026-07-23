@@ -1,8 +1,8 @@
 {
   "schema_version": 8,
-  "last_updated": "2026-07-21",
+  "last_updated": "2026-07-23",
   "current_stage": "Observation",
-  "current_problem": "OBS-005",
+  "current_problem": "CPX-004",
   "completed": [
     {
       "problem_id": "OBS-001",
@@ -368,10 +368,31 @@
       },
       "revision": {
         "status": "ACTIVE",
-        "stage": 0,
-        "completed": [],
-        "next_due": "2026-07-17",
-        "history": []
+        "stage": 1,
+        "completed": [
+          "2026-07-23"
+        ],
+        "next_due": "2026-07-30",
+        "history": [
+          {
+            "date": "2026-07-23",
+            "result": "PASS",
+            "stage": 1,
+            "attempted_stage": 1,
+            "confidence": 10,
+            "hint_level": 0,
+            "thinking_score": {
+              "concept_recall": 10,
+              "invariant_recall": 10,
+              "algorithm_reconstruction": 10,
+              "implementation": 10,
+              "implementation_blueprint": 10,
+              "code_from_memory": 10,
+              "hint_dependency": 10,
+              "confidence": 10
+            }
+          }
+        ]
       },
       "algorithm_thinking_score": 9.58,
       "implementation_engineering_score": 10.0
@@ -979,6 +1000,22 @@
         "DL-002"
       ],
       "next_problem": "OBS-005"
+    },
+    {
+      "timestamp": "2026-07-23",
+      "event": "revision_recorded",
+      "problem_id": "OBS-005",
+      "mode": "revision",
+      "stage_before": "Observation",
+      "stage_after": "Observation",
+      "revision_result": "PASS",
+      "revision_stage": 1,
+      "revision_status": "ACTIVE",
+      "next_due": "2026-07-30",
+      "reactivated_problems": [],
+      "deferred_learnings_created": [],
+      "deferred_learnings_resolved": [],
+      "next_problem": "CPX-004"
     }
   ],
   "notes": [
@@ -1023,6 +1060,22 @@
       "type": "mentor_observation",
       "problem_id": "OBS-002",
       "note": "R2 active recall confirmed long-term strengthening for Maximum Product Subarray. The learner independently recalled why both runningMax and runningMin are needed, handled negative sign flips and zeros, preserved previous runningMax before updating runningMin, wrote the implementation from memory, dry-ran it successfully, and recalled O(n) time with O(1) space. No hints, mistakes, or weaknesses were observed."
+    },
+    {
+      "date": "2026-07-23",
+      "text": "OBS-005 R1: derived the backward-greedy reachability algorithm from reasoning, not memory. Invariant: leftMostGoodIndex is always a good index that can reach the destination; it never moves right, so good indices form one continuous suffix and a single state variable suffices. Initialization at the last index is essential because it is the first guaranteed good index."
+    },
+    {
+      "date": "2026-07-23",
+      "text": "Greedy State Compression Principle: when all valid states form one continuous reachable region, it is sufficient to store only the boundary representative instead of every valid state."
+    },
+    {
+      "date": "2026-07-23",
+      "text": "Backward propagation is often possible when the destination is already known to be a valid state."
+    },
+    {
+      "date": "2026-07-23",
+      "text": "Misconception raised and self-corrected during OBS-005 R1: assumed the same transition stays valid if jumps must be EXACT rather than AT MOST; corrected to the condition becoming equality instead of >=. Also reasoned why left-to-right traversal cannot use this single-state greedy: there is no initially known good index to propagate from. Fully resolved, no residual confusion."
     }
   ],
   "scores": {
@@ -1096,7 +1149,7 @@
         "attempted": 0,
         "passed": 0
       },
-      "State Transition": {
+      "Pattern Discovery": {
         "attempted": 0,
         "passed": 0
       },
@@ -1104,11 +1157,11 @@
         "attempted": 0,
         "passed": 0
       },
-      "Interval Reasoning": {
+      "State Transition": {
         "attempted": 0,
         "passed": 0
       },
-      "Pattern Discovery": {
+      "Interval Reasoning": {
         "attempted": 0,
         "passed": 0
       },
@@ -1747,25 +1800,25 @@
       "skills_mastered": 0,
       "skills_total": 6
     },
-    "State Transition": {
+    "Pattern Discovery": {
       "status": "locked",
       "skills_mastered": 0,
-      "skills_total": 17
+      "skills_total": 5
     },
     "Graph Thinking": {
       "status": "locked",
       "skills_mastered": 0,
       "skills_total": 9
     },
+    "State Transition": {
+      "status": "locked",
+      "skills_mastered": 0,
+      "skills_total": 17
+    },
     "Interval Reasoning": {
       "status": "locked",
       "skills_mastered": 0,
       "skills_total": 11
-    },
-    "Pattern Discovery": {
-      "status": "locked",
-      "skills_mastered": 0,
-      "skills_total": 5
     },
     "Mathematical Thinking": {
       "status": "locked",
