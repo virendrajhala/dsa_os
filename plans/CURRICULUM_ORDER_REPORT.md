@@ -132,13 +132,42 @@ Ladders unchanged: LC105 262 < LC297 263 · LC78 274 < LC46 284 < LC79 288 <
 LC51 299 < LC743 344 · LC70 376 < LC322 383 < LC312 457.
 `make test` 182 tests green (was 172), `make validate` green.
 
+### Resume path — closed by validation, not by widening the gate
+
+The active problem is re-checked through `is_problem_unlocked` *with* the
+challenge gate (`_shared.py:1280`), so a CHALLENGE in progress can be refused
+on resume. Reproduced: with `current_problem = CPX-003` (Hard CHALLENGE, its
+dependency CPX-002 complete, Observation fundamentals not), the scheduler
+returns `mode=current_stage` and hands over CPX-004 — the in-progress problem
+is stranded with nothing ever returning to it.
+
+The obvious fix — exempt the active problem from the gate — was rejected. The
+gate is monotonic (`fundamentals(stage) ⊆ completed_ids`, and `completed_ids`
+only grows), so a problem that once passed can never later fail; the only way
+to hold a blocked CHALLENGE is a pointer written before the gate existed or
+edited by hand. Punching a permanent hole in a gate added specifically to keep
+Hard challenges out of the early journey, to accommodate a state that can only
+arrive through legacy or hand-editing, is the wrong trade.
+
+Instead `validate_curriculum.py` now rejects the bad state at the source: if
+`current_problem` is set, not yet completed, and not servable by the scheduler,
+validation fails with the reason.
+
+```
+`current_problem` `CPX-003` is not servable by the scheduler, so it would be
+silently skipped: it is a CHALLENGE held until every other `Observation`
+problem is complete.
+
+`current_problem` `RNG-001` is not servable by the scheduler, so it would be
+silently skipped: unmet prerequisites: BSR-003, PFX-002, RNG-004.
+```
+
+Silent mis-scheduling becomes a loud `make validate` failure, at zero runtime
+cost, and the whole class of bad pointer becomes uncommittable. Three tests
+pin it (live pointer passes, gate-blocked fails, dependency-blocked fails).
+185 tests green.
+
 ### Still open
-- **Resume path, `_shared.py:1280`.** The active problem is re-checked through
-  `is_problem_unlocked` *with* the challenge gate, so a CHALLENGE in progress
-  can be refused on resume. Analysis: the gate is monotonic — it tests
-  `fundamentals(stage) ⊆ completed_ids` and `completed_ids` only grows — so a
-  problem that once passed cannot later fail. The reachable case is therefore
-  narrow: a `current_problem` pointing at a CHALLENGE that was recorded
-  *before* the gate existed, or set outside `update_progress.py`. Not
-  triggered by the live file (current problem is a REINFORCEMENT). Left for
-  the owner to decide: exempt the active problem from the gate, or accept it.
+- Nothing from the review. The resume path itself is left as written: with the
+  validator guarding the input, the gate check on resume is now unreachable
+  for any state the repo can hold.

@@ -112,6 +112,61 @@ class MentorScoresValidationTests(unittest.TestCase):
         self.assertIn("mentor thinking score", result.stdout + result.stderr)
 
 
+class CurrentProblemSchedulabilityTests(unittest.TestCase):
+    """`current_problem` must be a problem the scheduler could actually serve.
+
+    Without this, a stale or hand-edited pointer (e.g. a CHALLENGE recorded
+    before the stage gate existed) makes select_next_problem silently skip the
+    in-progress problem and hand over a different one, stranding it.
+    """
+
+    def setUp(self) -> None:
+        self.tmpdir = tempfile.mkdtemp(prefix="dsa_os_test_")
+        self.tmp_progress = Path(self.tmpdir) / "progress.json"
+        self.payload = json.loads(LIVE_PROGRESS.read_text())
+
+    def tearDown(self) -> None:
+        shutil.rmtree(self.tmpdir, ignore_errors=True)
+
+    def _run(self) -> subprocess.CompletedProcess:
+        self.tmp_progress.write_text(json.dumps(self.payload, indent=2))
+        return subprocess.run(
+            [
+                sys.executable,
+                str(SCRIPT),
+                "--progress-file",
+                str(self.tmp_progress),
+                "--skip-template-progress",
+            ],
+            capture_output=True,
+            text=True,
+            cwd=ROOT,
+        )
+
+    def test_live_current_problem_passes(self) -> None:
+        result = self._run()
+        self.assertEqual(result.returncode, 0, msg=result.stdout + result.stderr)
+
+    def test_gate_blocked_challenge_as_current_problem_fails(self) -> None:
+        # CPX-003 is a Hard CHALLENGE whose dependency is complete but whose
+        # stage fundamentals are not, so the challenge gate refuses it.
+        self.payload["current_problem"] = "CPX-003"
+
+        result = self._run()
+        output = result.stdout + result.stderr
+        self.assertNotEqual(result.returncode, 0, msg=output)
+        self.assertIn("current_problem", output)
+
+    def test_dependency_blocked_problem_as_current_problem_fails(self) -> None:
+        # A problem deep in the curriculum whose prerequisites are unmet.
+        self.payload["current_problem"] = "RNG-001"
+
+        result = self._run()
+        output = result.stdout + result.stderr
+        self.assertNotEqual(result.returncode, 0, msg=output)
+        self.assertIn("current_problem", output)
+
+
 class ReadinessScoringValidationTests(unittest.TestCase):
     """F23: `scoring.json` `readiness` block validation (mirrors hint_mastery_discount)."""
 

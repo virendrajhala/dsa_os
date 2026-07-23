@@ -13,10 +13,12 @@ from typing import Any
 
 from _shared import (
     CURRICULUM_PATH,
+    challenge_stage_gate,
     DEFERRED_LEARNING_CATEGORIES,
     DEFERRED_LEARNING_PRIORITIES,
     DEFERRED_LEARNING_STATUSES,
     GRAPH_PATH,
+    is_problem_unlocked,
     MOCK_DIMENSIONS,
     MOCK_SCORE_MAXIMUM,
     MOCK_SCORE_MINIMUM,
@@ -1643,6 +1645,45 @@ def validate_progress_payload(
         open_problem_ids = {entry.get("problem") for entry in open_revision_entries(progress)}
         if current_problem not in open_problem_ids:
             add_warning(warnings, f"{label}: `current_problem` is already completed and not currently scheduled for revision.")
+
+    # An in-progress pointer must name a problem the scheduler could actually
+    # serve. If it does not, `select_next_problem` skips its resume branch and
+    # silently hands over a different problem, stranding the one in progress.
+    # Reachable via a stale pointer (e.g. a CHALLENGE recorded before the stage
+    # gate existed) or a hand-edited file, so it is caught here rather than
+    # left to surface as mis-scheduling.
+    completed_problem_ids = {
+        record.get("problem_id")
+        for record in completion_records
+        if isinstance(record.get("problem_id"), str)
+    }
+    if (
+        current_problem is not None
+        and current_problem in problems
+        and current_problem not in completed_problem_ids
+    ):
+        problem_dependencies = graph.get("problem_dependencies")
+        if isinstance(problem_dependencies, dict):
+            gate = challenge_stage_gate(curriculum)
+            active = problems[current_problem]
+            if not is_problem_unlocked(active, completed_problem_ids, problem_dependencies, gate):
+                unmet = [
+                    dep
+                    for dep in problem_dependencies.get(current_problem) or []
+                    if isinstance(dep, str) and dep not in completed_problem_ids
+                ]
+                if unmet:
+                    detail = f"unmet prerequisites: {', '.join(sorted(unmet))}."
+                else:
+                    detail = (
+                        f"it is a {active.get('problem_role')} held until every other "
+                        f"`{active.get('stage')}` problem is complete."
+                    )
+                add_error(
+                    errors,
+                    f"{label}: `current_problem` `{current_problem}` is not servable by the "
+                    f"scheduler, so it would be silently skipped: {detail}",
+                )
 
     expected_progress = copy.deepcopy(progress)
     try:
