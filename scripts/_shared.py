@@ -1991,6 +1991,49 @@ def review_forecast(progress: JsonDict, on_date: date) -> list[JsonDict]:
     return buckets
 
 
+def activity_heatmap(state: RepositoryState, on_date: date) -> JsonDict:
+    """Per-day activity for a github/leetcode-style heatmap: problems solved,
+    distinct skills touched, and revisions performed. Solves come from
+    completion dates, revisions from every completion's revision history
+    (PASS and FAIL alike — both are recall done that day). Only non-empty days
+    are emitted; the JS fills the grid. Range runs from the first activity to
+    the reference date.
+    """
+
+    problems = problem_lookup(state.curriculum)
+    solves: dict[str, int] = {}
+    skills: dict[str, set] = {}
+    revisions: dict[str, int] = {}
+
+    for record in completed_records(state.progress):
+        day = record.get("completed_at")
+        if isinstance(day, str):
+            solves[day] = solves.get(day, 0) + 1
+            skill = problems.get(record["problem_id"], {}).get("primary_skill")
+            if skill:
+                skills.setdefault(day, set()).add(skill)
+        revision = record.get("revision")
+        history = revision.get("history") if isinstance(revision, dict) else None
+        if isinstance(history, list):
+            for event in history:
+                edate = event.get("date") if isinstance(event, dict) else None
+                if isinstance(edate, str):
+                    revisions[edate] = revisions.get(edate, 0) + 1
+
+    active_days = sorted(set(solves) | set(revisions))
+    days = [
+        {
+            "date": day,
+            "solves": solves.get(day, 0),
+            "skills": len(skills.get(day, set())),
+            "revisions": revisions.get(day, 0),
+        }
+        for day in active_days
+    ]
+    start = active_days[0] if active_days else format_iso_date(on_date)
+    return {"start": start, "end": format_iso_date(on_date), "days": days}
+
+
 def revision_calendar(state: RepositoryState, on_date: date) -> list[JsonDict]:
     """Project every active problem's full future revision chain, grouped by
     date, so the dashboard can show the recall load for any future day.
@@ -2255,6 +2298,7 @@ def build_dashboard_feed(state: RepositoryState, on_date: date) -> JsonDict:
         "revision_queue": revision_queue,
         "review_forecast": review_forecast(state.progress, on_date),
         "revision_calendar": revision_calendar(state, on_date),
+        "activity_heatmap": activity_heatmap(state, on_date),
         "readiness": _feed_readiness(state, on_date),
         "retention": retention_split(state.progress),
         "hint_trajectory": hint_trajectory_events(state.progress),

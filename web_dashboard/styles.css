@@ -3142,3 +3142,68 @@ tbody tr:hover {
     grid-template-columns: 1fr;
   }
 }
+
+/* ---------------------------------------------------------------------------
+   Activity heatmap (Evidence): github/leetcode-style day grid. Each cell is
+   split on the diagonal — lower-left = solves (green ramp), upper-right =
+   revisions (orange ramp) — so both actions on one day are visible at once.
+   Which triangle, not colour, says which activity.
+   --------------------------------------------------------------------------- */
+.heatmap {
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.heatmap-svg {
+  display: block;
+  min-width: 0;
+}
+
+.heat-axis {
+  fill: var(--muted);
+  font-family: var(--mono);
+  font-size: 9px;
+}
+
+.heat-border {
+  fill: none;
+  stroke: var(--line);
+  stroke-width: 1;
+}
+
+/* Empty triangle reads as the surface; higher levels ramp the hue up. */
+.heat-solve.l0,
+.heat-rev.l0 {
+  fill: var(--surface-2);
+}
+
+.heat-solve.l1 { fill: color-mix(in srgb, var(--series-3) 26%, var(--surface-2)); }
+.heat-solve.l2 { fill: color-mix(in srgb, var(--series-3) 48%, var(--surface-2)); }
+.heat-solve.l3 { fill: color-mix(in srgb, var(--series-3) 72%, var(--surface-2)); }
+.heat-solve.l4 { fill: var(--series-3); }
+
+.heat-rev.l1 { fill: color-mix(in srgb, var(--series-2) 26%, var(--surface-2)); }
+.heat-rev.l2 { fill: color-mix(in srgb, var(--series-2) 48%, var(--surface-2)); }
+.heat-rev.l3 { fill: color-mix(in srgb, var(--series-2) 72%, var(--surface-2)); }
+.heat-rev.l4 { fill: var(--series-2); }
+
+.heat-cell {
+  cursor: default;
+}
+
+.heatmap-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px 24px;
+  margin-top: 10px;
+}
+
+.heat-legend-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.heat-swatch {
+  display: inline-block;
+}

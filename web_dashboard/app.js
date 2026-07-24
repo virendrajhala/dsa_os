@@ -3712,6 +3712,166 @@
     return `${year}-${String(month + 1).padStart(2, "0")}`;
   }
 
+  // ---------------------------------------------------------------------------
+  // Activity heatmap (Evidence): a GitHub/LeetCode-style year grid over
+  // feed.activity_heatmap. Each day is a square split on the diagonal — the
+  // lower-left triangle's intensity is problems solved, the upper-right is
+  // revisions done — so a day that had both shows both at once. Position (which
+  // triangle), not colour alone, says which activity; exact counts are in the
+  // tooltip and aria-label. Python counts; the JS only renders.
+  // ---------------------------------------------------------------------------
+
+  const HEAT_MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
+    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+  // Small daily counts, so a compact bucketing: 0, 1, 2, 3-4, 5+.
+  function heatLevel(count) {
+    if (!count) return 0;
+    if (count >= 5) return 4;
+    if (count >= 3) return 3;
+    return count; // 1 or 2
+  }
+
+  function mondayOf(d) {
+    const copy = new Date(d);
+    const back = (copy.getDay() + 6) % 7; // days since Monday
+    copy.setDate(copy.getDate() - back);
+    return copy;
+  }
+
+  function renderActivityHeatmap() {
+    const host = $("#heatmap");
+    const legend = $("#heatmap-legend");
+    const total = $("#heatmap-total");
+    if (!host) return;
+    host.replaceChildren();
+    if (legend) legend.replaceChildren();
+
+    if (!feedAvailable()) {
+      host.removeAttribute("aria-label");
+      if (total) {
+        total.textContent = "offline";
+        total.className = "pill num warn";
+      }
+      host.append(degradedBanner());
+      return;
+    }
+
+    const hm = state.feed.activity_heatmap || { days: [] };
+    const byDate = new Map((hm.days || []).map((d) => [d.date, d]));
+    const solvedTotal = (hm.days || []).reduce((s, d) => s + (d.solves || 0), 0);
+    const revisedTotal = (hm.days || []).reduce((s, d) => s + (d.revisions || 0), 0);
+    if (total) {
+      total.textContent = `${solvedTotal} solved · ${revisedTotal} revised`;
+      total.className = "pill num";
+    }
+
+    if (!(hm.days || []).length) {
+      host.removeAttribute("aria-label");
+      host.append(empty("No activity recorded yet — solves and revisions will appear here day by day."));
+      return;
+    }
+
+    const start = parseDate(hm.start);
+    const end = parseDate(hm.end) || todayDate();
+    const gridStart = mondayOf(start);
+
+    const CELL = 15;
+    const GAP = 3;
+    const STEP = CELL + GAP;
+    const LEFT = 30; // weekday labels
+    const TOP = 18; // month labels
+
+    const weeks = Math.floor((mondayOf(end) - gridStart) / (7 * 86400000)) + 1;
+    const W = LEFT + weeks * STEP + GAP;
+    const H = TOP + 7 * STEP;
+
+    const svg = svgNode("svg", { viewBox: `0 0 ${W} ${H}`, class: "heatmap-svg", width: W, height: H });
+
+    // Weekday labels (Mon / Wed / Fri).
+    [["Mon", 0], ["Wed", 2], ["Fri", 4]].forEach(([name, row]) => {
+      svg.append(svgNode("text",
+        { x: LEFT - 6, y: TOP + row * STEP + CELL - 3, "text-anchor": "end", class: "heat-axis" }, name));
+    });
+
+    let lastMonth = -1;
+    const cursor = new Date(gridStart);
+    for (let col = 0; col < weeks; col += 1) {
+      // Month label above the first column that starts a new month.
+      const weekStart = new Date(gridStart);
+      weekStart.setDate(gridStart.getDate() + col * 7);
+      if (weekStart.getMonth() !== lastMonth) {
+        lastMonth = weekStart.getMonth();
+        svg.append(svgNode("text",
+          { x: LEFT + col * STEP, y: TOP - 6, class: "heat-axis" }, HEAT_MONTHS[lastMonth]));
+      }
+      for (let row = 0; row < 7; row += 1) {
+        const iso = isoDate(cursor);
+        cursor.setDate(cursor.getDate() + 1);
+        if (cursor <= gridStart) continue; // never happens; keeps cursor advancing
+        const dayDate = parseDate(iso);
+        if (dayDate < start || dayDate > end) continue;
+
+        const x = LEFT + col * STEP;
+        const y = TOP + row * STEP;
+        const rec = byDate.get(iso) || { solves: 0, skills: 0, revisions: 0 };
+        const sL = heatLevel(rec.solves);
+        const rL = heatLevel(rec.revisions);
+
+        const cell = svgNode("g", { class: "heat-cell", role: "img" });
+        // lower-left triangle = solves; upper-right triangle = revisions.
+        cell.append(svgNode("path", {
+          d: `M${x},${y} L${x},${y + CELL} L${x + CELL},${y + CELL} Z`,
+          class: `heat-solve l${sL}`,
+        }));
+        cell.append(svgNode("path", {
+          d: `M${x},${y} L${x + CELL},${y} L${x + CELL},${y + CELL} Z`,
+          class: `heat-rev l${rL}`,
+        }));
+        cell.append(svgNode("rect", { x, y, width: CELL, height: CELL, class: "heat-border" }));
+
+        const parts = [];
+        if (rec.solves) parts.push(`${rec.solves} solved${rec.skills ? ` (${rec.skills} skill${rec.skills === 1 ? "" : "s"})` : ""}`);
+        if (rec.revisions) parts.push(`${rec.revisions} revised`);
+        const label = `${iso}: ${parts.length ? parts.join(", ") : "no activity"}`;
+        cell.setAttribute("aria-label", label);
+        cell.append(svgNode("title", {}, label));
+        svg.append(cell);
+      }
+    }
+
+    host.append(svg);
+    host.setAttribute("aria-label",
+      `Activity heatmap from ${hm.start} to ${hm.end}: ${solvedTotal} problems solved and ${revisedTotal} revisions, by day.`);
+
+    if (legend) {
+      const swatch = (cls, lvl) => {
+        const s = svgNode("svg", { viewBox: "0 0 12 12", class: "heat-swatch", width: 12, height: 12 });
+        s.append(svgNode("rect", { x: 0, y: 0, width: 12, height: 12, class: `${cls} l${lvl}` }));
+        s.append(svgNode("rect", { x: 0, y: 0, width: 12, height: 12, class: "heat-border" }));
+        return s;
+      };
+      const ramp = (label, cls) => {
+        const row = document.createElement("span");
+        row.className = "heat-legend-row";
+        const name = document.createElement("span");
+        name.className = "microlabel";
+        name.textContent = label;
+        const less = document.createElement("span");
+        less.className = "microlabel";
+        less.textContent = "less";
+        const more = document.createElement("span");
+        more.className = "microlabel";
+        more.textContent = "more";
+        row.append(name, less);
+        [1, 2, 3, 4].forEach((lvl) => row.append(swatch(cls, lvl)));
+        row.append(more);
+        return row;
+      };
+      legend.append(ramp("solved ◣", "heat-solve"), ramp("revised ◥", "heat-rev"));
+    }
+  }
+
   function renderRevisionCalendar() {
     const grid = $("#calendar-grid");
     const detail = $("#calendar-detail");
@@ -4100,6 +4260,7 @@
     renderMockTrend();
     renderRetentionTiles();
     renderConsistency();
+    renderActivityHeatmap();
     renderRevisionCalendar();
     switchWorkspace(state.activeWorkspace);
   }

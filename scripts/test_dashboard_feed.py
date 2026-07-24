@@ -250,6 +250,53 @@ class ForecastMaintenanceTests(unittest.TestCase):
         self.assertEqual(len(ids), len(set(ids)))
 
 
+class ActivityHeatmapTests(unittest.TestCase):
+    """Per-day activity: problems solved, distinct skills, and revisions done,
+    so the dashboard can render a github-style heatmap of both actions."""
+
+    def _progress(self):
+        prog = _base_progress()
+        a = _completed("OBS-001"); a["completed_at"] = "2026-07-20"
+        b = _completed("OBS-002"); b["completed_at"] = "2026-07-20"
+        # A revision event landing on the same day as a solve.
+        b["revision"]["history"] = [
+            {"date": "2026-07-20", "result": "PASS", "attempted_stage": 1},
+        ]
+        c = _completed("OBS-003"); c["completed_at"] = "2026-07-22"
+        c["revision"]["history"] = [
+            {"date": "2026-07-21", "result": "PASS", "attempted_stage": 1},
+            {"date": "2026-07-22", "result": "FAIL", "attempted_stage": 2},
+        ]
+        prog["completed"] = [a, b, c]
+        return prog
+
+    def test_heatmap_counts_solves_skills_and_revisions_per_day(self):
+        feed = build_dashboard_feed(_state(self._progress()), date(2026, 7, 24))
+        days = {d["date"]: d for d in feed["activity_heatmap"]["days"]}
+        # 2026-07-20: two solves (OBS-001 primary SK-OB-03, OBS-002 SK-OB-03)
+        # plus one revision.
+        self.assertEqual(days["2026-07-20"]["solves"], 2)
+        self.assertEqual(days["2026-07-20"]["revisions"], 1)
+        self.assertGreaterEqual(days["2026-07-20"]["skills"], 1)
+        # 2026-07-22: one solve and one revision (the FAIL still counts as done).
+        self.assertEqual(days["2026-07-22"]["solves"], 1)
+        self.assertEqual(days["2026-07-22"]["revisions"], 1)
+        # 2026-07-21: revision only, no solve.
+        self.assertEqual(days["2026-07-21"]["solves"], 0)
+        self.assertEqual(days["2026-07-21"]["revisions"], 1)
+
+    def test_heatmap_range_spans_first_activity_to_reference(self):
+        feed = build_dashboard_feed(_state(self._progress()), date(2026, 7, 24))
+        hm = feed["activity_heatmap"]
+        self.assertEqual(hm["start"], "2026-07-20")
+        self.assertEqual(hm["end"], "2026-07-24")
+
+    def test_heatmap_omits_empty_days(self):
+        feed = build_dashboard_feed(_state(self._progress()), date(2026, 7, 24))
+        days = [d["date"] for d in feed["activity_heatmap"]["days"]]
+        self.assertNotIn("2026-07-23", days)  # nothing happened that day
+
+
 class RevisionCalendarTests(unittest.TestCase):
     """The feed projects every active problem's full future revision chain so
     the dashboard calendar can show any future date's recall load."""

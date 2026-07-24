@@ -36,6 +36,7 @@
           <a href="#mock-trend" data-workspace-link="evidence"><span class="nav-icon num" aria-hidden="true">MT</span><span class="nav-text">Mock Trend</span></a>
           <a href="#retention" data-workspace-link="evidence"><span class="nav-icon num" aria-hidden="true">RT</span><span class="nav-text">Retention</span></a>
           <a href="#consistency" data-workspace-link="evidence"><span class="nav-icon num" aria-hidden="true">CS</span><span class="nav-text">Consistency</span></a>
+          <a href="#activity-heatmap" data-workspace-link="evidence"><span class="nav-icon num" aria-hidden="true">AH</span><span class="nav-text">Activity Heatmap</span></a>
           <a href="#revision-calendar" data-workspace-link="evidence"><span class="nav-icon num" aria-hidden="true">RC</span><span class="nav-text">Revision Calendar</span></a>
           <a href="#deferred" data-workspace-link="evidence"><span class="nav-icon num" aria-hidden="true">DL</span><span class="nav-text">Deferred Learning</span></a>
         </nav>
@@ -326,6 +327,18 @@
             <span class="pill num" id="consistency-days">-</span>
           </div>
           <div id="consistency-chart" class="insight-chart"></div>
+        </section>
+
+        <section id="activity-heatmap" class="section" data-workspace-section="evidence">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow microlabel">Every day</p>
+              <h3>Activity heatmap</h3>
+            </div>
+            <span class="pill num" id="heatmap-total">-</span>
+          </div>
+          <div id="heatmap" class="heatmap" role="img"></div>
+          <div id="heatmap-legend" class="heatmap-legend"></div>
         </section>
 
         <section id="revision-calendar" class="section" data-workspace-section="evidence">
