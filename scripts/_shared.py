@@ -1991,6 +1991,54 @@ def review_forecast(progress: JsonDict, on_date: date) -> list[JsonDict]:
     return buckets
 
 
+def revision_calendar(state: RepositoryState, on_date: date) -> list[JsonDict]:
+    """Project every active problem's full future revision chain, grouped by
+    date, so the dashboard can show the recall load for any future day.
+
+    The schedule is deterministic (absolute offsets from the solve), so each
+    ACTIVE problem at stage N contributes one entry per remaining stage
+    k in [N, mastered_after): due = solve + offset[k], labelled R(k+1). The
+    entry for the problem's current stage is the real `next_due`
+    (`projected: false`); later stages assume on-time passes
+    (`projected: true`). FAIL retries, reactivations and quarterly maintenance
+    cannot be projected and are not included — this is the planned calendar.
+    """
+
+    problems = problem_lookup(state.curriculum)
+    intervals = revision_intervals(REVISION_POLICY)
+    mastered_after = int(REVISION_POLICY["mastered_after_stage"])
+    buckets: dict[str, list[JsonDict]] = {}
+
+    for record in completed_records(state.progress):
+        revision = record.get("revision")
+        if not isinstance(revision, dict) or revision.get("status") == "MASTERED":
+            continue
+        completed_at = record.get("completed_at")
+        if not isinstance(completed_at, str):
+            continue
+        solve = parse_iso_date(completed_at, "completed_at")
+        current_stage = int(revision.get("stage", 0))
+        problem = problems.get(record["problem_id"], {})
+        for stage in range(current_stage, mastered_after):
+            if stage not in intervals:
+                continue
+            due = solve + timedelta(days=intervals[stage])
+            if due < on_date:
+                continue
+            key = format_iso_date(due)
+            buckets.setdefault(key, []).append({
+                "problem_id": record["problem_id"],
+                "title": problem.get("title"),
+                "stage_label": f"R{stage + 1}",
+                "projected": stage != current_stage,
+            })
+
+    return [
+        {"date": key, "items": sorted(buckets[key], key=lambda i: i["stage_label"])}
+        for key in sorted(buckets)
+    ]
+
+
 def retention_split(progress: JsonDict) -> JsonDict:
     """Young (attempted at R1-R2) vs mature (R3+) active-recall pass rates,
     the Anki-style leading indicator (design section 2). Walks every completion
@@ -2206,6 +2254,7 @@ def build_dashboard_feed(state: RepositoryState, on_date: date) -> JsonDict:
         "next_action": next_action,
         "revision_queue": revision_queue,
         "review_forecast": review_forecast(state.progress, on_date),
+        "revision_calendar": revision_calendar(state, on_date),
         "readiness": _feed_readiness(state, on_date),
         "retention": retention_split(state.progress),
         "hint_trajectory": hint_trajectory_events(state.progress),

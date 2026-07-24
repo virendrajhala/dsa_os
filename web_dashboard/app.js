@@ -3684,6 +3684,259 @@
     });
   }
 
+  // ---------------------------------------------------------------------------
+  // Revision calendar (Evidence): a month grid over feed.revision_calendar.
+  // A day with recall work shows a count; clicking or Entering it lists the
+  // topics due that day. Built as a WAI-ARIA grid — the container is a table
+  // with role="grid", day buttons carry a roving tabindex, and arrow keys /
+  // Home / End move focus. Python projects the schedule; this only renders it.
+  // ---------------------------------------------------------------------------
+
+  const CAL_MONTHS = [
+    "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December",
+  ];
+  const CAL_DOW = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+
+  // View month is component-local; default set on first render to the month of
+  // the earliest scheduled item (or the reference month when nothing is due).
+  const calendarView = { year: null, month: null, selected: null };
+
+  function calendarByDate() {
+    const map = new Map();
+    (state.feed?.revision_calendar || []).forEach((day) => map.set(day.date, day.items || []));
+    return map;
+  }
+
+  function calendarMonthKey(year, month) {
+    return `${year}-${String(month + 1).padStart(2, "0")}`;
+  }
+
+  function renderRevisionCalendar() {
+    const grid = $("#calendar-grid");
+    const detail = $("#calendar-detail");
+    const label = $("#calendar-month");
+    if (!grid || !detail) return;
+    grid.replaceChildren();
+    detail.replaceChildren();
+
+    if (!feedAvailable()) {
+      if (label) label.textContent = "offline";
+      grid.append(degradedBanner());
+      return;
+    }
+
+    const byDate = calendarByDate();
+    const today = referenceDate();
+
+    // Seed the view month once: earliest scheduled date, else the current month.
+    if (calendarView.year == null) {
+      const first = [...byDate.keys()].sort()[0] || today;
+      const seed = parseDate(first);
+      calendarView.year = seed.getFullYear();
+      calendarView.month = seed.getMonth();
+    }
+    const { year, month } = calendarView;
+    if (label) label.textContent = `${CAL_MONTHS[month]} ${year}`;
+
+    const table = document.createElement("table");
+    table.className = "calendar-table";
+    table.setAttribute("role", "grid");
+    table.setAttribute("aria-label", `Revision calendar, ${CAL_MONTHS[month]} ${year}`);
+
+    const thead = document.createElement("thead");
+    const headRow = document.createElement("tr");
+    CAL_DOW.forEach((dow) => {
+      const th = document.createElement("th");
+      th.scope = "col";
+      th.className = "microlabel";
+      th.textContent = dow;
+      headRow.append(th);
+    });
+    thead.append(headRow);
+    table.append(thead);
+
+    const tbody = document.createElement("tbody");
+    // Monday-first offset for the 1st of the month.
+    const firstDow = (new Date(year, month, 1).getDay() + 6) % 7;
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const cells = [];
+    for (let i = 0; i < firstDow; i += 1) cells.push(null);
+    for (let d = 1; d <= daysInMonth; d += 1) cells.push(d);
+    while (cells.length % 7 !== 0) cells.push(null);
+
+    const dayButtons = [];
+    for (let row = 0; row < cells.length / 7; row += 1) {
+      const tr = document.createElement("tr");
+      for (let col = 0; col < 7; col += 1) {
+        const td = document.createElement("td");
+        td.setAttribute("role", "gridcell");
+        const dayNum = cells[row * 7 + col];
+        if (dayNum == null) {
+          td.className = "calendar-cell empty";
+          tr.append(td);
+          continue;
+        }
+        const iso = isoDate(new Date(year, month, dayNum));
+        const items = byDate.get(iso) || [];
+        const isToday = iso === today;
+        const isPast = iso < today;
+
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "calendar-day";
+        if (isToday) btn.classList.add("today");
+        if (isPast) btn.classList.add("past");
+        if (items.length) btn.classList.add("has-items");
+        btn.dataset.date = iso;
+        btn.tabIndex = -1;
+
+        const num = document.createElement("span");
+        num.className = "calendar-daynum num";
+        num.textContent = String(dayNum);
+        btn.append(num);
+
+        if (items.length) {
+          const count = document.createElement("span");
+          count.className = "calendar-count num";
+          count.textContent = String(items.length);
+          btn.append(count);
+        }
+        btn.setAttribute(
+          "aria-label",
+          `${CAL_MONTHS[month]} ${dayNum}${isToday ? ", today" : ""}. ${
+            items.length
+              ? `${items.length} revision${items.length === 1 ? "" : "s"}: ${items
+                  .map((i) => `${i.stage_label} ${i.title || i.problem_id}`)
+                  .join(", ")}`
+              : "no revisions"
+          }`,
+        );
+        btn.addEventListener("click", () => selectCalendarDay(iso));
+        dayButtons.push(btn);
+        td.append(btn);
+        tr.append(td);
+      }
+      tbody.append(tr);
+    }
+    table.append(tbody);
+    grid.append(table);
+
+    wireCalendarKeyboard(dayButtons);
+
+    // Roving tabindex: today if in view, else the first day with work, else day 1.
+    const initial =
+      dayButtons.find((b) => b.dataset.date === today) ||
+      dayButtons.find((b) => b.classList.contains("has-items")) ||
+      dayButtons[0];
+    if (initial) initial.tabIndex = 0;
+
+    // Show detail for the selected day if it is in this month, else the first
+    // day this month that has work, else a prompt.
+    const inMonth = (iso) => iso && iso.slice(0, 7) === calendarMonthKey(year, month);
+    const detailDate =
+      (inMonth(calendarView.selected) && calendarView.selected) ||
+      dayButtons.find((b) => b.classList.contains("has-items"))?.dataset.date ||
+      null;
+    renderCalendarDetail(detailDate);
+  }
+
+  function wireCalendarKeyboard(dayButtons) {
+    const index = (btn) => dayButtons.indexOf(btn);
+    const focusAt = (i) => {
+      const clamped = Math.max(0, Math.min(dayButtons.length - 1, i));
+      dayButtons.forEach((b) => (b.tabIndex = -1));
+      dayButtons[clamped].tabIndex = 0;
+      dayButtons[clamped].focus();
+    };
+    dayButtons.forEach((btn) => {
+      btn.addEventListener("keydown", (event) => {
+        const i = index(btn);
+        const rowStart = i - (i % 7);
+        const map = {
+          ArrowRight: i + 1,
+          ArrowLeft: i - 1,
+          ArrowDown: i + 7,
+          ArrowUp: i - 7,
+          Home: rowStart,
+          End: rowStart + 6,
+        };
+        if (event.key in map) {
+          event.preventDefault();
+          focusAt(map[event.key]);
+        } else if (event.key === "PageUp" || event.key === "PageDown") {
+          event.preventDefault();
+          stepCalendarMonth(event.key === "PageUp" ? -1 : 1);
+        }
+      });
+    });
+  }
+
+  function selectCalendarDay(iso) {
+    calendarView.selected = iso;
+    renderCalendarDetail(iso);
+    const grid = $("#calendar-grid");
+    if (grid) {
+      grid.querySelectorAll(".calendar-day").forEach((b) =>
+        b.setAttribute("aria-selected", b.dataset.date === iso ? "true" : "false"),
+      );
+    }
+  }
+
+  function renderCalendarDetail(iso) {
+    const detail = $("#calendar-detail");
+    if (!detail) return;
+    detail.replaceChildren();
+    if (!iso) {
+      detail.append(empty("Nothing scheduled this month. Pick a day to see its recall load."));
+      return;
+    }
+    const items = calendarByDate().get(iso) || [];
+    const head = document.createElement("p");
+    head.className = "calendar-detail-date num";
+    head.textContent = iso;
+    detail.append(head);
+
+    if (!items.length) {
+      detail.append(empty("No revisions due on this day."));
+      return;
+    }
+    const list = document.createElement("div");
+    list.className = "calendar-detail-list";
+    items.forEach((item) => {
+      const row = document.createElement("button");
+      row.type = "button";
+      row.className = "calendar-detail-row";
+      const stage = pill(item.stage_label, item.projected ? "" : "accent");
+      stage.classList.add("num");
+      const title = document.createElement("span");
+      title.className = "calendar-detail-title";
+      title.textContent = item.title ? `${item.problem_id} · ${item.title}` : item.problem_id;
+      const tag = document.createElement("span");
+      tag.className = "calendar-detail-tag microlabel";
+      tag.textContent = item.projected ? "projected" : "scheduled";
+      row.append(stage, title, tag);
+      if (item.problem_id) row.addEventListener("click", () => openProblemModal(item.problem_id));
+      list.append(row);
+    });
+    detail.append(list);
+  }
+
+  function stepCalendarMonth(delta) {
+    let m = calendarView.month + delta;
+    let y = calendarView.year;
+    if (m < 0) {
+      m = 11;
+      y -= 1;
+    } else if (m > 11) {
+      m = 0;
+      y += 1;
+    }
+    calendarView.month = m;
+    calendarView.year = y;
+    renderRevisionCalendar();
+  }
+
   function renderConsistency() {
     const host = $("#consistency-chart");
     if (!host) return;
@@ -3847,6 +4100,7 @@
     renderMockTrend();
     renderRetentionTiles();
     renderConsistency();
+    renderRevisionCalendar();
     switchWorkspace(state.activeWorkspace);
   }
 
@@ -3858,6 +4112,10 @@
       renderAll();
       const themeToggle = $("#theme-toggle");
       if (themeToggle) themeToggle.addEventListener("click", toggleTheme);
+      const calPrev = $("#calendar-prev");
+      if (calPrev) calPrev.addEventListener("click", () => stepCalendarMonth(-1));
+      const calNext = $("#calendar-next");
+      if (calNext) calNext.addEventListener("click", () => stepCalendarMonth(1));
       const dataWarningDismiss = $("#data-warning-dismiss");
       if (dataWarningDismiss) {
         dataWarningDismiss.addEventListener("click", () => {

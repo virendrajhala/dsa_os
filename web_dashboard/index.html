@@ -36,6 +36,7 @@
           <a href="#mock-trend" data-workspace-link="evidence"><span class="nav-icon num" aria-hidden="true">MT</span><span class="nav-text">Mock Trend</span></a>
           <a href="#retention" data-workspace-link="evidence"><span class="nav-icon num" aria-hidden="true">RT</span><span class="nav-text">Retention</span></a>
           <a href="#consistency" data-workspace-link="evidence"><span class="nav-icon num" aria-hidden="true">CS</span><span class="nav-text">Consistency</span></a>
+          <a href="#revision-calendar" data-workspace-link="evidence"><span class="nav-icon num" aria-hidden="true">RC</span><span class="nav-text">Revision Calendar</span></a>
           <a href="#deferred" data-workspace-link="evidence"><span class="nav-icon num" aria-hidden="true">DL</span><span class="nav-text">Deferred Learning</span></a>
         </nav>
         <div class="rail-footer">
@@ -325,6 +326,25 @@
             <span class="pill num" id="consistency-days">-</span>
           </div>
           <div id="consistency-chart" class="insight-chart"></div>
+        </section>
+
+        <section id="revision-calendar" class="section" data-workspace-section="evidence">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow microlabel">Recall plan</p>
+              <h3>Revision calendar</h3>
+            </div>
+            <div class="calendar-nav">
+              <button type="button" id="calendar-prev" class="mini-button" aria-label="Previous month">‹</button>
+              <span class="pill num" id="calendar-month">-</span>
+              <button type="button" id="calendar-next" class="mini-button" aria-label="Next month">›</button>
+            </div>
+          </div>
+          <div class="calendar-layout">
+            <div id="calendar-grid" class="calendar-grid"></div>
+            <aside id="calendar-detail" class="calendar-detail" aria-live="polite"></aside>
+          </div>
+          <p class="chart-note microlabel">Planned schedule: assumes each recall passes on time. Failed reviews, reactivations and quarterly maintenance are not projected.</p>
         </section>
       </main>
     </div>

@@ -250,6 +250,54 @@ class ForecastMaintenanceTests(unittest.TestCase):
         self.assertEqual(len(ids), len(set(ids)))
 
 
+class RevisionCalendarTests(unittest.TestCase):
+    """The feed projects every active problem's full future revision chain so
+    the dashboard calendar can show any future date's recall load."""
+
+    def _progress(self):
+        # OBS-001 solved far enough back that all four R-stages are still ahead.
+        prog = _base_progress()
+        prog["completed"] = [_completed("OBS-001", stage=0, next_due="2026-07-31")]
+        prog["completed"][0]["completed_at"] = "2026-07-24"
+        return prog
+
+    def test_calendar_projects_the_full_r1_to_r4_chain(self):
+        feed = build_dashboard_feed(_state(self._progress()), date(2026, 7, 24))
+        cal = feed["revision_calendar"]
+        by_date = {d["date"]: d for d in cal}
+        # solve 2026-07-24 + offsets 7/21/45/60 (scoring.json is source of truth)
+        offsets = _shared.REVISION_INTERVAL_DAYS
+        from datetime import timedelta
+        solve = date(2026, 7, 24)
+        for stage, label in enumerate(["R1", "R2", "R3", "R4"]):
+            due = (solve + timedelta(days=offsets[stage])).isoformat()
+            self.assertIn(due, by_date, f"{label} due {due} missing from calendar")
+            ids = [i["problem_id"] for i in by_date[due]["items"]]
+            self.assertIn("OBS-001", ids)
+
+    def test_calendar_marks_the_immediate_due_as_not_projected(self):
+        feed = build_dashboard_feed(_state(self._progress()), date(2026, 7, 24))
+        flat = [i for d in feed["revision_calendar"] for i in d["items"]]
+        obs = [i for i in flat if i["problem_id"] == "OBS-001"]
+        # exactly one entry per stage; the earliest is the real next_due
+        self.assertEqual(sum(1 for i in obs if not i["projected"]), 1)
+        self.assertTrue(any(i["projected"] for i in obs))
+
+    def test_calendar_excludes_past_and_mastered(self):
+        prog = _base_progress()
+        # a mastered problem contributes nothing
+        prog["completed"] = [_completed("OBS-001", stage=4, status="MASTERED")]
+        prog["completed"][0]["revision"]["next_due"] = None
+        feed = build_dashboard_feed(_state(prog), date(2026, 7, 24))
+        flat = [i for d in feed["revision_calendar"] for i in d["items"]]
+        self.assertEqual([i for i in flat if i["problem_id"] == "OBS-001"], [])
+
+    def test_calendar_dates_are_sorted(self):
+        feed = build_dashboard_feed(_state(self._progress()), date(2026, 7, 24))
+        dates = [d["date"] for d in feed["revision_calendar"]]
+        self.assertEqual(dates, sorted(dates))
+
+
 class SolutionPresenceTests(unittest.TestCase):
     """The modal may only link a solution file the repo actually has."""
 
