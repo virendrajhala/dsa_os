@@ -2784,6 +2784,8 @@
     body.append(grid);
 
     if (record) body.append(codeGateCard(problem.id, record));
+    const solutionCard = renderSolutionCode(problem.id);
+    if (solutionCard) body.append(solutionCard);
     if (record?.mentor_scores) body.append(mentorScoreCard(record));
 
     if (lesson) {
@@ -2869,6 +2871,58 @@
   // F9 code-execution gate: a new solve is only recorded once
   // solutions/<ID>.py runs its embedded asserts — unless the session was
   // logged with --no-code, which update_progress.py notes on the record.
+  // Show the learner's actual solution code, per problem, Java or Python. Each
+  // stored file (feed.solution_files) is fetched and rendered inline; without
+  // the server the fetch fails and the block says so.
+  function renderSolutionCode(problemId) {
+    const files = (state.feed?.solution_files || []).filter((f) => f.problem_id === problemId);
+    if (!files.length) return null;
+
+    const card = document.createElement("article");
+    card.className = "note-card";
+    const heading = document.createElement("h4");
+    heading.textContent = files.length > 1 ? "Your solutions" : "Your solution";
+    card.append(heading);
+
+    files.forEach((file) => {
+      const block = document.createElement("div");
+      block.className = "solution-file";
+
+      const head = document.createElement("div");
+      head.className = "solution-file-head";
+      const name = document.createElement("span");
+      name.className = "num solution-file-name";
+      name.textContent = file.path;
+      const lang = pill(file.language, "");
+      lang.classList.add("microlabel");
+      head.append(name, lang);
+
+      const pre = document.createElement("pre");
+      pre.className = "solution-code";
+      const code = document.createElement("code");
+      code.textContent = "Loading…";
+      pre.append(code);
+      block.append(head, pre);
+      card.append(block);
+
+      // Relative to /web_dashboard/, so ../solutions/<file> under the server.
+      fetch(`../${file.path}`)
+        .then((response) => {
+          if (!response.ok) throw new Error(String(response.status));
+          return response.text();
+        })
+        .then((text) => {
+          code.textContent = text;
+        })
+        .catch(() => {
+          code.textContent = `Code view needs the server — open ${file.path} directly, or run python3 scripts/serve_dashboard.py`;
+          code.classList.add("solution-code-error");
+        });
+    });
+
+    return card;
+  }
+
   function codeGateCard(problemId, record) {
     const notes = Array.isArray(record.notes) ? record.notes : record.notes ? [record.notes] : [];
     const whiteboard = notes.some((note) => String(note).includes("--no-code"));
@@ -2878,19 +2932,21 @@
     const heading = document.createElement("h4");
     heading.textContent = "Code-execution gate";
 
-    // Link it only when the repo really has the file (feed.solutions_present);
-    // otherwise the path stays plain text rather than becoming a dead 404.
-    const relative = `solutions/${problemId}.py`;
-    const exists = (state.feed?.solutions_present || []).includes(problemId);
+    // Link the files that actually exist (feed.solution_files); otherwise show
+    // the expected path as plain text rather than a dead link.
+    const files = (state.feed?.solution_files || []).filter((f) => f.problem_id === problemId);
     const path = document.createElement("p");
     path.className = "num solution-path";
-    if (exists) {
-      const link = document.createElement("a");
-      link.href = `../${relative}`;
-      link.textContent = relative;
-      path.append(link);
+    if (files.length) {
+      files.forEach((file, index) => {
+        if (index) path.append(document.createTextNode(" · "));
+        const link = document.createElement("a");
+        link.href = `../${file.path}`;
+        link.textContent = file.path;
+        path.append(link);
+      });
     } else {
-      path.textContent = relative;
+      path.textContent = `solutions/${problemId}.py`;
     }
 
     // The record only ever proves the negative: update_progress.py notes a

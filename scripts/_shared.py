@@ -2316,6 +2316,21 @@ def build_dashboard_feed(state: RepositoryState, on_date: date) -> JsonDict:
                 if path.stem in problems
             }
         ),
+        # Per-file listing so the dashboard can show the actual code, Java or
+        # Python, for a problem (solutions_present keeps only ids).
+        "solution_files": sorted(
+            (
+                {
+                    "problem_id": path.stem,
+                    "path": f"solutions/{path.name}",
+                    "language": "Java" if path.suffix == ".java" else "Python",
+                }
+                for pattern in ("*.py", "*.java")
+                for path in (ROOT / "solutions").glob(pattern)
+                if path.stem in problems
+            ),
+            key=lambda entry: (entry["problem_id"], entry["path"]),
+        ),
         "policy": {
             "mastered_after_stage": MASTERED_AFTER_STAGE,
             "revision_backlog_threshold": REVISION_BACKLOG_THRESHOLD,

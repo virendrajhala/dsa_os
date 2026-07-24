@@ -3244,3 +3244,44 @@ tbody tr:hover {
   display: inline-block;
   flex: none;
 }
+
+/* Inline solution-code viewer in the problem modal (Java or Python). */
+.solution-file + .solution-file {
+  margin-top: 12px;
+}
+
+.solution-file-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.solution-file-name {
+  font-size: 12px;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+
+.solution-code {
+  margin: 0;
+  max-height: 340px;
+  overflow: auto;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+}
+
+.solution-code code {
+  font-family: var(--mono);
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--text);
+  white-space: pre;
+}
+
+.solution-code-error {
+  color: var(--muted);
+  white-space: normal;
+}

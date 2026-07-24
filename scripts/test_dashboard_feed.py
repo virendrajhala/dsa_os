@@ -362,6 +362,27 @@ class SolutionPresenceTests(unittest.TestCase):
         self.assertNotIn("_example", feed["solutions_present"])
         self.assertNotIn("README", feed["solutions_present"])
 
+    def test_solution_files_carries_path_and_language_per_file(self):
+        feed = build_dashboard_feed(_state(_base_progress()), date(2026, 7, 22))
+        files = feed["solution_files"]
+        self.assertIsInstance(files, list)
+        for entry in files:
+            self.assertEqual(set(entry), {"problem_id", "path", "language"})
+            self.assertTrue(entry["path"].startswith("solutions/"))
+            self.assertIn(entry["language"], ("Java", "Python"))
+            # only real problem ids, never the shipped examples
+            self.assertNotIn(entry["problem_id"], ("_example", "README"))
+
+    def test_solution_files_lists_java_and_python_when_both_exist(self):
+        feed = build_dashboard_feed(_state(_base_progress()), date(2026, 7, 22))
+        langs = {
+            f["language"] for f in feed["solution_files"] if f["problem_id"] == "CPX-004"
+        }
+        # CPX-004 ships both a Java original and a Python port in this repo.
+        if any(f["problem_id"] == "CPX-004" for f in feed["solution_files"]):
+            self.assertIn("Java", langs)
+            self.assertIn("Python", langs)
+
 
 if __name__ == "__main__":
     unittest.main()
