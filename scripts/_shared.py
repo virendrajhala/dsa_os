@@ -2309,9 +2309,12 @@ def build_dashboard_feed(state: RepositoryState, on_date: date) -> JsonDict:
         # Which problems actually have a runnable solution file (F9). The UI
         # may only link a path that exists; everything else stays plain text.
         "solutions_present": sorted(
-            path.stem
-            for path in (ROOT / "solutions").glob("*.py")
-            if path.stem in problems
+            {
+                path.stem
+                for pattern in ("*.py", "*.java")
+                for path in (ROOT / "solutions").glob(pattern)
+                if path.stem in problems
+            }
         ),
         "policy": {
             "mastered_after_stage": MASTERED_AFTER_STAGE,

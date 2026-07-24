@@ -144,5 +144,80 @@ class CLITests(unittest.TestCase):
         self.assertIn("timed out", (result.stdout + result.stderr).lower())
 
 
+_HAS_JAVA = shutil.which("javac") is not None and shutil.which("java") is not None
+
+
+@unittest.skipUnless(_HAS_JAVA, "javac/java not available")
+class JavaSolutionTests(unittest.TestCase):
+    """F9 for Java: solutions/<ID>.java compiled and run with assertions on."""
+
+    GOOD = (
+        "class Main {\n"
+        "    public static void main(String[] args) {\n"
+        "        MinStack s = new MinStack();\n"
+        "        s.push(2); s.push(1);\n"
+        "        assert s.getMin() == 1;\n"
+        "        s.pop();\n"
+        "        assert s.getMin() == 2;\n"
+        "    }\n"
+        "}\n"
+        "class MinStack {\n"
+        "    java.util.Deque<Integer> main = new java.util.ArrayDeque<>();\n"
+        "    java.util.Deque<Integer> min = new java.util.ArrayDeque<>();\n"
+        "    void push(int v) { main.push(v); if (min.isEmpty() || v <= min.peek()) min.push(v); }\n"
+        "    void pop() { int v = main.pop(); if (v == min.peek()) min.pop(); }\n"
+        "    int getMin() { return min.peek(); }\n"
+        "}\n"
+    )
+
+    def setUp(self) -> None:
+        self.tmpdir = tempfile.mkdtemp(prefix="dsa_os_java_test_")
+        self.tmpdir_path = Path(self.tmpdir)
+
+    def tearDown(self) -> None:
+        shutil.rmtree(self.tmpdir, ignore_errors=True)
+
+    def test_passes_on_good_java_solution(self) -> None:
+        path = self.tmpdir_path / "CPX-999.java"
+        path.write_text(self.GOOD)
+        result = run_solution_file(path, timeout_seconds=30)
+        self.assertTrue(result.passed, msg=result.message + result.stderr)
+
+    def test_fails_on_java_assertion_error(self) -> None:
+        bad = self.GOOD.replace("assert s.getMin() == 1;", "assert s.getMin() == 999;")
+        path = self.tmpdir_path / "CPX-999.java"
+        path.write_text(bad)
+        result = run_solution_file(path, timeout_seconds=30)
+        self.assertFalse(result.passed)
+
+    def test_fails_on_java_compile_error(self) -> None:
+        path = self.tmpdir_path / "CPX-999.java"
+        path.write_text("class Main { public static void main(String[] a) { int x = ; } }\n")
+        result = run_solution_file(path, timeout_seconds=30)
+        self.assertFalse(result.passed)
+
+    def test_fails_on_java_without_main(self) -> None:
+        # A reference-only .java (no main) is not a runnable gate file.
+        path = self.tmpdir_path / "CPX-999.java"
+        path.write_text("class Helper { int f() { return 1; } }\n")
+        result = run_solution_file(path, timeout_seconds=30)
+        self.assertFalse(result.passed)
+
+    def test_solution_path_prefers_python_then_java(self) -> None:
+        (self.tmpdir_path / "AAA.java").write_text(self.GOOD)
+        self.assertEqual(
+            solution_path_for("AAA", self.tmpdir_path), self.tmpdir_path / "AAA.java"
+        )
+        (self.tmpdir_path / "AAA.py").write_text("assert True\n")
+        self.assertEqual(
+            solution_path_for("AAA", self.tmpdir_path), self.tmpdir_path / "AAA.py"
+        )
+
+    def test_resolve_target_treats_java_path_as_explicit(self) -> None:
+        path = self.tmpdir_path / "CPX-999.java"
+        path.write_text(self.GOOD)
+        self.assertEqual(resolve_target(str(path), self.tmpdir_path), path)
+
+
 if __name__ == "__main__":
     unittest.main()

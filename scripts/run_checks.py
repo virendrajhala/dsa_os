@@ -12,8 +12,10 @@ harness.
 from __future__ import annotations
 
 import argparse
+import shutil
 import subprocess
 import sys
+import tempfile
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -33,9 +35,21 @@ class CheckResult:
 
 
 def solution_path_for(problem_id: str, solutions_dir: Path = SOLUTIONS_DIR) -> Path:
-    """Return the conventional solution path for a problem id."""
+    """Return the conventional solution path for a problem id.
 
-    return solutions_dir / f"{problem_id}.py"
+    Python is the canonical gate file; a Java solution
+    (`solutions/<PROBLEM-ID>.java`) is used when no `.py` exists, so a learner
+    who codes in Java stores real Java and the gate still runs it. When both
+    exist the `.py` wins (e.g. a Python port beside a reference `.java`).
+    """
+
+    py = solutions_dir / f"{problem_id}.py"
+    if py.exists():
+        return py
+    java = solutions_dir / f"{problem_id}.java"
+    if java.exists():
+        return java
+    return py
 
 
 def resolve_target(target: str, solutions_dir: Path = SOLUTIONS_DIR) -> Path:
@@ -47,7 +61,7 @@ def resolve_target(target: str, solutions_dir: Path = SOLUTIONS_DIR) -> Path:
     """
 
     candidate = Path(target)
-    if candidate.suffix == ".py" or candidate.exists():
+    if candidate.suffix in (".py", ".java") or candidate.exists():
         return candidate
     return solution_path_for(target, solutions_dir)
 
@@ -62,6 +76,9 @@ def run_solution_file(path: Path, timeout_seconds: float = DEFAULT_TIMEOUT_SECON
 
     if not path.exists():
         return CheckResult(passed=False, message=f"Solution file not found: {path}")
+
+    if path.suffix == ".java":
+        return _run_java_file(path, timeout_seconds)
 
     try:
         completed = subprocess.run(
@@ -92,6 +109,99 @@ def run_solution_file(path: Path, timeout_seconds: float = DEFAULT_TIMEOUT_SECON
         stdout=completed.stdout,
         stderr=completed.stderr,
     )
+
+
+def _find_main_class(class_dir: Path) -> str | None:
+    """Return the name of the compiled class that declares `main`, or None.
+
+    A `.java` with no runnable entry point (a reference/library file) has no
+    such class, so it is not treated as a gate file.
+    """
+
+    for compiled in sorted(class_dir.glob("*.class")):
+        name = compiled.stem
+        if "$" in name:  # inner/anonymous class
+            continue
+        inspected = subprocess.run(
+            ["javap", "-cp", str(class_dir), name],
+            capture_output=True,
+            text=True,
+        )
+        if "public static void main(java.lang.String[])" in inspected.stdout:
+            return name
+    return None
+
+
+def _run_java_file(path: Path, timeout_seconds: float) -> CheckResult:
+    """Compile and run a Java solution with assertions enabled (`java -ea`).
+
+    F9 for Java mirrors the Python contract: the file compiles, its `main`
+    runs its embedded asserts, and it exits 0. javac/java must be on PATH.
+    """
+
+    if shutil.which("javac") is None or shutil.which("java") is None:
+        return CheckResult(
+            passed=False,
+            message=f"Java toolchain (javac/java) not found; cannot run {path}",
+        )
+
+    with tempfile.TemporaryDirectory(prefix="dsa_os_java_") as tmp:
+        try:
+            compiled = subprocess.run(
+                ["javac", "-d", tmp, str(path)],
+                capture_output=True,
+                text=True,
+                timeout=timeout_seconds,
+            )
+        except subprocess.TimeoutExpired:
+            return CheckResult(
+                passed=False,
+                message=f"Java compile timed out after {timeout_seconds:g}s: {path}",
+            )
+        if compiled.returncode != 0:
+            tail = (compiled.stderr or compiled.stdout or "").strip().splitlines()
+            detail = tail[-1] if tail else "compile error"
+            return CheckResult(
+                passed=False,
+                message=f"Java solution failed to compile: {path} ({detail})",
+                stdout=compiled.stdout,
+                stderr=compiled.stderr,
+            )
+
+        main_class = _find_main_class(Path(tmp))
+        if main_class is None:
+            return CheckResult(
+                passed=False,
+                message=(
+                    f"Java solution has no runnable entry point: {path}. Add a class "
+                    "with `public static void main(String[])` that runs your asserts."
+                ),
+            )
+
+        try:
+            ran = subprocess.run(
+                ["java", "-ea", "-cp", tmp, main_class],
+                capture_output=True,
+                text=True,
+                timeout=timeout_seconds,
+            )
+        except subprocess.TimeoutExpired:
+            return CheckResult(
+                passed=False,
+                message=f"Java solution timed out after {timeout_seconds:g}s: {path}",
+            )
+
+    if ran.returncode != 0:
+        tail = (ran.stderr or ran.stdout or "").strip().splitlines()
+        detail = tail[-1] if tail else f"exit code {ran.returncode}"
+        return CheckResult(
+            passed=False,
+            message=f"Java solution failed: {path} ({detail})",
+            stdout=ran.stdout,
+            stderr=ran.stderr,
+        )
+
+    return CheckResult(passed=True, message=f"Passed: {path}", stdout=ran.stdout, stderr=ran.stderr)
 
 
 def build_parser() -> argparse.ArgumentParser:
