@@ -3776,22 +3776,32 @@
     const end = parseDate(hm.end) || todayDate();
     const gridStart = mondayOf(start);
 
-    const CELL = 15;
-    const GAP = 3;
+    const CELL = 18;
+    const GAP = 5;
     const STEP = CELL + GAP;
-    const LEFT = 30; // weekday labels
-    const TOP = 18; // month labels
+    const LEFT = 38; // room for the full weekday name
+    const TOP = 22; // month labels
+    const PAD = 14; // breathing room inside the panel
 
     const weeks = Math.floor((mondayOf(end) - gridStart) / (7 * 86400000)) + 1;
-    const W = LEFT + weeks * STEP + GAP;
-    const H = TOP + 7 * STEP;
+    const W = PAD + LEFT + weeks * STEP + PAD;
+    const H = TOP + 7 * STEP + PAD;
 
     const svg = svgNode("svg", { viewBox: `0 0 ${W} ${H}`, class: "heatmap-svg", width: W, height: H });
 
-    // Weekday labels (Mon / Wed / Fri).
-    [["Mon", 0], ["Wed", 2], ["Fri", 4]].forEach(([name, row]) => {
+    // One rounded-square clip, reused by every cell (each cell group is
+    // translated into place, so a single origin clip rounds all of them).
+    const defs = svgNode("defs", {});
+    const clip = svgNode("clipPath", { id: "heat-round", clipPathUnits: "userSpaceOnUse" });
+    clip.append(svgNode("rect", { x: 0, y: 0, width: CELL, height: CELL, rx: 4 }));
+    defs.append(clip);
+    svg.append(defs);
+
+    // Every weekday is labelled (not just Mon/Wed/Fri) — there is room and it
+    // reads clearer.
+    CAL_DOW.forEach((name, row) => {
       svg.append(svgNode("text",
-        { x: LEFT - 6, y: TOP + row * STEP + CELL - 3, "text-anchor": "end", class: "heat-axis" }, name));
+        { x: PAD + LEFT - 8, y: TOP + row * STEP + CELL - 4, "text-anchor": "end", class: "heat-axis" }, name));
     });
 
     let lastMonth = -1;
@@ -3803,7 +3813,7 @@
       if (weekStart.getMonth() !== lastMonth) {
         lastMonth = weekStart.getMonth();
         svg.append(svgNode("text",
-          { x: LEFT + col * STEP, y: TOP - 6, class: "heat-axis" }, HEAT_MONTHS[lastMonth]));
+          { x: PAD + LEFT + col * STEP, y: TOP - 8, class: "heat-axis" }, HEAT_MONTHS[lastMonth]));
       }
       for (let row = 0; row < 7; row += 1) {
         const iso = isoDate(cursor);
@@ -3812,23 +3822,27 @@
         const dayDate = parseDate(iso);
         if (dayDate < start || dayDate > end) continue;
 
-        const x = LEFT + col * STEP;
+        const x = PAD + LEFT + col * STEP;
         const y = TOP + row * STEP;
         const rec = byDate.get(iso) || { solves: 0, skills: 0, revisions: 0 };
         const sL = heatLevel(rec.solves);
         const rL = heatLevel(rec.revisions);
 
-        const cell = svgNode("g", { class: "heat-cell", role: "img" });
+        // Cell drawn in local 0..CELL coords and translated into place, so the
+        // shared rounded clip applies to both triangles; the border rounds too.
+        const cell = svgNode("g", { class: "heat-cell", role: "img", transform: `translate(${x},${y})` });
         // lower-left triangle = solves; upper-right triangle = revisions.
         cell.append(svgNode("path", {
-          d: `M${x},${y} L${x},${y + CELL} L${x + CELL},${y + CELL} Z`,
+          d: `M0,0 L0,${CELL} L${CELL},${CELL} Z`,
+          "clip-path": "url(#heat-round)",
           class: `heat-solve l${sL}`,
         }));
         cell.append(svgNode("path", {
-          d: `M${x},${y} L${x + CELL},${y} L${x + CELL},${y + CELL} Z`,
+          d: `M0,0 L${CELL},0 L${CELL},${CELL} Z`,
+          "clip-path": "url(#heat-round)",
           class: `heat-rev l${rL}`,
         }));
-        cell.append(svgNode("rect", { x, y, width: CELL, height: CELL, class: "heat-border" }));
+        cell.append(svgNode("rect", { x: 0.5, y: 0.5, width: CELL - 1, height: CELL - 1, rx: 4, class: "heat-border" }));
 
         const parts = [];
         if (rec.solves) parts.push(`${rec.solves} solved${rec.skills ? ` (${rec.skills} skill${rec.skills === 1 ? "" : "s"})` : ""}`);
@@ -3846,16 +3860,29 @@
 
     if (legend) {
       const swatch = (cls, lvl) => {
-        const s = svgNode("svg", { viewBox: "0 0 12 12", class: "heat-swatch", width: 12, height: 12 });
-        s.append(svgNode("rect", { x: 0, y: 0, width: 12, height: 12, class: `${cls} l${lvl}` }));
-        s.append(svgNode("rect", { x: 0, y: 0, width: 12, height: 12, class: "heat-border" }));
+        const s = svgNode("svg", { viewBox: "0 0 13 13", class: "heat-swatch", width: 13, height: 13 });
+        s.append(svgNode("rect", { x: 0, y: 0, width: 13, height: 13, rx: 3, class: `${cls} l${lvl}` }));
+        s.append(svgNode("rect", { x: 0.5, y: 0.5, width: 12, height: 12, rx: 3, class: "heat-border" }));
         return s;
       };
+
+      // A worked split-cell example makes the two-triangle encoding legible.
+      const example = document.createElement("div");
+      example.className = "heat-legend-example";
+      const sample = svgNode("svg", { viewBox: "0 0 26 26", class: "heat-sample", width: 26, height: 26 });
+      sample.append(svgNode("path", { d: "M0,0 L0,26 L26,26 Z", class: "heat-solve l3" }));
+      sample.append(svgNode("path", { d: "M0,0 L26,0 L26,26 Z", class: "heat-rev l3" }));
+      sample.append(svgNode("rect", { x: 0.5, y: 0.5, width: 25, height: 25, rx: 5, class: "heat-border" }));
+      const caption = document.createElement("span");
+      caption.className = "microlabel";
+      caption.innerHTML = "each day splits: <strong>solved</strong> lower-left, <strong>revised</strong> upper-right";
+      example.append(sample, caption);
+
       const ramp = (label, cls) => {
         const row = document.createElement("span");
         row.className = "heat-legend-row";
         const name = document.createElement("span");
-        name.className = "microlabel";
+        name.className = "microlabel heat-legend-name";
         name.textContent = label;
         const less = document.createElement("span");
         less.className = "microlabel";
@@ -3868,7 +3895,7 @@
         row.append(more);
         return row;
       };
-      legend.append(ramp("solved ◣", "heat-solve"), ramp("revised ◥", "heat-rev"));
+      legend.append(example, ramp("solved", "heat-solve"), ramp("revised", "heat-rev"));
     }
   }
 

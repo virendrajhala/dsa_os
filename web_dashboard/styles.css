@@ -3151,12 +3151,25 @@ tbody tr:hover {
    --------------------------------------------------------------------------- */
 .heatmap {
   overflow-x: auto;
-  padding-bottom: 4px;
+  padding: 4px 0;
 }
 
 .heatmap-svg {
   display: block;
   min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+}
+
+.heat-cell {
+  cursor: default;
+}
+
+/* Friendly hover: the whole day lifts its outline. */
+.heat-cell:hover .heat-border {
+  stroke: var(--accent);
+  stroke-width: 1.5;
 }
 
 .heat-axis {
@@ -3187,15 +3200,32 @@ tbody tr:hover {
 .heat-rev.l3 { fill: color-mix(in srgb, var(--series-2) 72%, var(--surface-2)); }
 .heat-rev.l4 { fill: var(--series-2); }
 
-.heat-cell {
-  cursor: default;
-}
-
 .heatmap-legend {
   display: flex;
   flex-wrap: wrap;
-  gap: 14px 24px;
-  margin-top: 10px;
+  align-items: center;
+  gap: 12px 28px;
+  margin-top: 12px;
+}
+
+.heat-legend-example {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.heat-legend-example .microlabel {
+  text-transform: none;
+  letter-spacing: 0.02em;
+}
+
+.heat-legend-example strong {
+  color: var(--text);
+  font-weight: 700;
+}
+
+.heat-sample {
+  flex: none;
 }
 
 .heat-legend-row {
@@ -3204,6 +3234,11 @@ tbody tr:hover {
   gap: 5px;
 }
 
+.heat-legend-name {
+  min-width: 52px;
+}
+
 .heat-swatch {
   display: inline-block;
+  flex: none;
 }
