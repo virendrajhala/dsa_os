@@ -2030,7 +2030,10 @@ def activity_heatmap(state: RepositoryState, on_date: date) -> JsonDict:
         }
         for day in active_days
     ]
-    start = active_days[0] if active_days else format_iso_date(on_date)
+    # Anchor the grid at the first of the starting month so it reads as a clean
+    # "month onward" timeline; the right edge is today and grows as work lands.
+    anchor = parse_iso_date(active_days[0], "activity") if active_days else on_date
+    start = format_iso_date(anchor.replace(day=1))
     return {"start": start, "end": format_iso_date(on_date), "days": days}
 
 

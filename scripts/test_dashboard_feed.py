@@ -288,7 +288,8 @@ class ActivityHeatmapTests(unittest.TestCase):
     def test_heatmap_range_spans_first_activity_to_reference(self):
         feed = build_dashboard_feed(_state(self._progress()), date(2026, 7, 24))
         hm = feed["activity_heatmap"]
-        self.assertEqual(hm["start"], "2026-07-20")
+        # start is floored to the first of the earliest activity's month.
+        self.assertEqual(hm["start"], "2026-07-01")
         self.assertEqual(hm["end"], "2026-07-24")
 
     def test_heatmap_omits_empty_days(self):

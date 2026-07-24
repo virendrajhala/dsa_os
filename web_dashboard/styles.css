@@ -3159,7 +3159,9 @@ tbody tr:hover {
   min-width: 0;
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  background: var(--surface-2);
+  /* Panel sits on the card colour so the empty day tiles (surface-2) read as
+     distinct boxes against it. */
+  background: var(--surface);
 }
 
 .heat-cell {
@@ -3180,14 +3182,14 @@ tbody tr:hover {
 
 .heat-border {
   fill: none;
-  stroke: var(--line);
+  stroke: color-mix(in srgb, var(--line) 70%, var(--text));
   stroke-width: 1;
 }
 
 /* Empty triangle reads as the surface; higher levels ramp the hue up. */
 .heat-solve.l0,
 .heat-rev.l0 {
-  fill: var(--surface-2);
+  fill: color-mix(in srgb, var(--line) 34%, var(--surface));
 }
 
 .heat-solve.l1 { fill: color-mix(in srgb, var(--series-3) 26%, var(--surface-2)); }
