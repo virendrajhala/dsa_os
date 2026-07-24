@@ -59,8 +59,13 @@ def _pin_overdue_fixture(tmp_progress: Path) -> None:
     completion of NEW_PROBLEM_ID is dropped so it stays a new solve."""
 
     payload = json.loads(tmp_progress.read_text())
+    # Pin a stable pre-reference snapshot: drop NEW_PROBLEM_ID and any live
+    # completion dated after the tests' --completed-at (2026-07-21), so a later
+    # real solve in the live file cannot push the inserted record out of order.
     payload["completed"] = [
-        r for r in payload["completed"] if r.get("problem_id") != NEW_PROBLEM_ID
+        r for r in payload["completed"]
+        if r.get("problem_id") != NEW_PROBLEM_ID
+        and str(r.get("completed_at", "")) <= "2026-07-21"
     ]
     forced_overdue = {"OBS-005": "2026-07-17", "OBS-006": "2026-07-18"}
     for record in payload["completed"]:
@@ -311,6 +316,15 @@ class MentorScoresTests(unittest.TestCase):
         self.tmpdir = tempfile.mkdtemp(prefix="dsa_os_test_")
         self.tmp_progress = Path(self.tmpdir) / "progress.json"
         shutil.copyfile(LIVE_PROGRESS, self.tmp_progress)
+        # Drop any live completion after the tests' 2026-07-21 reference so the
+        # inserted BASE_ARGS solve stays date-ordered when the full-mentor test
+        # validates. Revision state is untouched. Guards against live drift.
+        payload = json.loads(self.tmp_progress.read_text())
+        payload["completed"] = [
+            r for r in payload["completed"]
+            if str(r.get("completed_at", "")) <= "2026-07-21"
+        ]
+        self.tmp_progress.write_text(json.dumps(payload, indent=2))
         self.original_bytes = self.tmp_progress.read_bytes()
 
     def tearDown(self) -> None:
