@@ -1,8 +1,8 @@
 {
   "schema_version": 8,
-  "last_updated": "2026-07-23",
+  "last_updated": "2026-07-24",
   "current_stage": "Observation",
-  "current_problem": "CPX-004",
+  "current_problem": "CPX-005",
   "completed": [
     {
       "problem_id": "OBS-001",
@@ -748,6 +748,42 @@
         "next_due": "2026-07-28",
         "history": []
       }
+    },
+    {
+      "problem_id": "CPX-004",
+      "completed_at": "2026-07-24",
+      "time_taken_minutes": 55,
+      "hint_level_used": 2,
+      "confidence_before": 6,
+      "confidence_after": 10,
+      "thinking_breakthrough": "Derived the O(1)-space encoding: store a new minimum as 2*newMin-prevMin, which is always strictly less than the running minimum, so a value below getMin is an encoded marker whose pop restores the previous minimum via 2*currentMin-encoded.",
+      "main_mistake": "Overlooked integer overflow in the encoding: initially widened only the stack element type, before reasoning that every variable in 2*min-prev must be long since encoded values can exceed int range.",
+      "thinking_score": {
+        "understanding": 4,
+        "examples": 4,
+        "brute_force": 4,
+        "pattern_detection": 4,
+        "algorithm_design": 4,
+        "complexity_analysis": 4,
+        "implementation": 3,
+        "communication": 4
+      },
+      "algorithm_thinking_score": 9.5,
+      "implementation_engineering_score": 8.0,
+      "interview_score": {
+        "understanding": 10,
+        "communication": 9,
+        "algorithm": 10,
+        "coding": 9,
+        "complexity": 10
+      },
+      "revision": {
+        "status": "ACTIVE",
+        "stage": 0,
+        "completed": [],
+        "next_due": "2026-07-31",
+        "history": []
+      }
     }
   ],
   "thinking_profile": {
@@ -1090,6 +1126,22 @@
       "deferred_learnings_created": [],
       "deferred_learnings_resolved": [],
       "next_problem": "CPX-004"
+    },
+    {
+      "timestamp": "2026-07-24",
+      "event": "problem_completed",
+      "problem_id": "CPX-004",
+      "mode": "new_problem",
+      "stage_before": "Observation",
+      "stage_after": "Observation",
+      "revision_result": null,
+      "revision_stage": 0,
+      "revision_status": "ACTIVE",
+      "next_due": "2026-07-31",
+      "reactivated_problems": [],
+      "deferred_learnings_created": [],
+      "deferred_learnings_resolved": [],
+      "next_problem": "CPX-005"
     }
   ],
   "notes": [
@@ -1170,6 +1222,18 @@
     {
       "date": "2026-07-23",
       "text": "OBS-008 R1 independence: an accumulation mistake in the first implementation was found and corrected by the learner without requesting a hint, on their own review. Genuine recall rather than guided reconstruction."
+    },
+    {
+      "date": "2026-07-24",
+      "text": "CPX-004 Min Stack: two accepted designs. Two-stack with (value, frequency) min nodes so duplicate minima do not need duplicate entries; and an O(1) auxiliary-space single stack that encodes a new minimum as 2*newMin-prevMin."
+    },
+    {
+      "date": "2026-07-24",
+      "text": "Invariant proved, not memorized: every encoded value is strictly < currentMin, so 'top < currentMin' identifies an encoded marker; popping it restores prevMin = 2*currentMin - encoded, re-establishing the exact invariant that held when it was created, which is why nested minima unwind correctly."
+    },
+    {
+      "date": "2026-07-24",
+      "text": "Interview progression for Min Stack: present the two-stack O(n) solution, state the space cost, then offer the O(1) optimization and DERIVE the encode/decode formulas rather than reciting them."
     }
   ],
   "scores": {
@@ -1180,44 +1244,44 @@
       "pattern_detection": 4,
       "algorithm_design": 4,
       "complexity_analysis": 4,
-      "implementation": 4,
+      "implementation": 3,
       "communication": 4
     },
     "latest_interview_score": {
       "understanding": 10,
-      "communication": 10,
-      "algorithm": 9,
-      "coding": 10,
+      "communication": 9,
+      "algorithm": 10,
+      "coding": 9,
       "complexity": 10
     },
     "averages": {
-      "thinking_weighted": 3.59,
+      "thinking_weighted": 3.62,
       "thinking_dimensions": {
-        "understanding": 3.6,
-        "examples": 3.6,
-        "brute_force": 3.5,
-        "pattern_detection": 3.6,
-        "algorithm_design": 3.6,
-        "complexity_analysis": 3.6,
-        "implementation": 3.6,
-        "communication": 3.6
+        "understanding": 3.64,
+        "examples": 3.64,
+        "brute_force": 3.55,
+        "pattern_detection": 3.64,
+        "algorithm_design": 3.64,
+        "complexity_analysis": 3.64,
+        "implementation": 3.55,
+        "communication": 3.64
       },
-      "interview_average": 8.66,
+      "interview_average": 8.75,
       "interview_dimensions": {
-        "understanding": 8.7,
-        "communication": 8.7,
-        "algorithm": 8.5,
-        "coding": 8.7,
-        "complexity": 8.7
+        "understanding": 8.82,
+        "communication": 8.73,
+        "algorithm": 8.64,
+        "coding": 8.73,
+        "complexity": 8.82
       },
-      "confidence_before": 4.5,
-      "confidence_after": 9.1,
-      "solved_unique_problems": 10
+      "confidence_before": 4.64,
+      "confidence_after": 9.18,
+      "solved_unique_problems": 11
     },
     "stage_checks": {
       "Observation": {
-        "attempted": 10,
-        "passed": 10
+        "attempted": 11,
+        "passed": 11
       },
       "State Construction": {
         "attempted": 0,
@@ -1277,8 +1341,8 @@
       "mastered": true
     },
     "SK-OB-02": {
-      "primary_solved": false,
-      "primary_weighted_score": null,
+      "primary_solved": true,
+      "primary_weighted_score": 3.9,
       "reinforcement_attempted": false,
       "mastered": false
     },
@@ -2174,7 +2238,7 @@
     "When the repeated query only asks whether a value exists, store membership in a HashSet; use a HashMap only when the answer also needs metadata such as an index, count, or group."
   ],
   "implementation_engineering": {
-    "score": 8.8,
+    "score": 8.73,
     "strengths": [
       "State definition",
       "DP recurrence",

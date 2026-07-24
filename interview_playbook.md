@@ -138,16 +138,22 @@ let a section sit unedited just because no recent problem touched that topic.
 ## Heaps & Design
 
 ### Interviewer expectations
-<!-- grows per completion -->
+- Min Stack (LC155): O(1) for every operation is the bar. Present the two-stack
+  O(n)-space solution first, state the space cost aloud, then offer the O(1)
+  auxiliary-space optimization.
 
 ### Communication patterns
-<!-- grows per completion -->
+- Derive the encode/decode formulas live rather than reciting them: a new
+  minimum is stored as `2*newMin - prevMin`; a value below `getMin` is an
+  encoded marker whose pop restores `prevMin = 2*currentMin - encoded`.
 
 ### Follow-up variations seen
-<!-- grows per completion -->
+- "Now do it in O(1) extra space." — the encoded single-stack Min Stack.
 
 ### Edge-case checklists
-<!-- grows per completion -->
+- Duplicate minima (the frequency-compression design must not desync).
+- Integer overflow in the encoding arithmetic: every variable in `2*min-prev`
+  must be widened (use `long`), not just the stack element type.
 
 ---
 

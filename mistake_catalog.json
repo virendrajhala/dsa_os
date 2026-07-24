@@ -38,6 +38,15 @@
       "source_problem": "OBS-006",
       "taxonomy": "C",
       "corrected_on": "2026-07-23"
+    },
+    {
+      "id": "M005",
+      "title": "Widen only one variable against overflow",
+      "symptom": "Encoding arithmetic overflowed int: only the stack element type was widened, leaving other variables in the same expression as int.",
+      "fix": "When an expression can exceed the value type's range, widen every variable that participates in it, not just the container. Reason about the intermediate range of the whole expression (here 2*min-prev), not the inputs alone.",
+      "source_problem": "CPX-004",
+      "taxonomy": "D",
+      "corrected_on": "2026-07-24"
     }
   ]
 }
