@@ -122,11 +122,11 @@
     }
   },
   "revision_policy": {
-    "description": "Revision progression is state-based: a problem is mastered only after four successful active-recall revisions. Time passing only makes a revision due; it never advances mastery.",
+    "description": "Revision progression is state-based: a problem is mastered only after four successful active-recall revisions. successful_recall_intervals are CUMULATIVE days after the original solve (the 'first lecture'), not gaps between revisions: R1 on day 7, R2 on day 21, R3 on day 45, R4 on day 60. Time passing only makes a revision due; it never advances mastery.",
     "successful_recall_intervals": {
-      "R1": 3,
-      "R2": 7,
-      "R3": 21,
+      "R1": 7,
+      "R2": 21,
+      "R3": 45,
       "R4": 60
     },
     "mastered_after_stage": 4,

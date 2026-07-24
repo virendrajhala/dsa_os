@@ -229,12 +229,20 @@ work continues, and the scheduler says so. `scripts/revision_report.py` shows
 the whole queue as context, but it is not the running order. A revision is an
 active-recall interview, not a date-based reread.
 
-A problem is mastered only after four successful recall stages:
+A problem is mastered only after four successful recall stages. The schedule is
+absolute — measured in days after the original solve ("first lecture"), not as a
+gap after each recall — and lives in `progress/scoring.json`
+(`revision_policy.successful_recall_intervals`):
 
-- R1: 3 days after the original solve
-- R2: 7 days after successful R1
-- R3: 21 days after successful R2
-- R4: 60 days after successful R3
+- R1: day 7 after the solve
+- R2: day 21 after the solve
+- R3: day 45 after the solve
+- R4: day 60 after the solve
+
+Expanding the early gaps (7 -> 21 -> 45) keeps recall spaced for durable
+retention rather than crowding the first weeks; the day-60 R4 is the final
+consolidation. A revision done late never falls on the same day as the next
+one — it is pushed at least a day out.
 
 ### The six phases
 

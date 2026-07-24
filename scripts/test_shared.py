@@ -502,29 +502,66 @@ class RevisionPolicyConfigTests(unittest.TestCase):
         )
         self.assertEqual(revision_intervals(policy), {0: 1, 1: 2, 2: 4, 3: 8})
 
-    def test_apply_revision_result_honors_injected_policy(self):
+    def test_next_due_is_absolute_from_the_original_solve(self):
+        # Owner policy: revisions are scheduled by days after the FIRST solve,
+        # not by a gap after each revision. Offsets are cumulative from solve.
         policy = resolve_revision_policy(
             {
                 "revision_policy": {
-                    "successful_recall_intervals": {"R1": 1, "R2": 2, "R3": 4, "R4": 8},
-                    "failure_retry_days": 3,
+                    "successful_recall_intervals": {"R1": 7, "R2": 21, "R3": 45, "R4": 60},
                 }
             }
         )
-        record = _record()
-        on = date(2026, 1, 10)
+        record = _record(completed_at="2026-01-01")
 
-        # PASS clears R1; next due follows the custom R2 interval (2 days).
+        # R1 done on time (day 7). Next (R2) lands on solve + 21 = 2026-01-22.
         apply_revision_result(
-            record, "PASS", on, confidence=8, hint_level=0, revision_score={}, policy=policy
+            record, "PASS", date(2026, 1, 8), confidence=8, hint_level=0,
+            revision_score={}, policy=policy,
         )
-        self.assertEqual(record["revision"]["next_due"], "2026-01-12")
+        self.assertEqual(record["revision"]["next_due"], "2026-01-22")
 
-        # FAIL retries after the custom failure_retry_days (3 days).
+        # R2 done on day 21. Next (R3) lands on solve + 45 = 2026-02-15.
         apply_revision_result(
-            record, "FAIL", on, confidence=5, hint_level=3, revision_score={}, policy=policy
+            record, "PASS", date(2026, 1, 22), confidence=8, hint_level=0,
+            revision_score={}, policy=policy,
         )
-        self.assertEqual(record["revision"]["next_due"], "2026-01-13")
+        self.assertEqual(record["revision"]["next_due"], "2026-02-15")
+
+    def test_late_revision_never_schedules_same_day(self):
+        # A revision done long after its absolute date must still leave at
+        # least a day before the next one — no same-day cascade.
+        policy = resolve_revision_policy(
+            {
+                "revision_policy": {
+                    "successful_recall_intervals": {"R1": 7, "R2": 21, "R3": 45, "R4": 60},
+                }
+            }
+        )
+        record = _record(completed_at="2026-01-01")
+        # R1 done very late (day 40); absolute R2 (day 21) is already past.
+        apply_revision_result(
+            record, "PASS", date(2026, 2, 10), confidence=8, hint_level=0,
+            revision_score={}, policy=policy,
+        )
+        self.assertEqual(record["revision"]["next_due"], "2026-02-11")
+
+    def test_failed_revision_still_retries_next_day(self):
+        # FAIL is unchanged: retry after failure_retry_days, gap-based.
+        policy = resolve_revision_policy(
+            {
+                "revision_policy": {
+                    "successful_recall_intervals": {"R1": 7, "R2": 21, "R3": 45, "R4": 60},
+                    "failure_retry_days": 1,
+                }
+            }
+        )
+        record = _record(completed_at="2026-01-01")
+        apply_revision_result(
+            record, "FAIL", date(2026, 1, 8), confidence=5, hint_level=3,
+            revision_score={}, policy=policy,
+        )
+        self.assertEqual(record["revision"]["next_due"], "2026-01-09")
 
     def test_maintenance_fail_demotion_follows_policy(self):
         # Demotion after a failed quarterly check must land one stage below

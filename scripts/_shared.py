@@ -1453,8 +1453,15 @@ def apply_revision_result(
                     "successful_recall_intervals must cover R1.."
                     f"R{int(policy['mastered_after_stage'])}."
                 )
+            # Scheduling is absolute: the next revision is due a fixed number
+            # of days after the ORIGINAL solve, not a gap after this recall
+            # (revision_policy.successful_recall_intervals are cumulative
+            # offsets from the solve). A floor of one day past this completion
+            # keeps a late learner from having two stages fall due the same day.
+            solve_date = parse_iso_date(str(record["completed_at"]), "completed_at")
+            absolute_due = solve_date + timedelta(days=intervals[attempted_stage])
             revision["next_due"] = format_iso_date(
-                completed_on + timedelta(days=intervals[attempted_stage])
+                max(absolute_due, completed_on + timedelta(days=1))
             )
             revision.pop("reactivated_on", None)
     else:
