@@ -1137,6 +1137,8 @@ def select_mock_problem(state: RepositoryState) -> tuple[JsonDict | None, str]:
     problems = ensure_list(state.curriculum.get("problems"), "curriculum.problems")
     problems_by_id = problem_lookup(state.curriculum)
     order = problem_order_index(state.curriculum)
+    problem_deps = problem_dependencies_map(state.graph)
+    challenge_gate = challenge_stage_gate(state.curriculum)
     skills = skill_lookup(state.skills)
     current_skill = derive_current_skill_id(state)
 
@@ -1163,6 +1165,7 @@ def select_mock_problem(state: RepositoryState) -> tuple[JsonDict | None, str]:
             # A revisit slot of a completed problem is the same problem seen
             # again — never "unseen" for a mock (protocol rule 5).
             and problem.get("revisit_of") not in completed
+            and is_problem_unlocked(problem, completed, problem_deps, challenge_gate)
             and problem.get("primary_skill") in eligible_skills
         ]
         if candidates:
@@ -1185,6 +1188,7 @@ def select_mock_problem(state: RepositoryState) -> tuple[JsonDict | None, str]:
                 pid not in completed
                 and pid in problems_by_id
                 and problems_by_id[pid].get("revisit_of") not in completed
+                and is_problem_unlocked(problems_by_id[pid], completed, problem_deps, challenge_gate)
             ):
                 practice.append(problems_by_id[pid])
     if practice:

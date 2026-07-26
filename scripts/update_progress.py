@@ -98,6 +98,14 @@ def build_parser() -> argparse.ArgumentParser:
         help="Override the progress file path. Defaults to progress/progress.json.",
     )
     parser.add_argument(
+        "--refresh-current-problem",
+        action="store_true",
+        help=(
+            "Recompute and persist the derived current-problem pointer without recording "
+            "a solve, revision, or mock. Used to repair stale scheduler state."
+        ),
+    )
+    parser.add_argument(
         "--problem-id",
         help="Problem to mark complete. Defaults to the active current problem.",
     )
@@ -617,6 +625,54 @@ def main() -> int:
         problems = problem_lookup(state.curriculum)
         progress = state.progress
         completed_on = parse_iso_date(args.completed_at, "completed_at")
+
+        if args.refresh_current_problem:
+            if any(
+                value
+                for value in (
+                    args.problem_id,
+                    args.mode,
+                    args.revision_result,
+                    args.time_taken_minutes,
+                    args.hint_level_used,
+                    args.confidence_before,
+                    args.confidence_after,
+                )
+            ):
+                raise RepositoryError(
+                    "`--refresh-current-problem` cannot be combined with solve, revision, or mock fields."
+                )
+            selection = select_next_problem(state, on_date=completed_on)
+            next_problem_id = selection.problem["id"] if selection.problem else None
+            previous_problem_id = current_problem_id(progress)
+            progress["current_problem"] = next_problem_id
+            progress["last_updated"] = format_iso_date(completed_on)
+            append_history_event(
+                progress,
+                {
+                    "timestamp": format_iso_date(completed_on),
+                    "event": "current_problem_refreshed",
+                    "problem_id": next_problem_id,
+                    "previous_problem": previous_problem_id,
+                    "selection_mode": selection.mode,
+                    "reason": selection.reason,
+                },
+            )
+            save_json_file(state.progress_path, progress)
+            payload = {
+                "mode": "refresh_current_problem",
+                "previous_problem": previous_problem_id,
+                "next_problem": next_problem_id,
+                "selection_mode": selection.mode,
+                "selection_reason": selection.reason,
+                "progress_file": str(state.progress_path),
+            }
+            if args.format == "json":
+                print(json.dumps(payload, indent=2))
+            else:
+                print(f"Current problem: {previous_problem_id or 'None'} -> {next_problem_id or 'None'}")
+                print(f"Selection: {selection.mode}")
+            return 0
 
         problem_id = args.problem_id or current_problem_id(progress)
         if not problem_id:

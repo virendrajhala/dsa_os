@@ -1,8 +1,8 @@
 {
   "schema_version": 8,
-  "last_updated": "2026-07-24",
+  "last_updated": "2026-07-26",
   "current_stage": "Observation",
-  "current_problem": "CPX-005",
+  "current_problem": "CPX-006",
   "completed": [
     {
       "problem_id": "OBS-001",
@@ -784,6 +784,42 @@
         "next_due": "2026-07-31",
         "history": []
       }
+    },
+    {
+      "problem_id": "CPX-005",
+      "completed_at": "2026-07-26",
+      "time_taken_minutes": 150,
+      "hint_level_used": 3,
+      "confidence_before": 3,
+      "confidence_after": 9,
+      "thinking_breakthrough": "A lazy iterator must preserve paused DFS state across independent next() calls, so an explicit stack replaces the unwound recursive call stack.",
+      "main_mistake": "Initially split traversal ownership across next(), hasNext(), and prepareNextElement(), which caused skipped elements and unsafe parent restoration on empty or exhausted lists.",
+      "thinking_score": {
+        "understanding": 4,
+        "examples": 4,
+        "brute_force": 3,
+        "pattern_detection": 4,
+        "algorithm_design": 4,
+        "complexity_analysis": 3,
+        "implementation": 4,
+        "communication": 4
+      },
+      "algorithm_thinking_score": 9.0,
+      "implementation_engineering_score": 8.0,
+      "interview_score": {
+        "understanding": 9,
+        "communication": 9,
+        "algorithm": 8,
+        "coding": 8,
+        "complexity": 8
+      },
+      "revision": {
+        "status": "ACTIVE",
+        "stage": 0,
+        "completed": [],
+        "next_due": "2026-08-02",
+        "history": []
+      }
     }
   ],
   "thinking_profile": {
@@ -1142,6 +1178,30 @@
       "deferred_learnings_created": [],
       "deferred_learnings_resolved": [],
       "next_problem": "CPX-005"
+    },
+    {
+      "timestamp": "2026-07-26",
+      "event": "problem_completed",
+      "problem_id": "CPX-005",
+      "mode": "new_problem",
+      "stage_before": "Observation",
+      "stage_after": "Observation",
+      "revision_result": null,
+      "revision_stage": 0,
+      "revision_status": "ACTIVE",
+      "next_due": "2026-08-02",
+      "reactivated_problems": [],
+      "deferred_learnings_created": [],
+      "deferred_learnings_resolved": [],
+      "next_problem": "CPX-003"
+    },
+    {
+      "timestamp": "2026-07-26",
+      "event": "current_problem_refreshed",
+      "problem_id": "CPX-006",
+      "previous_problem": "CPX-003",
+      "selection_mode": "mock_due",
+      "reason": "Weekend mock interview is due and outranks new work (overdue revisions still come first). Problem drawn from a mastered or adjacent skill, never the current in-progress skill. See mentor/mock_interview_protocol.md."
     }
   ],
   "notes": [
@@ -1234,54 +1294,58 @@
     {
       "date": "2026-07-24",
       "text": "Interview progression for Min Stack: present the two-stack O(n) solution, state the space cost, then offer the O(1) optimization and DERIVE the encode/decode formulas rather than reciting them."
+    },
+    {
+      "date": "2026-07-26",
+      "text": "CPX-005: independently designed a lazy resumable DFS iterator with explicit parent contexts, prepared-next caching, and successful dry runs for nested and empty-list cases."
     }
   ],
   "scores": {
     "latest_thinking_score": {
       "understanding": 4,
       "examples": 4,
-      "brute_force": 4,
+      "brute_force": 3,
       "pattern_detection": 4,
       "algorithm_design": 4,
-      "complexity_analysis": 4,
-      "implementation": 3,
+      "complexity_analysis": 3,
+      "implementation": 4,
       "communication": 4
     },
     "latest_interview_score": {
-      "understanding": 10,
+      "understanding": 9,
       "communication": 9,
-      "algorithm": 10,
-      "coding": 9,
-      "complexity": 10
+      "algorithm": 8,
+      "coding": 8,
+      "complexity": 8
     },
     "averages": {
-      "thinking_weighted": 3.62,
+      "thinking_weighted": 3.63,
       "thinking_dimensions": {
-        "understanding": 3.64,
-        "examples": 3.64,
-        "brute_force": 3.55,
-        "pattern_detection": 3.64,
-        "algorithm_design": 3.64,
-        "complexity_analysis": 3.64,
-        "implementation": 3.55,
-        "communication": 3.64
+        "understanding": 3.67,
+        "examples": 3.67,
+        "brute_force": 3.5,
+        "pattern_detection": 3.67,
+        "algorithm_design": 3.67,
+        "complexity_analysis": 3.58,
+        "implementation": 3.58,
+        "communication": 3.67
       },
-      "interview_average": 8.75,
+      "interview_average": 8.72,
       "interview_dimensions": {
-        "understanding": 8.82,
-        "communication": 8.73,
-        "algorithm": 8.64,
-        "coding": 8.73,
-        "complexity": 8.82
+        "understanding": 8.83,
+        "communication": 8.75,
+        "algorithm": 8.58,
+        "coding": 8.67,
+        "complexity": 8.75
       },
-      "confidence_before": 4.64,
-      "confidence_after": 9.18,
-      "solved_unique_problems": 11
+      "confidence_before": 4.5,
+      "confidence_after": 9.17,
+      "solved_unique_problems": 12
     },
     "stage_checks": {
       "Observation": {
-        "attempted": 11,
-        "passed": 11
+        "attempted": 12,
+        "passed": 12
       },
       "State Construction": {
         "attempted": 0,
@@ -1343,8 +1407,8 @@
     "SK-OB-02": {
       "primary_solved": true,
       "primary_weighted_score": 3.9,
-      "reinforcement_attempted": false,
-      "mastered": false
+      "reinforcement_attempted": true,
+      "mastered": true
     },
     "SK-OB-03": {
       "primary_solved": true,
@@ -1919,13 +1983,14 @@
   ],
   "mastered_skills": [
     "SK-OB-01",
+    "SK-OB-02",
     "SK-OB-03",
     "SK-OB-04"
   ],
   "stage_mastery": {
     "Observation": {
       "status": "in_progress",
-      "skills_mastered": 3,
+      "skills_mastered": 4,
       "skills_total": 7
     },
     "State Construction": {
@@ -1990,9 +2055,9 @@
     }
   },
   "competency_completion": {
-    "mastered_skills": 3,
+    "mastered_skills": 4,
     "total_skills": 92,
-    "percent": 3.26
+    "percent": 4.35
   },
   "lessons_learned": {
     "OBS-001": {
@@ -2238,7 +2303,7 @@
     "When the repeated query only asks whether a value exists, store membership in a HashSet; use a HashMap only when the answer also needs metadata such as an index, count, or group."
   ],
   "implementation_engineering": {
-    "score": 8.73,
+    "score": 8.67,
     "strengths": [
       "State definition",
       "DP recurrence",
@@ -2278,7 +2343,9 @@
       "Average O(1) lookup reasoning",
       "HashSet state selection from membership-only repeated query",
       "Contains-before-add processed-prefix invariant",
-      "General algorithm covers empty and single-element arrays without special branches"
+      "General algorithm covers empty and single-element arrays without special branches",
+      "Derived explicit parent contexts to preserve paused traversal state across iterator calls.",
+      "Made repeated hasNext() calls idempotent with prepared-next state."
     ],
     "weaknesses": [
       "Initialization",
@@ -2288,7 +2355,9 @@
     "common_errors": [
       "Initial values derived incorrectly",
       "Forgot global answer update location",
-      "Mixed local DP state with final answer"
+      "Mixed local DP state with final answer",
+      "Initially advanced currentIndex inside next(), skipping elements.",
+      "Initially accessed a restored parent list before checking whether it was exhausted."
     ],
     "improvement_notes": [
       "The learner consistently derives correct algorithms but occasionally loses marks while translating the algorithm into code. Future sessions should require an Implementation Blueprint before coding.",
@@ -2301,7 +2370,8 @@
       "OBS-002 R2 confirmed that the learner can reproduce product-DP state definitions, previous-state preservation, global answer maintenance, dry run, and O(n)/O(1) implementation from memory without hints.",
       "OBS-008 confirmed that the learner can derive two directional passes from independent adjacent constraints and explain why max-merging the two directional assignments is the minimum valid distribution.",
       "CPX-001 confirmed the learner can derive value-to-index HashMap state from the repeated query: Have I already seen this required partner?",
-      "CPX-002 reinforced that implementation order must preserve the state definition: before index i, the HashSet contains exactly values from indices 0..i-1."
+      "CPX-002 reinforced that implementation order must preserve the state definition: before index i, the HashSet contains exactly values from indices 0..i-1.",
+      "Keep traversal ownership in prepareNextElement(); next() should only consume prepared state."
     ]
   }
 }
