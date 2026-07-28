@@ -2,7 +2,7 @@
   "schema_version": 8,
   "last_updated": "2026-07-28",
   "current_stage": "Observation",
-  "current_problem": "CPX-002",
+  "current_problem": "CPX-007",
   "completed": [
     {
       "problem_id": "OBS-001",
@@ -766,10 +766,31 @@
       },
       "revision": {
         "status": "ACTIVE",
-        "stage": 0,
-        "completed": [],
-        "next_due": "2026-07-28",
-        "history": []
+        "stage": 1,
+        "completed": [
+          "2026-07-28"
+        ],
+        "next_due": "2026-08-11",
+        "history": [
+          {
+            "date": "2026-07-28",
+            "result": "PASS",
+            "stage": 1,
+            "attempted_stage": 1,
+            "confidence": 10,
+            "hint_level": 0,
+            "thinking_score": {
+              "concept_recall": 10,
+              "invariant_recall": 10,
+              "algorithm_reconstruction": 10,
+              "implementation": 10,
+              "implementation_blueprint": 10,
+              "code_from_memory": 10,
+              "hint_dependency": 10,
+              "confidence": 10
+            }
+          }
+        ]
       }
     },
     {
@@ -1296,6 +1317,22 @@
       "deferred_learnings_created": [],
       "deferred_learnings_resolved": [],
       "next_problem": "CPX-002"
+    },
+    {
+      "timestamp": "2026-07-28",
+      "event": "revision_recorded",
+      "problem_id": "CPX-002",
+      "mode": "revision",
+      "stage_before": "Observation",
+      "stage_after": "Observation",
+      "revision_result": "PASS",
+      "revision_stage": 1,
+      "revision_status": "ACTIVE",
+      "next_due": "2026-08-11",
+      "reactivated_problems": [],
+      "deferred_learnings_created": [],
+      "deferred_learnings_resolved": [],
+      "next_problem": "CPX-007"
     }
   ],
   "notes": [
@@ -1400,6 +1437,10 @@
     {
       "date": "2026-07-28",
       "text": "CPX-001 R1 PASS: recalled the O(n) observation from first principles, derived value-to-index state from the repeated complement query, checked complement before inserting the current element, handled duplicates, dry-ran normal and edge cases, implemented Java from memory, and explained the maintained processed-prefix invariant. No conceptual gaps identified."
+    },
+    {
+      "date": "2026-07-28",
+      "text": "CPX-002 R1 PASS: recalled the problem statement, O(n) target complexity, processed-prefix HashSet invariant, contains-before-add ordering, duplicate handling, normal and edge-case dry runs, complete Java implementation from memory, and HashSet.add() boolean-return optimization. No hints, corrections, or conceptual gaps observed."
     }
   ],
   "scores": {
@@ -2449,7 +2490,8 @@
       "Derived explicit parent contexts to preserve paused traversal state across iterator calls.",
       "Made repeated hasNext() calls idempotent with prepared-next state.",
       "Implemented the accepted direct-addressing solution cleanly with array indexing and a -1 sentinel while respecting LeetCode 706's bounded key constraint.",
-      "CPX-001 R1: reconstructed the Java Two Sum implementation from memory with correct complement-before-insert ordering and processed-prefix state ownership."
+      "CPX-001 R1: reconstructed the Java Two Sum implementation from memory with correct complement-before-insert ordering and processed-prefix state ownership.",
+      "CPX-002 R1: implemented Contains Duplicate from memory with correct HashSet state, O(n)/O(n) complexity, no corrections, and independently used HashSet.add()'s boolean return optimization."
     ],
     "weaknesses": [
       "Initialization",
