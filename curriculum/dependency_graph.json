@@ -2207,6 +2207,9 @@
     ],
     "OBS-030": [
       "OBS-022"
+    ],
+    "CPX-007": [
+      "CPX-006"
     ]
   },
   "difficulty_gates": {

@@ -93,3 +93,29 @@ Common mistakes:
 Problems:
 - CPX-001 Two Sum
 - CPX-002 Contains Duplicate
+
+---
+
+## Pattern 005
+Pattern: Bounded Key Space -> Direct Addressing
+
+Trigger:
+The problem gives a small fixed key range and operations are keyed directly by
+that value.
+
+Invariant:
+For every valid key, `table[key]` is the complete stored state for that key.
+
+Proof:
+If every key is an integer inside a known bounded range, array indexing maps
+each possible key to exactly one storage slot. Lookup, update, and remove do
+not need search or collision resolution; they directly read or write that slot.
+
+Common mistakes:
+- Calling direct addressing a general HashMap implementation.
+- Forgetting that the approach spends O(maxKey) space even when few keys are
+  used.
+- Using 0 as a missing sentinel when 0 is a valid stored value.
+
+Problems:
+- CPX-006 Design a HashMap

@@ -1,8 +1,8 @@
 {
   "schema_version": 8,
-  "last_updated": "2026-07-26",
+  "last_updated": "2026-07-28",
   "current_stage": "Observation",
-  "current_problem": "CPX-006",
+  "current_problem": "CPX-001",
   "completed": [
     {
       "problem_id": "OBS-001",
@@ -820,6 +820,45 @@
         "next_due": "2026-08-02",
         "history": []
       }
+    },
+    {
+      "problem_id": "CPX-006",
+      "completed_at": "2026-07-28",
+      "time_taken_minutes": 45,
+      "hint_level_used": 2,
+      "confidence_before": 6,
+      "confidence_after": 9,
+      "thinking_breakthrough": "Recognized that LeetCode 706's bounded key range, 0 <= key <= 1000000, permits a direct-addressing table: array index equals key, lookup/update/remove are O(1), and -1 is the needed sentinel because 0 is a valid value.",
+      "main_mistake": "No CPX-006 implementation mistake recorded; interview-level HashMap internals such as separate chaining, collision handling, load factor, resizing, and rehashing were intentionally deferred to CPX-007.",
+      "thinking_score": {
+        "understanding": 4,
+        "examples": 4,
+        "brute_force": 2,
+        "pattern_detection": 4,
+        "algorithm_design": 4,
+        "complexity_analysis": 4,
+        "implementation": 4,
+        "communication": 4
+      },
+      "algorithm_thinking_score": 9.0,
+      "implementation_engineering_score": 8.0,
+      "interview_score": {
+        "understanding": 9,
+        "communication": 9,
+        "algorithm": 8,
+        "coding": 9,
+        "complexity": 9
+      },
+      "revision": {
+        "status": "ACTIVE",
+        "stage": 0,
+        "completed": [],
+        "next_due": "2026-08-04",
+        "history": []
+      },
+      "notes": [
+        "Recorded new solve via --override-revisions while overdue: CPX-001, CPX-002."
+      ]
     }
   ],
   "thinking_profile": {
@@ -1202,6 +1241,22 @@
       "previous_problem": "CPX-003",
       "selection_mode": "mock_due",
       "reason": "Weekend mock interview is due and outranks new work (overdue revisions still come first). Problem drawn from a mastered or adjacent skill, never the current in-progress skill. See mentor/mock_interview_protocol.md."
+    },
+    {
+      "timestamp": "2026-07-28",
+      "event": "problem_completed",
+      "problem_id": "CPX-006",
+      "mode": "new_problem",
+      "stage_before": "Observation",
+      "stage_after": "Observation",
+      "revision_result": null,
+      "revision_stage": 0,
+      "revision_status": "ACTIVE",
+      "next_due": "2026-08-04",
+      "reactivated_problems": [],
+      "deferred_learnings_created": [],
+      "deferred_learnings_resolved": [],
+      "next_problem": "CPX-001"
     }
   ],
   "notes": [
@@ -1298,16 +1353,20 @@
     {
       "date": "2026-07-26",
       "text": "CPX-005: independently designed a lazy resumable DFS iterator with explicit parent contexts, prepared-next caching, and successful dry runs for nested and empty-list cases."
+    },
+    {
+      "date": "2026-07-28",
+      "text": "CPX-006 mastered scope: direct addressing table; direct addressing vs general HashMap; bounded key-space feasibility; O(1) array-index lookup; -1 sentinel because 0 is a valid value; time-vs-space tradeoff; why this is accepted for LeetCode 706. Not mastered here: separate chaining, bucket implementation, collision handling implementation, load factor implementation, rehashing implementation, amortized O(1) implementation, Java HashMap internals."
     }
   ],
   "scores": {
     "latest_thinking_score": {
       "understanding": 4,
       "examples": 4,
-      "brute_force": 3,
+      "brute_force": 2,
       "pattern_detection": 4,
       "algorithm_design": 4,
-      "complexity_analysis": 3,
+      "complexity_analysis": 4,
       "implementation": 4,
       "communication": 4
     },
@@ -1315,37 +1374,37 @@
       "understanding": 9,
       "communication": 9,
       "algorithm": 8,
-      "coding": 8,
-      "complexity": 8
+      "coding": 9,
+      "complexity": 9
     },
     "averages": {
-      "thinking_weighted": 3.63,
+      "thinking_weighted": 3.65,
       "thinking_dimensions": {
-        "understanding": 3.67,
-        "examples": 3.67,
-        "brute_force": 3.5,
-        "pattern_detection": 3.67,
-        "algorithm_design": 3.67,
-        "complexity_analysis": 3.58,
-        "implementation": 3.58,
-        "communication": 3.67
+        "understanding": 3.69,
+        "examples": 3.69,
+        "brute_force": 3.38,
+        "pattern_detection": 3.69,
+        "algorithm_design": 3.69,
+        "complexity_analysis": 3.62,
+        "implementation": 3.62,
+        "communication": 3.69
       },
       "interview_average": 8.72,
       "interview_dimensions": {
-        "understanding": 8.83,
-        "communication": 8.75,
-        "algorithm": 8.58,
-        "coding": 8.67,
-        "complexity": 8.75
+        "understanding": 8.85,
+        "communication": 8.77,
+        "algorithm": 8.54,
+        "coding": 8.69,
+        "complexity": 8.77
       },
-      "confidence_before": 4.5,
-      "confidence_after": 9.17,
-      "solved_unique_problems": 12
+      "confidence_before": 4.62,
+      "confidence_after": 9.15,
+      "solved_unique_problems": 13
     },
     "stage_checks": {
       "Observation": {
-        "attempted": 12,
-        "passed": 12
+        "attempted": 13,
+        "passed": 13
       },
       "State Construction": {
         "attempted": 0,
@@ -2303,7 +2362,7 @@
     "When the repeated query only asks whether a value exists, store membership in a HashSet; use a HashMap only when the answer also needs metadata such as an index, count, or group."
   ],
   "implementation_engineering": {
-    "score": 8.67,
+    "score": 8.62,
     "strengths": [
       "State definition",
       "DP recurrence",
@@ -2345,7 +2404,8 @@
       "Contains-before-add processed-prefix invariant",
       "General algorithm covers empty and single-element arrays without special branches",
       "Derived explicit parent contexts to preserve paused traversal state across iterator calls.",
-      "Made repeated hasNext() calls idempotent with prepared-next state."
+      "Made repeated hasNext() calls idempotent with prepared-next state.",
+      "Implemented the accepted direct-addressing solution cleanly with array indexing and a -1 sentinel while respecting LeetCode 706's bounded key constraint."
     ],
     "weaknesses": [
       "Initialization",
@@ -2371,7 +2431,8 @@
       "OBS-008 confirmed that the learner can derive two directional passes from independent adjacent constraints and explain why max-merging the two directional assignments is the minimum valid distribution.",
       "CPX-001 confirmed the learner can derive value-to-index HashMap state from the repeated query: Have I already seen this required partner?",
       "CPX-002 reinforced that implementation order must preserve the state definition: before index i, the HashSet contains exactly values from indices 0..i-1.",
-      "Keep traversal ownership in prepareNextElement(); next() should only consume prepared state."
+      "Keep traversal ownership in prepareNextElement(); next() should only consume prepared state.",
+      "Do not count separate chaining, collision handling, load factor, dynamic resizing, rehashing, or Java HashMap internals as mastered from CPX-006; those belong to CPX-007."
     ]
   }
 }

@@ -5,8 +5,8 @@
     "extraction_method": "pdftotext + structured parser",
     "integrity": "Problem titles and original numbering are preserved exactly from the PDF. Supplemental problems (marked \"supplemental\": true, original_number: null) were added on top of the original 507 to close specific coverage gaps identified in review; they are not part of the source PDF.",
     "original_problem_count": 507,
-    "supplemental_problems_added": 74,
-    "total_problem_count": 581
+    "supplemental_problems_added": 75,
+    "total_problem_count": 582
   },
   "_comment": "source_section = provenance in the source PDF; NOT a topic tag.",
   "problems": [
@@ -116,6 +116,25 @@
       "notes": "SUPPLEMENTAL (added to close a coverage gap): Bucket resizing gives amortized O(1) \u2014 the concept underlying every hash-based structure used later.",
       "lc_id": 706,
       "url": "https://leetcode.com/problems/design-hashmap/",
+      "source_section": "Complexity & Asymptotic Reasoning"
+    },
+    {
+      "id": "CPX-007",
+      "original_number": null,
+      "title": "Design and Implement a Production HashMap in Java",
+      "difficulty": "Medium",
+      "stage": "Observation",
+      "primary_skill": "SK-OB-02",
+      "problem_role": "REINFORCEMENT",
+      "difficulty_weight": 2,
+      "importance": "COMMON",
+      "status": "not_started",
+      "revision_count": 0,
+      "supplemental": true,
+      "notes": "SUPPLEMENTAL (added as CPX-006 follow-up): Implement a real Java HashMap without java.util.HashMap: bucket array, hash function, node design, separate chaining, collision handling, updating existing keys, size tracking, load factor, dynamic resizing, rehashing, amortized O(1), complexity analysis, and Java implementation decisions.",
+      "lc_id": null,
+      "url": null,
+      "source": "custom",
       "source_section": "Complexity & Asymptotic Reasoning"
     },
     {

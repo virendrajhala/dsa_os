@@ -141,19 +141,33 @@ let a section sit unedited just because no recent problem touched that topic.
 - Min Stack (LC155): O(1) for every operation is the bar. Present the two-stack
   O(n)-space solution first, state the space cost aloud, then offer the O(1)
   auxiliary-space optimization.
+- Design HashMap (LC706): direct addressing is acceptable only because the key
+  range is explicitly bounded. State that this is not a production HashMap
+  implementation and be ready for a follow-up on buckets, collisions, resizing,
+  and amortized analysis.
 
 ### Communication patterns
 - Derive the encode/decode formulas live rather than reciting them: a new
   minimum is stored as `2*newMin - prevMin`; a value below `getMin` is an
   encoded marker whose pop restores `prevMin = 2*currentMin - encoded`.
+- For bounded-key design problems, say the constraint-driven tradeoff out loud:
+  array indexing gives O(1) operations by spending O(maxKey) space, while a
+  general HashMap must handle a sparse or unbounded key space with buckets and
+  collision strategy.
 
 ### Follow-up variations seen
 - "Now do it in O(1) extra space." — the encoded single-stack Min Stack.
+- "Now implement a real HashMap without using java.util.HashMap." — bucket
+  array, separate chaining, key updates, size tracking, load factor, resize,
+  rehashing, and amortized O(1).
 
 ### Edge-case checklists
 - Duplicate minima (the frequency-compression design must not desync).
 - Integer overflow in the encoding arithmetic: every variable in `2*min-prev`
   must be widened (use `long`), not just the stack element type.
+- Design HashMap direct-addressing edge cases: missing key returns -1; key 0
+  is valid; value 0 is valid so -1 is the sentinel; max key 1,000,000 must be
+  accepted; remove restores the sentinel.
 
 ---
 

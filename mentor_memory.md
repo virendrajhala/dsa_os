@@ -19,6 +19,9 @@ those live solely in `mentor/mentor_protocol.md`. Keep this synced with
   previous-state preservation, dry run, and complexity (Maximum Product Subarray).
 - Derives the minimal data structure from the repeated query in a problem
   (HashMap for index lookup in CPX-001; HashSet for membership in CPX-002).
+- Distinguishes constraint-specific direct addressing from a general HashMap:
+  for CPX-006, used the bounded key range to justify O(1) array indexing and
+  the O(maxKey) space tradeoff.
 
 ## Gaps
 
@@ -57,3 +60,7 @@ those live solely in `mentor/mentor_protocol.md`. Keep this synced with
   solve, no hints, no mistakes).
 - OBS-008 (Candy): O(n)-space two-pass greedy is mastered; the O(1)-space
   optimization is an intentionally deferred open learning, not a weakness.
+- CPX-006 is complete only for LeetCode's bounded-key direct-addressing design.
+  Do not treat separate chaining, collision handling, load factor, resizing,
+  rehashing, amortized implementation, or Java HashMap internals as mastered;
+  CPX-007 is the independent follow-up for that implementation layer.

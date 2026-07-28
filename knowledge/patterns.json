@@ -11,7 +11,8 @@
     "PAT-006",
     "PAT-007",
     "PAT-008",
-    "PAT-009"
+    "PAT-009",
+    "PAT-010"
   ],
   "patterns": {
     "PAT-001": {
@@ -334,6 +335,42 @@
         "Searching after insertion when the current element must not match itself",
         "Explaining O(n) without separating number of iterations from lookup cost",
         "Using a HashMap when membership alone is the required state"
+      ]
+    },
+    "PAT-010": {
+      "id": "PAT-010",
+      "name": "Bounded Key Direct Addressing",
+      "idea_family": "State construction",
+      "mental_model": "When every possible key fits inside a known small integer range, map each key directly to an array slot instead of building a collision-handling hash table.",
+      "recognition_signals": [
+        "Keys are integers with an explicit small maximum bound",
+        "The operation is keyed directly by that integer value",
+        "The value domain leaves room for a missing sentinel",
+        "The problem accepts spending space proportional to the key range"
+      ],
+      "core_invariant": "For every valid key k, table[k] is the complete stored value for k, or the sentinel when k is absent.",
+      "proof_idea": "A bounded integer key range creates a one-to-one mapping from key to array index. Since no two valid keys share a slot, lookup, update, and removal need no search or collision resolution.",
+      "complexity_reasoning": "Each operation is O(1) by direct array indexing, while initialization and space are O(maxKey) for the full address table.",
+      "appears_in": [
+        "CPX-006"
+      ],
+      "skills": [
+        "SK-OB-02",
+        "SK-IE-00"
+      ],
+      "related_patterns": [
+        "PAT-009"
+      ],
+      "contrast_with": [
+        "General HashMap with separate chaining",
+        "Collision-handling bucket table",
+        "Repeated query to minimal state"
+      ],
+      "common_mistakes": [
+        "Calling direct addressing a production HashMap implementation",
+        "Ignoring the O(maxKey) space cost when the used keys may be sparse",
+        "Using 0 as a missing sentinel when 0 is a valid value",
+        "Marking collision handling, load factor, resizing, or rehashing as mastered from a direct-addressing solution"
       ]
     }
   }
