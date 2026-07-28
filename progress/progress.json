@@ -2,7 +2,7 @@
   "schema_version": 8,
   "last_updated": "2026-07-28",
   "current_stage": "Observation",
-  "current_problem": "CPX-001",
+  "current_problem": "CPX-002",
   "completed": [
     {
       "problem_id": "OBS-001",
@@ -707,10 +707,33 @@
       },
       "revision": {
         "status": "ACTIVE",
-        "stage": 0,
-        "completed": [],
-        "next_due": "2026-07-28",
-        "history": []
+        "stage": 1,
+        "completed": [
+          "2026-07-28"
+        ],
+        "next_due": "2026-08-11",
+        "history": [
+          {
+            "date": "2026-07-28",
+            "result": "PASS",
+            "stage": 1,
+            "attempted_stage": 1,
+            "confidence": 10,
+            "hint_level": 0,
+            "thinking_score": {
+              "concept_recall": 10,
+              "invariant_recall": 10,
+              "algorithm_reconstruction": 10,
+              "implementation": 10,
+              "implementation_blueprint": 10,
+              "code_from_memory": 10,
+              "hint_dependency": 10,
+              "confidence": 10
+            },
+            "algorithm_thinking_score": 10.0,
+            "implementation_engineering_score": 10.0
+          }
+        ]
       }
     },
     {
@@ -1257,6 +1280,22 @@
       "deferred_learnings_created": [],
       "deferred_learnings_resolved": [],
       "next_problem": "CPX-001"
+    },
+    {
+      "timestamp": "2026-07-28",
+      "event": "revision_recorded",
+      "problem_id": "CPX-001",
+      "mode": "revision",
+      "stage_before": "Observation",
+      "stage_after": "Observation",
+      "revision_result": "PASS",
+      "revision_stage": 1,
+      "revision_status": "ACTIVE",
+      "next_due": "2026-08-11",
+      "reactivated_problems": [],
+      "deferred_learnings_created": [],
+      "deferred_learnings_resolved": [],
+      "next_problem": "CPX-002"
     }
   ],
   "notes": [
@@ -1357,6 +1396,10 @@
     {
       "date": "2026-07-28",
       "text": "CPX-006 mastered scope: direct addressing table; direct addressing vs general HashMap; bounded key-space feasibility; O(1) array-index lookup; -1 sentinel because 0 is a valid value; time-vs-space tradeoff; why this is accepted for LeetCode 706. Not mastered here: separate chaining, bucket implementation, collision handling implementation, load factor implementation, rehashing implementation, amortized O(1) implementation, Java HashMap internals."
+    },
+    {
+      "date": "2026-07-28",
+      "text": "CPX-001 R1 PASS: recalled the O(n) observation from first principles, derived value-to-index state from the repeated complement query, checked complement before inserting the current element, handled duplicates, dry-ran normal and edge cases, implemented Java from memory, and explained the maintained processed-prefix invariant. No conceptual gaps identified."
     }
   ],
   "scores": {
@@ -2405,7 +2448,8 @@
       "General algorithm covers empty and single-element arrays without special branches",
       "Derived explicit parent contexts to preserve paused traversal state across iterator calls.",
       "Made repeated hasNext() calls idempotent with prepared-next state.",
-      "Implemented the accepted direct-addressing solution cleanly with array indexing and a -1 sentinel while respecting LeetCode 706's bounded key constraint."
+      "Implemented the accepted direct-addressing solution cleanly with array indexing and a -1 sentinel while respecting LeetCode 706's bounded key constraint.",
+      "CPX-001 R1: reconstructed the Java Two Sum implementation from memory with correct complement-before-insert ordering and processed-prefix state ownership."
     ],
     "weaknesses": [
       "Initialization",
