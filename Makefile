@@ -1,6 +1,6 @@
 PYTHON ?= python3
 
-.PHONY: validate test dashboard web-dashboard next revise stats weakness progress check-solution
+.PHONY: validate test dashboard web-dashboard next revise stats weakness progress check-solution refresh-frequency
 
 validate:
 	$(PYTHON) scripts/validate_curriculum.py
@@ -12,6 +12,7 @@ test:
 	$(PYTHON) scripts/test_run_checks.py
 	$(PYTHON) scripts/test_weakness_lab.py
 	$(PYTHON) scripts/test_dashboard_feed.py
+	$(PYTHON) scripts/test_plan_feed.py
 	$(PYTHON) scripts/test_curriculum_order.py
 
 dashboard:
@@ -37,3 +38,6 @@ progress:
 
 check-solution:
 	$(PYTHON) scripts/run_checks.py $(PROBLEM)
+
+refresh-frequency:
+	$(PYTHON) scripts/fetch_interview_frequency.py

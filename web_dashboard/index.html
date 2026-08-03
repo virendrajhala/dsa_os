@@ -21,12 +21,19 @@
           <span class="nav-group microlabel">Today</span>
           <a href="#overview" data-workspace-link="today"><span class="nav-icon num" aria-hidden="true">MB</span><span class="nav-text">Mission Briefing</span></a>
           <a href="#revisions" data-workspace-link="today"><span class="nav-icon num" aria-hidden="true">RQ</span><span class="nav-text">Revision Queue</span></a>
+          <span class="nav-group microlabel">Plan</span>
+          <a href="#week-scoreboard" data-workspace-link="plan"><span class="nav-icon num" aria-hidden="true">WS</span><span class="nav-text">Week Scoreboard</span></a>
+          <a href="#month-milestones" data-workspace-link="plan"><span class="nav-icon num" aria-hidden="true">MM</span><span class="nav-text">Month Milestones</span></a>
+          <a href="#quarter-roadmap" data-workspace-link="plan"><span class="nav-icon num" aria-hidden="true">QR</span><span class="nav-text">Quarter Roadmap</span></a>
+          <span class="nav-group microlabel">Problems</span>
+          <a href="#problem-browser" data-workspace-link="problems"><span class="nav-icon num" aria-hidden="true">PB</span><span class="nav-text">Browse Problems</span></a>
           <span class="nav-group microlabel">Practice</span>
           <a href="#weakness-lab" data-workspace-link="practice"><span class="nav-icon num" aria-hidden="true">WL</span><span class="nav-text">Weakness Lab</span></a>
           <a href="#edge-cases" data-workspace-link="practice"><span class="nav-icon num" aria-hidden="true">EC</span><span class="nav-text">Edge Checklist</span></a>
           <span class="nav-group microlabel">Curriculum</span>
           <a href="#skills-constellation" data-workspace-link="curriculum"><span class="nav-icon num" aria-hidden="true">CN</span><span class="nav-text">Constellation</span></a>
           <a href="#stages" data-workspace-link="curriculum"><span class="nav-icon num" aria-hidden="true">SM</span><span class="nav-text">Stage Map</span></a>
+          <a href="#promotion-ladder" data-workspace-link="curriculum"><span class="nav-icon num" aria-hidden="true">PL</span><span class="nav-text">Promotion Ladder</span></a>
           <a href="#skills" data-workspace-link="curriculum"><span class="nav-icon num" aria-hidden="true">SK</span><span class="nav-text">Skills</span></a>
           <a href="#patterns" data-workspace-link="curriculum"><span class="nav-icon num" aria-hidden="true">PI</span><span class="nav-text">Pattern Index</span></a>
           <span class="nav-group microlabel">Evidence</span>
@@ -36,6 +43,7 @@
           <a href="#mock-trend" data-workspace-link="evidence"><span class="nav-icon num" aria-hidden="true">MT</span><span class="nav-text">Mock Trend</span></a>
           <a href="#retention" data-workspace-link="evidence"><span class="nav-icon num" aria-hidden="true">RT</span><span class="nav-text">Retention</span></a>
           <a href="#consistency" data-workspace-link="evidence"><span class="nav-icon num" aria-hidden="true">CS</span><span class="nav-text">Consistency</span></a>
+          <a href="#time-invested" data-workspace-link="evidence"><span class="nav-icon num" aria-hidden="true">TI</span><span class="nav-text">Time Invested</span></a>
           <a href="#activity-heatmap" data-workspace-link="evidence"><span class="nav-icon num" aria-hidden="true">AH</span><span class="nav-text">Activity Heatmap</span></a>
           <a href="#revision-calendar" data-workspace-link="evidence"><span class="nav-icon num" aria-hidden="true">RC</span><span class="nav-text">Revision Calendar</span></a>
           <a href="#deferred" data-workspace-link="evidence"><span class="nav-icon num" aria-hidden="true">DL</span><span class="nav-text">Deferred Learning</span></a>
@@ -105,6 +113,18 @@
             <div id="next-action" class="next-action"></div>
           </section>
 
+          <!-- 1b. Today's contract (plan layer: plans/plan_layer/03) -->
+          <section class="panel" aria-labelledby="contract-heading">
+            <div class="panel-head">
+              <div>
+                <p class="eyebrow microlabel">Plan vs actual</p>
+                <h3 id="contract-heading">Today's contract</h3>
+              </div>
+              <span class="pill num" id="contract-count">-</span>
+            </div>
+            <div id="today-contract" class="contract-list"></div>
+          </section>
+
           <!-- 2. Trajectory strip (hero) -->
           <section
             class="panel trajectory gridpaper"
@@ -158,6 +178,94 @@
           </section>
         </section>
 
+        <section id="week-scoreboard" class="section" data-workspace-section="plan">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow microlabel">This week</p>
+              <h3>Week scoreboard</h3>
+            </div>
+            <span class="pill num" id="week-pill">-</span>
+          </div>
+          <div id="week-tiles" class="pace-tiles"></div>
+          <div id="week-bars" class="weekbars" role="img"></div>
+        </section>
+
+        <section id="month-milestones" class="section" data-workspace-section="plan">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow microlabel">Skill targets</p>
+              <h3>Month milestones</h3>
+            </div>
+          </div>
+          <div id="milestone-board" class="milestone-board"></div>
+          <p class="chart-note microlabel">Derived from curriculum order + weekly solve targets; statuses re-plan automatically as actuals move. Mastery = primary + one reinforcement at the quality bar.</p>
+        </section>
+
+        <section id="quarter-roadmap" class="section" data-workspace-section="plan">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow microlabel">2-3 month vision</p>
+              <h3>Quarter roadmap</h3>
+            </div>
+            <span class="pill num" id="quarter-pill">-</span>
+          </div>
+          <div id="roadmap-tiles" class="pace-tiles"></div>
+          <div id="burnup-chart" class="insight-chart" role="img"></div>
+          <div id="burnup-legend" class="chart-legend"></div>
+          <p id="overload-note" class="chart-note microlabel"></p>
+        </section>
+
+        <section id="problem-browser" class="section" data-workspace-section="problems">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow microlabel">Curriculum catalog</p>
+              <h3>Problem browser</h3>
+            </div>
+            <span class="pill num" id="browser-count">-</span>
+          </div>
+          <div class="browser-toolbar">
+            <input id="browser-search" type="search" placeholder="Search id or title" aria-label="Search problems" />
+            <select id="browser-difficulty" aria-label="Filter by difficulty">
+              <option value="">All difficulties</option>
+              <option value="Easy">Easy</option>
+              <option value="Medium">Medium</option>
+              <option value="Hard">Hard</option>
+            </select>
+            <select id="browser-status" aria-label="Filter by status">
+              <option value="">All statuses</option>
+              <option value="not_started">Not started</option>
+              <option value="solved">Solved (in revision)</option>
+              <option value="failed">Recall failed</option>
+              <option value="mastered">Mastered</option>
+            </select>
+            <select id="browser-sort" aria-label="Sort problems">
+              <option value="curriculum">Curriculum order</option>
+              <option value="frequency">Interview frequency</option>
+            </select>
+          </div>
+          <div class="browser-layout">
+            <aside id="browser-tree" class="browser-tree" aria-label="Stages and skills"></aside>
+            <div class="table-wrap browser-table">
+              <table>
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Title</th>
+                    <th>Difficulty</th>
+                    <th>Role</th>
+                    <th>Importance</th>
+                    <th>Asked</th>
+                    <th>Status</th>
+                    <th>Lock</th>
+                  </tr>
+                </thead>
+                <tbody id="browser-rows"></tbody>
+              </table>
+              <p class="chart-note microlabel" id="frequency-note"></p>
+            </div>
+          </div>
+        </section>
+
         <section id="weakness-lab" class="section" data-workspace-section="practice">
           <div class="section-head">
             <div>
@@ -208,6 +316,31 @@
             </div>
           </div>
           <div id="stage-board" class="stage-board"></div>
+        </section>
+
+        <section id="promotion-ladder" class="section" data-workspace-section="curriculum">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow microlabel">Exit criteria</p>
+              <h3>Promotion ladder</h3>
+            </div>
+            <span class="pill num" id="ladder-pill">-</span>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Stage</th>
+                  <th>Status</th>
+                  <th>Skills</th>
+                  <th>Quality bar</th>
+                  <th>Volume guideline</th>
+                </tr>
+              </thead>
+              <tbody id="ladder-table"></tbody>
+            </table>
+          </div>
+          <p class="chart-note microlabel">A stage unlocks the next by mastering all its skills. The quality bar counts solves at or above the stage's minimum weighted score; the volume column is the cumulative-solve guideline, not a gate.</p>
         </section>
 
         <section id="skills" class="section" data-workspace-section="curriculum">
@@ -327,6 +460,20 @@
             <span class="pill num" id="consistency-days">-</span>
           </div>
           <div id="consistency-chart" class="insight-chart"></div>
+        </section>
+
+        <section id="time-invested" class="section" data-workspace-section="evidence">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow microlabel">Effort</p>
+              <h3>Time invested</h3>
+            </div>
+            <span class="pill num" id="time-total-pill">-</span>
+          </div>
+          <div id="time-tiles" class="pace-tiles"></div>
+          <div id="time-chart" class="insight-chart" role="img"></div>
+          <div id="time-legend" class="chart-legend"></div>
+          <p class="chart-note microlabel">Minutes per solve, in solve order. Falling bars at constant difficulty = growing fluency; a Medium/Hard mix pushes averages up by design.</p>
         </section>
 
         <section id="activity-heatmap" class="section" data-workspace-section="evidence">

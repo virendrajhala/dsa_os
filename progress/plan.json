@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "quarter": {
+    "label": "2026 Q3 — months 1-3",
+    "start": "2026-07-27",
+    "end": "2026-10-25",
+    "target_new_solves": 60,
+    "target_mocks": 10,
+    "daily_review_capacity": 4
+  },
+  "weeks": [
+    { "week": 1,  "start": "2026-07-27", "deload": false, "target_solves": 6, "mock": true },
+    { "week": 2,  "start": "2026-08-03", "deload": false, "target_solves": 6, "mock": true },
+    { "week": 3,  "start": "2026-08-10", "deload": false, "target_solves": 6, "mock": true },
+    { "week": 4,  "start": "2026-08-17", "deload": true,  "target_solves": 0, "mock": true },
+    { "week": 5,  "start": "2026-08-24", "deload": false, "target_solves": 6, "mock": true },
+    { "week": 6,  "start": "2026-08-31", "deload": false, "target_solves": 6, "mock": true },
+    { "week": 7,  "start": "2026-09-07", "deload": false, "target_solves": 6, "mock": true },
+    { "week": 8,  "start": "2026-09-14", "deload": true,  "target_solves": 0, "mock": true },
+    { "week": 9,  "start": "2026-09-21", "deload": false, "target_solves": 6, "mock": true },
+    { "week": 10, "start": "2026-09-28", "deload": false, "target_solves": 6, "mock": true },
+    { "week": 11, "start": "2026-10-05", "deload": false, "target_solves": 6, "mock": true },
+    { "week": 12, "start": "2026-10-12", "deload": true,  "target_solves": 0, "mock": true },
+    { "week": 13, "start": "2026-10-19", "deload": false, "target_solves": 6, "mock": true }
+  ],
+  "notes": [
+    "The scheduler (make next) is the authority; the plan is the pace contract.",
+    "Deload weeks W4/W8/W12: no new solves; revisions + one mock only.",
+    "Missed morning solve = skipped; the queue absorbs it. Never move it to the evening."
+  ]
+}

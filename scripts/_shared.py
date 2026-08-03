@@ -22,6 +22,7 @@ PATTERNS_PATH = ROOT / "knowledge" / "patterns.json"
 SCORING_PATH = ROOT / "progress" / "scoring.json"
 PROGRESS_PATH = ROOT / "progress" / "progress.json"
 PROGRESS_TEMPLATE_PATH = ROOT / "progress" / "progress_template.json"
+PLAN_PATH = ROOT / "progress" / "plan.json"
 
 REVISION_STATUSES = {"ACTIVE", "MASTERED", "FAILED"}
 REVISION_RESULTS = {"PASS", "FAIL", "REACTIVATED"}
@@ -2359,4 +2360,627 @@ def build_dashboard_feed(state: RepositoryState, on_date: date) -> JsonDict:
             },
         },
     }
+    # Plan layer (plans/plan_layer/): a broken plan.json degrades to an error
+    # chip on the Plan workspace -- it must never 500 the whole feed.
+    try:
+        feed["plan"] = build_plan_feed(state, on_date)
+    except RepositoryError as exc:
+        feed["plan"] = {"error": str(exc)}
+    # Problem browser (plans/plan_layer/07): the one scheduler-derived fact the
+    # browser needs. Completed problems are excluded -- they are "done", and the
+    # UI derives their status from the completion record.
+    completed_ids = completed_problem_ids(state.progress)
+    problem_deps = problem_dependencies_map(state.graph)
+    challenge_gate = challenge_stage_gate(state.curriculum)
+    feed["unlocked_problems"] = sorted(
+        problem_id
+        for problem_id, problem in problems.items()
+        if problem_id not in completed_ids
+        and is_problem_unlocked(problem, completed_ids, problem_deps, challenge_gate)
+    )
+    feed["promotion"] = promotion_ladder(state)
+    feed["time_invested"] = time_invested(state)
     return feed
+
+
+def validate_plan(plan: JsonDict) -> None:
+    """Validate the quarter plan schema used by the dashboard plan feed."""
+
+    if not isinstance(plan, dict):
+        raise RepositoryError("`plan` must be an object.")
+
+    quarter = plan.get("quarter")
+    if not isinstance(quarter, dict):
+        raise RepositoryError("`quarter` must be an object.")
+
+    quarter_start_raw = quarter.get("start")
+    if not isinstance(quarter_start_raw, str):
+        raise RepositoryError("`quarter.start` must be an ISO date string.")
+    quarter_start = parse_iso_date(quarter_start_raw, "quarter.start")
+
+    quarter_end_raw = quarter.get("end")
+    if not isinstance(quarter_end_raw, str):
+        raise RepositoryError("`quarter.end` must be an ISO date string.")
+    quarter_end = parse_iso_date(quarter_end_raw, "quarter.end")
+
+    if quarter_end <= quarter_start:
+        raise RepositoryError("`quarter.end` must be after `quarter.start`.")
+
+    target_new_solves = quarter.get("target_new_solves")
+    if not isinstance(target_new_solves, int) or isinstance(target_new_solves, bool):
+        raise RepositoryError("`quarter.target_new_solves` must be an integer.")
+
+    weeks = plan.get("weeks")
+    if not isinstance(weeks, list) or not weeks:
+        raise RepositoryError("`weeks` must be a non-empty list.")
+
+    expected_start = quarter_start
+    total_target_solves = 0
+    for index, week in enumerate(weeks, start=1):
+        field_prefix = f"weeks[{index - 1}]"
+        if not isinstance(week, dict):
+            raise RepositoryError(f"`{field_prefix}` must be an object.")
+
+        week_number = week.get("week")
+        if not isinstance(week_number, int) or isinstance(week_number, bool):
+            raise RepositoryError(f"`{field_prefix}.week` must be an integer.")
+        if week_number != index:
+            raise RepositoryError(f"`{field_prefix}.week` must be sequential from 1.")
+
+        week_start_raw = week.get("start")
+        if not isinstance(week_start_raw, str):
+            raise RepositoryError(f"`{field_prefix}.start` must be an ISO date string.")
+        week_start = parse_iso_date(week_start_raw, f"{field_prefix}.start")
+        if week_start != expected_start:
+            raise RepositoryError(
+                f"`{field_prefix}.start` must be contiguous 7-day blocks from `quarter.start`."
+            )
+
+        target_solves = week.get("target_solves")
+        if not isinstance(target_solves, int) or isinstance(target_solves, bool):
+            raise RepositoryError(f"`{field_prefix}.target_solves` must be an integer.")
+
+        deload = week.get("deload")
+        if not isinstance(deload, bool):
+            raise RepositoryError(f"`{field_prefix}.deload` must be a boolean.")
+        if deload and target_solves != 0:
+            raise RepositoryError(
+                f"`{field_prefix}.target_solves` must be 0 when `{field_prefix}.deload` is true."
+            )
+
+        total_target_solves += target_solves
+        expected_start = week_start + timedelta(days=7)
+
+    last_week_start, last_week_end = plan_week_bounds(weeks[-1])
+    if quarter_end != last_week_end:
+        raise RepositoryError(
+            "`quarter.end` must equal the last `weeks[].start` plus 6 days."
+        )
+
+    if total_target_solves != target_new_solves:
+        raise RepositoryError(
+            "`quarter.target_new_solves` must equal the sum of `weeks[].target_solves`."
+        )
+
+
+def load_plan(path: Path | None = None) -> JsonDict | None:
+    """Load and validate progress/plan.json, returning None when absent."""
+
+    plan_path = path or PLAN_PATH
+    if not plan_path.exists():
+        return None
+
+    try:
+        plan = json.loads(plan_path.read_text(encoding="utf-8"))
+    except OSError as exc:
+        raise RepositoryError(f"Unable to read plan JSON from {plan_path}: {exc}") from exc
+    except (json.JSONDecodeError, UnicodeDecodeError) as exc:
+        raise RepositoryError(f"Invalid JSON in {plan_path}: {exc}") from exc
+
+    validate_plan(plan)
+    return plan
+
+
+def plan_week_bounds(week: JsonDict) -> tuple[date, date]:
+    """Return the inclusive date bounds for a plan week."""
+
+    week_start_raw = week.get("start") if isinstance(week, dict) else None
+    if not isinstance(week_start_raw, str):
+        raise RepositoryError("`week.start` must be an ISO date string.")
+    week_start = parse_iso_date(week_start_raw, "week.start")
+    return week_start, week_start + timedelta(days=6)
+
+
+def plan_week_for(plan: JsonDict, on_date: date) -> JsonDict | None:
+    """Return the plan week containing `on_date`, or None outside the plan."""
+
+    weeks = plan.get("weeks") if isinstance(plan, dict) else None
+    if not isinstance(weeks, list):
+        raise RepositoryError("`weeks` must be a list.")
+
+    for week in weeks:
+        start, end = plan_week_bounds(week)
+        if start <= on_date <= end:
+            return week
+    return None
+
+
+def solves_in_range(progress: JsonDict, start: date, end: date) -> int:
+    """Count completion records dated within [start, end] inclusive."""
+
+    return sum(
+        1
+        for record in completed_records(progress)
+        if (completed_on := _completion_date(record)) is not None
+        and start <= completed_on <= end
+    )
+
+
+def mock_entries_in_range(progress: JsonDict, start: date, end: date) -> list[JsonDict]:
+    """Return recorded mock interviews dated within [start, end] inclusive."""
+
+    found: list[JsonDict] = []
+    for entry in mock_interview_entries(progress):
+        raw = entry.get("date")
+        if not isinstance(raw, str):
+            continue
+        try:
+            when = parse_iso_date(raw, "mock_interviews.date")
+        except RepositoryError:
+            continue
+        if start <= when <= end:
+            found.append(entry)
+    return found
+
+
+def revision_events_in_range(progress: JsonDict, start: date, end: date) -> list[JsonDict]:
+    """Graded (PASS/FAIL) revision history events dated within [start, end]."""
+
+    events: list[JsonDict] = []
+    for record in completed_records(progress):
+        revision = record.get("revision")
+        history = revision.get("history") if isinstance(revision, dict) else None
+        if not isinstance(history, list):
+            continue
+        for event in history:
+            if not isinstance(event, dict) or event.get("result") not in {"PASS", "FAIL"}:
+                continue
+            raw = event.get("date")
+            if not isinstance(raw, str):
+                continue
+            try:
+                when = parse_iso_date(raw, "revision.history.date")
+            except RepositoryError:
+                continue
+            if start <= when <= end:
+                events.append(event)
+    return events
+
+
+def plan_expected_solves(plan: JsonDict, on_date: date) -> float:
+    """Cumulative planned solves through `on_date`, linear within a week."""
+
+    total = 0.0
+    for week in plan.get("weeks", []):
+        start, end = plan_week_bounds(week)
+        target = float(week.get("target_solves", 0))
+        if on_date >= end:
+            total += target
+        elif on_date >= start:
+            total += target * ((on_date - start).days + 1) / 7.0
+    return total
+
+
+def compute_today_contract(state: RepositoryState, plan: JsonDict, on_date: date) -> JsonDict:
+    """Today's plan-vs-actual checklist: solve, revisions cleared, weekend mock.
+
+    Sunday plans no new solve (revisions-sweep day) and deload weeks plan none
+    at all -- both from the quarter plan's rules. The mock check spans the
+    whole Saturday-Sunday window, mirroring `is_mock_due`.
+    """
+
+    progress = state.progress
+    week = plan_week_for(plan, on_date)
+    in_quarter = week is not None
+    deload = bool(week and week.get("deload"))
+    solve_planned = in_quarter and not deload and on_date.weekday() != 6
+    today = format_iso_date(on_date)
+    solve_done = any(
+        record.get("completed_at") == today for record in completed_records(progress)
+    )
+    due = revision_due_entries(progress, on_date)
+    window = weekend_window(on_date)
+    mock_planned = in_quarter and window is not None and bool(week.get("mock", True))
+    mock_done = bool(window and mock_entries_in_range(progress, window[0], window[1]))
+    return {
+        "in_quarter": in_quarter,
+        "deload": deload,
+        "solve": {"planned": solve_planned, "done": solve_done},
+        "revisions": {
+            "due": len(due),
+            "done_today": len(revision_events_in_range(progress, on_date, on_date)),
+            "cleared": not due,
+        },
+        "mock": {"planned": mock_planned, "done": mock_done},
+    }
+
+
+def compute_week_scoreboard(
+    state: RepositoryState, plan: JsonDict, on_date: date
+) -> JsonDict | None:
+    """Current plan week: targets vs actuals. None outside the quarter."""
+
+    week = plan_week_for(plan, on_date)
+    if week is None:
+        return None
+    progress = state.progress
+    start, end = plan_week_bounds(week)
+    upto = min(on_date, end)
+    target = int(week.get("target_solves", 0))
+    actual = solves_in_range(progress, start, upto)
+    expected = round(target * ((upto - start).days + 1) / 7.0, 2)
+    events = revision_events_in_range(progress, start, upto)
+    skill_progress = compute_skill_progress(
+        state.curriculum, state.skills, state.scoring, progress
+    )
+    mastery_dates = skill_mastery_dates(state.skills, progress, skill_progress)
+    mastered = sorted(
+        skill_id
+        for skill_id, mastered_on in mastery_dates.items()
+        if mastered_on is not None and start <= mastered_on <= upto
+    )
+    return {
+        "week": week.get("week"),
+        "start": format_iso_date(start),
+        "end": format_iso_date(end),
+        "deload": bool(week.get("deload")),
+        "target_solves": target,
+        "actual_solves": actual,
+        "expected_to_date": expected,
+        "on_track": actual + 1e-9 >= expected,
+        "mock_planned": bool(week.get("mock")),
+        "mock_done": bool(mock_entries_in_range(progress, start, upto)),
+        "revisions_done": len(events),
+        "revisions_passed": sum(1 for event in events if event.get("result") == "PASS"),
+        "skills_mastered": mastered,
+        "days_remaining": max((end - on_date).days, 0),
+    }
+
+
+def compute_week_history(
+    state: RepositoryState, plan: JsonDict, on_date: date
+) -> list[JsonDict]:
+    """Target-vs-actual for every week that has started (for the mini bars)."""
+
+    rows: list[JsonDict] = []
+    for week in plan.get("weeks", []):
+        start, end = plan_week_bounds(week)
+        if start > on_date:
+            break
+        upto = min(on_date, end)
+        rows.append(
+            {
+                "week": week.get("week"),
+                "start": format_iso_date(start),
+                "deload": bool(week.get("deload")),
+                "target_solves": int(week.get("target_solves", 0)),
+                "actual_solves": solves_in_range(state.progress, start, upto),
+                "mock_done": bool(mock_entries_in_range(state.progress, start, upto)),
+            }
+        )
+    return rows
+
+
+def compute_quarter_burnup(
+    state: RepositoryState, plan: JsonDict, on_date: date
+) -> JsonDict:
+    """Planned vs actual cumulative solves for the quarter, plus the two
+    steering numbers: projected landing (trailing pace extrapolated) and the
+    required weekly rate to still hit the target."""
+
+    progress = state.progress
+    quarter = plan["quarter"]
+    quarter_start = parse_iso_date(str(quarter["start"]), "plan.quarter.start")
+    quarter_end = parse_iso_date(str(quarter["end"]), "plan.quarter.end")
+    target = int(quarter.get("target_new_solves", 0))
+    upto = min(on_date, quarter_end)
+
+    planned: list[JsonDict] = []
+    running = 0
+    for week in plan.get("weeks", []):
+        week_start, week_end = plan_week_bounds(week)
+        running += int(week.get("target_solves", 0))
+        planned.append(
+            {
+                "date": format_iso_date(week_end),
+                "start": format_iso_date(week_start),
+                "cumulative": running,
+                "deload": bool(week.get("deload")),
+            }
+        )
+
+    daily: dict[str, int] = {}
+    for record in completed_records(progress):
+        completed_on = _completion_date(record)
+        if completed_on is not None and quarter_start <= completed_on <= upto:
+            key = format_iso_date(completed_on)
+            daily[key] = daily.get(key, 0) + 1
+    actual: list[JsonDict] = []
+    cumulative = 0
+    for day in sorted(daily):
+        cumulative += daily[day]
+        actual.append({"date": day, "cumulative": cumulative})
+
+    readiness_cfg = state.scoring.get("readiness", {})
+    skill_progress = compute_skill_progress(
+        state.curriculum, state.skills, state.scoring, progress
+    )
+    pace = compute_pace(progress, state.skills, skill_progress, readiness_cfg, on_date)
+    weeks_remaining = round(max((quarter_end - on_date).days, 0) / 7.0, 2)
+    remaining = max(target - cumulative, 0)
+    return {
+        "start": quarter.get("start"),
+        "end": quarter.get("end"),
+        "target_total": target,
+        "planned": planned,
+        "actual": actual,
+        "actual_total": cumulative,
+        "projected_total": round(
+            cumulative + pace["problems_per_week"] * weeks_remaining, 1
+        ),
+        "required_per_week": (
+            round(remaining / weeks_remaining, 2) if weeks_remaining > 0 else None
+        ),
+        "weeks_remaining": weeks_remaining,
+        "mocks_done": len(mock_entries_in_range(progress, quarter_start, upto)),
+        "target_mocks": int(quarter.get("target_mocks", 0)),
+    }
+
+
+def _month_milestone_dates(plan: JsonDict) -> list[date]:
+    """Month-end milestone dates inside the quarter. The final month clips to
+    the quarter end; months with fewer than 14 in-quarter days are skipped."""
+
+    quarter = plan["quarter"]
+    start = parse_iso_date(str(quarter["start"]), "plan.quarter.start")
+    end = parse_iso_date(str(quarter["end"]), "plan.quarter.end")
+    dates: list[date] = []
+    cursor = start.replace(day=1)
+    while cursor <= end:
+        next_month = (cursor + timedelta(days=32)).replace(day=1)
+        milestone = min(next_month - timedelta(days=1), end)
+        window_start = max(cursor, start)
+        if (milestone - window_start).days + 1 >= 14:
+            dates.append(milestone)
+        cursor = next_month
+    return dates
+
+
+def _planned_queue(state: RepositoryState, plan: JsonDict) -> tuple[set[str], list[str]]:
+    """Return (problems completed before quarter, planned quarter queue in curriculum order truncated to target)."""
+
+    quarter_start = parse_iso_date(str(plan["quarter"]["start"]), "plan.quarter.start")
+    target = int(plan["quarter"].get("target_new_solves", 0))
+    done_before: set[str] = set()
+    for record in completed_records(state.progress):
+        completed_on = _completion_date(record)
+        problem_id = record.get("problem_id")
+        if isinstance(problem_id, str) and completed_on is not None and completed_on < quarter_start:
+            done_before.add(problem_id)
+    problems = ensure_list(state.curriculum.get("problems"), "curriculum.problems")
+    queue = [
+        problem["id"]
+        for problem in problems
+        if isinstance(problem, dict) and "id" in problem and problem["id"] not in done_before
+    ]
+    return done_before, queue[:target]
+
+
+def compute_month_milestones(
+    state: RepositoryState, plan: JsonDict, on_date: date
+) -> list[JsonDict]:
+    """Skill targets per month-end, derived from curriculum order + weekly solve targets."""
+
+    progress = state.progress
+    quarter = plan["quarter"]
+    quarter_start = parse_iso_date(str(quarter["start"]), "plan.quarter.start")
+    quarter_end = parse_iso_date(str(quarter["end"]), "plan.quarter.end")
+    done_before, queue = _planned_queue(state, plan)
+    skills = skill_lookup(state.skills)
+    skill_order = state.graph.get("skill_order") or list(skills)
+    skill_progress = compute_skill_progress(
+        state.curriculum, state.skills, state.scoring, progress
+    )
+    mastery_dates = skill_mastery_dates(state.skills, progress, skill_progress)
+    reference = min(on_date, quarter_end)
+    behind = (
+        solves_in_range(progress, quarter_start, reference) + 1e-9
+        < plan_expected_solves(plan, reference)
+    )
+    stage_defs = state.stages.get("stages", {})
+    stage_order = state.stages.get("stage_order", [])
+
+    milestones: list[JsonDict] = []
+    for milestone_date in _month_milestone_dates(plan):
+        expected = int(round(plan_expected_solves(plan, milestone_date)))
+        available = done_before | set(queue[:expected])
+        skills_out: list[JsonDict] = []
+        for skill_id in skill_order:
+            skill = skills.get(skill_id)
+            if not isinstance(skill, dict) or is_meta_skill(skill):
+                continue
+            mastered_on = mastery_dates.get(skill_id)
+            if mastered_on is not None and mastered_on < quarter_start:
+                continue
+            primary = skill.get("primary_validation_problem")
+            reinforcement = skill.get("reinforcement_problems") or []
+            if primary not in available or not any(pid in available for pid in reinforcement):
+                continue
+            if skill_progress.get(skill_id, {}).get("mastered"):
+                status = "done"
+            elif milestone_date < on_date:
+                status = "missed"
+            elif behind:
+                status = "at_risk"
+            else:
+                status = "on_track"
+            skills_out.append(
+                {
+                    "skill_id": skill_id,
+                    "name": skill.get("name"),
+                    "stage": skill.get("stage"),
+                    "status": status,
+                }
+            )
+        counts: dict[str, int] = {}
+        for entry in skills_out:
+            counts[entry["stage"]] = counts.get(entry["stage"], 0) + 1
+        notes = []
+        for stage_name in stage_order:
+            if stage_name not in counts:
+                continue
+            stage_skill_ids = [
+                sid
+                for sid in stage_defs.get(stage_name, {}).get("skills", [])
+                if isinstance(skills.get(sid), dict) and not is_meta_skill(skills[sid])
+            ]
+            notes.append(f"{stage_name} {counts[stage_name]}/{len(stage_skill_ids)}")
+        milestones.append(
+            {
+                "month": format_iso_date(milestone_date)[:7],
+                "milestone_date": format_iso_date(milestone_date),
+                "expected_solves": expected,
+                "actual_solves": solves_in_range(
+                    progress, quarter_start, min(milestone_date, on_date)
+                ),
+                "skills": skills_out,
+                "stage_note": " · ".join(notes),
+            }
+        )
+    return milestones
+
+
+def build_plan_feed(
+    state: RepositoryState, on_date: date, plan: JsonDict | None = None
+) -> JsonDict | None:
+    """Assemble the feed's `plan` block. None when no plan.json exists."""
+
+    if plan is None:
+        plan = load_plan()
+    if plan is None:
+        return None
+    quarter = plan["quarter"]
+    return {
+        "quarter": {
+            "label": quarter.get("label"),
+            "start": quarter.get("start"),
+            "end": quarter.get("end"),
+            "target_new_solves": int(quarter.get("target_new_solves", 0)),
+            "target_mocks": int(quarter.get("target_mocks", 0)),
+            "daily_review_capacity": int(quarter.get("daily_review_capacity", 0)),
+        },
+        "today_contract": compute_today_contract(state, plan, on_date),
+        "week": compute_week_scoreboard(state, plan, on_date),
+        "weeks": compute_week_history(state, plan, on_date),
+        "burnup": compute_quarter_burnup(state, plan, on_date),
+        "months": compute_month_milestones(state, plan, on_date),
+    }
+
+
+def promotion_ladder(state: RepositoryState) -> JsonDict:
+    """Per-stage promotion picture: live mastery status, quality-bar checks
+    (stage_checks), and the scoring.json thresholds. Stage advancement itself
+    is skill-mastery driven (determine_stage); the thresholds are the quality
+    bar and cumulative volume guideline, surfaced together for the ladder card."""
+
+    progress = state.progress
+    skill_progress = compute_skill_progress(
+        state.curriculum, state.skills, state.scoring, progress
+    )
+    stage_mastery = compute_stage_mastery(state.stages, skill_progress)
+    progress_with_live_mastery = dict(progress)
+    progress_with_live_mastery["stage_mastery"] = stage_mastery
+    checks = recompute_score_summary(
+        progress, state.curriculum, state.stages, state.scoring
+    )["stage_checks"]
+    thresholds = state.scoring.get("promotion_thresholds", {})
+    stage_order = ensure_list(state.stages.get("stage_order"), "stages.stage_order")
+
+    stages_out: list[JsonDict] = []
+    for stage_name in stage_order:
+        threshold = thresholds.get(stage_name, {})
+        mastery = stage_mastery.get(stage_name, {})
+        check = checks.get(stage_name, {})
+        stages_out.append(
+            {
+                "stage": stage_name,
+                "status": mastery.get("status", "locked"),
+                "skills_mastered": mastery.get("skills_mastered", 0),
+                "skills_total": mastery.get("skills_total", 0),
+                "attempted": check.get("attempted", 0),
+                "passed": check.get("passed", 0),
+                "minimum_weighted_score": (
+                    threshold.get("minimum_weighted_score")
+                    if isinstance(threshold, dict) else None
+                ),
+                "minimum_completed_problems": (
+                    threshold.get("minimum_completed_problems")
+                    if isinstance(threshold, dict) else None
+                ),
+            }
+        )
+    return {
+        "current_stage": determine_stage(
+            progress_with_live_mastery, state.stages, state.scoring, state.skills
+        ),
+        "total_completed": len(latest_records_by_problem(progress)),
+        "stages": stages_out,
+    }
+
+
+def time_invested(state: RepositoryState) -> JsonDict:
+    """Session-time analytics from time_taken_minutes."""
+
+    problems = problem_lookup(state.curriculum)
+    series: list[JsonDict] = []
+    for record in completed_records(state.progress):
+        completed_on = _completion_date(record)
+        minutes = record.get("time_taken_minutes")
+        if completed_on is None or not isinstance(minutes, (int, float)):
+            continue
+        series.append(
+            {
+                "date": format_iso_date(completed_on),
+                "problem_id": record.get("problem_id"),
+                "minutes": minutes,
+                "difficulty": problems.get(record.get("problem_id"), {}).get("difficulty"),
+            }
+        )
+    series.sort(key=lambda entry: entry["date"])
+    total = sum(entry["minutes"] for entry in series)
+    buckets: dict[str, dict[str, float]] = {}
+    for entry in series:
+        bucket = buckets.setdefault(
+            entry["difficulty"] or "Unknown", {"count": 0, "total": 0}
+        )
+        bucket["count"] += 1
+        bucket["total"] += entry["minutes"]
+    difficulty_rank = {"Easy": 0, "Medium": 1, "Hard": 2}
+    by_difficulty = sorted(
+        (
+            {
+                "difficulty": name,
+                "count": int(bucket["count"]),
+                "average_minutes": round(bucket["total"] / bucket["count"], 1),
+            }
+            for name, bucket in buckets.items()
+        ),
+        key=lambda entry: difficulty_rank.get(entry["difficulty"], 9),
+    )
+    return {
+        "total_minutes": total,
+        "sessions": len(series),
+        "average_minutes": round(total / len(series), 1) if series else 0.0,
+        "by_difficulty": by_difficulty,
+        "series": series,
+    }
