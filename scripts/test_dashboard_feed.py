@@ -354,7 +354,12 @@ class SolutionPresenceTests(unittest.TestCase):
         present = feed["solutions_present"]
         self.assertIsInstance(present, list)
         for problem_id in present:
-            self.assertTrue((_shared.ROOT / "solutions" / f"{problem_id}.py").exists())
+            self.assertTrue(
+                any(
+                    (_shared.ROOT / "solutions" / f"{problem_id}{suffix}").exists()
+                    for suffix in (".py", ".java")
+                )
+            )
 
     def test_solutions_present_excludes_non_problem_files(self):
         feed = build_dashboard_feed(_state(_base_progress()), date(2026, 7, 22))

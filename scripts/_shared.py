@@ -1125,11 +1125,13 @@ def is_mock_due(progress: JsonDict, on_date: date) -> bool:
 def select_mock_problem(state: RepositoryState) -> tuple[JsonDict | None, str]:
     """Choose an unseen problem for a mock interview.
 
-    Prefers a problem whose primary skill is mastered or adjacent (shares a
-    stage with a mastered skill), never the current in-progress skill, and
-    never an already-completed problem. When no skill is mastered yet, falls
-    back to an unsolved reinforcement sibling of a completed problem, flagged
-    as a "practice_mock". Returns (problem, kind) or (None, "").
+    Prefers a problem whose primary skill is mastered, or a reinforcement/
+    challenge problem from a non-current skill the learner has already touched.
+    It never introduces the primary problem of an unseen skill as a mock, never
+    uses the current in-progress skill, and never reuses an already-completed
+    problem. When no skill is mastered yet, falls back to an unsolved
+    reinforcement sibling of a completed problem, flagged as a "practice_mock".
+    Returns (problem, kind) or (None, "").
     """
 
     progress = state.progress
@@ -1144,6 +1146,7 @@ def select_mock_problem(state: RepositoryState) -> tuple[JsonDict | None, str]:
 
     mastered = [sid for sid in progress.get("mastered_skills", []) if isinstance(sid, str)]
     if mastered:
+        mastered_set = set(mastered)
         mastered_stages = {
             skills.get(sid, {}).get("stage")
             for sid in mastered
@@ -1153,7 +1156,11 @@ def select_mock_problem(state: RepositoryState) -> tuple[JsonDict | None, str]:
         for sid, skill in skills.items():
             if is_meta_skill(skill):
                 continue
-            if sid in mastered or skill.get("stage") in mastered_stages:
+            reinforcement = skill.get("reinforcement_problems") or []
+            touched = skill.get("primary_validation_problem") in completed or any(
+                pid in completed for pid in reinforcement
+            )
+            if sid in mastered_set or (touched and skill.get("stage") in mastered_stages):
                 eligible_skills.add(sid)
         eligible_skills.discard(current_skill)
         candidates = [
@@ -1167,6 +1174,10 @@ def select_mock_problem(state: RepositoryState) -> tuple[JsonDict | None, str]:
             and problem.get("revisit_of") not in completed
             and is_problem_unlocked(problem, completed, problem_deps, challenge_gate)
             and problem.get("primary_skill") in eligible_skills
+            and (
+                problem.get("primary_skill") in mastered_set
+                or problem.get("problem_role") != "PRIMARY"
+            )
         ]
         if candidates:
             chosen = sorted(candidates, key=lambda problem: order[problem["id"]])[0]
@@ -1174,23 +1185,27 @@ def select_mock_problem(state: RepositoryState) -> tuple[JsonDict | None, str]:
 
     # Early-days fallback: an unsolved reinforcement sibling of a solved skill.
     practice: list[JsonDict] = []
-    for sid, skill in skills.items():
-        if is_meta_skill(skill):
-            continue
-        reinforcement = skill.get("reinforcement_problems") or []
-        skill_touched = skill.get("primary_validation_problem") in completed or any(
-            pid in completed for pid in reinforcement
-        )
-        if not skill_touched:
-            continue
-        for pid in reinforcement:
-            if (
-                pid not in completed
-                and pid in problems_by_id
-                and problems_by_id[pid].get("revisit_of") not in completed
-                and is_problem_unlocked(problems_by_id[pid], completed, problem_deps, challenge_gate)
-            ):
-                practice.append(problems_by_id[pid])
+    if not mastered:
+        for sid, skill in skills.items():
+            if is_meta_skill(skill):
+                continue
+            reinforcement = skill.get("reinforcement_problems") or []
+            skill_touched = skill.get("primary_validation_problem") in completed or any(
+                pid in completed for pid in reinforcement
+            )
+            if not skill_touched:
+                continue
+            for pid in reinforcement:
+                if (
+                    pid not in completed
+                    and pid in problems_by_id
+                    and problems_by_id[pid].get("primary_skill") != current_skill
+                    and problems_by_id[pid].get("revisit_of") not in completed
+                    and is_problem_unlocked(
+                        problems_by_id[pid], completed, problem_deps, challenge_gate
+                    )
+                ):
+                    practice.append(problems_by_id[pid])
     if practice:
         chosen = sorted(practice, key=lambda problem: order[problem["id"]])[0]
         return chosen, "practice_mock"

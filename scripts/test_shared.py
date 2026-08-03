@@ -410,13 +410,22 @@ class MockSelectionOrderingTests(unittest.TestCase):
         }
 
     def test_mock_due_outranks_new_work_on_weekend(self):
-        selection = select_next_problem(self._state(self._base_progress()), on_date=self.SATURDAY)
+        progress = {
+            "completed": [self._completed("OBS-019")],
+            "mastered_skills": ["SK-OB-04"],
+            "current_problem": "CPX-006",
+            "current_stage": "Observation",
+        }
+        selection = select_next_problem(self._state(progress), on_date=self.SATURDAY)
         self.assertEqual(selection.mode, "mock_due")
         problem = selection.problem
         self.assertIsNotNone(problem)
-        # Drawn from a mastered/adjacent (Observation-stage) skill, unseen.
-        self.assertTrue(problem["primary_skill"].startswith("SK-OB-"))
-        solved_ids = {c["problem_id"] for c in self._base_progress()["completed"]}
+        # Drawn from a touched, non-current skill. It should be reinforcement,
+        # not the primary problem that introduces a brand-new skill.
+        self.assertEqual(problem["id"], "OBS-020")
+        self.assertNotEqual(problem["primary_skill"], "SK-OB-02")
+        self.assertNotEqual(problem["problem_role"], "PRIMARY")
+        solved_ids = {c["problem_id"] for c in progress["completed"]}
         self.assertNotIn(problem["id"], solved_ids)
 
     def test_weekday_does_not_trigger_mock(self):
@@ -433,10 +442,40 @@ class MockSelectionOrderingTests(unittest.TestCase):
         # Policy change: recall only pre-empts a weekend mock once the backlog
         # passes revision_backlog_threshold. One overdue item is under it, so
         # the mock — itself forward progress, not new material — proceeds.
-        progress = self._base_progress()
-        progress["completed"][0] = self._completed("OBS-001", next_due="2026-07-01")
+        progress = {
+            "completed": [
+                self._completed("OBS-019", next_due="2026-07-01"),
+            ],
+            "mastered_skills": ["SK-OB-04"],
+            "current_problem": "CPX-006",
+            "current_stage": "Observation",
+        }
         selection = select_next_problem(self._state(progress, threshold=4), on_date=self.SATURDAY)
         self.assertEqual(selection.mode, "mock_due")
+
+    def test_mock_does_not_introduce_primary_of_unseen_skill(self):
+        progress = {
+            "completed": [
+                self._completed("OBS-001"),
+                self._completed("OBS-002"),
+                self._completed("OBS-003"),
+                self._completed("OBS-004"),
+                self._completed("OBS-005"),
+                self._completed("OBS-006"),
+                self._completed("OBS-007"),
+                self._completed("OBS-008"),
+                self._completed("CPX-001"),
+                self._completed("CPX-002"),
+                self._completed("CPX-004"),
+                self._completed("CPX-005"),
+            ],
+            "mastered_skills": ["SK-OB-01", "SK-OB-02", "SK-OB-03", "SK-OB-04"],
+            "current_problem": "CPX-006",
+            "current_stage": "Observation",
+        }
+        selection = select_next_problem(self._state(progress), on_date=date(2026, 7, 26))
+        self.assertEqual(selection.mode, "resume_current_problem")
+        self.assertEqual(selection.problem["id"], "CPX-006")
 
     def test_backlog_over_threshold_outranks_mock(self):
         progress = self._base_progress()
@@ -452,9 +491,9 @@ class MockSelectionOrderingTests(unittest.TestCase):
         # SK-CM-01 mastered, TWO-001 is the top-ordered candidate — but it is
         # literally a seen problem, so mock selection must skip it (rule 5).
         progress = {
-            "completed": [self._completed("CPX-001")],
+            "completed": [self._completed("CPX-001"), self._completed("TWO-001")],
             "mastered_skills": ["SK-CM-01"],
-            "current_problem": None,
+            "current_problem": "CPX-006",
             "current_stage": "Observation",
         }
         problem, kind = select_mock_problem(self._state(progress))
@@ -465,9 +504,9 @@ class MockSelectionOrderingTests(unittest.TestCase):
 
     def test_practice_mock_when_no_skill_mastered(self):
         progress = {
-            "completed": [self._completed("OBS-001")],
+            "completed": [self._completed("OBS-019")],
             "mastered_skills": [],
-            "current_problem": None,
+            "current_problem": "CPX-006",
             "current_stage": "Observation",
         }
         selection = select_next_problem(self._state(progress), on_date=self.SATURDAY)
