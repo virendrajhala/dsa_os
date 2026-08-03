@@ -240,7 +240,10 @@
     if (subtitle) subtitle.textContent = meta.subtitle;
     // Search + filters are contextual: only the list-bearing workspaces show them.
     const toolbar = $("#list-toolbar");
-    if (toolbar) toolbar.hidden = !meta.toolbar;
+    if (toolbar) {
+      toolbar.hidden = !meta.toolbar;
+      toolbar.closest(".topbar")?.classList.toggle("topbar-has-toolbar", Boolean(meta.toolbar));
+    }
 
     if (targetHash) {
       const target = document.querySelector(targetHash);
@@ -269,6 +272,9 @@
   }
 
   async function fetchText(path) {
+    if (window.location.protocol === "file:") {
+      throw new Error("Local file mode cannot fetch dashboard data.");
+    }
     const response = await fetch(path, { cache: "no-store" });
     if (!response.ok) throw new Error(`Could not load ${path}`);
     return response.text();
@@ -606,7 +612,7 @@
     }
 
     const cta = document.createElement("button");
-    cta.className = "stage-skill-open";
+    cta.className = "stage-skill-open primary-action";
     cta.type = "button";
     cta.textContent = REVISION_FAMILY.has(mode)
       ? "Start recall"
@@ -3183,13 +3189,33 @@
           asked.setAttribute("aria-label", `asked frequency ${spec.label}`);
         }
         const statusCell = document.createElement("td");
-        statusCell.textContent = `${status.glyph} ${status.label}`;
+        statusCell.className = "status-cell";
+        const statusPrimary = {
+          not_started: "Not started",
+          solved: "Solved",
+          failed: "Recall failed",
+          mastered: "Mastered",
+        }[status.key] || status.label;
+        const statusBadge = document.createElement("span");
+        statusBadge.className = `status-badge status-${status.key}`;
+        statusBadge.textContent = `${status.glyph} ${statusPrimary}`;
+        statusCell.append(statusBadge);
+        const statusDetail = status.label.startsWith(statusPrimary)
+          ? status.label.slice(statusPrimary.length).replace(/^[ ·—-]+/, "")
+          : status.label;
+        statusCell.setAttribute("aria-label", `${statusPrimary}${statusDetail ? `, ${statusDetail}` : ""}`);
+        if (statusDetail) {
+          const detail = document.createElement("small");
+          detail.className = "status-detail";
+          detail.textContent = statusDetail;
+          statusCell.append(detail);
+        }
         const lock = document.createElement("td");
         lock.className = "num";
         if (state.completedById.has(problem.id)) lock.textContent = "";
         else if (!unlocked) lock.textContent = "–";
         else lock.textContent = unlocked.has(problem.id) ? "open" : "🔒";
-        row.append(id, title, difficulty, role, importance, asked, statusCell, lock);
+        row.append(id, title, statusCell, difficulty, asked, role, importance, lock);
         body.append(row);
       });
     }
@@ -5378,7 +5404,11 @@
       });
     } catch (error) {
       document.body.innerHTML = `<main class="main"><section class="panel"><h2>Dashboard load failed</h2><p>${error.message}</p><p>Run it through <code>make web-dashboard</code> so the JSON files can be fetched.</p></section></main>`;
-      console.error(error);
+      if (window.location.protocol === "file:") {
+        console.info(`Dashboard degraded: ${error.message}`);
+      } else {
+        console.error(error);
+      }
     }
   }
 
