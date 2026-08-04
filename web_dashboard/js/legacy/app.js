@@ -1,6 +1,7 @@
   import { fetchFeedStatus } from "../data.js";
   import { svgEl } from "../svg.js";
   import { viewSwitch } from "../engine/motion.js";
+  import { attachCrosshair } from "../engine/tooltip.js";
 
   const DATA = {
     progress: "../progress/progress.json",
@@ -944,6 +945,7 @@
             }${day.problem_ids?.length ? ` — ${day.problem_ids.join(", ")}` : ""}`,
           ),
         );
+        rect.dataset.tip = `${day.date}: ${count} due${day.overdue ? " (includes overdue)" : ""}`;
         svg.append(rect);
         svg.append(
           svgEl(
@@ -1525,6 +1527,15 @@
       );
     });
     chart.append(svg);
+    attachCrosshair(
+      svg,
+      actualEntries.map((entry) => ({
+        x: xFor(entry.date),
+        label: entry.date,
+        values: [{ name: "solved so far", text: String(entry.cumulative) }],
+      })),
+      (p) => `<strong>${p.label}</strong><br>${p.values.map((v) => `${v.name}: ${v.text}`).join("<br>")}`,
+    );
     chart.setAttribute(
       "aria-label",
       `Quarter burn-up: ${burnup.actual_total} of ${burnup.target_total} solves done; ` +
@@ -4838,6 +4849,18 @@
     });
 
     host.append(svg);
+    attachCrosshair(
+      svg,
+      points.map((point, index) => ({
+        x: xAt(index),
+        label: point.date,
+        values: [{
+          name: point.problem_id || "solve",
+          text: `hint ${levels[index]} · 5-solve mean ${means[index].toFixed(1)}`,
+        }],
+      })),
+      (p) => `<strong>${p.label}</strong><br>${p.values.map((v) => `${v.name}: ${v.text}`).join("<br>")}`,
+    );
     host.append(
       chartLegend([
         { label: "solve · hint level used", shape: "dot", color: "var(--series-1)" },
@@ -5254,6 +5277,7 @@
         if (rec.revisions) parts.push(`${rec.revisions} revised`);
         const label = `${iso}: ${parts.length ? parts.join(", ") : "no activity"}`;
         cell.setAttribute("aria-label", label);
+        cell.dataset.tip = label;
         cell.append(svgEl("title", {}, label));
         svg.append(cell);
       }
@@ -5404,6 +5428,11 @@
               : "no revisions"
           }`,
         );
+        if (items.length) {
+          btn.dataset.tip = `${iso} — ${items
+            .map((i) => `${i.stage_label || ""} ${i.title || i.problem_id}`.trim())
+            .join(", ")}`;
+        }
         btn.addEventListener("click", () => selectCalendarDay(iso));
         dayButtons.push(btn);
         td.append(btn);
@@ -5699,6 +5728,18 @@
       svg.append(bar);
     });
     chart.append(svg);
+    attachCrosshair(
+      svg,
+      series.map((entry, index) => ({
+        x: PAD_L + index * bandW + bandW / 2,
+        label: entry.date,
+        values: [{
+          name: entry.problem_id,
+          text: `${entry.minutes} min · ${entry.difficulty || "Unknown"}`,
+        }],
+      })),
+      (p) => `<strong>${p.label}</strong><br>${p.values.map((v) => `${v.name}: ${v.text}`).join("<br>")}`,
+    );
     chart.setAttribute("aria-label",
       `Minutes per solve for ${series.length} solves; total ${hours.toFixed(1)} hours; ` +
       `average ${invested.average_minutes} minutes.`);

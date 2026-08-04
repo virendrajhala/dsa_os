@@ -801,7 +801,7 @@ git commit -m "feat/dashboard: motion tokens, view-transition workspace switches
 **Interfaces:**
 - Produces: `initTooltips()` (delegated singleton; call once from main.js), and the convention: any element with `data-tip="<html string>"` shows a pointer-following tooltip on hover/focus. `attachCrosshair(svg, points, renderTip)` adds a vertical crosshair line + shared tooltip across a time-series SVG, where points = `[{x, label, values: [{name, text}]}]` in SVG user units.
 
-- [ ] **Step 1: Write css/components/tooltip.css**
+- [x] **Step 1: Write css/components/tooltip.css**
 
 ```css
 .dt-tooltip {
@@ -825,7 +825,7 @@ git commit -m "feat/dashboard: motion tokens, view-transition workspace switches
 .dt-crosshair { stroke: currentColor; stroke-width: 1; opacity: 0.35; pointer-events: none; }
 ```
 
-- [ ] **Step 2: Write js/engine/tooltip.js**
+- [x] **Step 2: Write js/engine/tooltip.js**
 
 ```js
 let tipEl = null;
@@ -910,7 +910,7 @@ export function attachCrosshair(svg, points, renderTip) {
 }
 ```
 
-- [ ] **Step 3: Wire it**
+- [x] **Step 3: Wire it**
 
 `main.js`: `import { initTooltips } from "./engine/tooltip.js"; initTooltips();`
 In legacy renderers add `data-tip` attributes (escape values with the existing escaping approach — set via `el.dataset.tip = text`, never innerHTML interpolation):
@@ -919,9 +919,9 @@ In legacy renderers add `data-tip` attributes (escape values with the existing e
 - forecast bars (app.js:886): `"{date}: {n} due"`
 - hint chart + time chart + burnup: call `attachCrosshair(svg, points, fn)` after building each SVG, mapping each x-position to its values.
 
-- [ ] **Step 4: Verify** — hover each listed chart: tooltip follows pointer, crosshair snaps to nearest point on the three line/bar time-series; tab-focusing a calendar cell shows its tooltip; reduced-motion still shows tooltips (opacity transition collapses). Both themes readable.
+- [x] **Step 4: Verify** — hover each listed chart: tooltip follows pointer, crosshair snaps to nearest point on the three line/bar time-series; tab-focusing a calendar cell shows its tooltip; reduced-motion still shows tooltips (opacity transition collapses). Both themes readable.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add web_dashboard/js/engine/tooltip.js web_dashboard/css/components/tooltip.css web_dashboard/index.html web_dashboard/js/legacy/app.js web_dashboard/js/main.js
