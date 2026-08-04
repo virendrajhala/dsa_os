@@ -12,3 +12,7 @@ venv/
 
 # LibreOffice lock files (transient, machine-specific)
 .~lock.*#
+
+# Playwright MCP scratch output: screenshots and page snapshots from browser
+# driving. Large and disposable.
+.playwright-mcp/
