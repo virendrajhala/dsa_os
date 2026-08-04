@@ -2,6 +2,7 @@
   import { svgEl } from "../svg.js";
   import { viewSwitch } from "../engine/motion.js";
   import { attachCrosshair } from "../engine/tooltip.js";
+  import { openProblemList } from "../engine/drilldown.js";
 
   const DATA = {
     progress: "../progress/progress.json",
@@ -946,6 +947,16 @@
           ),
         );
         rect.dataset.tip = `${day.date}: ${count} due${day.overdue ? " (includes overdue)" : ""}`;
+        rect.setAttribute("tabindex", "0");
+        rect.setAttribute("role", "button");
+        rect.classList.add("forecast-bar-active");
+        const openDue = () => openProblemList({
+          title: day.date,
+          subtitle: `${count} review${count === 1 ? "" : "s"} due`,
+          items: (day.problem_ids || []).map((id) => ({ problemId: id })),
+        });
+        rect.addEventListener("click", openDue);
+        rect.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); openDue(); } });
         svg.append(rect);
         svg.append(
           svgEl(
@@ -5056,20 +5067,35 @@
         rate: retention.overall_pass_rate,
         detail: `${youngPass + maturePass}/${youngTotal + matureTotal} reviews passed`,
         note: `target ≥ ${formatPct(target)}`,
+        inBucket: () => true,
       },
       {
         label: "Young · R1-R2",
         rate: retention.young_pass_rate,
         detail: youngTotal ? `${youngPass}/${youngTotal} reviews passed` : "no R1-R2 reviews yet",
         note: youngNote,
+        inBucket: (stage) => stage <= 2,
       },
       {
         label: "Mature · R3+",
         rate: retention.mature_pass_rate,
         detail: matureTotal ? `${maturePass}/${matureTotal} reviews passed` : "no R3+ reviews yet",
         note: matureNote,
+        inBucket: (stage) => stage >= 3,
       },
     ];
+
+    // Drill-down: the problems whose graded recalls landed in this tile's band.
+    const bucketItems = (inBucket) => {
+      const items = [];
+      for (const record of state.completedById.values()) {
+        const reviews = (record.revision?.history || []).filter((h) => inBucket(h.stage ?? 0));
+        if (!reviews.length) continue;
+        const passed = reviews.filter((h) => h.result === "PASS").length;
+        items.push({ problemId: record.problem_id, note: `· ${passed}/${reviews.length} passed` });
+      }
+      return items;
+    };
 
     tiles.forEach((tile) => {
       const node = document.createElement("article");
@@ -5108,6 +5134,16 @@
       note.textContent = tile.note;
 
       node.append(label, value, status, detail, note);
+      node.setAttribute("role", "button");
+      node.setAttribute("tabindex", "0");
+      node.classList.add("retention-tile-active");
+      const openBucket = () => openProblemList({
+        title: tile.label,
+        subtitle: tile.detail,
+        items: bucketItems(tile.inBucket),
+      });
+      node.addEventListener("click", openBucket);
+      node.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); openBucket(); } });
       host.append(node);
     });
   }
@@ -5279,6 +5315,23 @@
         cell.setAttribute("aria-label", label);
         cell.dataset.tip = label;
         cell.append(svgEl("title", {}, label));
+        if (rec.solves || rec.revisions) {
+          cell.setAttribute("tabindex", "0");
+          cell.setAttribute("role", "button");
+          cell.classList.add("heat-cell-active");
+          const openDay = () => {
+            const items = [];
+            for (const record of state.completedById.values()) {
+              if (record.completed_at === iso) items.push({ problemId: record.problem_id, note: "· solved" });
+              for (const h of record.revision?.history || []) {
+                if (h.date === iso) items.push({ problemId: record.problem_id, note: `· recall ${h.result || ""}`.trim() });
+              }
+            }
+            openProblemList({ title: iso, subtitle: label.replace(`${iso}: `, ""), items });
+          };
+          cell.addEventListener("click", openDay);
+          cell.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); openDay(); } });
+        }
         svg.append(cell);
       }
     }
@@ -5951,6 +6004,7 @@ export {
   setModal,
   toggleTheme,
   problemStatus,
+  openProblemModal,
   WORKSPACE_META,
   EDGE_CASE_GROUPS,
   RENDERERS,

@@ -940,11 +940,11 @@ git commit -m "feat/dashboard: shared tooltip + crosshair engine wired to charts
 - Consumes: `setModal(title, subtitle, eyebrow)` and `state` from legacy; `problemStatus(problemId)`.
 - Produces: `openProblemList({title, subtitle, items})` where items = `[{problemId, note}]` — fills the existing `#skill-modal` with a linked list; clicking an item opens the existing problem modal (legacy's problem-modal opener — find it near app.js:4101, export it as `openProblemModal(problemId)` from legacy).
 
-- [ ] **Step 1: Export legacy problem-modal opener**
+- [x] **Step 1: Export legacy problem-modal opener**
 
 In legacy/app.js find the function that renders a problem into the modal (app.js:~4101). If it isn't a single function taking a problem id, wrap it: `function openProblemModal(problemId) { <existing invocation path> }` and add to exports.
 
-- [ ] **Step 2: Write js/engine/drilldown.js**
+- [x] **Step 2: Write js/engine/drilldown.js**
 
 ```js
 import { state, setModal, problemStatus, openProblemModal } from "../legacy/app.js";
@@ -970,7 +970,7 @@ export function openProblemList({ title, subtitle = "", items }) {
 
 NOTE: check `setModal`'s actual return (app.js:168) — if it doesn't return the body element, follow legacy's pattern: call `setModal(...)` then fill `$("#modal-body")`. Match whatever every other modal-filler in legacy does.
 
-- [ ] **Step 3: Wire click targets in legacy renderers**
+- [x] **Step 3: Wire click targets in legacy renderers**
 
 - Heatmap cell click → `openProblemList({title: date, items: [solves and revisions that date]})` (derive by scanning `state.completedById` values: `completed_at === date` or a `revision.history` entry with that date).
 - Calendar day click already shows a detail pane — ADD problem links there using `openProblemModal`.
@@ -978,9 +978,9 @@ NOTE: check `setModal`'s actual return (app.js:168) — if it doesn't return the
 - Retention tiles click → the problems in that tile's bucket (the renderer already has the per-bucket lists in scope; pass them).
 Make each clickable element a `<button type="button">` or set `tabindex="0"` + Enter handler — every drill target must be keyboard-reachable.
 
-- [ ] **Step 4: Verify** — click a heatmap cell → modal lists that day's activity; click through to a problem modal; Esc closes (existing dialog behavior). Same for forecast bar and a retention tile. All reachable by Tab+Enter.
+- [x] **Step 4: Verify** — click a heatmap cell → modal lists that day's activity; click through to a problem modal; Esc closes (existing dialog behavior). Same for forecast bar and a retention tile. All reachable by Tab+Enter.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add web_dashboard/js/engine/drilldown.js web_dashboard/js/legacy/app.js
