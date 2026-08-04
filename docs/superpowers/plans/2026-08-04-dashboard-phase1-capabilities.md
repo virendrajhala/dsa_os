@@ -613,7 +613,7 @@ visit and re-render only after data refresh (markAllDirty)"
 **Interfaces:**
 - Produces: `fetchFeedStatus() -> Promise<{feed: object|null, status: "ok"|"static-server"|"server-down"|"feed-error", detail: string}>` from `js/data.js`.
 
-- [ ] **Step 1: Write js/data.js**
+- [x] **Step 1: Write js/data.js**
 
 ```js
 // The python server (scripts/serve_dashboard.py) owns /api/feed. Any http origin
@@ -642,7 +642,7 @@ export async function fetchFeedStatus() {
 }
 ```
 
-- [ ] **Step 2: Wire into legacy/app.js**
+- [x] **Step 2: Wire into legacy/app.js**
 
 Add `import { fetchFeedStatus } from "../data.js";` at the top of `js/legacy/app.js`. Replace the body of `fetchFeed()` with:
 
@@ -656,11 +656,11 @@ async function fetchFeed() {
 
 Add `feedStatus: null,` to the `state` object literal. In `renderDataWarning()` (find it near the top of the render functions): when `state.feed` is null and `state.feedStatus`, show `state.feedStatus.detail` in the existing `#data-warning` banner instead of the current generic message; keep the dismiss button behavior.
 
-- [ ] **Step 3: Verify**
+- [x] **Step 3: Verify**
 
 Reload on :8765 → no banner, live pill present. Then `python3 -m http.server 9000` from repo root, open `http://127.0.0.1:9000/web_dashboard/` → banner explains "not the dashboard server / run make web-dashboard" (NOT silent). Kill that server.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add web_dashboard/js/data.js web_dashboard/js/legacy/app.js

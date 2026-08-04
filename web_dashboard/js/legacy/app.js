@@ -1,3 +1,5 @@
+  import { fetchFeedStatus } from "../data.js";
+
   const DATA = {
     progress: "../progress/progress.json",
     scoring: "../progress/scoring.json",
@@ -13,6 +15,7 @@
     // Computed view model from GET /api/feed (the Python brain). null when the
     // server is not running — the page then degrades to the static views.
     feed: null,
+    feedStatus: null,
     frequency: null,
     problemsById: new Map(),
     completedById: new Map(),
@@ -395,21 +398,12 @@
   }
 
   // The live briefing. Returns null (never throws) when the server is not
-  // running or the feed errors, so the static views still render.
+  // running or the feed errors, so the static views still render — but the
+  // classified status lands in state.feedStatus for the banner.
   async function fetchFeed() {
-    // `serve_dashboard.py` owns /api/feed on the dashboard port. Plain static
-    // servers otherwise return a browser-level 404 even when fetch catches it.
-    if (window.location.protocol !== "http:" || window.location.port !== "8765") {
-      return null;
-    }
-    try {
-      const response = await fetch("/api/feed", { cache: "no-store" });
-      if (!response.ok) return null;
-      const feed = await response.json();
-      return feed && !feed.error ? feed : null;
-    } catch (error) {
-      return null;
-    }
+    const result = await fetchFeedStatus();
+    state.feedStatus = result;
+    return result.feed;
   }
 
   function skillMeta(skillId) {
@@ -5815,6 +5809,11 @@
 
   function renderDataWarning() {
     const banner = $("#data-warning");
+    if (!state.feed && state.feedStatus && state.feedStatus.status !== "ok") {
+      $("#data-warning-text").textContent = state.feedStatus.detail;
+      banner.hidden = false;
+      return;
+    }
     const unresolved = unresolvedCompletions();
     if (!unresolved.length) {
       banner.hidden = true;
