@@ -1,5 +1,4 @@
-import { switchWorkspace, toggleTheme } from "../legacy/app.js";
-import { viewSwitch } from "./motion.js";
+import { toggleTheme } from "../legacy/app.js";
 
 const CHORD_TIMEOUT_MS = 900;
 const GO = { t: "today", p: "plan", b: "problems", w: "practice", c: "curriculum", e: "evidence" };
@@ -44,7 +43,7 @@ export function initKeyboard({ onFocusMode, onHelp } = {}) {
       const ws = GO[e.key];
       if (ws) {
         e.preventDefault();
-        viewSwitch(() => switchWorkspace(ws));
+        document.dispatchEvent(new CustomEvent("dash:navigate", { detail: { workspace: ws } }));
         listPos = -1;
       }
       return;

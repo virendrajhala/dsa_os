@@ -1,6 +1,8 @@
 import { fuzzyScore } from "../derive/search.js";
-import { state, WORKSPACE_META, switchWorkspace, openProblemModal } from "../legacy/app.js";
-import { viewSwitch } from "./motion.js";
+import { state, WORKSPACE_META, openProblemModal } from "../legacy/app.js";
+
+const goTo = (workspace) =>
+  document.dispatchEvent(new CustomEvent("dash:navigate", { detail: { workspace } }));
 
 const FRECENCY_KEY = "palette-frecency";
 const frecency = JSON.parse(localStorage.getItem(FRECENCY_KEY) || "{}");
@@ -13,14 +15,14 @@ function bump(id) {
 function buildIndex(actions) {
   const items = [];
   for (const [ws, meta] of Object.entries(WORKSPACE_META)) {
-    items.push({ id: `go:${ws}`, group: "Go to", label: meta.title, hint: `g ${ws === "problems" ? "b" : ws === "practice" ? "w" : ws[0]}`, run: () => viewSwitch(() => switchWorkspace(ws)) });
+    items.push({ id: `go:${ws}`, group: "Go to", label: meta.title, hint: `g ${ws === "problems" ? "b" : ws === "practice" ? "w" : ws[0]}`, run: () => goTo(ws) });
   }
   for (const a of actions) items.push({ ...a, group: "Actions" });
   for (const [id, problem] of state.problemsById) {
     items.push({ id: `p:${id}`, group: "Problems", label: `${id} ${problem.title || ""}`, hint: "", run: () => openProblemModal(id) });
   }
   for (const [id, skill] of state.skillsById) {
-    items.push({ id: `s:${id}`, group: "Skills", label: skill.name || id, hint: "", run: () => viewSwitch(() => switchWorkspace("curriculum")) });
+    items.push({ id: `s:${id}`, group: "Skills", label: skill.name || id, hint: "", run: () => goTo("curriculum") });
   }
   return items;
 }

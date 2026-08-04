@@ -1,7 +1,9 @@
-import { main, toggleTheme } from "./legacy/app.js";
+import { main, toggleTheme, switchWorkspace } from "./legacy/app.js";
 import { initTooltips } from "./engine/tooltip.js";
 import { initKeyboard, registerList } from "./engine/keyboard.js";
 import { initPalette } from "./engine/palette.js";
+import { startRouter, onRoute, navigate } from "./engine/router.js";
+import { viewSwitch } from "./engine/motion.js";
 import "./features/motivation.js";
 import "./features/memory.js";
 import "./features/pace.js";
@@ -30,4 +32,32 @@ initPalette({ actions: [
   { id: "act:focus", label: "Focus mode", hint: "f", run: toggleFocusMode },
 ] });
 
-main();
+// Everything below needs loaded data: the first route apply renders a workspace.
+await main();
+
+document.addEventListener("dash:navigate", (e) => {
+  navigate({ workspace: e.detail.workspace, params: e.detail.section ? { s: e.detail.section } : {} });
+});
+
+let lastWorkspace = null;
+let lastTarget = "";
+let firstApply = true;
+onRoute((route) => {
+  const target = route.params.s ? `#${route.params.s}` : "";
+  if (route.workspace !== lastWorkspace) {
+    lastWorkspace = route.workspace;
+    lastTarget = target;
+    const run = () => switchWorkspace(route.workspace, target);
+    // The initial paint never animates (Phase-1 motion rule).
+    if (firstApply) run();
+    else viewSwitch(run);
+  } else if (target && target !== lastTarget) {
+    // Same workspace, new section: scroll only when the target actually
+    // changed, so filter edits (which re-apply the route) never re-scroll.
+    lastTarget = target;
+    switchWorkspace(route.workspace, target);
+  }
+  firstApply = false;
+});
+
+startRouter();

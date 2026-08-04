@@ -1,6 +1,5 @@
   import { fetchFeedStatus } from "../data.js";
   import { svgEl } from "../svg.js";
-  import { viewSwitch } from "../engine/motion.js";
   import { attachCrosshair } from "../engine/tooltip.js";
   import { openProblemList } from "../engine/drilldown.js";
   import { addDays as addDaysIso } from "../derive/dates.js";
@@ -6011,10 +6010,14 @@
         browserState.sort = browserSort.value;
         renderProblemBrowser();
       });
+      // Navigation is the router's job now; legacy only announces the intent so
+      // it never has to import the router (which imports legacy).
       document.querySelectorAll("[data-workspace-link]").forEach((link) => {
         link.addEventListener("click", (event) => {
           event.preventDefault();
-          viewSwitch(() => switchWorkspace(link.dataset.workspaceLink, link.getAttribute("href")));
+          document.dispatchEvent(new CustomEvent("dash:navigate", {
+            detail: { workspace: link.dataset.workspaceLink, section: link.getAttribute("href").slice(1) },
+          }));
         });
       });
       watchActiveSection();
