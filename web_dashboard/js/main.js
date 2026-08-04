@@ -1,6 +1,7 @@
-import { main } from "./legacy/app.js";
+import { main, toggleTheme } from "./legacy/app.js";
 import { initTooltips } from "./engine/tooltip.js";
 import { initKeyboard, registerList } from "./engine/keyboard.js";
+import { initPalette } from "./engine/palette.js";
 
 initTooltips();
 
@@ -18,5 +19,11 @@ initKeyboard({ onHelp: () => help.togglePopover(), onFocusMode: () => {} }); // 
 
 registerList("#due-queue", { itemSelector: ".due-row", onEnter: (el) => el.click() });
 registerList("#browser-rows", { itemSelector: "tr", onEnter: (el) => el.querySelector("a, button")?.click() || el.click() });
+
+initPalette({ actions: [
+  { id: "act:theme", label: "Toggle theme", hint: "t", run: toggleTheme },
+  { id: "act:help", label: "Keyboard help", hint: "?", run: () => help.togglePopover() },
+  { id: "act:focus", label: "Focus mode", hint: "f", run: () => {} }, // wired in Task 14
+] });
 
 main();

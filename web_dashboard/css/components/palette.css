@@ -1,0 +1,76 @@
+.palette {
+  width: min(560px, 90vw);
+  margin: 15vh auto auto;
+  padding: 0;
+  border: 1px solid light-dark(#d5dbe5, #232b38);
+  border-radius: 12px;
+  background: light-dark(#ffffff, #101623);
+  color: light-dark(#1c2330, #e8edf5);
+  box-shadow: 0 18px 60px rgb(0 0 0 / 0.35);
+  overflow: hidden;
+}
+
+.palette::backdrop {
+  background: rgb(8 11 16 / 0.45);
+}
+
+@starting-style {
+  .palette[open] {
+    opacity: 0;
+  }
+}
+
+.palette[open] {
+  opacity: 1;
+  transition: opacity var(--dur-overlay) var(--ease-out);
+}
+
+.palette input[type="search"] {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 14px 16px;
+  border: 0;
+  border-bottom: 1px solid light-dark(#e3e8f0, #1c2431);
+  background: transparent;
+  color: inherit;
+  font: 15px/1.4 inherit;
+  outline: none;
+}
+
+.palette ul {
+  margin: 0;
+  padding: 6px;
+  list-style: none;
+  max-height: 46vh;
+  overflow-y: auto;
+}
+
+.palette li[role="option"] {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 7px 10px;
+  border-radius: 7px;
+  font-size: 13.5px;
+  cursor: pointer;
+}
+
+.palette li[role="option"].sel {
+  background: light-dark(#eef2f8, #1a2331);
+}
+
+.palette .palette-group {
+  padding: 8px 10px 3px;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: light-dark(#8a94a6, #637082);
+}
+
+.palette kbd {
+  font-family: ui-monospace, monospace;
+  font-size: 11px;
+  color: light-dark(#8a94a6, #637082);
+}

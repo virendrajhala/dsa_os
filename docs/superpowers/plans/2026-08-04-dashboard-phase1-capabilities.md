@@ -1125,7 +1125,7 @@ git commit -m "feat/dashboard: keyboard model - g-chords, j/k list nav, help ove
 - Consumes: `fuzzyScore` from `derive/search.js`; `state`, `WORKSPACE_META`, `switchWorkspace`, `toggleTheme`, `openProblemModal` from legacy; `viewSwitch` from motion.
 - Produces: `initPalette({actions})` — binds Ctrl+K/Cmd+K. `actions` = `[{id, label, hint, run}]` (main.js passes theme toggle, focus mode, help).
 
-- [ ] **Step 1: Write js/engine/palette.js**
+- [x] **Step 1: Write js/engine/palette.js**
 
 ```js
 import { fuzzyScore } from "../derive/search.js";
@@ -1238,9 +1238,9 @@ export function initPalette({ actions = [] } = {}) {
 }
 ```
 
-- [ ] **Step 2: palette.css** — top-layer dialog, 560px wide, top-15vh, instant open (`@starting-style` fade of var(--dur-overlay) on the dialog is acceptable, no scale), `.palette-group` microlabel style, `.sel` highlighted row, `kbd` right-aligned muted. Style `::backdrop` with a translucent scrim.
+- [x] **Step 2: palette.css** — top-layer dialog, 560px wide, top-15vh, instant open (`@starting-style` fade of var(--dur-overlay) on the dialog is acceptable, no scale), `.palette-group` microlabel style, `.sel` highlighted row, `kbd` right-aligned muted. Style `::backdrop` with a translucent scrim.
 
-- [ ] **Step 3: Wire in main.js**
+- [x] **Step 3: Wire in main.js**
 
 ```js
 initPalette({ actions: [
@@ -1250,9 +1250,9 @@ initPalette({ actions: [
 ] });
 ```
 
-- [ ] **Step 4: Verify** — Ctrl+K opens with recents/actions (no problem dump on empty query); typing "revq" finds Revision-related views via fuzzy; typing a problem id substring finds the problem, Enter opens its modal; frecency: run "Toggle theme" twice, reopen — it ranks above other actions on empty query; Esc clears query first, second Esc closes; arrows + Tab navigate.
+- [x] **Step 4: Verify** — Ctrl+K opens with recents/actions (no problem dump on empty query); typing "revq" finds Revision-related views via fuzzy; typing a problem id substring finds the problem, Enter opens its modal; frecency: run "Toggle theme" twice, reopen — it ranks above other actions on empty query; Esc clears query first, second Esc closes; arrows + Tab navigate.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add web_dashboard/js/engine/palette.js web_dashboard/css/components/palette.css web_dashboard/js/main.js web_dashboard/index.html
