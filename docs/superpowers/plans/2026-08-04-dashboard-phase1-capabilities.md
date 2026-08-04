@@ -1271,13 +1271,13 @@ git commit -m "feat/dashboard: ctrl+k command palette - fuzzy, frecency, grouped
 - Consumes: `activeDaySet`, `streaks` (derive/activity.js); `fastestByDifficulty`, `nearComplete` (derive/pace.js); `animateCount` (motion); `state`, `RENDERERS` (legacy); `openProblemList` (drilldown).
 - Produces: `renderMotivation()` registered into `RENDERERS.byWorkspace.evidence` (streaks+badges+bests mounts live in the heatmap/consistency sections) and `renderNudges()` into `RENDERERS.byWorkspace.today`.
 
-- [ ] **Step 1: Mount points in index.html**
+- [x] **Step 1: Mount points in index.html**
 
 Inside `#activity-heatmap` section, after the `.section-head` div: `<div id="streak-strip" class="streak-strip"></div>` and after `#heatmap-legend`: `<div id="badge-strip" class="badge-strip"></div>`.
 Inside `#consistency` section, at the end: `<div id="bests-card" class="bests-card"></div>`.
 In `#overview` after the pace-tiles panel: `<section class="panel" id="nudges-panel" aria-labelledby="nudges-heading"><div class="panel-head"><div><p class="eyebrow microlabel">Close it out</p><h3 id="nudges-heading">Almost done</h3></div></div><div id="nudge-cards" class="pace-tiles"></div></section>`.
 
-- [ ] **Step 2: Write js/features/motivation.js**
+- [x] **Step 2: Write js/features/motivation.js**
 
 ```js
 import { state, RENDERERS } from "../legacy/app.js";
@@ -1377,11 +1377,11 @@ RENDERERS.byWorkspace.today.push(renderNudges);
 Import the module for its side effect in main.js: `import "./features/motivation.js";` (BEFORE `main()` runs so registration precedes first render).
 IMPORTANT: field-name guesses above (`feed.plan.weeks`, `skill.problems`, `problem.difficulty`, `feed.reference_date`) MUST be verified against reality before wiring: run `curl -s localhost:8765/api/feed | python3 -m json.tool | head -80` and inspect `state.skillsById`/`state.problemsById` entries in DevTools console. Adjust names to the real ones; the fallback chains (`??`) are not a substitute for checking.
 
-- [ ] **Step 3: features.css** — `.streak-strip` horizontal flex with large `.num`; `.badge` pill with `.earned` accent / `.missed` muted / `.open` outline; `.best-row` grid; `.nudge-card` clickable metric-card affordance (cursor, hover raise 120ms). New selectors only — zero overrides of legacy classes.
+- [x] **Step 3: features.css** — `.streak-strip` horizontal flex with large `.num`; `.badge` pill with `.earned` accent / `.missed` muted / `.open` outline; `.best-row` grid; `.nudge-card` clickable metric-card affordance (cursor, hover raise 120ms). New selectors only — zero overrides of legacy classes.
 
-- [ ] **Step 4: Verify** — Evidence → heatmap section shows streak strip with counts matching visible heatmap (spot-check: count the trailing consecutive active days by eye); badges render or hide cleanly when plan absent; bests show real fastest times (cross-check one against Problem History); no mock recorded → mock row absent. Today shows "Almost done" nudges; clicking one lists the remaining problems. Reduced-motion: numbers appear instantly.
+- [x] **Step 4: Verify** — Evidence → heatmap section shows streak strip with counts matching visible heatmap (spot-check: count the trailing consecutive active days by eye); badges render or hide cleanly when plan absent; bests show real fastest times (cross-check one against Problem History); no mock recorded → mock row absent. Today shows "Almost done" nudges; clicking one lists the remaining problems. Reduced-motion: numbers appear instantly.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add web_dashboard/js/features/motivation.js web_dashboard/css/components/features.css web_dashboard/index.html web_dashboard/js/main.js web_dashboard/js/legacy/app.js

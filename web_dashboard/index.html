@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="./css/components/tooltip.css" />
     <link rel="stylesheet" href="./css/components/keyboard.css" />
     <link rel="stylesheet" href="./css/components/palette.css" />
+    <link rel="stylesheet" href="./css/components/features.css" />
   </head>
   <body>
     <div class="app-shell">
@@ -168,6 +169,8 @@
               </div>
               <div id="pace-tiles" class="pace-tiles"></div>
             </section>
+
+            <section class="panel" id="nudges-panel" aria-labelledby="nudges-heading"><div class="panel-head"><div><p class="eyebrow microlabel">Close it out</p><h3 id="nudges-heading">Almost done</h3></div></div><div id="nudge-cards" class="pace-tiles"></div></section>
           </div>
 
           <!-- 4. Review-load forecast -->
@@ -464,6 +467,7 @@
             <span class="pill num" id="consistency-days">-</span>
           </div>
           <div id="consistency-chart" class="insight-chart"></div>
+          <div id="bests-card" class="bests-card"></div>
         </section>
 
         <section id="time-invested" class="section" data-workspace-section="evidence">
@@ -488,8 +492,10 @@
             </div>
             <span class="pill num" id="heatmap-total">-</span>
           </div>
+          <div id="streak-strip" class="streak-strip"></div>
           <div id="heatmap" class="heatmap" role="img"></div>
           <div id="heatmap-legend" class="heatmap-legend"></div>
+          <div id="badge-strip" class="badge-strip"></div>
         </section>
 
         <section id="revision-calendar" class="section" data-workspace-section="evidence">

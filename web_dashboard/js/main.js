@@ -2,6 +2,7 @@ import { main, toggleTheme } from "./legacy/app.js";
 import { initTooltips } from "./engine/tooltip.js";
 import { initKeyboard, registerList } from "./engine/keyboard.js";
 import { initPalette } from "./engine/palette.js";
+import "./features/motivation.js";
 
 initTooltips();
 
