@@ -999,7 +999,7 @@ git commit -m "feat/dashboard: universal drill-down - heatmap, calendar, forecas
 - Consumes: `switchWorkspace`, `toggleTheme`, `state` from legacy; `viewSwitch` from motion.
 - Produces: `initKeyboard({onFocusMode})` — global router. Bindings: `g t/p/b/w/c/e` workspaces (today/plan/problems(b)/practice(w)/curriculum/evidence), `j/k`+`Enter` roving selection over the visible list (due queue on Today, browser rows on Problems), `/` focus the visible search input, `t` theme, `f` focus mode, `?` help overlay, `Escape` closes overlay. Exposes `registerList(selector, {itemSelector, onEnter})` used by later tasks.
 
-- [ ] **Step 1: Write js/engine/keyboard.js**
+- [x] **Step 1: Write js/engine/keyboard.js**
 
 ```js
 import { state, switchWorkspace, toggleTheme } from "../legacy/app.js";
@@ -1079,7 +1079,7 @@ export function initKeyboard({ onFocusMode, onHelp } = {}) {
 }
 ```
 
-- [ ] **Step 2: Help overlay** — in keyboard.css style `.kb-selected { outline: 2px solid var(--accent, #60a5fa); outline-offset: -2px; }` and a `.kb-help` popover. In main.js build the overlay with the native Popover API:
+- [x] **Step 2: Help overlay** — in keyboard.css style `.kb-selected { outline: 2px solid var(--accent, #60a5fa); outline-offset: -2px; }` and a `.kb-help` popover. In main.js build the overlay with the native Popover API:
 
 ```js
 const help = document.createElement("div");
@@ -1104,9 +1104,9 @@ registerList("#browser-rows", { itemSelector: "tr", onEnter: (el) => el.querySel
 
 (Inspect the due-queue renderer's actual item class and use it; the browser rows are `<tr>` in `#browser-rows`.)
 
-- [ ] **Step 3: Verify** — `g e` jumps to Evidence, `g t` back; on Today `j/j/k` moves a visible highlight through due queue, Enter opens it; `/` focuses search on Curriculum; `t` flips theme; `?` toggles help; typing in the search box does NOT trigger shortcuts; with modal open only Esc works.
+- [x] **Step 3: Verify** — `g e` jumps to Evidence, `g t` back; on Today `j/j/k` moves a visible highlight through due queue, Enter opens it; `/` focuses search on Curriculum; `t` flips theme; `?` toggles help; typing in the search box does NOT trigger shortcuts; with modal open only Esc works.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add web_dashboard/js/engine/keyboard.js web_dashboard/css/components/keyboard.css web_dashboard/js/main.js web_dashboard/index.html
