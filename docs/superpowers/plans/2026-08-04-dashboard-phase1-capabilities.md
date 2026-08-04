@@ -1440,12 +1440,12 @@ git commit -m "feat/dashboard: memory pack - true-retention gauge, maturity donu
 - Consumes: `paceProjection` (derive/pace.js); `state`, `RENDERERS`, `EDGE_CASE_GROUPS` (legacy); `reducedMotion` (motion).
 - Produces: `renderPacePanel()` registered into `RENDERERS.byWorkspace.plan`; `toggleFocusMode()` exported from focus.js, wired to key `f` and palette action `act:focus`.
 
-- [ ] **Step 1: Pace panel**
+- [x] **Step 1: Pace panel**
 
 Mount in `#quarter-roadmap` after `#burnup-chart`: `<div id="pace-projection" class="pace-projection"></div>`. In `js/features/pace.js`: read the quarter numbers the roadmap already uses — from `state.feed.plan` (target solves, start/end dates, actual solved). Render: `At current pace (X.X solves/wk): finish ~<date>` + on-track/behind pill + what-if slider `<input type="range" min="1" max="15">` initialized from `localStorage["whatif-hours"]`; on input, recompute a second line `At N/wk: finish ~<date>` and persist. Draw the projection as a dashed line extension on `#burnup-chart`'s SVG from the last actual point to the projected finish (import `svgEl`; append to the existing svg element after legacy renders — run AFTER `renderQuarterRoadmap` by registry order: `RENDERERS.byWorkspace.plan.push(renderPacePanel)`).
 When `state.feed?.plan` is absent: panel hidden (matches legacy's no-plan empty state).
 
-- [ ] **Step 2: Focus mode**
+- [x] **Step 2: Focus mode**
 
 `js/features/focus.js`:
 
@@ -1514,11 +1514,11 @@ Check `EDGE_CASE_GROUPS`'s real shape (app.js:95-130) and adapt the loop (`group
 
 `focus.css`: `.focus-overlay` — `position: fixed; inset: 0;` opaque `background: light-dark(#fbfcfe, #0b1017);` centered column, huge timer (`clamp(3rem, 10vw, 6rem)` mono), entrance fade via `@starting-style` at `var(--dur-overlay)`; `body.focus-active .app-shell { visibility: hidden; }`.
 
-- [ ] **Step 3: Wire** — main.js: `import { toggleFocusMode } from "./features/focus.js";` pass as `onFocusMode` to `initKeyboard` and as the palette `act:focus` run. Import `./features/pace.js` for side effect.
+- [x] **Step 3: Wire** — main.js: `import { toggleFocusMode } from "./features/focus.js";` pass as `onFocusMode` to `initKeyboard` and as the palette `act:focus` run. Import `./features/pace.js` for side effect.
 
-- [ ] **Step 4: Verify** — Plan: projection line extends burnup, finish date sane vs solved-count math; slider changes the what-if line and survives reload. `f` opens focus mode showing the same problem as Today's next action; timer ticks; typical-minutes matches median of that difficulty; Esc exits and restores the dashboard; `f` with server down shows the live-feed-required state.
+- [x] **Step 4: Verify** — Plan: projection line extends burnup, finish date sane vs solved-count math; slider changes the what-if line and survives reload. `f` opens focus mode showing the same problem as Today's next action; timer ticks; typical-minutes matches median of that difficulty; Esc exits and restores the dashboard; `f` with server down shows the live-feed-required state.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add web_dashboard/js/features/pace.js web_dashboard/js/features/focus.js web_dashboard/css/components/focus.css web_dashboard/index.html web_dashboard/js/main.js web_dashboard/js/legacy/app.js

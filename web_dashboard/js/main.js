@@ -4,6 +4,8 @@ import { initKeyboard, registerList } from "./engine/keyboard.js";
 import { initPalette } from "./engine/palette.js";
 import "./features/motivation.js";
 import "./features/memory.js";
+import "./features/pace.js";
+import { toggleFocusMode } from "./features/focus.js";
 
 initTooltips();
 
@@ -17,7 +19,7 @@ help.innerHTML = `<h3>Keyboard</h3><dl>
   <dt>f</dt><dd>Focus mode</dd><dt>Ctrl+K</dt><dd>Command palette</dd>
   <dt>?</dt><dd>This help</dd></dl>`;
 document.body.append(help);
-initKeyboard({ onHelp: () => help.togglePopover(), onFocusMode: () => {} }); // focus mode wired in Task 14
+initKeyboard({ onHelp: () => help.togglePopover(), onFocusMode: toggleFocusMode });
 
 registerList("#due-queue", { itemSelector: ".due-row", onEnter: (el) => el.click() });
 registerList("#browser-rows", { itemSelector: "tr", onEnter: (el) => el.querySelector("a, button")?.click() || el.click() });
@@ -25,7 +27,7 @@ registerList("#browser-rows", { itemSelector: "tr", onEnter: (el) => el.querySel
 initPalette({ actions: [
   { id: "act:theme", label: "Toggle theme", hint: "t", run: toggleTheme },
   { id: "act:help", label: "Keyboard help", hint: "?", run: () => help.togglePopover() },
-  { id: "act:focus", label: "Focus mode", hint: "f", run: () => {} }, // wired in Task 14
+  { id: "act:focus", label: "Focus mode", hint: "f", run: toggleFocusMode },
 ] });
 
 main();
