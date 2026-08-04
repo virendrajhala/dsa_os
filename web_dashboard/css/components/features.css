@@ -67,6 +67,17 @@
   color: light-dark(#8a94a6, #637082);
 }
 
+.memory-gauges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 26px;
+  margin-bottom: 16px;
+}
+
+.memory-gauges > div {
+  width: 230px;
+}
+
 .nudge-card {
   cursor: pointer;
   text-align: left;

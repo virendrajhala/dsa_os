@@ -1400,9 +1400,9 @@ git commit -m "feat/dashboard: motivation pack - streaks, monthly badges, person
 - Consumes: `matureRecallStats`, `maturityBuckets`, `dueForecast` (derive/memory.js); `svgEl`; `state`, `RENDERERS`; `openProblemList`; tooltip `data-tip` convention.
 - Produces: `renderMemoryPack()` registered into `RENDERERS.byWorkspace.evidence`; forecast horizon change lives inside legacy `renderForecast`.
 
-- [ ] **Step 1: Mounts** — in `#retention` section before `#retention-tiles`: `<div id="memory-gauges" class="memory-gauges"><div id="retention-gauge"></div><div id="maturity-donut"></div></div>`.
+- [x] **Step 1: Mounts** — in `#retention` section before `#retention-tiles`: `<div id="memory-gauges" class="memory-gauges"><div id="retention-gauge"></div><div id="maturity-donut"></div></div>`.
 
-- [ ] **Step 2: Write js/features/memory.js**
+- [x] **Step 2: Write js/features/memory.js**
 
 Retention gauge: SVG arc (semicircle), needle at `rate`, target tick at 0.9, center text `${(rate*100).toFixed(0)}%` (or "–" when null), sublabel `${pass}/${total} mature recalls`. Maturity donut: 4 segments (new/learning/young/mature) via `svgEl` circle strokes (stroke-dasharray technique used by existing charts); center shows total problems; `pointerover` on a segment swaps center text to that bucket's count+label, `pointerout` restores; click a segment → `openProblemList` with that bucket's problems (new = curriculum problems not in `completedById`). Register: `RENDERERS.byWorkspace.evidence.push(renderMemoryPack);` and import for side effect in main.js.
 
@@ -1415,13 +1415,13 @@ const bucketItems = {
 };
 ```
 
-- [ ] **Step 3: Extend forecast to 30 days with backlog shading**
+- [x] **Step 3: Extend forecast to 30 days with backlog shading**
 
 In legacy `renderForecast` (app.js:886): change the horizon from 14 to 30, and overlay a stepped line/area of `backlogIfIdle` from `dueForecast(state.datasets.progress.completed, referenceDate(), 30)` behind the bars (muted warn-tint fill, `data-tip` per point "backlog if idle: N"). Keep existing bars + their tooltips/click-through from Tasks 8-9. Update the section's `.eyebrow` text "Next 14 days" → "Next 30 days" in index.html.
 
-- [ ] **Step 4: Verify** — Evidence: gauge shows plausible % (cross-check: count PASS/(PASS+FAIL) for stage≥2 entries in one completed record); donut counts sum to total curriculum problems; hover swaps center stat; click "young" lists stage-2/3 problems. Today: forecast now spans 30 days, backlog line monotonically rises across due bars, tooltips show both numbers.
+- [x] **Step 4: Verify** — Evidence: gauge shows plausible % (cross-check: count PASS/(PASS+FAIL) for stage≥2 entries in one completed record); donut counts sum to total curriculum problems; hover swaps center stat; click "young" lists stage-2/3 problems. Today: forecast now spans 30 days, backlog line monotonically rises across due bars, tooltips show both numbers.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add web_dashboard/js/features/memory.js web_dashboard/index.html web_dashboard/js/legacy/app.js web_dashboard/js/main.js

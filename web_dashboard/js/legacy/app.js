@@ -3,6 +3,8 @@
   import { viewSwitch } from "../engine/motion.js";
   import { attachCrosshair } from "../engine/tooltip.js";
   import { openProblemList } from "../engine/drilldown.js";
+  import { addDays as addDaysIso } from "../derive/dates.js";
+  import { dueForecast } from "../derive/memory.js";
 
   const DATA = {
     progress: "../progress/progress.json",
@@ -890,10 +892,27 @@
       host.append(degradedBanner());
       return;
     }
-    const days = state.feed.review_forecast || [];
+    // Feed serves 14 days with problem ids; the 30-day horizon extends it from
+    // the same completed records the feed derives from (next_due per problem).
+    const feedDays = state.feed.review_forecast || [];
+    const completedRecords = state.datasets.progress.completed || [];
+    const horizon = dueForecast(completedRecords, referenceDate(), 30);
+    const feedByDate = new Map(feedDays.map((day) => [day.date, day]));
+    const days = [];
+    for (let offset = 0; offset < 30; offset += 1) {
+      const date = addDaysIso(referenceDate(), offset);
+      if (feedByDate.has(date)) {
+        days.push(feedByDate.get(date));
+        continue;
+      }
+      const ids = completedRecords
+        .filter((rec) => rec.revision?.next_due === date && rec.revision?.status !== "MASTERED")
+        .map((rec) => rec.problem_id);
+      days.push({ date, count: ids.length, overdue: false, problem_ids: ids });
+    }
     const totalDue = days.reduce((sum, day) => sum + (day.count || 0), 0);
     if (!totalDue) {
-      host.append(empty("Nothing due in the next 14 days."));
+      host.append(empty("Nothing due in the next 30 days."));
       return;
     }
 
@@ -923,6 +942,29 @@
       }),
     );
 
+    // Backlog-if-idle: cumulative dues (incl. already-overdue) if nothing gets
+    // reviewed — drawn as a stepped area behind the bars, on its own scale.
+    const maxBacklog = Math.max(1, ...horizon.bars.map((bar) => bar.backlogIfIdle));
+    const yBacklog = (n) => H - PAD_BOTTOM - (plotH * n) / maxBacklog;
+    let backlogPath = `M ${PAD_X} ${(H - PAD_BOTTOM).toFixed(1)}`;
+    horizon.bars.forEach((bar, index) => {
+      const x0 = PAD_X + index * bandW;
+      const x1 = PAD_X + (index + 1) * bandW;
+      const y = yBacklog(bar.backlogIfIdle).toFixed(1);
+      backlogPath += ` L ${x0.toFixed(1)} ${y} L ${x1.toFixed(1)} ${y}`;
+    });
+    backlogPath += ` L ${(PAD_X + days.length * bandW).toFixed(1)} ${(H - PAD_BOTTOM).toFixed(1)} Z`;
+    svg.append(svgEl("path", {
+      d: backlogPath,
+      class: "forecast-backlog",
+      fill: "var(--warn, #d9822b)",
+      "fill-opacity": 0.1,
+      stroke: "var(--warn, #d9822b)",
+      "stroke-opacity": 0.45,
+      "stroke-width": 1,
+      "pointer-events": "none",
+    }));
+
     days.forEach((day, index) => {
       const x = PAD_X + index * bandW + (bandW - barW) / 2;
       const count = day.count || 0;
@@ -946,7 +988,7 @@
             }${day.problem_ids?.length ? ` — ${day.problem_ids.join(", ")}` : ""}`,
           ),
         );
-        rect.dataset.tip = `${day.date}: ${count} due${day.overdue ? " (includes overdue)" : ""}`;
+        rect.dataset.tip = `${day.date}: ${count} due${day.overdue ? " (includes overdue)" : ""} · backlog if idle: ${horizon.bars[index]?.backlogIfIdle ?? "-"}`;
         rect.setAttribute("tabindex", "0");
         rect.setAttribute("role", "button");
         rect.classList.add("forecast-bar-active");
@@ -966,19 +1008,22 @@
           ),
         );
       }
-      svg.append(
-        svgEl(
-          "text",
-          { x: x + barW / 2, y: H - 9, "text-anchor": "middle", class: "forecast-axis" },
-          weekdayShort(day.date),
-        ),
-      );
+      // 30 bands leave no room for a label under every one.
+      if (index % 2 === 0) {
+        svg.append(
+          svgEl(
+            "text",
+            { x: x + barW / 2, y: H - 9, "text-anchor": "middle", class: "forecast-axis" },
+            weekdayShort(day.date),
+          ),
+        );
+      }
     });
 
     host.append(svg);
     host.setAttribute(
       "aria-label",
-      `Fourteen-day review forecast: ${totalDue} review${totalDue === 1 ? "" : "s"} scheduled${
+      `Thirty-day review forecast: ${totalDue} review${totalDue === 1 ? "" : "s"} scheduled${
         days[0]?.overdue ? `, including overdue items today` : ""
       }.`,
     );
