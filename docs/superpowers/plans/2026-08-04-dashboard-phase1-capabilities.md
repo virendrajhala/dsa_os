@@ -58,7 +58,7 @@ web_dashboard/
   `state`, `browserState`, `renderAll`, `switchWorkspace`, `setModal`, `toggleTheme`, `problemStatus`, `WORKSPACE_META`, `EDGE_CASE_GROUPS` (the edge-case checklist const near app.js:95), and `main` (NOT auto-invoked — main.js invokes it).
 - Produces: `js/main.js` — the only script tag in index.html.
 
-- [ ] **Step 1: Move files with git mv**
+- [x] **Step 1: Move files with git mv**
 
 ```bash
 cd /home/virendra/DSA/dsa_os/web_dashboard
@@ -67,7 +67,7 @@ git mv app.js js/legacy/app.js
 git mv styles.css css/legacy.css
 ```
 
-- [ ] **Step 2: Un-IIFE legacy/app.js**
+- [x] **Step 2: Un-IIFE legacy/app.js**
 
 At the top of `js/legacy/app.js`, delete line 1 `(function () {`. At the bottom, the file currently ends:
 
@@ -95,7 +95,7 @@ export {
 
 Then dedent is NOT required (JS doesn't care); leave inner indentation untouched to keep the diff reviewable. If the edge-case checklist const (app.js:95-130) has a different name, export it under that name and note it; if it is not a top-level const, wrap it: `const EDGE_CASE_GROUPS = <existing literal>;` and make the renderer use it.
 
-- [ ] **Step 3: Create js/main.js**
+- [x] **Step 3: Create js/main.js**
 
 ```js
 import { main } from "./legacy/app.js";
@@ -103,17 +103,17 @@ import { main } from "./legacy/app.js";
 main();
 ```
 
-- [ ] **Step 4: Update index.html**
+- [x] **Step 4: Update index.html**
 
 Replace `<link rel="stylesheet" href="./styles.css" />` with `<link rel="stylesheet" href="./css/legacy.css" />`.
 Replace `<script src="./app.js"></script>` with `<script type="module" src="./js/main.js"></script>`.
 
-- [ ] **Step 5: Verify identical behavior**
+- [x] **Step 5: Verify identical behavior**
 
 Run: `make web-dashboard` (background). Load `http://127.0.0.1:8765/web_dashboard/`.
 Expected: zero console errors; Today renders with live feed pill; switch all 6 workspaces; open a problem modal from the browser table; toggle theme. All identical to before.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add -A web_dashboard

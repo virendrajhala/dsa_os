@@ -1,4 +1,3 @@
-(function () {
   const DATA = {
     progress: "../progress/progress.json",
     scoring: "../progress/scoring.json",
@@ -5938,5 +5937,15 @@
     }
   }
 
-  main();
-})();
+export {
+  state,
+  browserState,
+  renderAll,
+  switchWorkspace,
+  setModal,
+  toggleTheme,
+  problemStatus,
+  WORKSPACE_META,
+  EDGE_CASE_GROUPS,
+  main,
+};
