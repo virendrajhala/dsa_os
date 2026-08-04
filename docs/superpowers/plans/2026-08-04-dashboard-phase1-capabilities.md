@@ -678,7 +678,7 @@ git commit -m "fix/dashboard: explicit feed status banner replaces silent port c
 **Interfaces:**
 - Produces: `svgEl(tag, attrs = {}, children = []) -> SVGElement` — sets attributes via `setAttribute`, appends children (nodes or strings→text nodes).
 
-- [ ] **Step 1: Write js/svg.js**
+- [x] **Step 1: Write js/svg.js**
 
 ```js
 const SVG_NS = "http://www.w3.org/2000/svg";
@@ -695,13 +695,13 @@ export function svgEl(tag, attrs = {}, children = []) {
 }
 ```
 
-- [ ] **Step 2: Replace the duplicated local helpers**
+- [x] **Step 2: Replace the duplicated local helpers**
 
 `grep -n "svgNS\|createElementNS" js/legacy/app.js`. For each local `el(...)`/helper definition (approx lines 913, 1212, 1416, 5714) delete the local definition and adapt call sites to `svgEl` (signatures are near-identical; adjust argument shapes where a local helper took `(tag, attrs)` only). Replace `svgNode()` (app.js:4660) usages the same way. Import at top: `import { svgEl } from "../svg.js";`
 
-- [ ] **Step 3: Verify** — every chart still draws: forecast, week bars, burnup, thinking bars, hint chart, sparklines, heatmap, calendar, consistency, time chart, trajectory, constellation. Both themes. Zero console errors.
+- [x] **Step 3: Verify** — every chart still draws: forecast, week bars, burnup, thinking bars, hint chart, sparklines, heatmap, calendar, consistency, time chart, trajectory, constellation. Both themes. Zero console errors.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add web_dashboard/js/svg.js web_dashboard/js/legacy/app.js

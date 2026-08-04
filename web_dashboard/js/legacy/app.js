@@ -1,4 +1,5 @@
   import { fetchFeedStatus } from "../data.js";
+  import { svgEl } from "../svg.js";
 
   const DATA = {
     progress: "../progress/progress.json",
@@ -893,7 +894,6 @@
       return;
     }
 
-    const svgNS = "http://www.w3.org/2000/svg";
     const W = 660;
     const H = 170;
     const PAD_X = 10;
@@ -904,20 +904,14 @@
     const barW = Math.min(bandW - 2, 30);
     const plotH = H - PAD_TOP - PAD_BOTTOM;
 
-    const svg = document.createElementNS(svgNS, "svg");
+    const svg = svgEl("svg");
     svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
     svg.setAttribute("class", "forecast-svg");
 
-    const make = (name, attrs, textContent) => {
-      const el = document.createElementNS(svgNS, name);
-      Object.entries(attrs).forEach(([key, val]) => el.setAttribute(key, String(val)));
-      if (textContent != null) el.textContent = textContent;
-      return el;
-    };
 
     // baseline
     svg.append(
-      make("line", {
+      svgEl("line", {
         x1: PAD_X,
         y1: H - PAD_BOTTOM,
         x2: W - PAD_X,
@@ -932,7 +926,7 @@
       const h = count ? Math.max(4, (plotH * count) / maxCount) : 0;
       const y = H - PAD_BOTTOM - h;
       if (count) {
-        const rect = make("rect", {
+        const rect = svgEl("rect", {
           x,
           y,
           width: barW,
@@ -941,7 +935,7 @@
           class: day.overdue ? "forecast-bar overdue" : "forecast-bar",
         });
         rect.append(
-          make(
+          svgEl(
             "title",
             {},
             `${day.date}: ${count} review${count === 1 ? "" : "s"}${
@@ -951,7 +945,7 @@
         );
         svg.append(rect);
         svg.append(
-          make(
+          svgEl(
             "text",
             { x: x + barW / 2, y: y - 6, "text-anchor": "middle", class: "forecast-count" },
             day.overdue ? `⚠ ${count}` : String(count),
@@ -959,7 +953,7 @@
         );
       }
       svg.append(
-        make(
+        svgEl(
           "text",
           { x: x + barW / 2, y: H - 9, "text-anchor": "middle", class: "forecast-axis" },
           weekdayShort(day.date),
@@ -1195,7 +1189,6 @@
 
     const rows = plan.weeks || [];
     if (!rows.length) return;
-    const svgNS = "http://www.w3.org/2000/svg";
     const W = 660;
     const H = 120;
     const PAD = 12;
@@ -1203,15 +1196,9 @@
     const barW = Math.min(bandW - 8, 34);
     const maxTarget = Math.max(1, ...rows.map((row) => Math.max(row.target_solves, row.actual_solves)));
     const plotH = H - 34;
-    const svg = document.createElementNS(svgNS, "svg");
+    const svg = svgEl("svg");
     svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
     svg.setAttribute("class", "weekbars-svg");
-    const make = (name, attrs, textContent) => {
-      const el = document.createElementNS(svgNS, name);
-      Object.entries(attrs).forEach(([key, val]) => el.setAttribute(key, String(val)));
-      if (textContent != null) el.textContent = textContent;
-      return el;
-    };
     rows.forEach((row, index) => {
       const x = PAD + index * bandW + (bandW - barW) / 2;
       const targetH = (plotH * row.target_solves) / maxTarget;
@@ -1219,7 +1206,7 @@
       const baseline = H - 22;
       if (row.target_solves > 0) {
         svg.append(
-          make("rect", {
+          svgEl("rect", {
             x,
             y: baseline - targetH,
             width: barW,
@@ -1229,7 +1216,7 @@
           }),
         );
       }
-      const actual = make("rect", {
+      const actual = svgEl("rect", {
         x: x + 3,
         y: baseline - actualH,
         width: Math.max(barW - 6, 4),
@@ -1238,7 +1225,7 @@
         class: row.actual_solves >= row.target_solves ? "weekbar-actual good" : "weekbar-actual",
       });
       actual.append(
-        make(
+        svgEl(
           "title",
           {},
           `W${row.week} (${row.start}): ${row.actual_solves} of ${row.target_solves} solves` +
@@ -1247,7 +1234,7 @@
       );
       svg.append(actual);
       svg.append(
-        make(
+        svgEl(
           "text",
           {
             x: x + barW / 2,
@@ -1393,7 +1380,6 @@
       tiles.append(node);
     });
 
-    const svgNS = "http://www.w3.org/2000/svg";
     const W = 660;
     const H = 220;
     const PAD_L = 34;
@@ -1407,17 +1393,11 @@
     const xFor = (isoDay) =>
       PAD_L + clamp(Math.round((parseDate(isoDay) - start) / 86400000) / totalDays, 0, 1) * (W - PAD_L - PAD_R);
     const yFor = (count) => H - PAD_B - clamp(count / yMax, 0, 1) * (H - PAD_T - PAD_B);
-    const svg = document.createElementNS(svgNS, "svg");
+    const svg = svgEl("svg");
     svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
     svg.setAttribute("class", "burnup-svg");
-    const make = (name, attrs, textContent) => {
-      const el = document.createElementNS(svgNS, name);
-      Object.entries(attrs).forEach(([key, val]) => el.setAttribute(key, String(val)));
-      if (textContent != null) el.textContent = textContent;
-      return el;
-    };
     const withTitle = (el, title) => {
-      el.append(make("title", {}, title));
+      el.append(svgEl("title", {}, title));
       return el;
     };
 
@@ -1427,7 +1407,7 @@
         const deloadEnd = week.end || week.date;
         svg.append(
           withTitle(
-            make("rect", {
+            svgEl("rect", {
               x: xFor(week.start),
               y: PAD_T,
               width: Math.max(xFor(week.date) - xFor(week.start), 2),
@@ -1440,7 +1420,7 @@
       });
     svg.append(
       withTitle(
-        make("line", {
+        svgEl("line", {
           x1: PAD_L,
           y1: yFor(burnup.target_total),
           x2: W - PAD_R,
@@ -1450,10 +1430,10 @@
         `Quarter target: ${burnup.target_total}`,
       ),
     );
-    svg.append(make("text", { x: 2, y: yFor(burnup.target_total) + 4, class: "forecast-axis" }, String(burnup.target_total)));
-    svg.append(make("text", { x: 2, y: yFor(0) + 4, class: "forecast-axis" }, "0"));
+    svg.append(svgEl("text", { x: 2, y: yFor(burnup.target_total) + 4, class: "forecast-axis" }, String(burnup.target_total)));
+    svg.append(svgEl("text", { x: 2, y: yFor(0) + 4, class: "forecast-axis" }, "0"));
     svg.append(
-      make("line", {
+      svgEl("line", {
         x1: PAD_L,
         y1: H - PAD_B,
         x2: W - PAD_R,
@@ -1466,7 +1446,7 @@
       entries.map((entry) => `${xFor(entry.date).toFixed(1)},${yFor(entry.cumulative).toFixed(1)}`).join(" ");
     svg.append(
       withTitle(
-        make("polyline", {
+        svgEl("polyline", {
           points: `${xFor(burnup.start).toFixed(1)},${yFor(0).toFixed(1)} ${toPoints(burnup.planned || [])}`,
           class: "burnup-planned",
           fill: "none",
@@ -1477,7 +1457,7 @@
     const actualEntries = burnup.actual || [];
     svg.append(
       withTitle(
-        make("polyline", {
+        svgEl("polyline", {
           points: `${xFor(burnup.start).toFixed(1)},${yFor(0).toFixed(1)} ${toPoints(actualEntries)}`,
           class: "burnup-actual",
           fill: "none",
@@ -1489,7 +1469,7 @@
     const clampedToday = parseDate(todayIso) > end ? burnup.end : todayIso;
     svg.append(
       withTitle(
-        make("line", {
+        svgEl("line", {
           x1: xFor(clampedToday),
           y1: PAD_T,
           x2: xFor(clampedToday),
@@ -1502,7 +1482,7 @@
     if (burnup.required_per_week != null) {
       svg.append(
         withTitle(
-          make("line", {
+          svgEl("line", {
             x1: xFor(clampedToday),
             y1: yFor(burnup.actual_total),
             x2: xFor(burnup.end),
@@ -1520,7 +1500,7 @@
           : "";
       svg.append(
         withTitle(
-          make("line", {
+          svgEl("line", {
             x1: xFor(month.milestone_date),
             y1: H - PAD_B,
             x2: xFor(month.milestone_date),
@@ -1531,7 +1511,7 @@
         ),
       );
       svg.append(
-        make(
+        svgEl(
           "text",
           {
             x: xFor(month.milestone_date),
@@ -2777,20 +2757,20 @@
       "Skill map. Arrow keys pan, plus and minus zoom, f fits, c centres on unlocked skills.",
     );
 
-    const svg = svgNode("svg", {
+    const svg = svgEl("svg", {
       class: "constellation-svg",
       role: "group",
       "aria-label": `Skill prerequisite map: ${ids.length} skills across ${stages.length} stages.`,
     });
-    const viewport = svgNode("g", { class: "constellation-viewport" });
+    const viewport = svgEl("g", { class: "constellation-viewport" });
 
     // --- rings -------------------------------------------------------------
-    const ringLayer = svgNode("g", { class: "constellation-rings" });
+    const ringLayer = svgEl("g", { class: "constellation-rings" });
     stages.forEach((stage, ring) => {
       const done = byStage.get(stage).filter((id) => isSkillMastered(id)).length;
       const total = byStage.get(stage).length;
-      const circle = svgNode("circle", { cx, cy, r: ringRadius.get(stage), class: "constellation-ring" });
-      circle.append(svgNode("title", {}, `Stage ${ring + 1} · ${stage} · ${done}/${total} mastered`));
+      const circle = svgEl("circle", { cx, cy, r: ringRadius.get(stage), class: "constellation-ring" });
+      circle.append(svgEl("title", {}, `Stage ${ring + 1} · ${stage} · ${done}/${total} mastered`));
       ringLayer.append(circle);
     });
     viewport.append(ringLayer);
@@ -2806,11 +2786,11 @@
       const meanRadius =
         frontierIds.reduce((sum, id) => sum + pos.get(id).radius, 0) / frontierIds.length;
       viewport.append(
-        svgNode("circle", { cx, cy, r: meanRadius, class: "constellation-frontier" }),
+        svgEl("circle", { cx, cy, r: meanRadius, class: "constellation-frontier" }),
       );
       // Sits at 6 o'clock: 12 o'clock is the stage-number axis.
       viewport.append(
-        svgNode(
+        svgEl(
           "text",
           { x: cx, y: cy + meanRadius + 14, "text-anchor": "middle", class: "constellation-frontier-label" },
           "frontier",
@@ -2822,13 +2802,13 @@
     // A stage whose skills are all mastered draws itself as a figure. Locked
     // stages show the same shape as a faint ghost, so the map has structure
     // from day one and completing a stage lights up something already familiar.
-    const figureLayer = svgNode("g", { class: "constellation-figures" });
+    const figureLayer = svgEl("g", { class: "constellation-figures" });
     stages.forEach((stage) => {
       const members = byStage.get(stage).filter((id) => pos.has(id));
       if (members.length < 2) return;
       const earned = members.every((id) => isSkillMastered(id));
       figureLayer.append(
-        svgNode("polyline", {
+        svgEl("polyline", {
           points: members.map((id) => `${pos.get(id).x.toFixed(1)},${pos.get(id).y.toFixed(1)}`).join(" "),
           class: `constellation-figure ${earned ? "earned" : "ghost"}`,
         }),
@@ -2840,7 +2820,7 @@
     // 137 edges drawn at full strength is spaghetti, not structure. They sit at
     // low opacity so the graph reads as connective texture, and the path for
     // whichever star you touch comes up to full strength.
-    const edgeLayer = svgNode("g", { class: "constellation-edges" });
+    const edgeLayer = svgEl("g", { class: "constellation-edges" });
     const edgeIndex = [];
     ids.forEach((id) => {
       (deps[id] || []).forEach((prereq) => {
@@ -2859,7 +2839,7 @@
         const midX = (from.x + to.x) / 2;
         const midY = (from.y + to.y) / 2;
         const pull = 0.72;
-        const path = svgNode("path", {
+        const path = svgEl("path", {
           d: `M ${from.x.toFixed(1)} ${from.y.toFixed(1)} Q ${(cx + (midX - cx) * pull).toFixed(1)} ${(cy + (midY - cy) * pull).toFixed(1)} ${to.x.toFixed(1)} ${to.y.toFixed(1)}`,
           class: `constellation-edge ${tone}`,
         });
@@ -2870,7 +2850,7 @@
     viewport.append(edgeLayer);
 
     // --- stars -------------------------------------------------------------
-    const nodeLayer = svgNode("g", { class: "constellation-nodes" });
+    const nodeLayer = svgEl("g", { class: "constellation-nodes" });
     const nodeIndex = new Map();
     ids.forEach((id) => {
       const point = pos.get(id);
@@ -2882,11 +2862,11 @@
         `${title} · ${skillMeta(id)?.stage || "unstaged"} · ` +
         `${count} problem${count === 1 ? "" : "s"} · ${CONSTELLATION_STATE_LABEL[nodeState]}`;
 
-      const group = svgNode("g", { class: `constellation-star ${nodeState}` });
+      const group = svgEl("g", { class: `constellation-star ${nodeState}` });
       if (nodeState === "mastered" || nodeState === "current") {
-        group.append(svgNode("circle", { cx: point.x, cy: point.y, r: r * 2.8, class: "constellation-halo" }));
+        group.append(svgEl("circle", { cx: point.x, cy: point.y, r: r * 2.8, class: "constellation-halo" }));
       }
-      const node = svgNode("circle", {
+      const node = svgEl("circle", {
         cx: point.x,
         cy: point.y,
         r,
@@ -2895,12 +2875,12 @@
         role: "button",
         "aria-label": description,
       });
-      node.append(svgNode("title", {}, description));
+      node.append(svgEl("title", {}, description));
 
       // Labels read outward from the centre, so they never cross the rings.
       const outward = r + 7;
       const facingRight = Math.cos(point.angle) >= 0;
-      const label = svgNode(
+      const label = svgEl(
         "text",
         {
           x: point.x + Math.cos(point.angle) * outward,
@@ -2946,12 +2926,12 @@
     // the names are ~150px wide - they sprawled straight over the stars. A
     // numeral fits the wedge at every radius; the name is on the ring's
     // tooltip, and the stage board below carries the detail.
-    const stageLayer = svgNode("g", { class: "constellation-stage-labels" });
+    const stageLayer = svgEl("g", { class: "constellation-stage-labels" });
     stages.forEach((stage, ring) => {
       const r = ringRadius.get(stage);
       const done = byStage.get(stage).filter((id) => isSkillMastered(id)).length;
       const total = byStage.get(stage).length;
-      const text = svgNode(
+      const text = svgEl(
         "text",
         {
           x: cx,
@@ -2961,7 +2941,7 @@
         },
         String(ring + 1),
       );
-      text.append(svgNode("title", {}, `Stage ${ring + 1} · ${stage} · ${done}/${total} mastered`));
+      text.append(svgEl("title", {}, `Stage ${ring + 1} · ${stage} · ${done}/${total} mastered`));
       stageLayer.append(text);
     });
     viewport.append(stageLayer);
@@ -2969,12 +2949,12 @@
     // --- centre readout ----------------------------------------------------
     // The innermost ring leaves a hole; the map's headline number belongs in it.
     const masteredTotal = ids.filter((id) => isSkillMastered(id)).length;
-    const core = svgNode("g", { class: "constellation-core" });
+    const core = svgEl("g", { class: "constellation-core" });
     core.append(
-      svgNode("text", { x: cx, y: cy - 4, "text-anchor": "middle", class: "constellation-core-value" }, `${masteredTotal}/${ids.length}`),
+      svgEl("text", { x: cx, y: cy - 4, "text-anchor": "middle", class: "constellation-core-value" }, `${masteredTotal}/${ids.length}`),
     );
     core.append(
-      svgNode("text", { x: cx, y: cy + 13, "text-anchor": "middle", class: "constellation-core-label" }, "mastered"),
+      svgEl("text", { x: cx, y: cy + 13, "text-anchor": "middle", class: "constellation-core-label" }, "mastered"),
     );
     viewport.append(core);
 
@@ -3043,7 +3023,7 @@
 
   function buildConstellationMinimap(layout, nodeStates, radius) {
     const { pos, width, height } = layout;
-    const element = svgNode("svg", {
+    const element = svgEl("svg", {
       class: "constellation-minimap",
       viewBox: `0 0 ${width} ${height}`,
       preserveAspectRatio: "none",
@@ -3054,10 +3034,10 @@
     const MINIMAP_W = 168;
     element.style.width = `${MINIMAP_W}px`;
     element.style.height = `${Math.round((MINIMAP_W * height) / width)}px`;
-    element.append(svgNode("rect", { x: 0, y: 0, width, height, class: "constellation-minimap-bg" }));
+    element.append(svgEl("rect", { x: 0, y: 0, width, height, class: "constellation-minimap-bg" }));
     pos.forEach((point, id) => {
       element.append(
-        svgNode("circle", {
+        svgEl("circle", {
           cx: point.x,
           cy: point.y,
           // Radii are in graph units shown at ~1/20 scale, so true-size dots
@@ -3067,7 +3047,7 @@
         }),
       );
     });
-    const frame = svgNode("rect", { class: "constellation-minimap-frame" });
+    const frame = svgEl("rect", { class: "constellation-minimap-frame" });
     element.append(frame);
     return { element, frame };
   }
@@ -4623,7 +4603,6 @@
   // read the feed or raw datasets; none of them recompute scheduler logic.
   // ---------------------------------------------------------------------------
 
-  const SVG_NS = "http://www.w3.org/2000/svg";
   const HINT_MAX_FALLBACK = 7;
   // The ladder's top rung comes from scoring.json hint_levels, so widening the
   // ladder there does not silently clip this chart.
@@ -4651,12 +4630,6 @@
   };
   const MOCK_SCORE_MAX = 4;
 
-  function svgNode(name, attrs = {}, textContent = null) {
-    const el = document.createElementNS(SVG_NS, name);
-    Object.entries(attrs).forEach(([key, value]) => el.setAttribute(key, String(value)));
-    if (textContent != null) el.textContent = textContent;
-    return el;
-  }
 
   // Bands mirror scoring.json `hint_mastery_discount`: consecutive hint levels
   // carrying the same mastery weight form one band, so the chart can never
@@ -4757,7 +4730,7 @@
       PAD_L + (points.length === 1 ? plotW / 2 : (plotW * index) / (points.length - 1));
     const yAt = (level) => PAD_TOP + plotH - (plotH * clamp(level, 0, top)) / top;
 
-    const svg = svgNode("svg", { viewBox: `0 0 ${W} ${H}`, class: "insight-svg" });
+    const svg = svgEl("svg", { viewBox: `0 0 ${W} ${H}`, class: "insight-svg" });
 
     // Mastery-tier bands, tinted; the name beside each carries the meaning so
     // the tier is never communicated by color alone.
@@ -4765,7 +4738,7 @@
       const bandTop = yAt(Math.min(top, band.to + 0.5));
       const bottom = yAt(Math.max(0, band.from - 0.5));
       svg.append(
-        svgNode("rect", {
+        svgEl("rect", {
           x: PAD_L,
           y: bandTop,
           width: plotW,
@@ -4776,7 +4749,7 @@
       // A hairline at each band edge: the 4% tint alone is deliberately faint.
       if (bandTop > PAD_TOP) {
         svg.append(
-          svgNode("line", {
+          svgEl("line", {
             x1: PAD_L,
             y1: bandTop,
             x2: PAD_L + plotW,
@@ -4786,7 +4759,7 @@
         );
       }
       svg.append(
-        svgNode(
+        svgEl(
           "text",
           { x: W - PAD_R + 10, y: (bandTop + bottom) / 2 + 4, class: "insight-band-label" },
           `${band.name} ${band.from}-${band.to}`,
@@ -4798,7 +4771,7 @@
     const ticks = [...new Set([0, ...bands.map((band) => band.from), top])].sort((a, b) => a - b);
     ticks.forEach((tick) => {
       svg.append(
-        svgNode(
+        svgEl(
           "text",
           { x: PAD_L - 8, y: yAt(tick) + 4, "text-anchor": "end", class: "insight-axis" },
           String(tick),
@@ -4806,7 +4779,7 @@
       );
     });
     svg.append(
-      svgNode("line", {
+      svgEl("line", {
         x1: PAD_L,
         y1: yAt(0),
         x2: PAD_L + plotW,
@@ -4817,7 +4790,7 @@
 
     // Rolling mean is the trend line; raw solves are the markers.
     svg.append(
-      svgNode("polyline", {
+      svgEl("polyline", {
         points: means.map((mean, index) => `${xAt(index).toFixed(1)},${yAt(mean).toFixed(1)}`).join(" "),
         class: "insight-line",
       }),
@@ -4828,7 +4801,7 @@
         band ? ` (${band.name})` : ""
       }`;
       svg.append(
-        svgNode("circle", {
+        svgEl("circle", {
           cx: xAt(index),
           cy: yAt(levels[index]),
           r: 4,
@@ -4836,13 +4809,13 @@
         }),
       );
       // The hover target is generous even though the mark is 8px.
-      const hit = svgNode("circle", {
+      const hit = svgEl("circle", {
         cx: xAt(index),
         cy: yAt(levels[index]),
         r: 13,
         class: "insight-hit",
       });
-      hit.append(svgNode("title", {}, label));
+      hit.append(svgEl("title", {}, label));
       svg.append(hit);
     });
 
@@ -4850,7 +4823,7 @@
     const tickIndexes = [...new Set([0, Math.floor((points.length - 1) / 2), points.length - 1])];
     tickIndexes.forEach((index) => {
       svg.append(
-        svgNode(
+        svgEl(
           "text",
           {
             x: xAt(index),
@@ -4901,14 +4874,14 @@
 
     const W = 120;
     const H = 34;
-    const svg = svgNode("svg", { viewBox: `0 0 ${W} ${H}`, class: "sparkline-svg" });
+    const svg = svgEl("svg", { viewBox: `0 0 ${W} ${H}`, class: "sparkline-svg" });
     const xAt = (index) => (values.length === 1 ? W / 2 : (W * index) / (values.length - 1));
     const yAt = (value) => H - 3 - ((H - 6) * clamp(value, 0, MOCK_SCORE_MAX)) / MOCK_SCORE_MAX;
     // Gaps break the line into segments rather than dragging it to the floor.
     let segment = [];
     const flush = () => {
       if (segment.length > 1) {
-        svg.append(svgNode("polyline", { points: segment.join(" "), class: "sparkline-stroke" }));
+        svg.append(svgEl("polyline", { points: segment.join(" "), class: "sparkline-stroke" }));
       }
       segment = [];
     };
@@ -4923,7 +4896,7 @@
     const lastGradedIndex = values.reduce((last, value, index) => (value != null ? index : last), -1);
     if (lastGradedIndex >= 0) {
       svg.append(
-        svgNode("circle", {
+        svgEl("circle", {
           cx: xAt(lastGradedIndex),
           cy: yAt(values[lastGradedIndex]),
           r: 4,
@@ -5218,20 +5191,20 @@
     const W = PAD + LEFT + weeks * STEP + PAD;
     const H = TOP + 7 * STEP + PAD;
 
-    const svg = svgNode("svg", { viewBox: `0 0 ${W} ${H}`, class: "heatmap-svg", width: W, height: H });
+    const svg = svgEl("svg", { viewBox: `0 0 ${W} ${H}`, class: "heatmap-svg", width: W, height: H });
 
     // One rounded-square clip, reused by every cell (each cell group is
     // translated into place, so a single origin clip rounds all of them).
-    const defs = svgNode("defs", {});
-    const clip = svgNode("clipPath", { id: "heat-round", clipPathUnits: "userSpaceOnUse" });
-    clip.append(svgNode("rect", { x: 0, y: 0, width: CELL, height: CELL, rx: 4 }));
+    const defs = svgEl("defs", {});
+    const clip = svgEl("clipPath", { id: "heat-round", clipPathUnits: "userSpaceOnUse" });
+    clip.append(svgEl("rect", { x: 0, y: 0, width: CELL, height: CELL, rx: 4 }));
     defs.append(clip);
     svg.append(defs);
 
     // Every weekday is labelled (not just Mon/Wed/Fri) — there is room and it
     // reads clearer.
     CAL_DOW.forEach((name, row) => {
-      svg.append(svgNode("text",
+      svg.append(svgEl("text",
         { x: PAD + LEFT - 8, y: TOP + row * STEP + CELL - 4, "text-anchor": "end", class: "heat-axis" }, name));
     });
 
@@ -5243,7 +5216,7 @@
       weekStart.setDate(gridStart.getDate() + col * 7);
       if (weekStart.getMonth() !== lastMonth) {
         lastMonth = weekStart.getMonth();
-        svg.append(svgNode("text",
+        svg.append(svgEl("text",
           { x: PAD + LEFT + col * STEP, y: TOP - 8, class: "heat-axis" }, HEAT_MONTHS[lastMonth]));
       }
       for (let row = 0; row < 7; row += 1) {
@@ -5261,26 +5234,26 @@
 
         // Cell drawn in local 0..CELL coords and translated into place, so the
         // shared rounded clip applies to both triangles; the border rounds too.
-        const cell = svgNode("g", { class: "heat-cell", role: "img", transform: `translate(${x},${y})` });
+        const cell = svgEl("g", { class: "heat-cell", role: "img", transform: `translate(${x},${y})` });
         // lower-left triangle = solves; upper-right triangle = revisions.
-        cell.append(svgNode("path", {
+        cell.append(svgEl("path", {
           d: `M0,0 L0,${CELL} L${CELL},${CELL} Z`,
           "clip-path": "url(#heat-round)",
           class: `heat-solve l${sL}`,
         }));
-        cell.append(svgNode("path", {
+        cell.append(svgEl("path", {
           d: `M0,0 L${CELL},0 L${CELL},${CELL} Z`,
           "clip-path": "url(#heat-round)",
           class: `heat-rev l${rL}`,
         }));
-        cell.append(svgNode("rect", { x: 0.5, y: 0.5, width: CELL - 1, height: CELL - 1, rx: 4, class: "heat-border" }));
+        cell.append(svgEl("rect", { x: 0.5, y: 0.5, width: CELL - 1, height: CELL - 1, rx: 4, class: "heat-border" }));
 
         const parts = [];
         if (rec.solves) parts.push(`${rec.solves} solved${rec.skills ? ` (${rec.skills} skill${rec.skills === 1 ? "" : "s"})` : ""}`);
         if (rec.revisions) parts.push(`${rec.revisions} revised`);
         const label = `${iso}: ${parts.length ? parts.join(", ") : "no activity"}`;
         cell.setAttribute("aria-label", label);
-        cell.append(svgNode("title", {}, label));
+        cell.append(svgEl("title", {}, label));
         svg.append(cell);
       }
     }
@@ -5291,19 +5264,19 @@
 
     if (legend) {
       const swatch = (cls, lvl) => {
-        const s = svgNode("svg", { viewBox: "0 0 13 13", class: "heat-swatch", width: 13, height: 13 });
-        s.append(svgNode("rect", { x: 0, y: 0, width: 13, height: 13, rx: 3, class: `${cls} l${lvl}` }));
-        s.append(svgNode("rect", { x: 0.5, y: 0.5, width: 12, height: 12, rx: 3, class: "heat-border" }));
+        const s = svgEl("svg", { viewBox: "0 0 13 13", class: "heat-swatch", width: 13, height: 13 });
+        s.append(svgEl("rect", { x: 0, y: 0, width: 13, height: 13, rx: 3, class: `${cls} l${lvl}` }));
+        s.append(svgEl("rect", { x: 0.5, y: 0.5, width: 12, height: 12, rx: 3, class: "heat-border" }));
         return s;
       };
 
       // A worked split-cell example makes the two-triangle encoding legible.
       const example = document.createElement("div");
       example.className = "heat-legend-example";
-      const sample = svgNode("svg", { viewBox: "0 0 26 26", class: "heat-sample", width: 26, height: 26 });
-      sample.append(svgNode("path", { d: "M0,0 L0,26 L26,26 Z", class: "heat-solve l3" }));
-      sample.append(svgNode("path", { d: "M0,0 L26,0 L26,26 Z", class: "heat-rev l3" }));
-      sample.append(svgNode("rect", { x: 0.5, y: 0.5, width: 25, height: 25, rx: 5, class: "heat-border" }));
+      const sample = svgEl("svg", { viewBox: "0 0 26 26", class: "heat-sample", width: 26, height: 26 });
+      sample.append(svgEl("path", { d: "M0,0 L0,26 L26,26 Z", class: "heat-solve l3" }));
+      sample.append(svgEl("path", { d: "M0,0 L26,0 L26,26 Z", class: "heat-rev l3" }));
+      sample.append(svgEl("rect", { x: 0.5, y: 0.5, width: 25, height: 25, rx: 5, class: "heat-border" }));
       const caption = document.createElement("span");
       caption.className = "microlabel";
       caption.innerHTML = "each day splits: <strong>solved</strong> lower-left, <strong>revised</strong> upper-right";
@@ -5694,7 +5667,6 @@
       tiles.append(node);
     });
 
-    const svgNS = "http://www.w3.org/2000/svg";
     const W = 660;
     const H = 190;
     const PAD_L = 34;
@@ -5705,29 +5677,23 @@
     const bandW = (W - PAD_L - PAD_R) / series.length;
     const barW = Math.min(bandW - 2, 26);
     const plotH = H - PAD_T - PAD_B;
-    const svg = document.createElementNS(svgNS, "svg");
+    const svg = svgEl("svg");
     svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
     svg.setAttribute("class", "time-svg");
-    const make = (name, attrs, textContent) => {
-      const el = document.createElementNS(svgNS, name);
-      Object.entries(attrs).forEach(([key, val]) => el.setAttribute(key, String(val)));
-      if (textContent != null) el.textContent = textContent;
-      return el;
-    };
-    svg.append(make("line", {
+    svg.append(svgEl("line", {
       x1: PAD_L, y1: H - PAD_B, x2: W - PAD_R, y2: H - PAD_B, class: "forecast-baseline",
     }));
-    svg.append(make("text", { x: 2, y: PAD_T + 4, class: "forecast-axis" }, `${maxMinutes}m`));
-    svg.append(make("text", { x: 2, y: H - PAD_B + 4, class: "forecast-axis" }, "0"));
+    svg.append(svgEl("text", { x: 2, y: PAD_T + 4, class: "forecast-axis" }, `${maxMinutes}m`));
+    svg.append(svgEl("text", { x: 2, y: H - PAD_B + 4, class: "forecast-axis" }, "0"));
     series.forEach((entry, index) => {
       const x = PAD_L + index * bandW + (bandW - barW) / 2;
       const h = Math.max((plotH * entry.minutes) / maxMinutes, 2);
-      const bar = make("rect", {
+      const bar = svgEl("rect", {
         x, y: H - PAD_B - h, width: barW, height: h, rx: 3,
         fill: DIFFICULTY_SERIES[entry.difficulty] || DIFFICULTY_SERIES.Unknown,
         class: "time-bar",
       });
-      bar.append(make("title", {},
+      bar.append(svgEl("title", {},
         `${entry.problem_id} · ${entry.date} · ${entry.minutes} min · ${entry.difficulty || "Unknown"}`));
       svg.append(bar);
     });
