@@ -1532,11 +1532,11 @@ git commit -m "feat/dashboard: pace projection with what-if slider + zero-chrome
 **Files:**
 - Modify: whatever the walk flags.
 
-- [ ] **Step 1: Test harness green** — `tests.html` → title `PASS (…)`.
-- [ ] **Step 2: Playwright walk** — for each of the 6 workspaces × {dark, light} × {motion, reduced-motion}: screenshot, console-error check (must be zero), spot-check tooltips + one drill-down per workspace.
-- [ ] **Step 3: Keyboard-only pass** — with the mouse untouched: `g` chords to every workspace; `j/k/Enter` due queue + browser table; Ctrl+K to a problem modal and back; `?` help; `t` theme; `f` focus in/out. Everything reachable.
-- [ ] **Step 4: Perf check** — DevTools console: on a fresh load of Today, confirm `#constellation` and `#problem-table` are empty until their workspaces open (registry works).
-- [ ] **Step 5: Fix whatever surfaced, re-verify, commit**
+- [x] **Step 1: Test harness green** — `tests.html` → title `PASS (…)`.
+- [x] **Step 2: Playwright walk** — for each of the 6 workspaces × {dark, light} × {motion, reduced-motion}: screenshot, console-error check (must be zero), spot-check tooltips + one drill-down per workspace.
+- [x] **Step 3: Keyboard-only pass** — with the mouse untouched: `g` chords to every workspace; `j/k/Enter` due queue + browser table; Ctrl+K to a problem modal and back; `?` help; `t` theme; `f` focus in/out. Everything reachable.
+- [x] **Step 4: Perf check** — DevTools console: on a fresh load of Today, confirm `#constellation` and `#problem-table` are empty until their workspaces open (registry works).
+- [x] **Step 5: Fix whatever surfaced, re-verify, commit**
 
 ```bash
 git add -A web_dashboard

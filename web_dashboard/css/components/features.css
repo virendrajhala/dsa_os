@@ -67,6 +67,29 @@
   color: light-dark(#8a94a6, #637082);
 }
 
+.drill-row {
+  display: block;
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid light-dark(#d5dbe5, #232b38);
+  border-radius: 8px;
+  background: light-dark(#ffffff, #101623);
+  color: inherit;
+  font: 13px/1.4 inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--dur-feedback);
+}
+
+.drill-row:hover,
+.drill-row:focus-visible {
+  background: light-dark(#eef2f8, #1a2331);
+}
+
+.drill-row + .drill-row {
+  margin-top: 6px;
+}
+
 .memory-gauges {
   display: flex;
   flex-wrap: wrap;
