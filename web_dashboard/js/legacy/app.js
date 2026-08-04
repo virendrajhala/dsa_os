@@ -1,5 +1,6 @@
   import { fetchFeedStatus } from "../data.js";
   import { svgEl } from "../svg.js";
+  import { viewSwitch } from "../engine/motion.js";
 
   const DATA = {
     progress: "../progress/progress.json",
@@ -5874,7 +5875,7 @@
       document.querySelectorAll("[data-workspace-link]").forEach((link) => {
         link.addEventListener("click", (event) => {
           event.preventDefault();
-          switchWorkspace(link.dataset.workspaceLink, link.getAttribute("href"));
+          viewSwitch(() => switchWorkspace(link.dataset.workspaceLink, link.getAttribute("href")));
         });
       });
       watchActiveSection();

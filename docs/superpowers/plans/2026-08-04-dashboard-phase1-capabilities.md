@@ -721,7 +721,7 @@ git commit -m "refactor/dashboard: single svgEl helper replaces five local copie
 - Produces: `motion.js` exports `reducedMotion() -> bool`, `viewSwitch(fn)` (wraps `document.startViewTransition` when available/allowed, else calls fn), `animateCount(el, value, {format} = {})` (counts up once, ~500ms, writes final formatted value; instant under reduced motion).
 - Produces: CSS custom props `--dur-feedback: 120ms; --dur-overlay: 200ms; --dur-view: 280ms; --ease-out: cubic-bezier(0.16, 1, 0.3, 1);`
 
-- [ ] **Step 1: Write css/tokens.css**
+- [x] **Step 1: Write css/tokens.css**
 
 ```css
 :root {
@@ -744,7 +744,7 @@ git commit -m "refactor/dashboard: single svgEl helper replaces five local copie
 
 Add `<link rel="stylesheet" href="./css/tokens.css" />` ABOVE the legacy.css link in index.html.
 
-- [ ] **Step 2: Write js/engine/motion.js**
+- [x] **Step 2: Write js/engine/motion.js**
 
 ```js
 export function reducedMotion() {
@@ -777,13 +777,13 @@ export function animateCount(el, value, { format = (v) => String(v) } = {}) {
 }
 ```
 
-- [ ] **Step 3: Wire workspace switches**
+- [x] **Step 3: Wire workspace switches**
 
 In legacy `main()`, find the nav click handler that calls `switchWorkspace` (search `data-workspace-link` listeners near the end of app.js). Wrap the call: `viewSwitch(() => switchWorkspace(ws, hash))` (import from `../engine/motion.js`). Do NOT wrap the scroll-spy or initial render.
 
-- [ ] **Step 4: Verify** — clicking between workspaces cross-fades (~280ms); with DevTools "emulate prefers-reduced-motion" it switches instantly. Keyboard/theme unaffected. No animation on initial page load.
+- [x] **Step 4: Verify** — clicking between workspaces cross-fades (~280ms); with DevTools "emulate prefers-reduced-motion" it switches instantly. Keyboard/theme unaffected. No animation on initial page load.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add web_dashboard/css/tokens.css web_dashboard/js/engine/motion.js web_dashboard/index.html web_dashboard/js/legacy/app.js
