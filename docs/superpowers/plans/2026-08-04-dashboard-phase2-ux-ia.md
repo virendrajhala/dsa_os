@@ -223,7 +223,7 @@ git commit -m "feat/dashboard: hash router - deep links, back/forward, restore o
 - Consumes: `onRoute`, `navigate`, `currentRoute` (router); `RENDERERS`, `switchWorkspace` (legacy).
 - Produces: `initEvidenceTabs()` from `tabs.js`; route `sub` for evidence ∈ `"" | performance | memory | consistency | log` ("" ⇒ performance). Tab mapping constant `EVIDENCE_TABS = { performance: [...], memory: [...], consistency: [...], log: [...] }` (section ids) exported for Task 4's rail.
 
-- [ ] **Step 1: index.html surgery**
+- [x] **Step 1: index.html surgery**
 
 1. Cut the whole forecast `<section class="panel">…</section>` (the one containing `#forecast-chart`) out of `#overview`; paste it as a standalone section right before `#retention`:
    `<section id="forecast-panel" class="section" data-workspace-section="evidence">` (keep the inner panel-head + `#forecast-chart` div; add an `.section-head` with eyebrow "Next 30 days" / h3 "Review-load forecast" to match sibling sections; delete the old in-panel head).
@@ -240,7 +240,7 @@ git commit -m "feat/dashboard: hash router - deep links, back/forward, restore o
 </nav>
 ```
 
-- [ ] **Step 2: Write js/engine/tabs.js**
+- [x] **Step 2: Write js/engine/tabs.js**
 
 ```js
 import { onRoute, navigate, currentRoute } from "./router.js";
@@ -278,7 +278,7 @@ export function initEvidenceTabs() {
 }
 ```
 
-- [ ] **Step 3: Reconcile with legacy visibility**
+- [x] **Step 3: Reconcile with legacy visibility**
 
 `switchWorkspace` sets `section.hidden = section.dataset.workspaceSection !== active`. Tab hiding must survive that. In legacy `switchWorkspace`, change that one line to respect the tab gate:
 
@@ -296,7 +296,7 @@ Scroll spy: `watchActiveSection`/`spyActiveSection` highlight per-section rail l
 
 `tabs.css`: horizontal segmented control under the topbar — sticky at top of the evidence area, `.active` gets accent underline + text emphasis, buttons min 32px tall, `transition: color var(--dur-feedback)`.
 
-- [ ] **Step 4: Wire + palette entries**
+- [x] **Step 4: Wire + palette entries**
 
 `main.js`: `import { initEvidenceTabs } from "./engine/tabs.js"; initEvidenceTabs();` (before `startRouter()` so the first route paints tabs).
 `js/engine/palette.js` `buildIndex`: add the 4 tabs:
@@ -309,9 +309,9 @@ for (const tab of ["performance", "memory", "consistency", "log"]) {
 
 (import `navigate` from router — palette already avoids legacy-cycle issues since router imports only WORKSPACE_META from legacy).
 
-- [ ] **Step 5: Verify** — `g e` → Evidence opens on Performance tab (4 sections visible, others gone); click Memory → retention + calendar + forecast, hash `#/evidence/memory`; reload → same tab; Back → Performance. Today no longer shows the forecast. Deferred renders under Log after History (order fixed). Ctrl+K "memory" → jumps to the tab. Both themes; reduced-motion instant.
+- [x] **Step 5: Verify** — `g e` → Evidence opens on Performance tab (4 sections visible, others gone); click Memory → retention + calendar + forecast, hash `#/evidence/memory`; reload → same tab; Back → Performance. Today no longer shows the forecast. Deferred renders under Log after History (order fixed). Ctrl+K "memory" → jumps to the tab. Both themes; reduced-motion instant.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add web_dashboard/index.html web_dashboard/js/engine/tabs.js web_dashboard/css/components/tabs.css web_dashboard/js/legacy/app.js web_dashboard/js/main.js web_dashboard/js/engine/palette.js

@@ -1,0 +1,41 @@
+.evidence-tabs {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  gap: 2px;
+  margin-bottom: 18px;
+  padding: 4px 0;
+  border-bottom: 1px solid light-dark(#e3e8f0, #1c2431);
+  background: light-dark(#f4f7fb, #0d1117);
+}
+
+.evidence-tabs button {
+  appearance: none;
+  min-height: 32px;
+  padding: 6px 14px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  background: transparent;
+  color: light-dark(#5a667a, #8d9aad);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  transition: color var(--dur-feedback), border-color var(--dur-feedback);
+}
+
+.evidence-tabs button:hover {
+  color: light-dark(#1c2330, #e8edf5);
+}
+
+.evidence-tabs button.active {
+  color: light-dark(#1c2330, #e8edf5);
+  font-weight: 600;
+  border-bottom-color: var(--accent, #5aa9e6);
+}
+
+.evidence-tabs button:focus-visible {
+  outline: 2px solid var(--accent, #5aa9e6);
+  outline-offset: -2px;
+}

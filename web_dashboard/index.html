@@ -12,6 +12,7 @@
     <link rel="stylesheet" href="./css/components/palette.css" />
     <link rel="stylesheet" href="./css/components/features.css" />
     <link rel="stylesheet" href="./css/components/focus.css" />
+    <link rel="stylesheet" href="./css/components/tabs.css" />
   </head>
   <body>
     <div class="app-shell">
@@ -173,17 +174,6 @@
 
             <section class="panel" id="nudges-panel" aria-labelledby="nudges-heading"><div class="panel-head"><div><p class="eyebrow microlabel">Close it out</p><h3 id="nudges-heading">Almost done</h3></div></div><div id="nudge-cards" class="pace-tiles"></div></section>
           </div>
-
-          <!-- 4. Review-load forecast -->
-          <section class="panel" aria-labelledby="forecast-heading">
-            <div class="panel-head">
-              <div>
-                <p class="eyebrow microlabel">Next 30 days</p>
-                <h3 id="forecast-heading">Review-load forecast</h3>
-              </div>
-            </div>
-            <div id="forecast-chart" class="forecast-chart" role="img"></div>
-          </section>
         </section>
 
         <section id="week-scoreboard" class="section" data-workspace-section="plan">
@@ -285,16 +275,6 @@
           <div id="weakness-grid" class="weakness-grid"></div>
         </section>
 
-        <section id="deferred" class="section" data-workspace-section="evidence">
-          <div class="section-head">
-            <div>
-              <p class="eyebrow">Learning memory</p>
-              <h3>Deferred learnings</h3>
-            </div>
-          </div>
-          <div id="deferred-grid" class="weakness-grid"></div>
-        </section>
-
         <section id="edge-cases" class="section" data-workspace-section="practice">
           <div class="section-head">
             <div>
@@ -372,7 +352,14 @@
           <div id="pattern-grid" class="skill-grid"></div>
         </section>
 
-        <section id="history" class="section" data-workspace-section="evidence">
+        <nav id="evidence-tabs" class="evidence-tabs" hidden aria-label="Evidence tabs">
+          <button type="button" data-tab="performance">Performance</button>
+          <button type="button" data-tab="memory">Memory</button>
+          <button type="button" data-tab="consistency">Consistency</button>
+          <button type="button" data-tab="log">Log</button>
+        </nav>
+
+        <section id="history" class="section" data-workspace-section="evidence" data-evidence-tab="log">
           <div class="section-head">
             <div>
               <p class="eyebrow">Audit trail</p>
@@ -398,7 +385,7 @@
           </div>
         </section>
 
-        <section id="thinking" class="section two-column" data-workspace-section="evidence">
+        <section id="thinking" class="section two-column" data-workspace-section="evidence" data-evidence-tab="performance">
           <section class="panel">
             <div class="panel-head">
               <div>
@@ -419,7 +406,7 @@
           </section>
         </section>
 
-        <section id="thinking-dimensions" class="section" data-workspace-section="evidence">
+        <section id="thinking-dimensions" class="section" data-workspace-section="evidence" data-evidence-tab="performance">
           <div class="section-head">
             <div>
               <p class="eyebrow microlabel">Score shape</p>
@@ -429,7 +416,7 @@
           <div id="thinking-bars" class="bar-list" role="img"></div>
         </section>
 
-        <section id="hint-independence" class="section" data-workspace-section="evidence">
+        <section id="hint-independence" class="section" data-workspace-section="evidence" data-evidence-tab="performance">
           <div class="section-head">
             <div>
               <p class="eyebrow microlabel">Autonomy</p>
@@ -440,7 +427,7 @@
           <div id="hint-chart" class="insight-chart" role="img"></div>
         </section>
 
-        <section id="mock-trend" class="section" data-workspace-section="evidence">
+        <section id="mock-trend" class="section" data-workspace-section="evidence" data-evidence-tab="performance">
           <div class="section-head">
             <div>
               <p class="eyebrow microlabel">The goal metric</p>
@@ -450,7 +437,17 @@
           <div id="mock-trend-body" class="insight-stack"></div>
         </section>
 
-        <section id="retention" class="section" data-workspace-section="evidence">
+        <section id="forecast-panel" class="section" data-workspace-section="evidence" data-evidence-tab="memory">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow microlabel">Next 30 days</p>
+              <h3>Review-load forecast</h3>
+            </div>
+          </div>
+          <div id="forecast-chart" class="forecast-chart" role="img"></div>
+        </section>
+
+        <section id="retention" class="section" data-workspace-section="evidence" data-evidence-tab="memory">
           <div class="section-head">
             <div>
               <p class="eyebrow microlabel">Recall health</p>
@@ -461,7 +458,7 @@
           <div id="retention-tiles" class="retention-tiles"></div>
         </section>
 
-        <section id="consistency" class="section" data-workspace-section="evidence">
+        <section id="consistency" class="section" data-workspace-section="evidence" data-evidence-tab="consistency">
           <div class="section-head">
             <div>
               <p class="eyebrow microlabel">Showing up</p>
@@ -473,7 +470,7 @@
           <div id="bests-card" class="bests-card"></div>
         </section>
 
-        <section id="time-invested" class="section" data-workspace-section="evidence">
+        <section id="time-invested" class="section" data-workspace-section="evidence" data-evidence-tab="consistency">
           <div class="section-head">
             <div>
               <p class="eyebrow microlabel">Effort</p>
@@ -487,7 +484,7 @@
           <p class="chart-note microlabel">Minutes per solve, in solve order. Falling bars at constant difficulty = growing fluency; a Medium/Hard mix pushes averages up by design.</p>
         </section>
 
-        <section id="activity-heatmap" class="section" data-workspace-section="evidence">
+        <section id="activity-heatmap" class="section" data-workspace-section="evidence" data-evidence-tab="consistency">
           <div class="section-head">
             <div>
               <p class="eyebrow microlabel">Every day</p>
@@ -501,7 +498,7 @@
           <div id="badge-strip" class="badge-strip"></div>
         </section>
 
-        <section id="revision-calendar" class="section" data-workspace-section="evidence">
+        <section id="revision-calendar" class="section" data-workspace-section="evidence" data-evidence-tab="memory">
           <div class="section-head">
             <div>
               <p class="eyebrow microlabel">Recall plan</p>
@@ -518,6 +515,16 @@
             <aside id="calendar-detail" class="calendar-detail" aria-live="polite"></aside>
           </div>
           <p class="chart-note microlabel">Planned schedule: assumes each recall passes on time. Failed reviews, reactivations and quarterly maintenance are not projected.</p>
+        </section>
+
+        <section id="deferred" class="section" data-workspace-section="evidence" data-evidence-tab="log">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Learning memory</p>
+              <h3>Deferred learnings</h3>
+            </div>
+          </div>
+          <div id="deferred-grid" class="weakness-grid"></div>
         </section>
       </main>
     </div>

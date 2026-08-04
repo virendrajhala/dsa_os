@@ -1,5 +1,6 @@
 import { fuzzyScore } from "../derive/search.js";
 import { state, WORKSPACE_META, openProblemModal } from "../legacy/app.js";
+import { navigate } from "./router.js";
 
 const goTo = (workspace) =>
   document.dispatchEvent(new CustomEvent("dash:navigate", { detail: { workspace } }));
@@ -16,6 +17,9 @@ function buildIndex(actions) {
   const items = [];
   for (const [ws, meta] of Object.entries(WORKSPACE_META)) {
     items.push({ id: `go:${ws}`, group: "Go to", label: meta.title, hint: `g ${ws === "problems" ? "b" : ws === "practice" ? "w" : ws[0]}`, run: () => goTo(ws) });
+  }
+  for (const tab of ["performance", "memory", "consistency", "log"]) {
+    items.push({ id: `tab:${tab}`, group: "Go to", label: `Evidence · ${tab[0].toUpperCase()}${tab.slice(1)}`, hint: "", run: () => navigate({ workspace: "evidence", sub: tab }) });
   }
   for (const a of actions) items.push({ ...a, group: "Actions" });
   for (const [id, problem] of state.problemsById) {

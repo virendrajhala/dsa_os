@@ -235,7 +235,10 @@
     state.activeWorkspace = active;
     renderWorkspace(active);
     document.querySelectorAll("[data-workspace-section]").forEach((section) => {
-      section.hidden = section.dataset.workspaceSection !== active;
+      // Two gates: the workspace gate (ours) and the evidence-tab gate owned by
+      // engine/tabs.js. A section shows only when both agree.
+      section.hidden =
+        section.dataset.workspaceSection !== active || section.dataset.tabHidden === "true";
     });
     // Membership in the open workspace is a *quiet* state. Which single section
     // you are looking at is the loud one - see setActiveSection below.
@@ -314,6 +317,8 @@
       if (link.dataset.workspaceLink !== state.activeWorkspace) return;
       const section = document.querySelector(link.getAttribute("href"));
       if (!section || section.hidden) return;
+      // Evidence sections are reached by tab, not by rail section links.
+      if (section.dataset.evidenceTab) return;
       if (section.getBoundingClientRect().top <= line) winner = section.id;
     });
     // Scrolled above the first section: keep the workspace's first entry lit
