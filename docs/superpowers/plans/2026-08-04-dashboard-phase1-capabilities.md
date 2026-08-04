@@ -202,7 +202,7 @@ git commit -m "test/dashboard: zero-dep browser test harness"
   - `pace.js`: `paceProjection({solved, target, startIso, endIso, todayIso, whatIfPerWeek=null}) -> {velocityPerWeek, finishIso|null, onTrack}`, `fastestByDifficulty(entries) -> {Easy?, Medium?, Hard?}` where entries = `[{difficulty, minutes, problemId}]`, `nearComplete(groups, limit=4)` where groups = `[{id, name, done, total}]`
   - `search.js`: `fuzzyScore(query, text) -> number` (0 = no match, higher = better)
 
-- [ ] **Step 1: Write dates.js**
+- [x] **Step 1: Write dates.js**
 
 ```js
 export function addDays(iso, n) {
@@ -220,7 +220,7 @@ export function todayISO() {
 }
 ```
 
-- [ ] **Step 2: Write failing tests for activity.js**
+- [x] **Step 2: Write failing tests for activity.js**
 
 `js/tests/activity.test.js`:
 
@@ -252,9 +252,9 @@ test("no grace: gap breaks current streak, max remembers", () => {
 
 Add `import "./js/tests/activity.test.js";` to tests.html (before `report()` — convert the inline script to import test modules first, then call report()).
 
-- [ ] **Step 3: Run tests.html — expect FAIL** (module not found → title FAIL or console error; confirm the tests do not pass vacuously).
+- [x] **Step 3: Run tests.html — expect FAIL** (module not found → title FAIL or console error; confirm the tests do not pass vacuously).
 
-- [ ] **Step 4: Implement activity.js**
+- [x] **Step 4: Implement activity.js**
 
 ```js
 import { addDays, diffDays } from "./dates.js";
@@ -288,7 +288,7 @@ export function streaks(daySet, todayIso) {
 }
 ```
 
-- [ ] **Step 5: Write failing tests for memory.js**
+- [x] **Step 5: Write failing tests for memory.js**
 
 `js/tests/memory.test.js`:
 
@@ -332,7 +332,7 @@ test("empty history yields null rate", () => {
 
 Add the import to tests.html.
 
-- [ ] **Step 6: Run — expect FAIL. Then implement memory.js**
+- [x] **Step 6: Run — expect FAIL. Then implement memory.js**
 
 ```js
 import { diffDays } from "./dates.js";
@@ -383,7 +383,7 @@ export function dueForecast(completed, startIso, daysAhead = 30) {
 }
 ```
 
-- [ ] **Step 7: Write failing tests for pace.js, then implement**
+- [x] **Step 7: Write failing tests for pace.js, then implement**
 
 `js/tests/pace.test.js`:
 
@@ -463,7 +463,7 @@ export function nearComplete(groups, limit = 4) {
 }
 ```
 
-- [ ] **Step 8: Write failing tests for search.js, then implement**
+- [x] **Step 8: Write failing tests for search.js, then implement**
 
 `js/tests/search.test.js`:
 
@@ -512,9 +512,9 @@ export function fuzzyScore(query, text) {
 }
 ```
 
-- [ ] **Step 9: Run tests.html — expect title `PASS (15)`** (all four suites). Fix until green.
+- [x] **Step 9: Run tests.html — expect title `PASS (15)`** (all four suites). Fix until green.
 
-- [ ] **Step 10: Commit**
+- [x] **Step 10: Commit**
 
 ```bash
 git add web_dashboard/js/derive web_dashboard/js/tests web_dashboard/tests.html

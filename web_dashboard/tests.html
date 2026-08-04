@@ -2,8 +2,11 @@
 <html><head><meta charset="utf-8"><title>running</title></head><body>
 <script type="module">
   // Test modules are imported here; each calls test() at module top level.
+  import "./js/tests/activity.test.js";
+  import "./js/tests/memory.test.js";
+  import "./js/tests/pace.test.js";
+  import "./js/tests/search.test.js";
   import { report } from "./js/tests/run.js";
-  // import "./js/tests/activity.test.js";  ← added by later tasks
   report();
 </script>
 </body></html>
