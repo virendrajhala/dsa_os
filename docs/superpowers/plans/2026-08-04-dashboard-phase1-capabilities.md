@@ -131,7 +131,7 @@ git commit -m "refactor/dashboard: convert to native ES modules, no behavior cha
 **Interfaces:**
 - Produces: `test(name, fn)` and `assertEq(actual, expected, msg?)` from `js/tests/run.js`; test modules registered by import in `tests.html`. Page title becomes `PASS (n)` or `FAIL (n)` so Playwright can assert on `document.title`.
 
-- [ ] **Step 1: Write js/tests/run.js**
+- [x] **Step 1: Write js/tests/run.js**
 
 ```js
 const results = [];
@@ -160,7 +160,7 @@ export function report() {
 }
 ```
 
-- [ ] **Step 2: Write tests.html**
+- [x] **Step 2: Write tests.html**
 
 ```html
 <!doctype html>
@@ -174,11 +174,11 @@ export function report() {
 </body></html>
 ```
 
-- [ ] **Step 3: Verify**
+- [x] **Step 3: Verify**
 
 Load `http://127.0.0.1:8765/web_dashboard/tests.html`. Expected: title `PASS (0)`.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add web_dashboard/tests.html web_dashboard/js/tests/run.js
