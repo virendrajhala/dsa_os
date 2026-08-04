@@ -341,6 +341,22 @@ select {
   line-height: 1.25;
 }
 
+/* A workspace opens on a section whose heading repeats the topbar title word for
+   word. app.js flags those; drop the repeated heading and keep the pill, which
+   is the only part carrying information the topbar does not already show. */
+.section-head.is-duplicate-title > div:first-child {
+  display: none;
+}
+
+.section-head.is-duplicate-title {
+  justify-content: flex-end;
+  margin-bottom: 4px;
+}
+
+.section-head.is-duplicate-title:not(:has(> .pill)) {
+  display: none;
+}
+
 .metric-card,
 .panel,
 .stage-card {
@@ -1370,7 +1386,7 @@ select {
   display: block;
   margin-bottom: 4px;
   color: var(--muted);
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 900;
   text-transform: uppercase;
 }
@@ -1826,7 +1842,7 @@ tbody tr:focus {
 
 .weakness-cues span {
   color: var(--muted);
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 900;
   text-transform: uppercase;
 }
@@ -2297,7 +2313,7 @@ tbody tr:hover {
 }
 
 .station-target {
-  font-size: 10px;
+  font-size: 11px;
 }
 
 .trajectory-terminus {
@@ -2428,7 +2444,7 @@ tbody tr:hover {
 .forecast-axis {
   fill: var(--muted);
   font-family: var(--mono);
-  font-size: 10px;
+  font-size: 11px;
   text-transform: uppercase;
 }
 
@@ -2521,7 +2537,7 @@ tbody tr:hover {
 .insight-band-label {
   fill: var(--muted);
   font-family: var(--mono);
-  font-size: 10px;
+  font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.08em;
 }
@@ -2529,7 +2545,7 @@ tbody tr:hover {
 .insight-axis {
   fill: var(--muted);
   font-family: var(--mono);
-  font-size: 10px;
+  font-size: 11px;
 }
 
 .insight-baseline {
@@ -3518,11 +3534,29 @@ th,
   background: transparent;
 }
 
+/* Two levels of nav emphasis. `in-workspace` means "this section is reachable
+   from where you are" - it lifts the text only. `active` means "this is the
+   section on screen" and is the single loud state: filled row plus accent bar.
+   Keeping these distinct is what stopped all five Curriculum links lighting up
+   together. */
+.nav-list a.in-workspace {
+  color: #e6edf5;
+}
+
+.nav-list a.in-workspace .nav-icon {
+  color: #a9bccd;
+}
+
 .nav-list a:hover,
-.nav-list a:focus,
+.nav-list a:focus {
+  background: rgba(255, 255, 255, 0.07);
+  border-color: rgba(255, 255, 255, 0.07);
+  color: #ffffff;
+}
+
 .nav-list a.active {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.11);
+  border-color: rgba(255, 255, 255, 0.14);
   color: #ffffff;
 }
 
@@ -3532,6 +3566,10 @@ th,
 
 .nav-list a.active::before {
   background: var(--accent-2);
+}
+
+.nav-list a.active .nav-icon {
+  color: var(--accent-2);
 }
 
 .nav-icon {
@@ -3921,9 +3959,12 @@ tbody tr:hover {
   min-width: 820px;
 }
 
+/* 62px could not hold "CPX-001" at the mono body size, so every single row broke
+   the id across two lines. Size the column to the id and forbid the wrap. */
 .browser-table th:nth-child(1),
 .browser-table td:nth-child(1) {
-  width: 62px;
+  width: 84px;
+  white-space: nowrap;
 }
 
 .browser-table th:nth-child(3),
@@ -5358,6 +5399,15 @@ tbody tr:hover {
   overflow: hidden;
 }
 
+/* .table-wrap is grouped above with the cards that clip their corner accent, but
+   it is the one element that has to be able to scroll: overflow:hidden truncated
+   the trailing columns of any table wider than its container, with no scrollbar
+   to say so. */
+.main .table-wrap {
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
 .main .panel:not(.briefing-next)::before,
 .main .metric-card::before,
 .main .prep-card::before,
@@ -5407,6 +5457,10 @@ tbody tr:hover {
   overflow: hidden;
 }
 
+/* Tile top-rules used to rotate accent/good/warn/bad by nth-child, so the colour
+   tracked DOM position rather than meaning - "Skills mastered 0" rendered with a
+   red rule and read as an error. Now a rule appears only when the tile carries a
+   real state, which makes the few coloured ones worth looking at. */
 .main .pace-tile::before,
 .main .retention-tile::before,
 .main .sparkline-card::before,
@@ -5416,27 +5470,21 @@ tbody tr:hover {
   position: absolute;
   inset: 0 0 auto;
   height: 3px;
-  background: var(--accent);
-  opacity: 0.7;
+  background: transparent;
 }
 
-.main .pace-tile:nth-child(4n + 1)::before,
-.main .retention-tile:nth-child(4n + 1)::before {
-  background: var(--accent);
+.main .pace-tile[data-tone="good"]::before,
+.main .retention-tile[data-tone="good"]::before {
+  background: var(--good);
 }
 
-.main .pace-tile:nth-child(4n + 2)::before,
-.main .retention-tile:nth-child(4n + 2)::before {
-  background: var(--accent-2);
-}
-
-.main .pace-tile:nth-child(4n + 3)::before,
-.main .retention-tile:nth-child(4n + 3)::before {
+.main .pace-tile[data-tone="warn"]::before,
+.main .retention-tile[data-tone="warn"]::before {
   background: var(--warn);
 }
 
-.main .pace-tile:nth-child(4n + 4)::before,
-.main .retention-tile:nth-child(4n + 4)::before {
+.main .pace-tile[data-tone="bad"]::before,
+.main .retention-tile[data-tone="bad"]::before {
   background: var(--bad);
 }
 
@@ -5835,7 +5883,7 @@ tbody tr:hover {
   --line-strong: #d6dbe6;
   --text: #111827;
   --text-strong: #0b0f19;
-  --muted: #6b7280;
+  --muted: #5b6b7b;
   --accent: #2563eb;
   --accent-2: #22c55e;
   --good: #10b981;
@@ -5849,16 +5897,39 @@ tbody tr:hover {
     linear-gradient(180deg, #fafbfe 0, #f4f6fb 360px, #f5f6fa 100%);
 }
 
+/* The topbar is position:sticky (base rule, line 266). It must therefore stay
+   opaque enough to occlude the content scrolling beneath it - an earlier pass
+   set background:transparent here and page content printed straight through the
+   header. Keep the minimal borderless look, but restore a frosted surface tuned
+   to the top of the workspace gradient, and pull the covered area up over the
+   main's own top padding so nothing peeks above the bar. */
 :root[data-theme="light"] .main .topbar {
   min-height: 84px;
   border: 0;
-  background: transparent;
+  margin-top: -22px;
+  padding-top: 22px;
+  background: linear-gradient(
+    180deg,
+    rgba(250, 251, 254, 0.97) 0%,
+    rgba(248, 250, 253, 0.94) 62%,
+    rgba(245, 246, 250, 0.88) 100%
+  );
   box-shadow: none;
-  backdrop-filter: none;
+  backdrop-filter: blur(14px) saturate(1.15);
 }
 
+/* A soft fade instead of a hard rule: content dissolves under the bar rather
+   than being cut off by a border, which keeps the minimal direction intact. */
 :root[data-theme="light"] .main .topbar::after {
-  display: none;
+  display: block;
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -18px;
+  height: 18px;
+  background: linear-gradient(180deg, rgba(245, 246, 250, 0.9) 0%, rgba(245, 246, 250, 0) 100%);
+  pointer-events: none;
 }
 
 :root[data-theme="light"] .main .topbar h2 {
@@ -5881,9 +5952,12 @@ tbody tr:hover {
   font-weight: 850;
 }
 
+/* #7b8495 measured 3.5-3.8:1 against the surfaces it actually sits on, so every
+   micro-label on the deck failed WCAG AA. #5b6b7b lands at 5.4:1 on white and
+   5.0:1 on the workspace background while reading just as quiet. */
 :root[data-theme="light"] .main .eyebrow,
 :root[data-theme="light"] .main .microlabel {
-  color: #7b8495;
+  color: #5b6b7b;
 }
 
 :root[data-theme="light"] .main .panel,
@@ -6124,4 +6198,419 @@ tbody tr:hover {
 :root[data-theme="light"] .main .tree-item.active {
   background: #eef4ff;
   color: #2563eb;
+}
+
+/* ===========================================================================
+   Skill constellation - star chart on a dark plate.
+
+   Everything here is scoped under .constellation-plate and introduces its own
+   class names, so it is deliberately NOT another light/dark repaint layer on
+   top of the stack above: nothing in this block can be overridden by, or
+   override, the component rules elsewhere in this file.
+
+   The plate keeps its ink surface in BOTH themes. That is the point of it: a
+   1px prerequisite edge vanishes on white and reads clearly on ink, and the
+   dark rail on the left stops looking orphaned once the map answers it.
+   =========================================================================== */
+
+/* The host div is now only a positioning wrapper - the plate brings its own
+   surface - so the light card chrome the container used to carry has to go, or
+   the ink plate sits inside a white frame. */
+.constellation {
+  overflow: visible;
+  padding: 0;
+  border: 0;
+  background: none;
+  box-shadow: none;
+}
+
+.constellation-plate {
+  position: relative;
+  height: clamp(520px, 76vh, 880px);
+  border-radius: 12px;
+  border: 1px solid #1e2b3a;
+  background:
+    radial-gradient(circle at 50% 50%, rgba(58, 122, 196, 0.17), transparent 46%),
+    radial-gradient(circle at 50% 50%, rgba(10, 17, 27, 0) 55%, rgba(5, 9, 15, 0.85) 100%),
+    #0a121c;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    0 18px 46px rgba(9, 16, 26, 0.28);
+  overflow: hidden;
+  cursor: grab;
+  touch-action: none;
+}
+
+.constellation-plate.is-panning {
+  cursor: grabbing;
+}
+
+.constellation-plate:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.constellation-svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.constellation-stage-labels {
+  pointer-events: none;
+}
+
+.constellation-stage {
+  fill: #5f7387;
+  font-family: var(--mono);
+  font-size: 9px;
+  paint-order: stroke;
+  stroke: #0a121c;
+  stroke-width: 3.5px;
+  stroke-linejoin: round;
+}
+
+.constellation-stage.started {
+  fill: #9fb4cb;
+}
+
+.constellation-stage.complete {
+  fill: #34d399;
+}
+
+/* Headline number in the hole left by the innermost ring. */
+.constellation-core-value {
+  fill: #dce8f5;
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.constellation-core-label {
+  fill: #61748a;
+  font-family: var(--mono);
+  font-size: 8.5px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+/* One faint circle per stage: the scale of the map, and the thing progress is
+   measured against. */
+.constellation-ring {
+  fill: none;
+  stroke: rgba(120, 160, 205, 0.11);
+  stroke-width: 1;
+}
+
+/* --- stage figures ------------------------------------------------------- */
+
+.constellation-figure {
+  fill: none;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.constellation-figure.ghost {
+  stroke: rgba(255, 255, 255, 0.05);
+  stroke-width: 1;
+}
+
+.constellation-figure.earned {
+  stroke: rgba(52, 211, 153, 0.5);
+  stroke-width: 1.5;
+  filter: drop-shadow(0 0 5px rgba(52, 211, 153, 0.3));
+  animation: constellation-draw 1200ms ease-out both;
+  stroke-dasharray: 1400;
+}
+
+@keyframes constellation-draw {
+  from {
+    stroke-dashoffset: 1400;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.constellation-figure-name {
+  fill: rgba(52, 211, 153, 0.62);
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+/* --- edges --------------------------------------------------------------- */
+
+.constellation-edge {
+  fill: none;
+  stroke: #22344a;
+  stroke-width: 1;
+  /* 137 edges at full strength is spaghetti. At this weight they read as
+     connective texture; hovering a star brings its own path up to full. */
+  opacity: 0.4;
+  transition: stroke 160ms ease, opacity 160ms ease;
+}
+
+.constellation-edge.from-mastered {
+  stroke: #35586f;
+}
+
+.constellation-edge.to-frontier {
+  stroke: rgba(96, 165, 250, 0.75);
+  stroke-width: 1.3;
+  opacity: 0.75;
+}
+
+.constellation-svg.is-isolating .constellation-edge {
+  opacity: 0.05;
+}
+
+.constellation-svg.is-isolating .constellation-edge.lit {
+  opacity: 1;
+  stroke: #7fb4ff;
+  stroke-width: 1.8;
+}
+
+/* The boundary between mastered ground and everything still ahead. */
+.constellation-frontier {
+  fill: none;
+  stroke: rgba(96, 165, 250, 0.5);
+  stroke-width: 1.4;
+  stroke-dasharray: 3 7;
+  filter: drop-shadow(0 0 7px rgba(96, 165, 250, 0.3));
+}
+
+.constellation-frontier-label {
+  fill: rgba(147, 190, 248, 0.85);
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  paint-order: stroke;
+  stroke: #0a121c;
+  stroke-width: 3px;
+}
+
+/* --- stars --------------------------------------------------------------- */
+
+.constellation-star {
+  transition: opacity 180ms ease;
+}
+
+.constellation-node {
+  cursor: pointer;
+  transition: r 140ms ease;
+}
+
+.constellation-halo {
+  pointer-events: none;
+}
+
+.constellation-label {
+  font-size: calc(11px / var(--constellation-k, 1));
+  pointer-events: none;
+  paint-order: stroke;
+  stroke: rgba(10, 18, 28, 0.9);
+  stroke-width: calc(3px / var(--constellation-k, 1));
+  stroke-linejoin: round;
+  transition: opacity 180ms ease;
+}
+
+.constellation-star.mastered .constellation-node {
+  fill: #eef4fb;
+  stroke: rgba(52, 211, 153, 0.6);
+  stroke-width: 1;
+}
+
+.constellation-star.mastered .constellation-halo {
+  fill: rgba(52, 211, 153, 0.16);
+}
+
+.constellation-star.mastered .constellation-label {
+  fill: #b6c8da;
+}
+
+.constellation-star.current .constellation-node {
+  fill: #4f9cf5;
+  stroke: #ffffff;
+  stroke-width: 1.6;
+}
+
+.constellation-star.current .constellation-halo {
+  fill: rgba(79, 156, 245, 0.2);
+  animation: constellation-pulse 2600ms ease-out infinite;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.constellation-star.current .constellation-label {
+  fill: #ffffff;
+  font-weight: 650;
+}
+
+@keyframes constellation-pulse {
+  0% {
+    transform: scale(0.62);
+    opacity: 0.75;
+  }
+  70% {
+    transform: scale(1.25);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1.25);
+    opacity: 0;
+  }
+}
+
+.constellation-star.unlocked .constellation-node {
+  fill: #101c28;
+  stroke: #5aa0ff;
+  stroke-width: 1.6;
+}
+
+.constellation-star.unlocked .constellation-label {
+  fill: #cfe0f2;
+}
+
+.constellation-star.locked .constellation-node {
+  fill: #33485f;
+  stroke: none;
+}
+
+/* Locked skills are context, not content: they label on demand only, which is
+   what keeps 93 nodes from becoming 93 competing captions. */
+.constellation-star.locked .constellation-label {
+  fill: #7e91a5;
+  opacity: 0;
+}
+
+.constellation-star.locked:hover .constellation-label,
+.constellation-star.locked:focus-within .constellation-label {
+  opacity: 1;
+}
+
+.constellation-star.faded {
+  opacity: 0.16;
+}
+
+.constellation-star.filtered-out {
+  opacity: 0.08;
+}
+
+.constellation-node:focus-visible {
+  outline: 2px solid #ffffff;
+  outline-offset: 3px;
+}
+
+/* --- controls and minimap ------------------------------------------------ */
+
+.constellation-controls {
+  position: absolute;
+  left: 14px;
+  bottom: 14px;
+  display: flex;
+  gap: 6px;
+}
+
+.constellation-control {
+  min-width: 30px;
+  height: 30px;
+  padding: 0 8px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 7px;
+  background: rgba(12, 21, 32, 0.78);
+  color: #cbd8e6;
+  font-family: var(--mono);
+  font-size: 12px;
+  cursor: pointer;
+  backdrop-filter: blur(6px);
+  transition: background 140ms ease, color 140ms ease, border-color 140ms ease;
+}
+
+.constellation-control:hover,
+.constellation-control:focus-visible {
+  background: rgba(38, 62, 92, 0.9);
+  border-color: rgba(255, 255, 255, 0.28);
+  color: #ffffff;
+}
+
+.constellation-minimap {
+  position: absolute;
+  right: 14px;
+  bottom: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.constellation-minimap-bg {
+  fill: rgba(8, 14, 22, 0.92);
+}
+
+.constellation-minimap-dot {
+  fill: #46617e;
+}
+
+.constellation-minimap-dot.mastered {
+  fill: #34d399;
+}
+
+.constellation-minimap-dot.current {
+  fill: #ffffff;
+}
+
+.constellation-minimap-dot.unlocked {
+  fill: #5aa0ff;
+}
+
+.constellation-minimap-frame {
+  fill: rgba(144, 190, 255, 0.12);
+  stroke: rgba(170, 205, 255, 0.8);
+  /* Stroke is in graph units, shown at roughly 1/20 scale. */
+  stroke-width: 34;
+}
+
+/* The legend belongs to the plate's language, not the light deck's. */
+#constellation-legend .legend-node.mastered {
+  background: #34d399;
+}
+
+#constellation-legend .legend-node.current {
+  background: #4f9cf5;
+}
+
+#constellation-legend .legend-node.unlocked {
+  background: transparent;
+  border: 2px solid #5aa0ff;
+}
+
+#constellation-legend .legend-node.locked {
+  background: #64748b;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .constellation-figure.earned {
+    animation: none;
+    stroke-dasharray: none;
+  }
+
+  .constellation-star.current .constellation-halo {
+    animation: none;
+  }
+
+  .constellation-edge,
+  .constellation-star,
+  .constellation-label {
+    transition: none;
+  }
+}
+
+@media (max-width: 720px) {
+  .constellation-minimap {
+    display: none;
+  }
 }

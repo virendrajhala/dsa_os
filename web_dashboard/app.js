@@ -21,6 +21,11 @@
     patternsById: new Map(),
     filteredProblems: [],
     activeWorkspace: "today",
+    // The single section the rail highlights; kept in sync by the scroll spy.
+    activeSection: "",
+    // Set by the constellation on draw so the toolbar filters can dim its stars
+    // without forcing a re-render (which would reset pan and zoom).
+    constellationFilter: null,
     // Lazy-loaded on first problem-modal open; never in the critical Promise.all.
     graphPromise: null,
     reverseEdges: null,
@@ -224,11 +229,10 @@
     document.querySelectorAll("[data-workspace-section]").forEach((section) => {
       section.hidden = section.dataset.workspaceSection !== active;
     });
+    // Membership in the open workspace is a *quiet* state. Which single section
+    // you are looking at is the loud one - see setActiveSection below.
     document.querySelectorAll("[data-workspace-link]").forEach((link) => {
-      const isActive = link.dataset.workspaceLink === active;
-      link.classList.toggle("active", isActive);
-      if (isActive) link.setAttribute("aria-current", "page");
-      else link.removeAttribute("aria-current");
+      link.classList.toggle("in-workspace", link.dataset.workspaceLink === active);
     });
 
     const meta = WORKSPACE_META[active];
@@ -238,6 +242,16 @@
     if (eyebrow) eyebrow.textContent = meta.eyebrow;
     if (title) title.textContent = meta.title;
     if (subtitle) subtitle.textContent = meta.subtitle;
+    // Several workspaces open on a section whose heading repeats the workspace
+    // title verbatim ("Mission briefing" over "Mission briefing"). Suppress the
+    // duplicate heading but keep its pill, which carries real data.
+    document.querySelectorAll("[data-workspace-section] .section-head").forEach((head) => {
+      const heading = head.querySelector("h3");
+      const duplicate =
+        Boolean(heading) && heading.textContent.trim().toLowerCase() === meta.title.toLowerCase();
+      head.classList.toggle("is-duplicate-title", duplicate);
+    });
+
     // Search + filters are contextual: only the list-bearing workspaces show them.
     const toolbar = $("#list-toolbar");
     if (toolbar) {
@@ -248,9 +262,70 @@
     if (targetHash) {
       const target = document.querySelector(targetHash);
       if (target) target.scrollIntoView({ behavior: "smooth", block: "start" });
+      setActiveSection(targetHash.slice(1));
     } else {
       window.scrollTo({ top: 0, behavior: "smooth" });
+      setActiveSection(firstSectionOf(active));
     }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Nav highlighting has two levels. Every link in the open workspace gets the
+  // quiet `in-workspace` treatment; exactly one link - the section actually on
+  // screen - gets `active`. Previously workspace membership set `active`, so all
+  // five Curriculum links lit at once and the rail never told you where you were.
+  // ---------------------------------------------------------------------------
+
+  function navLinks() {
+    return [...document.querySelectorAll(".nav-list a[data-workspace-link]")];
+  }
+
+  function firstSectionOf(workspace) {
+    const link = navLinks().find((item) => item.dataset.workspaceLink === workspace);
+    return link ? link.getAttribute("href").slice(1) : "";
+  }
+
+  function setActiveSection(sectionId) {
+    if (!sectionId || sectionId === state.activeSection) return;
+    state.activeSection = sectionId;
+    navLinks().forEach((link) => {
+      const isActive = link.getAttribute("href") === `#${sectionId}`;
+      link.classList.toggle("active", isActive);
+      if (isActive) link.setAttribute("aria-current", "true");
+      else link.removeAttribute("aria-current");
+    });
+  }
+
+  // Scroll spy: the active section is the last one whose top has passed under the
+  // sticky topbar. Only sections that own a nav link are considered, so sections
+  // nested inside another (revisions inside overview) never steal the highlight.
+  function spyActiveSection() {
+    const line = ($(".main .topbar")?.getBoundingClientRect().height || 0) + 24;
+    let winner = "";
+    navLinks().forEach((link) => {
+      if (link.dataset.workspaceLink !== state.activeWorkspace) return;
+      const section = document.querySelector(link.getAttribute("href"));
+      if (!section || section.hidden) return;
+      if (section.getBoundingClientRect().top <= line) winner = section.id;
+    });
+    // Scrolled above the first section: keep the workspace's first entry lit
+    // rather than leaving the rail blank.
+    setActiveSection(winner || firstSectionOf(state.activeWorkspace));
+  }
+
+  function watchActiveSection() {
+    let queued = false;
+    const onScroll = () => {
+      if (queued) return;
+      queued = true;
+      requestAnimationFrame(() => {
+        queued = false;
+        spyActiveSection();
+      });
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll, { passive: true });
+    onScroll();
   }
 
   // Theme: persisted choice wins, else the OS preference; dark is the design
@@ -2279,7 +2354,7 @@
               <p class="eyebrow">Stage ${stageNumber}</p>
               <h4>${stageName}</h4>
             </div>
-            <span class="pill ${mastery.status === "mastered" ? "good" : mastery.status === "locked" ? "" : "warn"}">${mastery.status || "unknown"}</span>
+            <span class="pill ${mastery.status === "mastered" ? "good" : mastery.status === "locked" ? "" : "warn"}">${stageStatusLabel(mastery.status)}</span>
           </div>
           <p class="stage-goal">${details.goal || "No goal recorded."}</p>
           <div class="stage-progress-box">
@@ -2324,6 +2399,19 @@
     in_progress: { label: "● in progress", tone: "warn" },
     locked: { label: "○ locked", tone: "" },
   };
+
+  // Stage status arrives from the feed as a snake_case enum. It is a wire value,
+  // never display copy - the stage cards were printing `in_progress` verbatim.
+  const STAGE_STATUS_LABEL = {
+    mastered: "Mastered",
+    in_progress: "In progress",
+    locked: "Locked",
+    open: "Open",
+  };
+
+  function stageStatusLabel(status) {
+    return STAGE_STATUS_LABEL[status] || String(status || "unknown").replace(/_/g, " ");
+  }
 
   function renderPromotionLadder() {
     const body = $("#ladder-table");
@@ -2513,13 +2601,40 @@
   // never hand-placed; edges come from dependency_graph.json.skill_dependencies.
   // ---------------------------------------------------------------------------
 
-  const CONSTELLATION = { COL_W: 128, ROW_H: 46, PAD: 32, HEADER: 40, R_MIN: 5, R_MAX: 11 };
-  const CONSTELLATION_STATE_LABEL = {
-    mastered: "mastered",
-    current: "current skill",
-    unlocked: "unlocked",
-    locked: "locked",
+  // Concentric rings, one per stage, innermost = stage 1. This replaced a
+  // 13-column grid that could not be read: only 15 of 93 skills fitted on
+  // screen at a usable zoom, so panning was mandatory and nothing was legible.
+  // Rings fix that geometrically - circumference grows with radius, which is
+  // exactly where the big stages are (stage 10 carries 17 skills), and 56% of
+  // the edges are intra-stage, which become short arcs along a ring instead of
+  // invisible verticals down a column.
+  const CONSTELLATION = {
+    W: 880,
+    H: 780,
+    R_INNER: 78,
+    R_OUTER: 336,
+    // Angular wedge kept clear at 12 o'clock so the stage labels stacking up
+    // the vertical axis never collide with a star.
+    LABEL_WEDGE_DEG: 17,
+    R_MIN: 4,
+    R_MAX: 12,
+    LABEL_MAX: 22,
+    MIN_K: 0.35,
+    MAX_K: 4,
   };
+
+  // Same skill, same place, every render - derived from the id, never random.
+  // Perfectly even spacing reads as a dial; a little scatter reads as a sky.
+  function skillJitter(skillId) {
+    let hash = 0;
+    for (let index = 0; index < skillId.length; index += 1) {
+      hash = (hash * 31 + skillId.charCodeAt(index)) | 0;
+    }
+    return {
+      angle: (((hash >>> 3) % 1000) / 1000) * 2 - 1,
+      radius: (((hash >>> 13) % 1000) / 1000) * 2 - 1,
+    };
+  }
 
   function constellationLayout() {
     const stages = state.datasets.stages.stage_order || [];
@@ -2529,26 +2644,49 @@
       const stage = skillMeta(skillId)?.stage;
       if (byStage.has(stage)) byStage.get(stage).push(skillId);
     });
-    const { COL_W, ROW_H, PAD, HEADER } = CONSTELLATION;
+
+    const { W, H, R_INNER, R_OUTER, LABEL_WEDGE_DEG } = CONSTELLATION;
+    const cx = W / 2;
+    const cy = H / 2;
+    const rings = Math.max(1, stages.length);
+    const step = rings > 1 ? (R_OUTER - R_INNER) / (rings - 1) : 0;
+    const wedge = (LABEL_WEDGE_DEG * Math.PI) / 180;
+    const sweep = Math.PI * 2 - wedge;
+    const start = -Math.PI / 2 + wedge / 2;
+
     const pos = new Map();
-    stages.forEach((stage, column) => {
-      byStage.get(stage).forEach((skillId, row) => {
+    const ringRadius = new Map();
+    stages.forEach((stage, ring) => {
+      const radius = R_INNER + ring * step;
+      ringRadius.set(stage, radius);
+      const members = byStage.get(stage);
+      const slot = sweep / Math.max(1, members.length);
+      members.forEach((skillId, index) => {
+        const noise = skillJitter(skillId);
+        // Half-slot stagger on alternate rings so stars never line up into
+        // spokes radiating from the centre.
+        const stagger = ring % 2 ? slot / 2 : 0;
+        const angle = start + stagger + (index + 0.5) * slot + noise.angle * slot * 0.16;
+        const r = radius + noise.radius * Math.min(9, step * 0.22);
         pos.set(skillId, {
-          x: PAD + column * COL_W + COL_W / 2,
-          y: PAD + HEADER + row * ROW_H,
-          column,
+          x: cx + r * Math.cos(angle),
+          y: cy + r * Math.sin(angle),
+          angle,
+          radius: r,
+          ring,
         });
       });
     });
-    const tallest = Math.max(1, ...stages.map((stage) => byStage.get(stage).length));
-    return {
-      pos,
-      byStage,
-      stages,
-      width: PAD * 2 + stages.length * COL_W,
-      height: PAD * 2 + HEADER + tallest * ROW_H,
-    };
+
+    return { pos, byStage, stages, ringRadius, cx, cy, step, width: W, height: H };
   }
+  const CONSTELLATION_STATE_LABEL = {
+    mastered: "mastered",
+    current: "current skill",
+    unlocked: "unlocked",
+    locked: "locked",
+  };
+
 
   function skillProblemCount(skillId) {
     return state.datasets.curriculum.problems.filter((problem) => problem.primary_skill === skillId)
@@ -2602,9 +2740,21 @@
     });
   }
 
+  // The map is a star chart on its own dark plate - a fixed surface in both
+  // themes. That is not decoration: a 1px prerequisite edge that disappears
+  // against white reads clearly against ink, so the graph is legible at all.
+  // Structure is the substrate (stage bands, labelled nodes, traceable edges),
+  // progress is the light painted onto it, and the frontier is the only thing
+  // carrying full weight.
+
+
+  // The map is a star chart on its own dark plate - a fixed surface in both
+  // themes. That is not decoration: a 1px prerequisite edge that disappears
+  // against white reads clearly against ink.
   function drawConstellation(host, legendHost, badge, deps) {
-    const { pos, byStage, stages, width, height } = constellationLayout();
-    const { COL_W, PAD, R_MIN, R_MAX } = CONSTELLATION;
+    const layout = constellationLayout();
+    const { pos, byStage, stages, ringRadius, cx, cy } = layout;
+    const { R_MIN, R_MAX } = CONSTELLATION;
     const ids = [...pos.keys()];
     if (!ids.length) {
       host.append(empty("No skills in the curriculum yet."));
@@ -2614,7 +2764,9 @@
     const current = currentSkillId();
     const counts = new Map(ids.map((id) => [id, skillProblemCount(id)]));
     const maxCount = Math.max(1, ...counts.values());
+    // Radius is the star's magnitude: how much of the curriculum rides on it.
     const radius = (id) => R_MIN + ((R_MAX - R_MIN) * Math.min(counts.get(id), maxCount)) / maxCount;
+    const nodeStates = new Map(ids.map((id) => [id, constellationNodeState(id, deps, current)]));
     const dependents = new Map(ids.map((id) => [id, []]));
     ids.forEach((id) => {
       (deps[id] || []).forEach((prereq) => {
@@ -2622,47 +2774,78 @@
       });
     });
 
+    const plate = document.createElement("div");
+    plate.className = "constellation-plate";
+    plate.tabIndex = 0;
+    plate.setAttribute("role", "application");
+    plate.setAttribute(
+      "aria-label",
+      "Skill map. Arrow keys pan, plus and minus zoom, f fits, c centres on unlocked skills.",
+    );
+
     const svg = svgNode("svg", {
-      viewBox: `0 0 ${width} ${height}`,
-      width,
-      height,
       class: "constellation-svg",
       role: "group",
       "aria-label": `Skill prerequisite map: ${ids.length} skills across ${stages.length} stages.`,
     });
+    const viewport = svgNode("g", { class: "constellation-viewport" });
 
-    // Stage bands + wrapped column headers.
-    stages.forEach((stage, column) => {
-      if (column % 2 === 1) {
-        svg.append(
-          svgNode("rect", {
-            x: PAD + column * COL_W,
-            y: PAD,
-            width: COL_W,
-            height: height - PAD * 2,
-            class: "constellation-band",
-          }),
-        );
-      }
-      const words = stage.split(" ");
-      const lines = words.length > 1 ? [words[0], words.slice(1).join(" ")] : words;
-      lines.forEach((line, index) => {
-        svg.append(
-          svgNode(
-            "text",
-            {
-              x: PAD + column * COL_W + COL_W / 2,
-              y: PAD + 12 + index * 12,
-              "text-anchor": "middle",
-              class: "constellation-stage",
-            },
-            line,
-          ),
-        );
-      });
+    // --- rings -------------------------------------------------------------
+    const ringLayer = svgNode("g", { class: "constellation-rings" });
+    stages.forEach((stage, ring) => {
+      const done = byStage.get(stage).filter((id) => isSkillMastered(id)).length;
+      const total = byStage.get(stage).length;
+      const circle = svgNode("circle", { cx, cy, r: ringRadius.get(stage), class: "constellation-ring" });
+      circle.append(svgNode("title", {}, `Stage ${ring + 1} · ${stage} · ${done}/${total} mastered`));
+      ringLayer.append(circle);
     });
+    viewport.append(ringLayer);
 
-    // Edges first, so nodes always sit on top of them.
+    // --- frontier ----------------------------------------------------------
+    // The shell you are currently breaking through: the mean radius of the
+    // skills whose prerequisites are all done.
+    const frontierIds = ids.filter((id) => {
+      const nodeState = nodeStates.get(id);
+      return nodeState === "unlocked" || nodeState === "current";
+    });
+    if (frontierIds.length) {
+      const meanRadius =
+        frontierIds.reduce((sum, id) => sum + pos.get(id).radius, 0) / frontierIds.length;
+      viewport.append(
+        svgNode("circle", { cx, cy, r: meanRadius, class: "constellation-frontier" }),
+      );
+      // Sits at 6 o'clock: 12 o'clock is the stage-number axis.
+      viewport.append(
+        svgNode(
+          "text",
+          { x: cx, y: cy + meanRadius + 14, "text-anchor": "middle", class: "constellation-frontier-label" },
+          "frontier",
+        ),
+      );
+    }
+
+    // --- stage figures -----------------------------------------------------
+    // A stage whose skills are all mastered draws itself as a figure. Locked
+    // stages show the same shape as a faint ghost, so the map has structure
+    // from day one and completing a stage lights up something already familiar.
+    const figureLayer = svgNode("g", { class: "constellation-figures" });
+    stages.forEach((stage) => {
+      const members = byStage.get(stage).filter((id) => pos.has(id));
+      if (members.length < 2) return;
+      const earned = members.every((id) => isSkillMastered(id));
+      figureLayer.append(
+        svgNode("polyline", {
+          points: members.map((id) => `${pos.get(id).x.toFixed(1)},${pos.get(id).y.toFixed(1)}`).join(" "),
+          class: `constellation-figure ${earned ? "earned" : "ghost"}`,
+        }),
+      );
+    });
+    viewport.append(figureLayer);
+
+    // --- edges -------------------------------------------------------------
+    // 137 edges drawn at full strength is spaghetti, not structure. They sit at
+    // low opacity so the graph reads as connective texture, and the path for
+    // whichever star you touch comes up to full strength.
     const edgeLayer = svgNode("g", { class: "constellation-edges" });
     const edgeIndex = [];
     ids.forEach((id) => {
@@ -2670,37 +2853,72 @@
         const from = pos.get(prereq);
         const to = pos.get(id);
         if (!from || !to) return;
-        const dx = Math.max(24, (to.x - from.x) / 2);
+        const targetState = nodeStates.get(id);
+        const tone =
+          targetState === "current" || targetState === "unlocked"
+            ? "to-frontier"
+            : isSkillMastered(prereq)
+              ? "from-mastered"
+              : "base";
+        // Bow every edge towards the centre so same-ring links read as arcs and
+        // cross-ring links never cut straight through the middle of the map.
+        const midX = (from.x + to.x) / 2;
+        const midY = (from.y + to.y) / 2;
+        const pull = 0.72;
         const path = svgNode("path", {
-          d: `M ${from.x} ${from.y} C ${from.x + dx} ${from.y}, ${to.x - dx} ${to.y}, ${to.x} ${to.y}`,
-          class: "constellation-edge",
+          d: `M ${from.x.toFixed(1)} ${from.y.toFixed(1)} Q ${(cx + (midX - cx) * pull).toFixed(1)} ${(cy + (midY - cy) * pull).toFixed(1)} ${to.x.toFixed(1)} ${to.y.toFixed(1)}`,
+          class: `constellation-edge ${tone}`,
         });
         edgeLayer.append(path);
         edgeIndex.push({ path, from: prereq, to: id });
       });
     });
-    svg.append(edgeLayer);
+    viewport.append(edgeLayer);
 
+    // --- stars -------------------------------------------------------------
     const nodeLayer = svgNode("g", { class: "constellation-nodes" });
     const nodeIndex = new Map();
     ids.forEach((id) => {
       const point = pos.get(id);
-      const nodeState = constellationNodeState(id, deps, current);
+      const nodeState = nodeStates.get(id);
       const count = counts.get(id);
+      const title = skillTitle(id);
+      const r = radius(id);
       const description =
-        `${skillTitle(id)} · ${skillMeta(id)?.stage || "unstaged"} · ` +
+        `${title} · ${skillMeta(id)?.stage || "unstaged"} · ` +
         `${count} problem${count === 1 ? "" : "s"} · ${CONSTELLATION_STATE_LABEL[nodeState]}`;
+
+      const group = svgNode("g", { class: `constellation-star ${nodeState}` });
+      if (nodeState === "mastered" || nodeState === "current") {
+        group.append(svgNode("circle", { cx: point.x, cy: point.y, r: r * 2.8, class: "constellation-halo" }));
+      }
       const node = svgNode("circle", {
         cx: point.x,
         cy: point.y,
-        r: radius(id),
-        class: `constellation-node ${nodeState}`,
+        r,
+        class: "constellation-node",
         tabindex: "0",
         role: "button",
         "aria-label": description,
       });
       node.append(svgNode("title", {}, description));
-      nodeIndex.set(id, node);
+
+      // Labels read outward from the centre, so they never cross the rings.
+      const outward = r + 7;
+      const facingRight = Math.cos(point.angle) >= 0;
+      const label = svgNode(
+        "text",
+        {
+          x: point.x + Math.cos(point.angle) * outward,
+          y: point.y + Math.sin(point.angle) * outward + 3.5,
+          "text-anchor": facingRight ? "start" : "end",
+          class: "constellation-label",
+        },
+        truncateLabel(title),
+      );
+      group.append(node, label);
+      nodeLayer.append(group);
+      nodeIndex.set(id, group);
 
       const isolate = () => {
         const related = new Set([id, ...skillAncestors(id, deps), ...(dependents.get(id) || [])]);
@@ -2725,10 +2943,66 @@
         event.preventDefault();
         openSingleSkillModal(id);
       });
-      nodeLayer.append(node);
     });
-    svg.append(nodeLayer);
-    host.append(svg);
+    viewport.append(nodeLayer);
+
+    // --- stage axis --------------------------------------------------------
+    // Numbers only. Full stage names were tried here and cannot work: the
+    // cleared wedge is angular, so at the inner radii it is ~23px of arc while
+    // the names are ~150px wide - they sprawled straight over the stars. A
+    // numeral fits the wedge at every radius; the name is on the ring's
+    // tooltip, and the stage board below carries the detail.
+    const stageLayer = svgNode("g", { class: "constellation-stage-labels" });
+    stages.forEach((stage, ring) => {
+      const r = ringRadius.get(stage);
+      const done = byStage.get(stage).filter((id) => isSkillMastered(id)).length;
+      const total = byStage.get(stage).length;
+      const text = svgNode(
+        "text",
+        {
+          x: cx,
+          y: cy - r + 3.2,
+          "text-anchor": "middle",
+          class: `constellation-stage ${done === total ? "complete" : done ? "started" : ""}`,
+        },
+        String(ring + 1),
+      );
+      text.append(svgNode("title", {}, `Stage ${ring + 1} · ${stage} · ${done}/${total} mastered`));
+      stageLayer.append(text);
+    });
+    viewport.append(stageLayer);
+
+    // --- centre readout ----------------------------------------------------
+    // The innermost ring leaves a hole; the map's headline number belongs in it.
+    const masteredTotal = ids.filter((id) => isSkillMastered(id)).length;
+    const core = svgNode("g", { class: "constellation-core" });
+    core.append(
+      svgNode("text", { x: cx, y: cy - 4, "text-anchor": "middle", class: "constellation-core-value" }, `${masteredTotal}/${ids.length}`),
+    );
+    core.append(
+      svgNode("text", { x: cx, y: cy + 13, "text-anchor": "middle", class: "constellation-core-label" }, "mastered"),
+    );
+    viewport.append(core);
+
+    svg.append(viewport);
+    plate.append(svg);
+
+    const controls = buildConstellationControls();
+    const minimap = buildConstellationMinimap(layout, nodeStates, radius);
+    plate.append(controls.element, minimap.element);
+    host.append(plate);
+
+    attachConstellationViewport({
+      plate,
+      viewport,
+      layout,
+      controls,
+      minimap,
+      focusIds: { current, mastered: ids.filter((id) => isSkillMastered(id)) },
+    });
+
+    state.constellationFilter = () => applyConstellationFilters(nodeIndex);
+    state.constellationFilter();
 
     const masteredCount = ids.filter((id) => isSkillMastered(id)).length;
     if (badge) {
@@ -2747,10 +3021,237 @@
       );
       const hint = document.createElement("span");
       hint.className = "microlabel";
-      hint.textContent = "hover or focus a skill to isolate its prerequisite path · enter opens it";
+      hint.textContent = "stage 1 at the centre · hover a star to trace its prerequisites · enter opens it";
       legendHost.append(hint);
     }
   }
+
+  function buildConstellationControls() {
+    const element = document.createElement("div");
+    element.className = "constellation-controls";
+    const make = (label, aria) => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "constellation-control";
+      button.textContent = label;
+      button.setAttribute("aria-label", aria);
+      element.append(button);
+      return button;
+    };
+    return {
+      element,
+      out: make("−", "Zoom out"),
+      in: make("+", "Zoom in"),
+      fit: make("fit", "Fit the whole map"),
+      focus: make("⌖", "Centre on what is unlocked now"),
+    };
+  }
+
+  function buildConstellationMinimap(layout, nodeStates, radius) {
+    const { pos, width, height } = layout;
+    const element = svgNode("svg", {
+      class: "constellation-minimap",
+      viewBox: `0 0 ${width} ${height}`,
+      preserveAspectRatio: "none",
+      "aria-hidden": "true",
+    });
+    // The graph is far wider than it is tall; letting the box keep its own
+    // aspect ratio would letterbox the map into a sliver. Height follows width.
+    const MINIMAP_W = 168;
+    element.style.width = `${MINIMAP_W}px`;
+    element.style.height = `${Math.round((MINIMAP_W * height) / width)}px`;
+    element.append(svgNode("rect", { x: 0, y: 0, width, height, class: "constellation-minimap-bg" }));
+    pos.forEach((point, id) => {
+      element.append(
+        svgNode("circle", {
+          cx: point.x,
+          cy: point.y,
+          // Radii are in graph units shown at ~1/20 scale, so true-size dots
+          // would land well under a pixel. Draw them far above scale.
+          r: Math.max(26, radius(id) * 2),
+          class: `constellation-minimap-dot ${nodeStates.get(id)}`,
+        }),
+      );
+    });
+    const frame = svgNode("rect", { class: "constellation-minimap-frame" });
+    element.append(frame);
+    return { element, frame };
+  }
+
+  // Pan/zoom over the whole map. Rings open FITTED, not focused: the whole
+  // curriculum is meant to be visible at once, which is the thing the old
+  // column layout could never do. Zoom is for reading detail, not for finding
+  // your way around.
+  function attachConstellationViewport({ plate, viewport, layout, controls, minimap, focusIds }) {
+    const { MIN_K, MAX_K } = CONSTELLATION;
+    const view = { k: 1, tx: 0, ty: 0 };
+
+    const size = () => ({ w: plate.clientWidth, h: plate.clientHeight });
+
+    function clampPan() {
+      const { w, h } = size();
+      const scaledW = layout.width * view.k;
+      const scaledH = layout.height * view.k;
+      // Keep a margin of content on screen; centre it outright when it all fits.
+      view.tx = scaledW <= w ? (w - scaledW) / 2 : clamp(view.tx, w - scaledW - 40, 40);
+      view.ty = scaledH <= h ? (h - scaledH) / 2 : clamp(view.ty, h - scaledH - 40, 60);
+    }
+
+    function apply() {
+      clampPan();
+      viewport.setAttribute("transform", `translate(${view.tx} ${view.ty}) scale(${view.k})`);
+      // Star labels are set in screen pixels, so they must be counter-scaled or
+      // they turn into billboards on zoom-in and vanish on zoom-out.
+      plate.style.setProperty("--constellation-k", String(view.k));
+      const { w, h } = size();
+      minimap.frame.setAttribute("x", -view.tx / view.k);
+      minimap.frame.setAttribute("y", -view.ty / view.k);
+      minimap.frame.setAttribute("width", w / view.k);
+      minimap.frame.setAttribute("height", h / view.k);
+    }
+
+    function zoomAt(px, py, factor) {
+      const next = clamp(view.k * factor, MIN_K, MAX_K);
+      if (next === view.k) return;
+      view.tx = px - (px - view.tx) * (next / view.k);
+      view.ty = py - (py - view.ty) * (next / view.k);
+      view.k = next;
+      apply();
+    }
+
+    function fit() {
+      const { w, h } = size();
+      view.k = clamp(Math.min(w / layout.width, h / layout.height), MIN_K, MAX_K);
+      view.tx = (w - layout.width * view.k) / 2;
+      view.ty = (h - layout.height * view.k) / 2;
+      apply();
+    }
+
+    // Zoom in on where you actually are. The current skill is a real place; the
+    // centroid of "unlocked" is not, because a skill with no prerequisites
+    // counts as unlocked wherever it sits.
+    function focusTarget() {
+      if (focusIds.current && layout.pos.has(focusIds.current)) {
+        return layout.pos.get(focusIds.current);
+      }
+      const mastered = focusIds.mastered.map((id) => layout.pos.get(id)).filter(Boolean);
+      if (mastered.length) {
+        return mastered.reduce((deepest, point) => (point.radius > deepest.radius ? point : deepest));
+      }
+      return { x: layout.cx, y: layout.cy };
+    }
+
+    function focusFrontier() {
+      const target = focusTarget();
+      const { w, h } = size();
+      view.k = clamp(1.85, MIN_K, MAX_K);
+      view.tx = w / 2 - target.x * view.k;
+      view.ty = h / 2 - target.y * view.k;
+      apply();
+    }
+
+    plate.addEventListener(
+      "wheel",
+      (event) => {
+        event.preventDefault();
+        const rect = plate.getBoundingClientRect();
+        zoomAt(event.clientX - rect.left, event.clientY - rect.top, event.deltaY < 0 ? 1.12 : 1 / 1.12);
+      },
+      { passive: false },
+    );
+
+    let dragging = null;
+    plate.addEventListener("pointerdown", (event) => {
+      // Let the stars keep their own click/focus behaviour.
+      if (event.target.closest(".constellation-node, .constellation-control")) return;
+      dragging = { x: event.clientX, y: event.clientY, tx: view.tx, ty: view.ty };
+      plate.setPointerCapture(event.pointerId);
+      plate.classList.add("is-panning");
+    });
+    plate.addEventListener("pointermove", (event) => {
+      if (!dragging) return;
+      view.tx = dragging.tx + (event.clientX - dragging.x);
+      view.ty = dragging.ty + (event.clientY - dragging.y);
+      apply();
+    });
+    const endDrag = () => {
+      dragging = null;
+      plate.classList.remove("is-panning");
+    };
+    plate.addEventListener("pointerup", endDrag);
+    plate.addEventListener("pointercancel", endDrag);
+
+    plate.addEventListener("keydown", (event) => {
+      const step = 60;
+      const keys = {
+        ArrowLeft: () => (view.tx += step),
+        ArrowRight: () => (view.tx -= step),
+        ArrowUp: () => (view.ty += step),
+        ArrowDown: () => (view.ty -= step),
+      };
+      if (keys[event.key]) {
+        event.preventDefault();
+        keys[event.key]();
+        apply();
+        return;
+      }
+      const { w, h } = size();
+      if (event.key === "+" || event.key === "=") zoomAt(w / 2, h / 2, 1.2);
+      else if (event.key === "-") zoomAt(w / 2, h / 2, 1 / 1.2);
+      else if (event.key === "f") fit();
+      else if (event.key === "c") focusFrontier();
+    });
+
+    controls.in.addEventListener("click", () => {
+      const { w, h } = size();
+      zoomAt(w / 2, h / 2, 1.2);
+    });
+    controls.out.addEventListener("click", () => {
+      const { w, h } = size();
+      zoomAt(w / 2, h / 2, 1 / 1.2);
+    });
+    controls.fit.addEventListener("click", fit);
+    controls.focus.addEventListener("click", focusFrontier);
+    window.addEventListener("resize", apply, { passive: true });
+
+    // The map is drawn while the Curriculum workspace is still hidden, so the
+    // plate has no measurable size yet and an immediate fit() would clamp to
+    // minimum zoom. Fit on the first frame the plate actually has a box.
+    let fitted = false;
+    const observer = new ResizeObserver(() => {
+      const { w, h } = size();
+      if (!w || !h) return;
+      if (!fitted) {
+        fitted = true;
+        fit();
+      } else {
+        apply();
+      }
+    });
+    observer.observe(plate);
+    apply();
+  }
+
+  function applyConstellationFilters(nodeIndex) {
+    const { query, stage: selectedStage } = currentFilters();
+    const hasFilter = Boolean(query) || Boolean(selectedStage);
+    nodeIndex.forEach((group, id) => {
+      if (!hasFilter) {
+        group.classList.remove("filtered-out");
+        return;
+      }
+      const matchesStage = !selectedStage || skillMeta(id)?.stage === selectedStage;
+      const matchesQuery = !query || skillMatchesQuery(id, query);
+      group.classList.toggle("filtered-out", !(matchesStage && matchesQuery));
+    });
+  }
+
+  function truncateLabel(text) {
+    const max = CONSTELLATION.LABEL_MAX;
+    return text.length > max ? `${text.slice(0, max - 1).trimEnd()}…` : text;
+  }
+
+
 
   function renderSkills() {
     const target = $("#skill-grid");
@@ -3532,6 +4033,8 @@
         problemMatchesStatus(problem, status)
       );
     });
+    // The map dims in place instead of re-rendering, so it keeps your pan/zoom.
+    state.constellationFilter?.();
     renderStages();
     renderWeaknessLab();
     renderDeferredLearnings();
@@ -4589,6 +5092,8 @@
       value.className = "num";
       value.textContent = tile.rate == null ? "—" : formatPct(tile.rate);
 
+      // The tone drives the tile's top rule too, so the colour states what the
+      // status text states rather than repeating the tile's position in the row.
       const status = document.createElement("span");
       if (tile.rate == null) {
         status.className = "retention-status microlabel";
@@ -4596,9 +5101,11 @@
       } else if (tile.rate >= target) {
         status.className = "retention-status microlabel good";
         status.textContent = "✓ healthy";
+        node.dataset.tone = "good";
       } else {
         status.className = "retention-status microlabel bad";
         status.textContent = "⚠ below target";
+        node.dataset.tone = "bad";
       }
 
       const detail = document.createElement("small");
@@ -5074,7 +5581,6 @@
 
     // Rolling last-30-days window (today-29 .. today), not the first 30 days.
     const xMaxDays = 29;
-    const yMax = 100;
     const endDate = referenceDate();
     const startDate = addDays(endDate, -xMaxDays);
     const windowPoints = timeline.filter((point) => point.date >= startDate && point.date <= endDate);
@@ -5088,6 +5594,21 @@
     setBadge(`${windowPoints.length} active day${windowPoints.length === 1 ? "" : "s"}`, "good");
 
     const last = windowPoints.at(-1);
+    // The y-axis was pinned at a fixed 100 so progress read as a fraction of the
+    // quarter goal. With 13 problems logged that left ~87% of the plot empty and
+    // flattened the trend into the baseline. Scale the axis to the window and
+    // keep the goal as a labelled reference in the note instead of as the domain.
+    const GOAL = 100;
+    const dataMax = Math.max(last.problems, last.skills, 1);
+    const step = dataMax <= 20 ? 5 : dataMax <= 60 ? 10 : 25;
+    const yMax = Math.min(GOAL, Math.max(step, Math.ceil((dataMax * 1.35) / step) * step));
+    // Close the area at the last plotted day, not at the right edge - otherwise
+    // the fill runs on past the final data point as though the data continued.
+    const lastElapsed = Math.max(
+      0,
+      Math.round((parseDate(last.date) - parseDate(startDate)) / (24 * 60 * 60 * 1000)),
+    );
+    const lastX = clamp((lastElapsed / xMaxDays) * 100, 0, 100).toFixed(2);
     const midDate = addDays(startDate, Math.floor(xMaxDays / 2));
     const wrap = document.createElement("div");
     wrap.className = "line-chart-wrap";
@@ -5098,7 +5619,7 @@
       </div>
       <div class="line-chart" role="img" aria-label="Cumulative completed problems and skills over the rolling 30-day window. ${last.problems} problems and ${last.skills} skills so far.">
         <svg viewBox="0 0 100 100" preserveAspectRatio="none">
-          <polyline class="line-area problems" points="${linePoints(windowPoints, "problems", yMax, xMaxDays, startDate)} 100,100 0,100" />
+          <polyline class="line-area problems" points="${linePoints(windowPoints, "problems", yMax, xMaxDays, startDate)} ${lastX},100 0,100" />
           <polyline class="line-stroke problems" points="${linePoints(windowPoints, "problems", yMax, xMaxDays, startDate)}" />
           <polyline class="line-stroke skills" points="${linePoints(windowPoints, "skills", yMax, xMaxDays, startDate)}" />
         </svg>
@@ -5117,7 +5638,11 @@
         { label: `skills touched · ${last.skills}`, shape: "line", color: "var(--series-2)" },
       ]),
     );
-    host.append(chartNote(`Y-axis is a fixed ${yMax}-count target, so progress stays proportional to the goal.`));
+    host.append(
+      chartNote(
+        `${last.problems} of the ${GOAL}-problem goal. The axis scales to this window so the trend stays readable.`,
+      ),
+    );
   }
 
   const DIFFICULTY_SERIES = {
@@ -5389,6 +5914,7 @@
           switchWorkspace(link.dataset.workspaceLink, link.getAttribute("href"));
         });
       });
+      watchActiveSection();
       $("#modal-close").addEventListener("click", () => $("#skill-modal").close());
       $("#skill-modal").addEventListener("click", (event) => {
         if (event.target === $("#skill-modal")) {
