@@ -225,6 +225,7 @@
   function switchWorkspace(workspace, targetHash = "") {
     const active = WORKSPACE_META[workspace] ? workspace : "today";
     state.activeWorkspace = active;
+    renderWorkspace(active);
     document.querySelectorAll("[data-workspace-section]").forEach((section) => {
       section.hidden = section.dataset.workspaceSection !== active;
     });
@@ -5825,41 +5826,39 @@
     banner.hidden = false;
   }
 
+  const RENDERERS = {
+    global: [renderDataWarning],
+    byWorkspace: {
+      today: [renderNextAction, renderTrajectory, renderReadiness, renderDueQueue, renderForecast, renderPaceTiles, renderTodayContract],
+      plan: [renderWeekScoreboard, renderMonthMilestones, renderQuarterRoadmap],
+      problems: [renderProblemBrowser],
+      practice: [renderWeaknessLab, renderEdgeCases],
+      curriculum: [renderStages, renderPromotionLadder, renderConstellation, renderSkills, renderPatterns],
+      evidence: [
+        renderDeferredLearnings, renderThinkingBars, renderProblemTable, renderThinkingProfile,
+        renderLearningNotes, renderHintIndependence, renderMockTrend, renderRetentionTiles,
+        renderConsistency, renderTimeInvested, renderActivityHeatmap, renderRevisionCalendar,
+      ],
+    },
+  };
+  const renderedClean = new Set(); // workspaces whose renderers ran since last data change
+
+  function markAllDirty() {
+    renderedClean.clear();
+  }
+
+  function renderWorkspace(workspace) {
+    if (renderedClean.has(workspace)) return;
+    (RENDERERS.byWorkspace[workspace] || []).forEach((fn) => fn());
+    renderedClean.add(workspace);
+  }
+
   function renderAll() {
     $("#last-updated").textContent = `Updated ${state.datasets.progress.last_updated}`;
     $("#reference-date-pill").textContent = `Reference date ${referenceDate()}`;
-    renderDataWarning();
-    renderNextAction();
-    renderTrajectory();
-    renderReadiness();
-    renderDueQueue();
-    renderForecast();
-    renderPaceTiles();
-    renderTodayContract();
-    renderWeekScoreboard();
-    renderMonthMilestones();
-    renderQuarterRoadmap();
-    renderThinkingBars();
-    renderWeaknessLab();
-    renderDeferredLearnings();
-    renderEdgeCases();
-    renderStages();
-    renderPromotionLadder();
-    renderConstellation();
-    renderSkills();
-    renderPatterns();
-    renderProblemBrowser();
-    renderProblemTable();
-    renderThinkingProfile();
-    renderLearningNotes();
-    renderHintIndependence();
-    renderMockTrend();
-    renderRetentionTiles();
-    renderConsistency();
-    renderTimeInvested();
-    renderActivityHeatmap();
-    renderRevisionCalendar();
-    switchWorkspace(state.activeWorkspace);
+    RENDERERS.global.forEach((fn) => fn());
+    markAllDirty();
+    switchWorkspace(state.activeWorkspace); // switchWorkspace calls renderWorkspace
   }
 
   async function main() {
@@ -5947,5 +5946,7 @@ export {
   problemStatus,
   WORKSPACE_META,
   EDGE_CASE_GROUPS,
+  RENDERERS,
+  markAllDirty,
   main,
 };

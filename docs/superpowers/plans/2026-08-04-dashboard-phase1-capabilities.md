@@ -535,7 +535,7 @@ forecast with backlog-if-idle, pace projection, fuzzy scorer"
 - Produces: exported `RENDERERS` = `{ global: [fn...], byWorkspace: { today: [...], plan: [...], problems: [...], practice: [...], curriculum: [...], evidence: [...] } }` and exported `markAllDirty()`. Later tasks push feature renderers into these arrays.
 - Behavior contract: `renderAll()` runs global renderers + the ACTIVE workspace's renderers only; `switchWorkspace(ws)` renders `ws`'s renderers if dirty, then proceeds as before. Feed refresh (`visibilitychange`) calls `markAllDirty()` then `renderAll()`.
 
-- [ ] **Step 1: Build the registry in legacy/app.js**
+- [x] **Step 1: Build the registry in legacy/app.js**
 
 Directly above `renderAll()`, add (mapping current renderAll body by the section→workspace attribution in index.html `data-workspace-section`):
 
@@ -568,7 +568,7 @@ function renderWorkspace(workspace) {
 }
 ```
 
-- [ ] **Step 2: Rewrite renderAll body**
+- [x] **Step 2: Rewrite renderAll body**
 
 ```js
 function renderAll() {
@@ -584,15 +584,15 @@ In `switchWorkspace(workspace, targetHash)`, immediately after `state.activeWork
 
 CAUTION: `buildStageOptions()` and any code that reads DOM built by renderers must still work — search for reads of `#stage-filter` etc.; those are built from datasets, not renders, so unaffected. The constellation `state.constellationFilter` logic assumed renderConstellation ran; it now runs on first curriculum visit — verify filters still attach (they're wired inside renderConstellation, so fine).
 
-- [ ] **Step 3: Add exports**
+- [x] **Step 3: Add exports**
 
 Append `RENDERERS, markAllDirty,` to the export block from Task 1.
 
-- [ ] **Step 4: Verify**
+- [x] **Step 4: Verify**
 
 Reload dashboard. Expected: Today paints; DevTools → Elements: `#constellation` is EMPTY until you open Curriculum, then populates; `#problem-table` empty until Evidence. Switch through all 6 workspaces — every view renders on first visit. Toggle theme, use curriculum search filter, open problem modal — all work. Switch away and back — no duplicate content (renderers are idempotent: they rebuild innerHTML; confirm no view appends duplicates — if one does, it renders twice only when dirty, still fine).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add web_dashboard/js/legacy/app.js
