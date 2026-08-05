@@ -1,0 +1,150 @@
+/* Problem browser: a stage/skill tree beside the catalog table.
+
+   Status is carried by a glyph AND a word before any colour joins in, so the
+   table stays readable to anyone who cannot separate the hues. */
+
+@layer components {
+  .browser-layout {
+    display: grid;
+    grid-template-columns: 280px minmax(0, 1fr);
+    gap: var(--sp-4);
+    align-items: start;
+  }
+
+  /* ---- tree -------------------------------------------------------------- */
+
+  .browser-tree {
+    display: grid;
+    align-content: start;
+    gap: 2px;
+    max-height: 70vh;
+    overflow-y: auto;
+    padding: var(--sp-2);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-m);
+    background: var(--surface);
+  }
+
+  .tree-stage > summary {
+    list-style: none;
+    cursor: pointer;
+  }
+
+  .tree-stage > summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .tree-item {
+    position: relative;
+    display: block;
+    width: 100%;
+    padding: var(--sp-1) var(--sp-2);
+    border: 1px solid transparent;
+    border-radius: var(--radius-s);
+    background: transparent;
+    font-size: var(--fs-1);
+    text-align: left;
+    color: var(--text-2);
+  }
+
+  .tree-item:hover {
+    background: color-mix(in oklab, var(--text) 5%, transparent);
+    border-color: transparent;
+    color: var(--text);
+  }
+
+  .tree-stage > summary .tree-item {
+    font-size: var(--fs-2);
+    font-weight: 650;
+    color: var(--text);
+  }
+
+  .tree-skill {
+    padding-left: var(--sp-5);
+  }
+
+  /* Selection: an inset accent bar plus a wash - position and colour together. */
+  .tree-item.active {
+    background: color-mix(in oklab, var(--accent) 10%, transparent);
+    color: var(--accent);
+  }
+
+  .tree-item.active::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: var(--sp-1);
+    bottom: var(--sp-1);
+    width: 2px;
+    border-radius: 2px;
+    background: var(--accent);
+  }
+
+  /* ---- catalog table ----------------------------------------------------- */
+
+  .browser-table {
+    min-width: 0;
+    display: grid;
+    gap: var(--sp-3);
+  }
+
+  .browser-table table {
+    min-width: 760px;
+  }
+
+  .browser-row {
+    cursor: pointer;
+  }
+
+  /* The problem id is an atom: "CPX-001" must never break across two lines. */
+  .browser-row td:first-child {
+    white-space: nowrap;
+  }
+
+  .browser-row:focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: -2px;
+  }
+
+  .status-cell {
+    display: table-cell;
+    white-space: nowrap;
+  }
+
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--sp-1);
+    font-size: var(--fs-1);
+    font-weight: 500;
+  }
+
+  .status-badge.status-solved {
+    color: var(--good);
+  }
+
+  .status-badge.status-mastered {
+    color: var(--accent);
+  }
+
+  .status-badge.status-failed {
+    color: var(--bad);
+  }
+
+  .status-badge.status-not_started {
+    color: var(--muted);
+  }
+
+  .status-detail {
+    display: block;
+    font-size: var(--fs-0);
+    color: var(--text-2);
+  }
+
+  /* Interview frequency is a rank, not a category: filled glyphs carry it, ink
+     stays neutral so the column never competes with the status column. */
+  .freq-cell {
+    letter-spacing: 0.06em;
+    color: var(--text-2);
+  }
+}

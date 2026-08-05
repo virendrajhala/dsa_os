@@ -1,0 +1,140 @@
+/* Practice: weakness lab, near-complete nudges, edge-case checklist.
+   All three are card grids over the same prep-card box. */
+
+@layer components {
+  .weakness-grid,
+  .edge-case-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: var(--sp-4);
+    align-items: start;
+  }
+
+  .prep-card {
+    display: grid;
+    gap: var(--sp-3);
+    align-content: start;
+    padding: var(--sp-4);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-m);
+    background: var(--surface);
+  }
+
+  .prep-card.wide {
+    grid-column: 1 / -1;
+  }
+
+  .prep-card h4 {
+    font-size: var(--fs-3);
+  }
+
+  .prep-card > p {
+    color: var(--text-2);
+  }
+
+  .prep-card .section-head {
+    align-items: start;
+    min-height: 0;
+  }
+
+  .prep-card .stage-skill-open {
+    justify-self: start;
+  }
+
+  /* ---- weakness cues ------------------------------------------------------ */
+
+  .weakness-cues {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: var(--sp-2);
+  }
+
+  .weakness-cues > div {
+    display: grid;
+    gap: var(--sp-1);
+    padding: var(--sp-2) var(--sp-3);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-s);
+    background: var(--surface-2);
+  }
+
+  .weakness-cues span {
+    font-family: var(--mono);
+    font-size: var(--fs-0);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-2);
+  }
+
+  .weakness-cues strong {
+    font-size: var(--fs-2);
+    font-weight: 500;
+    color: var(--text);
+  }
+
+  .meta-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sp-2);
+  }
+
+  .compact-line {
+    font-size: var(--fs-2);
+    color: var(--text-2);
+  }
+
+  .compact-line strong {
+    color: var(--text);
+  }
+
+  /* ---- edge-case checklist ------------------------------------------------ */
+
+  .complexity-list {
+    display: grid;
+    gap: var(--sp-1);
+  }
+
+  .complexity-row {
+    display: grid;
+    grid-template-columns: 160px minmax(0, 1fr);
+    gap: var(--sp-3);
+    align-items: baseline;
+    padding: var(--sp-2) var(--sp-3);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-s);
+    background: var(--surface-2);
+  }
+
+  .complexity-row strong {
+    font-family: var(--mono);
+    font-size: var(--fs-2);
+    font-weight: 500;
+  }
+
+  .complexity-row span {
+    font-size: var(--fs-2);
+    color: var(--text-2);
+  }
+
+  .routine-list {
+    display: grid;
+    gap: var(--sp-2);
+    margin: 0;
+    padding-left: var(--sp-5);
+    color: var(--text-2);
+  }
+
+  .routine-list li strong {
+    color: var(--text);
+  }
+
+  /* ---- nudges ------------------------------------------------------------- */
+
+  .nudge-card {
+    text-align: left;
+  }
+
+  .nudge-card:hover {
+    border-color: var(--line-strong);
+  }
+}

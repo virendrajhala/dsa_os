@@ -245,6 +245,20 @@
     color: var(--text-2);
   }
 
+  /* The app's one secondary button. Four views emit it (`Start recall`,
+     `View plan`, `View N skills`, skill-grid rows), so it lives with the other
+     button primitives rather than in any single view's file. */
+  .stage-skill-open:not([hidden]) {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--sp-2);
+    padding-inline: var(--sp-4);
+    font-size: var(--fs-2);
+    font-weight: 500;
+    color: var(--text);
+  }
+
   .icon-button:not([hidden]) {
     display: inline-flex;
     align-items: center;
