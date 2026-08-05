@@ -969,9 +969,9 @@
     svg.append(svgEl("path", {
       d: backlogPath,
       class: "forecast-backlog",
-      fill: "var(--warn, #d9822b)",
-      "fill-opacity": 0.1,
-      stroke: "var(--warn, #d9822b)",
+      fill: "var(--warn)",
+      "fill-opacity": 0.18,
+      stroke: "var(--warn)",
       "stroke-opacity": 0.45,
       "stroke-width": 1,
       "pointer-events": "none",
@@ -5759,9 +5759,9 @@
   }
 
   const DIFFICULTY_SERIES = {
-    Easy: "var(--series-3)",
-    Medium: "var(--series-4)",
-    Hard: "var(--series-8)",
+    Easy: "var(--series-1)",
+    Medium: "var(--series-2)",
+    Hard: "var(--series-3)",
     Unknown: "var(--muted)",
   };
 

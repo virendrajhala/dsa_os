@@ -19,17 +19,17 @@ function renderRetentionGauge(host, stats) {
   const r = 86;
   const svg = svgEl("svg", { viewBox: `0 0 ${W} ${H}`, class: "retention-gauge-svg", role: "img" });
   const arc = (radius) => `M ${cx - radius} ${cy} A ${radius} ${radius} 0 0 1 ${cx + radius} ${cy}`;
-  svg.append(svgEl("path", { d: arc(r), fill: "none", stroke: "currentColor", "stroke-opacity": 0.15, "stroke-width": 12, "stroke-linecap": "round", pathLength: 100 }));
+  svg.append(svgEl("path", { d: arc(r), fill: "none", stroke: "var(--line)", "stroke-width": 12, "stroke-linecap": "round", pathLength: 100 }));
   if (stats.rate !== null) {
     svg.append(svgEl("path", {
-      d: arc(r), fill: "none", stroke: "var(--accent, #4ba3a0)", "stroke-width": 12, "stroke-linecap": "round",
+      d: arc(r), fill: "none", stroke: "var(--series-1)", "stroke-width": 12, "stroke-linecap": "round",
       pathLength: 100, "stroke-dasharray": `${(stats.rate * 100).toFixed(1)} 100`,
     }));
   }
   // Target tick at 90%
   const t1 = gaugePoint(cx, cy, r - 10, TARGET);
   const t2 = gaugePoint(cx, cy, r + 10, TARGET);
-  svg.append(svgEl("line", { x1: t1.x, y1: t1.y, x2: t2.x, y2: t2.y, stroke: "currentColor", "stroke-opacity": 0.6, "stroke-width": 2 }));
+  svg.append(svgEl("line", { x1: t1.x, y1: t1.y, x2: t2.x, y2: t2.y, stroke: "var(--good)", "stroke-width": 2 }));
   svg.append(svgEl("text", { x: cx, y: cy - 26, "text-anchor": "middle", class: "gauge-value num", fill: "currentColor", "font-size": 26 },
     stats.rate === null ? "–" : `${Math.round(stats.rate * 100)}%`));
   svg.append(svgEl("text", { x: cx, y: cy - 6, "text-anchor": "middle", fill: "currentColor", "fill-opacity": 0.65, "font-size": 11 },
@@ -56,10 +56,10 @@ function renderMaturityDonut(host, buckets, bucketItems) {
   const C = 2 * Math.PI * r;
   const svg = svgEl("svg", { viewBox: `0 0 ${W} ${H}`, class: "maturity-donut-svg", role: "img" });
   const order = [
-    { key: "new", label: "new", color: "color-mix(in srgb, currentColor 18%, transparent)" },
-    { key: "learning", label: "learning · R1-R2 ahead", color: "var(--warn, #d9822b)" },
-    { key: "young", label: "young · stage 2-3", color: "var(--series-1, #5aa9e6)" },
-    { key: "mature", label: "mature · mastered", color: "var(--good, #3f9c6b)" },
+    { key: "new", label: "new", color: "var(--muted)" },
+    { key: "learning", label: "learning · R1-R2 ahead", color: "var(--seq-2)" },
+    { key: "young", label: "young · stage 2-3", color: "var(--seq-3)" },
+    { key: "mature", label: "mature · mastered", color: "var(--seq-4)" },
   ];
   const center = svgEl("text", { x: cx, y: cy - 2, "text-anchor": "middle", fill: "currentColor", "font-size": 22, class: "num" }, String(total));
   const centerLabel = svgEl("text", { x: cx, y: cy + 16, "text-anchor": "middle", fill: "currentColor", "fill-opacity": 0.65, "font-size": 10 }, "problems");
