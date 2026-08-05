@@ -240,12 +240,7 @@
       section.hidden =
         section.dataset.workspaceSection !== active || section.dataset.tabHidden === "true";
     });
-    // Membership in the open workspace is a *quiet* state. Which single section
-    // you are looking at is the loud one - see setActiveSection below.
-    document.querySelectorAll("[data-workspace-link]").forEach((link) => {
-      link.classList.toggle("in-workspace", link.dataset.workspaceLink === active);
-    });
-
+    // Group highlighting belongs to engine/sidebar.js now.
     const meta = WORKSPACE_META[active];
     const eyebrow = $("#workspace-eyebrow");
     const title = $("#workspace-title");
@@ -253,15 +248,6 @@
     if (eyebrow) eyebrow.textContent = meta.eyebrow;
     if (title) title.textContent = meta.title;
     if (subtitle) subtitle.textContent = meta.subtitle;
-    // Several workspaces open on a section whose heading repeats the workspace
-    // title verbatim ("Mission briefing" over "Mission briefing"). Suppress the
-    // duplicate heading but keep its pill, which carries real data.
-    document.querySelectorAll("[data-workspace-section] .section-head").forEach((head) => {
-      const heading = head.querySelector("h3");
-      const duplicate =
-        Boolean(heading) && heading.textContent.trim().toLowerCase() === meta.title.toLowerCase();
-      head.classList.toggle("is-duplicate-title", duplicate);
-    });
 
     // Search + filters are contextual: only the list-bearing workspaces show them.
     const toolbar = $("#list-toolbar");
@@ -287,20 +273,24 @@
   // five Curriculum links lit at once and the rail never told you where you were.
   // ---------------------------------------------------------------------------
 
+  // Section links in the rebuilt rail carry `data-rail-target="s:<sectionId>"`;
+  // evidence entries carry `tab:` targets and are not section links at all.
   function navLinks() {
-    return [...document.querySelectorAll(".nav-list a[data-workspace-link]")];
+    return [...document.querySelectorAll('.rail-nav a[data-rail-target^="s:"]')];
   }
 
   function firstSectionOf(workspace) {
-    const link = navLinks().find((item) => item.dataset.workspaceLink === workspace);
-    return link ? link.getAttribute("href").slice(1) : "";
+    const link = document.querySelector(
+      `.rail-nav a[data-rail-workspace="${workspace}"][data-rail-target^="s:"]`,
+    );
+    return link ? link.dataset.railTarget.slice(2) : "";
   }
 
   function setActiveSection(sectionId) {
     if (!sectionId || sectionId === state.activeSection) return;
     state.activeSection = sectionId;
     navLinks().forEach((link) => {
-      const isActive = link.getAttribute("href") === `#${sectionId}`;
+      const isActive = link.dataset.railTarget === `s:${sectionId}`;
       link.classList.toggle("active", isActive);
       if (isActive) link.setAttribute("aria-current", "true");
       else link.removeAttribute("aria-current");
@@ -313,13 +303,22 @@
   function spyActiveSection() {
     const line = ($(".main .topbar")?.getBoundingClientRect().height || 0) + 24;
     let winner = "";
+    let best = Infinity;
     navLinks().forEach((link) => {
-      if (link.dataset.workspaceLink !== state.activeWorkspace) return;
-      const section = document.querySelector(link.getAttribute("href"));
+      if (link.dataset.railWorkspace !== state.activeWorkspace) return;
+      const section = document.getElementById(link.dataset.railTarget.slice(2));
       if (!section || section.hidden) return;
       // Evidence sections are reached by tab, not by rail section links.
       if (section.dataset.evidenceTab) return;
-      if (section.getBoundingClientRect().top <= line) winner = section.id;
+      // The section under the topbar wins. When a jump lands the target just
+      // BELOW the line (the sticky topbar eats the offset), the nearest section
+      // still wins, so the rail never points at the row above the one you asked for.
+      const top = section.getBoundingClientRect().top;
+      const distance = top <= line ? line - top : (top - line) * 3;
+      if (distance < best) {
+        best = distance;
+        winner = section.id;
+      }
     });
     // Scrolled above the first section: keep the workspace's first entry lit
     // rather than leaving the rail blank.
@@ -6015,16 +6014,9 @@
         browserState.sort = browserSort.value;
         renderProblemBrowser();
       });
-      // Navigation is the router's job now; legacy only announces the intent so
-      // it never has to import the router (which imports legacy).
-      document.querySelectorAll("[data-workspace-link]").forEach((link) => {
-        link.addEventListener("click", (event) => {
-          event.preventDefault();
-          document.dispatchEvent(new CustomEvent("dash:navigate", {
-            detail: { workspace: link.dataset.workspaceLink, section: link.getAttribute("href").slice(1) },
-          }));
-        });
-      });
+      // Rail links are plain hash links; the router picks them up from
+      // hashchange. Keyboard chords and the palette still announce intent
+      // through the `dash:navigate` event that main.js listens for.
       watchActiveSection();
       $("#modal-close").addEventListener("click", () => $("#skill-modal").close());
       $("#skill-modal").addEventListener("click", (event) => {

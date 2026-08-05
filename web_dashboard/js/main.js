@@ -4,6 +4,7 @@ import { initKeyboard, registerList } from "./engine/keyboard.js";
 import { initPalette } from "./engine/palette.js";
 import { startRouter, onRoute, navigate } from "./engine/router.js";
 import { initEvidenceTabs } from "./engine/tabs.js";
+import { initSidebar } from "./engine/sidebar.js";
 import { viewSwitch } from "./engine/motion.js";
 import "./features/motivation.js";
 import "./features/memory.js";
@@ -62,5 +63,6 @@ onRoute((route) => {
 });
 
 initEvidenceTabs();
+initSidebar();
 
 startRouter();

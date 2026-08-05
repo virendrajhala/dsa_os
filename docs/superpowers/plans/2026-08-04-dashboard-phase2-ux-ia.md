@@ -361,7 +361,7 @@ git commit -m "enhancement/dashboard: today reduced to mission control; nudges j
 - Consumes: `navigate`, `onRoute` (router); `EVIDENCE_TABS` (tabs.js); `WORKSPACE_META` (legacy).
 - Produces: new rail markup contract used by legacy's spy/highlight code: workspace header links = `.rail-group > summary a[data-rail-workspace]`; child links = `a[data-rail-workspace][data-rail-target]` where target is `s:<sectionId>` or `tab:<tabId>`. Legacy's old `navLinks()`/`firstSectionOf()`/`setActiveSection()` are REWRITTEN here to the new selectors.
 
-- [ ] **Step 1: New rail markup** (replaces the whole `nav.nav-list` block; groups are native `<details name>` is NOT used — groups open independently):
+- [x] **Step 1: New rail markup** (replaces the whole `nav.nav-list` block; groups are native `<details name>` is NOT used — groups open independently):
 
 ```html
 <nav class="rail-nav" aria-label="Dashboard navigation">
@@ -407,7 +407,7 @@ git commit -m "enhancement/dashboard: today reduced to mission control; nudges j
 
 (Place `#rail-collapse` in the `.rail-footer` next to the theme toggle.) Since all real navigation is href-driven now, links work with the router directly (hash hrefs) — NO click handlers needed; the router's hashchange path handles everything, including section scroll via the `s` param.
 
-- [ ] **Step 2: Write js/engine/sidebar.js**
+- [x] **Step 2: Write js/engine/sidebar.js**
 
 ```js
 import { onRoute } from "./router.js";
@@ -449,7 +449,7 @@ export function initSidebar() {
 }
 ```
 
-- [ ] **Step 3: Rewrite legacy nav-dependent code**
+- [x] **Step 3: Rewrite legacy nav-dependent code**
 
 In `js/legacy/app.js`:
 1. `navLinks()` → `return [...document.querySelectorAll('.rail-nav a[data-rail-target^="s:"]')];`
@@ -459,15 +459,15 @@ In `js/legacy/app.js`:
 5. The old `[data-workspace-link]` click-listener block in `main()` and the `dash:navigate` CustomEvent from Task 1 for nav links: remove the listener block entirely (rail links are plain hash links now). KEEP the `dash:navigate` event path — keyboard chords and palette still use it.
 6. Scroll spy: already excludes evidence sections (Task 2). Confirm the spy calls `setActiveSection` only for the active workspace's sections.
 
-- [ ] **Step 4: sidebar.css**
+- [x] **Step 4: sidebar.css**
 
 New-class styles only: `.rail-nav` column; `.rail-group summary` row (marker hidden, custom chevron via `::after` rotating 90° in `var(--dur-feedback)`); `.rail-group.in-workspace summary a` tint + 2px accent inset bar; child `a` indent, `.active` accent; `body.rail-collapsed .sidebar` narrows to 56px — child links hidden, summaries show two-letter monogram (`data-group` first letters via `::first-letter`-style or a `span.rail-icon` added per summary: simpler — add `<span class="rail-icon num">TD</span>` etc. inside each summary before the `<a>`, hidden when expanded, shown when collapsed); summary links get `title` attributes for collapsed-state tooltips. Grid: `.app-shell` sidebar column is legacy-styled — set width via `body.rail-collapsed .app-shell { grid-template-columns: 56px 1fr; }` ONLY if legacy uses grid-template-columns on `.app-shell`; verify with DevTools first and mirror whatever layout property legacy uses, from the new file (overriding the layout of `.app-shell` under a NEW body class is additive, not a legacy override).
 
-- [ ] **Step 5: Wire** — main.js: `import { initSidebar } from "./engine/sidebar.js"; initSidebar();` before `startRouter()`.
+- [x] **Step 5: Wire** — main.js: `import { initSidebar } from "./engine/sidebar.js"; initSidebar();` before `startRouter()`.
 
-- [ ] **Step 6: Verify** — groups collapse/expand and survive reload; navigating to a workspace auto-opens its group; collapse button → icon rail (56px) with monograms + title tooltips, survives reload; section links scroll + spy highlights; evidence child links switch tabs and highlight by route; no doubled titles anywhere; keyboard `g` chords + palette still navigate; `?` help unaffected. Both themes.
+- [x] **Step 6: Verify** — groups collapse/expand and survive reload; navigating to a workspace auto-opens its group; collapse button → icon rail (56px) with monograms + title tooltips, survives reload; section links scroll + spy highlights; evidence child links switch tabs and highlight by route; no doubled titles anywhere; keyboard `g` chords + palette still navigate; `?` help unaffected. Both themes.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add web_dashboard/index.html web_dashboard/js/engine/sidebar.js web_dashboard/css/components/sidebar.css web_dashboard/js/legacy/app.js web_dashboard/js/main.js

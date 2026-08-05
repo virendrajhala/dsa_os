@@ -13,6 +13,7 @@
     <link rel="stylesheet" href="./css/components/features.css" />
     <link rel="stylesheet" href="./css/components/focus.css" />
     <link rel="stylesheet" href="./css/components/tabs.css" />
+    <link rel="stylesheet" href="./css/components/sidebar.css" />
   </head>
   <body>
     <div class="app-shell">
@@ -24,38 +25,46 @@
             <p class="microlabel">Mission Deck</p>
           </div>
         </div>
-        <nav class="nav-list">
-          <span class="nav-group microlabel">Today</span>
-          <a href="#overview" data-workspace-link="today"><span class="nav-icon num" aria-hidden="true">MB</span><span class="nav-text">Mission Briefing</span></a>
-          <a href="#revisions" data-workspace-link="today"><span class="nav-icon num" aria-hidden="true">RQ</span><span class="nav-text">Revision Queue</span></a>
-          <span class="nav-group microlabel">Plan</span>
-          <a href="#week-scoreboard" data-workspace-link="plan"><span class="nav-icon num" aria-hidden="true">WS</span><span class="nav-text">Week Scoreboard</span></a>
-          <a href="#month-milestones" data-workspace-link="plan"><span class="nav-icon num" aria-hidden="true">MM</span><span class="nav-text">Month Milestones</span></a>
-          <a href="#quarter-roadmap" data-workspace-link="plan"><span class="nav-icon num" aria-hidden="true">QR</span><span class="nav-text">Quarter Roadmap</span></a>
-          <span class="nav-group microlabel">Problems</span>
-          <a href="#problem-browser" data-workspace-link="problems"><span class="nav-icon num" aria-hidden="true">PB</span><span class="nav-text">Browse Problems</span></a>
-          <span class="nav-group microlabel">Practice</span>
-          <a href="#weakness-lab" data-workspace-link="practice"><span class="nav-icon num" aria-hidden="true">WL</span><span class="nav-text">Weakness Lab</span></a>
-          <a href="#edge-cases" data-workspace-link="practice"><span class="nav-icon num" aria-hidden="true">EC</span><span class="nav-text">Edge Checklist</span></a>
-          <span class="nav-group microlabel">Curriculum</span>
-          <a href="#skills-constellation" data-workspace-link="curriculum"><span class="nav-icon num" aria-hidden="true">CN</span><span class="nav-text">Constellation</span></a>
-          <a href="#stages" data-workspace-link="curriculum"><span class="nav-icon num" aria-hidden="true">SM</span><span class="nav-text">Stage Map</span></a>
-          <a href="#promotion-ladder" data-workspace-link="curriculum"><span class="nav-icon num" aria-hidden="true">PL</span><span class="nav-text">Promotion Ladder</span></a>
-          <a href="#skills" data-workspace-link="curriculum"><span class="nav-icon num" aria-hidden="true">SK</span><span class="nav-text">Skills</span></a>
-          <a href="#patterns" data-workspace-link="curriculum"><span class="nav-icon num" aria-hidden="true">PI</span><span class="nav-text">Pattern Index</span></a>
-          <span class="nav-group microlabel">Evidence</span>
-          <a href="#history" data-workspace-link="evidence"><span class="nav-icon num" aria-hidden="true">PH</span><span class="nav-text">Problem History</span></a>
-          <a href="#thinking" data-workspace-link="evidence"><span class="nav-icon num" aria-hidden="true">TP</span><span class="nav-text">Thinking Profile</span></a>
-          <a href="#hint-independence" data-workspace-link="evidence"><span class="nav-icon num" aria-hidden="true">HI</span><span class="nav-text">Hint Independence</span></a>
-          <a href="#mock-trend" data-workspace-link="evidence"><span class="nav-icon num" aria-hidden="true">MT</span><span class="nav-text">Mock Trend</span></a>
-          <a href="#retention" data-workspace-link="evidence"><span class="nav-icon num" aria-hidden="true">RT</span><span class="nav-text">Retention</span></a>
-          <a href="#consistency" data-workspace-link="evidence"><span class="nav-icon num" aria-hidden="true">CS</span><span class="nav-text">Consistency</span></a>
-          <a href="#time-invested" data-workspace-link="evidence"><span class="nav-icon num" aria-hidden="true">TI</span><span class="nav-text">Time Invested</span></a>
-          <a href="#activity-heatmap" data-workspace-link="evidence"><span class="nav-icon num" aria-hidden="true">AH</span><span class="nav-text">Activity Heatmap</span></a>
-          <a href="#revision-calendar" data-workspace-link="evidence"><span class="nav-icon num" aria-hidden="true">RC</span><span class="nav-text">Revision Calendar</span></a>
-          <a href="#deferred" data-workspace-link="evidence"><span class="nav-icon num" aria-hidden="true">DL</span><span class="nav-text">Deferred Learning</span></a>
+        <nav class="rail-nav" aria-label="Dashboard navigation">
+          <details class="rail-group" data-group="today" open>
+            <summary><span class="rail-icon num" aria-hidden="true">TD</span><a href="#/today" data-rail-workspace="today" title="Today">Today</a></summary>
+            <a href="#/today?s=overview" data-rail-workspace="today" data-rail-target="s:overview">Briefing</a>
+            <a href="#/today?s=revisions" data-rail-workspace="today" data-rail-target="s:revisions">Due queue</a>
+          </details>
+          <details class="rail-group" data-group="plan" open>
+            <summary><span class="rail-icon num" aria-hidden="true">PL</span><a href="#/plan" data-rail-workspace="plan" title="Plan">Plan</a></summary>
+            <a href="#/plan?s=week-scoreboard" data-rail-workspace="plan" data-rail-target="s:week-scoreboard">Week</a>
+            <a href="#/plan?s=month-milestones" data-rail-workspace="plan" data-rail-target="s:month-milestones">Month</a>
+            <a href="#/plan?s=quarter-roadmap" data-rail-workspace="plan" data-rail-target="s:quarter-roadmap">Quarter</a>
+          </details>
+          <details class="rail-group" data-group="problems" open>
+            <summary><span class="rail-icon num" aria-hidden="true">PB</span><a href="#/problems" data-rail-workspace="problems" title="Problems">Problems</a></summary>
+            <a href="#/problems" data-rail-workspace="problems" data-rail-target="s:problem-browser">Browser</a>
+          </details>
+          <details class="rail-group" data-group="practice" open>
+            <summary><span class="rail-icon num" aria-hidden="true">PR</span><a href="#/practice" data-rail-workspace="practice" title="Practice">Practice</a></summary>
+            <a href="#/practice?s=weakness-lab" data-rail-workspace="practice" data-rail-target="s:weakness-lab">Weakness lab</a>
+            <a href="#/practice?s=nudges" data-rail-workspace="practice" data-rail-target="s:nudges">Almost done</a>
+            <a href="#/practice?s=edge-cases" data-rail-workspace="practice" data-rail-target="s:edge-cases">Edge checklist</a>
+          </details>
+          <details class="rail-group" data-group="curriculum" open>
+            <summary><span class="rail-icon num" aria-hidden="true">CU</span><a href="#/curriculum" data-rail-workspace="curriculum" title="Curriculum">Curriculum</a></summary>
+            <a href="#/curriculum?s=skills-constellation" data-rail-workspace="curriculum" data-rail-target="s:skills-constellation">Constellation</a>
+            <a href="#/curriculum?s=stages" data-rail-workspace="curriculum" data-rail-target="s:stages">Stages</a>
+            <a href="#/curriculum?s=promotion-ladder" data-rail-workspace="curriculum" data-rail-target="s:promotion-ladder">Ladder</a>
+            <a href="#/curriculum?s=skills" data-rail-workspace="curriculum" data-rail-target="s:skills">Skills</a>
+            <a href="#/curriculum?s=patterns" data-rail-workspace="curriculum" data-rail-target="s:patterns">Patterns</a>
+          </details>
+          <details class="rail-group" data-group="evidence" open>
+            <summary><span class="rail-icon num" aria-hidden="true">EV</span><a href="#/evidence" data-rail-workspace="evidence" title="Evidence">Evidence</a></summary>
+            <a href="#/evidence/performance" data-rail-workspace="evidence" data-rail-target="tab:performance">Performance</a>
+            <a href="#/evidence/memory" data-rail-workspace="evidence" data-rail-target="tab:memory">Memory</a>
+            <a href="#/evidence/consistency" data-rail-workspace="evidence" data-rail-target="tab:consistency">Consistency</a>
+            <a href="#/evidence/log" data-rail-workspace="evidence" data-rail-target="tab:log">Log</a>
+          </details>
         </nav>
         <div class="rail-footer">
+          <button type="button" id="rail-collapse" class="rail-collapse microlabel" aria-label="Collapse sidebar">⟨⟨</button>
           <button
             type="button"
             id="theme-toggle"
@@ -99,7 +108,6 @@
           <div class="section-head">
             <div>
               <p class="eyebrow microlabel">Today</p>
-              <h3>Mission briefing</h3>
             </div>
             <span class="pill num" id="reference-date-pill">Loading</span>
           </div>
@@ -217,7 +225,6 @@
           <div class="section-head">
             <div>
               <p class="eyebrow microlabel">Curriculum catalog</p>
-              <h3>Problem browser</h3>
             </div>
             <span class="pill num" id="browser-count">-</span>
           </div>
