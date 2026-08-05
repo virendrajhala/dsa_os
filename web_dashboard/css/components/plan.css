@@ -85,7 +85,7 @@
 
   .skill-chip.good {
     border-color: color-mix(in oklab, var(--good) 45%, var(--line));
-    color: color-mix(in oklab, var(--good) 70%, var(--text));
+    color: color-mix(in oklab, var(--good) 65%, var(--text));
   }
 
   .skill-chip.warn {

@@ -89,7 +89,7 @@
   }
 
   .problem-group summary.good {
-    color: var(--good);
+    color: color-mix(in oklab, var(--good) 65%, var(--text));
   }
 
   .problem-chip-list,
@@ -152,7 +152,7 @@
   }
 
   .gate-status.warn {
-    color: var(--warn);
+    color: color-mix(in oklab, var(--warn) 70%, var(--text));
   }
 
   .solution-file + .solution-file {
@@ -281,7 +281,7 @@
 
   .contract-deload {
     margin: 0 0 var(--sp-1);
-    color: var(--warn);
+    color: color-mix(in oklab, var(--warn) 70%, var(--text));
   }
 
   .source-chips {

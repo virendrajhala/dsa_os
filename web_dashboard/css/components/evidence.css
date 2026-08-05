@@ -291,8 +291,8 @@
     color: var(--text-2);
   }
 
-  .retention-status.good { color: var(--good); }
-  .retention-status.bad { color: var(--bad); }
+  .retention-status.good { color: color-mix(in oklab, var(--good) 65%, var(--text)); }
+  .retention-status.bad { color: color-mix(in oklab, var(--bad) 70%, var(--text)); }
 
   /* ---- memory: review-load forecast -------------------------------------- */
 

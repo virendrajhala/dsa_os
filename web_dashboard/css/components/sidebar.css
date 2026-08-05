@@ -5,6 +5,8 @@
   gap: 2px;
   min-height: 0;
   overflow-y: auto;
+  /* Reserve the track so opening a group never shifts the labels sideways. */
+  scrollbar-gutter: stable;
 }
 
 .rail-group {
@@ -57,7 +59,7 @@
   flex: 0 0 auto;
   width: var(--sp-6);
   font-size: var(--fs-0);
-  color: var(--muted);
+  color: var(--text-2);
   letter-spacing: 0.04em;
 }
 
@@ -96,7 +98,7 @@
 
 /* Loud state: the one section (or tab) you are actually looking at. */
 .rail-group > a.active {
-  color: var(--accent);
+  color: color-mix(in oklab, var(--accent) 75%, var(--text));
   background: color-mix(in oklab, var(--accent) 10%, transparent);
 }
 

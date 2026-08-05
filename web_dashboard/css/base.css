@@ -36,7 +36,9 @@
   html {
     font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
     background: var(--bg);
-    color-scheme: light dark;
+    /* NB: `color-scheme` is tokens.css's alone. Declaring it here would win on
+       layer order and pin the page to `light dark`, which silently disables the
+       theme toggle (light-dark() would follow the OS instead of data-theme). */
     scroll-behavior: smooth;
     scrollbar-width: thin;
     scrollbar-color: var(--line-strong) transparent;

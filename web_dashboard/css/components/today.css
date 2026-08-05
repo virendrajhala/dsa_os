@@ -133,17 +133,17 @@
   /* The glyph carries the state and the colour reinforces it - never colour alone. */
   .contract-mark.good {
     border: 1px solid color-mix(in oklab, var(--good) 55%, var(--line));
-    color: var(--good);
+    color: color-mix(in oklab, var(--good) 65%, var(--text));
   }
 
   .contract-mark.pending {
     border: 1px solid color-mix(in oklab, var(--warn) 55%, var(--line));
-    color: var(--warn);
+    color: color-mix(in oklab, var(--warn) 70%, var(--text));
   }
 
   .contract-mark.skip {
     border: 1px solid var(--line);
-    color: var(--muted);
+    color: var(--text-2);
   }
 
   .contract-label {
@@ -206,12 +206,12 @@
   .trajectory-station.met .station-dot {
     border-color: var(--good);
     background: color-mix(in oklab, var(--good) 18%, var(--surface));
-    color: var(--good);
+    color: color-mix(in oklab, var(--good) 65%, var(--text));
   }
 
   .trajectory-station.unmet .station-dot {
     border-color: var(--line-strong);
-    color: var(--muted);
+    color: var(--text-2);
   }
 
   .station-value {
@@ -295,7 +295,7 @@
     min-width: 9ch;
     font-size: var(--fs-0);
     text-align: right;
-    color: var(--bad);
+    color: color-mix(in oklab, var(--bad) 70%, var(--text));
   }
 
   .due-row.overdue {

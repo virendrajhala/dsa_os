@@ -3,10 +3,15 @@
    shadows everywhere except the overlay tier. */
 
 @layer components {
+  /* The rail is `position: sticky; height: 100vh`, so on a long page its grid
+     cell out-runs the element. Painting the rail surface on the shell (and the
+     page surface on .main, which covers column 2) keeps the column solid all
+     the way down instead of showing a seam below the fold. */
   .app-shell {
     display: grid;
     grid-template-columns: 280px minmax(0, 1fr);
     min-height: 100vh;
+    background: var(--bg-2);
   }
 
   /* ---- rail ------------------------------------------------------------- */
@@ -14,6 +19,7 @@
   .sidebar {
     box-shadow: none;
     overflow: hidden;
+    scrollbar-gutter: stable;
     position: sticky;
     top: 0;
     z-index: 10;
@@ -49,7 +55,7 @@
     height: var(--sp-8);
     border-radius: var(--radius-s);
     background: color-mix(in oklab, var(--accent) 16%, var(--surface));
-    color: var(--accent);
+    color: color-mix(in oklab, var(--accent) 60%, var(--text));
     font-size: var(--fs-2);
     font-weight: 650;
     letter-spacing: 0.04em;

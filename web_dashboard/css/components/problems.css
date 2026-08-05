@@ -69,7 +69,7 @@
   /* Selection: an inset accent bar plus a wash - position and colour together. */
   .tree-item.active {
     background: color-mix(in oklab, var(--accent) 10%, transparent);
-    color: var(--accent);
+    color: color-mix(in oklab, var(--accent) 75%, var(--text));
   }
 
   .tree-item.active::before {
@@ -136,20 +136,22 @@
     line-height: 1.4;
   }
 
+  /* Status ink is pulled toward the theme's text so 12px labels clear 4.5:1;
+     the hue still reads as the status. */
   .status-badge.status-solved {
-    color: var(--good);
+    color: color-mix(in oklab, var(--good) 65%, var(--text));
   }
 
   .status-badge.status-mastered {
-    color: var(--accent);
+    color: color-mix(in oklab, var(--accent) 75%, var(--text));
   }
 
   .status-badge.status-failed {
-    color: var(--bad);
+    color: color-mix(in oklab, var(--bad) 70%, var(--text));
   }
 
   .status-badge.status-not_started {
-    color: var(--muted);
+    color: var(--text-2);
   }
 
   .status-detail {

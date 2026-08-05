@@ -227,10 +227,10 @@ css/base.css + css/components/* from the single tokens.css sheet"
 
 ### Task 10: Final design walk + memory-worthy notes
 
-- [ ] **Step 1:** Fresh-eyes walk of every route × both themes at 1440px and 1100px widths: hunt label collisions, cramped spacing off the 4px grid, color used without meaning, series-order violations, contrast complaints (text < AA on its surface — fix with ink tokens, never by inventing hexes).
-- [ ] **Step 2:** Cosmetic leftovers from Phase 2: rail inner scrollbar when all groups expanded — style via base scrollbar rules or `overflow: overlay`-style thin treatment in sidebar.css.
-- [ ] **Step 3:** Fix findings; commit `fix/dashboard: phase-3 design walk fixes`.
-- [ ] **Step 4:** Report: per-task commits, the before/after line counts (`wc -l css/*.css css/components/*.css`), any token additions made mid-flight (each needs a one-line justification), remaining known issues.
+- [x] **Step 1:** Fresh-eyes walk of every route × both themes at 1440px and 1100px widths: hunt label collisions, cramped spacing off the 4px grid, color used without meaning, series-order violations, contrast complaints (text < AA on its surface — fix with ink tokens, never by inventing hexes).
+- [x] **Step 2:** Cosmetic leftovers from Phase 2: rail inner scrollbar when all groups expanded — style via base scrollbar rules or `overflow: overlay`-style thin treatment in sidebar.css.
+- [x] **Step 3:** Fix findings; commit `fix/dashboard: phase-3 design walk fixes`.
+- [x] **Step 4:** Report: per-task commits, the before/after line counts (`wc -l css/*.css css/components/*.css`), any token additions made mid-flight (each needs a one-line justification), remaining known issues.
 
 ---
 

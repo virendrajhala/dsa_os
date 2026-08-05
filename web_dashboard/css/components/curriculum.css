@@ -52,13 +52,17 @@
   }
 
   .stage-rail.current .stage-number {
+    color: color-mix(in oklab, var(--accent) 75%, var(--text));
+  }
+
+  .stage-rail.current .stage-number {
     border-color: var(--accent);
     background: color-mix(in oklab, var(--accent) 14%, var(--surface));
     color: var(--accent);
   }
 
   .stage-rail.locked .stage-number {
-    color: var(--muted);
+    color: var(--text-2);
   }
 
   .stage-line {
