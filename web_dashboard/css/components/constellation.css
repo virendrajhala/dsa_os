@@ -88,6 +88,10 @@
   opacity: 0.5;
 }
 
+.constellation {
+  max-width: none;
+}
+
 .constellation-stage {
   fill: #5f7387;
   font-family: var(--mono);

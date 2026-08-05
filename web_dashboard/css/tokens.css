@@ -1,16 +1,16 @@
 /* Single source of visual truth. Layer order is declared here because this is
    the first stylesheet the document loads: later layers beat earlier ones no
-   matter what a selector's specificity is, so `components` always out-competes
-   `legacy` without an override war. */
-@layer legacy, tokens, base, components;
+   matter what a selector's specificity is, so a component rule never has to
+   escalate specificity to win. */
+@layer tokens, base, components;
 
 @layer tokens {
   :root { color-scheme: light dark; }
   :root[data-theme="light"] { color-scheme: light; }
   :root[data-theme="dark"] { color-scheme: dark; }
 
-  /* Defined at :root AND .main so this one block also beats every scoped
-     redefinition inside legacy - one theme definition, whole app. */
+  /* One theme definition for the whole app. `.main` rides along with `:root`
+     because several renderers read these names from that scope. */
   :root, .main {
     /* surfaces + ink (validated reference chrome) */
     --bg: light-dark(#f9f9f7, #0d0d0d);

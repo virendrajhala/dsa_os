@@ -16,6 +16,7 @@
   .browser-tree {
     display: grid;
     flex-direction: row;
+    inset: auto;
     align-content: start;
     gap: 2px;
     max-height: 70vh;

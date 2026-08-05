@@ -209,11 +209,11 @@ Commit: `feat/dashboard: evidence views + all chart inks migrated to validated p
 
 **Files:** Delete `web_dashboard/css/legacy.css`; modify `index.html` (remove link); `css/tokens.css` (drop `legacy,` from the layer order line).
 
-- [ ] **Step 1:** Capture screenshots of every route × both themes WITH legacy enabled (post-Task-8 state).
-- [ ] **Step 2:** `git rm web_dashboard/css/legacy.css`, remove the link + layer name.
-- [ ] **Step 3:** Re-capture identical screenshots. Diff: differences must be ZERO (Task 8 proved independence; this proves it cold). Any diff → restore file, fix the gap in the owning component, retry.
-- [ ] **Step 4:** Full regression: tests.html `PASS (24)`; keyboard-only pass; reduced-motion pass; focus/palette/modal/tooltips/drill-downs.
-- [ ] **Step 5: Commit**
+- [x] **Step 1:** Capture screenshots of every route × both themes WITH legacy enabled (post-Task-8 state).
+- [x] **Step 2:** `git rm web_dashboard/css/legacy.css`, remove the link + layer name.
+- [x] **Step 3:** Re-capture identical screenshots. Diff: differences must be ZERO (Task 8 proved independence; this proves it cold). Any diff → restore file, fix the gap in the owning component, retry.
+- [x] **Step 4:** Full regression: tests.html `PASS (24)`; keyboard-only pass; reduced-motion pass; focus/palette/modal/tooltips/drill-downs.
+- [x] **Step 5: Commit**
 
 ```bash
 git add -A web_dashboard

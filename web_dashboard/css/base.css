@@ -19,6 +19,17 @@
     display: none;
   }
 
+  /* Generated content is opt-in. Legacy hung decorative ::before/::after rules
+     - gradient top-rules on every card, an accent bar on every tile, a fade
+     under the topbar - on most of the deck; the design language has no
+     gradients and no ornament, so the whole class is switched off here and the
+     handful of pseudo-elements that DO carry meaning (rail chevron, active-item
+     bar) re-declare `content` in the components layer. */
+  *::before,
+  *::after {
+    content: none;
+  }
+
   /* The root carries the page's own paint and metrics. Legacy declared these on
      :root/body; without them the document root falls back to Times New Roman
      and default text metrics, which shifts every row height in the app. */
@@ -136,6 +147,18 @@
     list-style-position: outside;
   }
 
+  /* Chart marks carry their own stroke treatment in the component files; these
+     are the defaults everything falls back to. */
+  polyline,
+  polygon,
+  path,
+  line {
+    stroke-linecap: butt;
+    stroke-linejoin: miter;
+    stroke-dasharray: none;
+    vector-effect: none;
+  }
+
   /* Charts are drawn ink, not cards: no chrome on the SVG box itself. */
   svg {
     border: 0;
@@ -179,6 +202,8 @@
     font-weight: 650;
     line-height: 1.25;
     letter-spacing: -0.01em;
+    /* Headings are short; balancing keeps a two-word orphan off its own line. */
+    text-wrap: balance;
     color: var(--text);
   }
 
@@ -191,6 +216,11 @@
 
   p {
     margin: 0;
+    grid-column: auto;
+    /* Legacy clamped several paragraphs to 7 lines; the new cards size to
+       their content instead. */
+    -webkit-line-clamp: none;
+    -webkit-box-orient: horizontal;
   }
 
   strong {
@@ -274,6 +304,7 @@
   }
 
   .section-head {
+    grid-column: auto;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -288,10 +319,14 @@
   }
 
   .panel {
+    grid-column: auto;
+    min-width: 0;
+    min-height: 0;
     padding: var(--sp-5);
     border: 1px solid var(--line);
     border-radius: var(--radius-m);
     background: var(--surface);
+    transition: border-color var(--dur-feedback) var(--ease-out);
   }
 
   .panel-head {
@@ -372,6 +407,8 @@
   }
 
   .mini-button:not([hidden]) {
+    justify-self: auto;
+    will-change: auto;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -389,6 +426,7 @@
      `View plan`, `View N skills`, skill-grid rows), so it lives with the other
      button primitives rather than in any single view's file. */
   .stage-skill-open:not([hidden]) {
+    will-change: auto;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -403,6 +441,7 @@
   }
 
   .icon-button:not([hidden]) {
+    transform: none;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -418,6 +457,7 @@
   .pill {
     display: inline-flex;
     align-items: center;
+    max-width: 100%;
     gap: var(--sp-1);
     min-height: var(--sp-6);
     padding: var(--sp-1) var(--sp-2);
@@ -465,6 +505,7 @@
     gap: var(--sp-1);
     align-content: start;
     min-height: 0;
+    transition: border-color var(--dur-feedback) var(--ease-out);
     padding: var(--sp-4);
     border: 1px solid var(--line);
     border-radius: var(--radius-m);
@@ -498,6 +539,7 @@
   /* ---- tables ----------------------------------------------------------- */
 
   .table-wrap {
+    max-width: 100%;
     overflow-x: auto;
     border: 1px solid var(--line);
     border-radius: var(--radius-m);
@@ -519,6 +561,7 @@
   }
 
   .table-wrap th {
+    height: auto;
     position: sticky;
     top: 0;
     z-index: 1;

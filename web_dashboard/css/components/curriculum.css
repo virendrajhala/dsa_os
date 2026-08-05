@@ -17,6 +17,7 @@
     overflow: visible;
     min-height: 0;
     box-shadow: none;
+    transition: border-color var(--dur-feedback) var(--ease-out);
     display: grid;
     grid-template-columns: var(--sp-6) minmax(0, 1fr);
     gap: var(--sp-3);
@@ -205,6 +206,8 @@
     display: grid;
     gap: var(--sp-1);
     align-content: start;
+    min-height: 0;
+    transition: border-color var(--dur-feedback) var(--ease-out);
     padding: var(--sp-3) var(--sp-4);
     border: 1px solid var(--line);
     border-radius: var(--radius-m);

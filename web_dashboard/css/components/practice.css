@@ -11,10 +11,13 @@
   }
 
   .prep-card {
+    max-width: none;
     display: grid;
     gap: var(--sp-3);
     align-content: start;
     align-items: start;
+    min-height: 0;
+    transition: border-color var(--dur-feedback) var(--ease-out);
     padding: var(--sp-4);
     border: 1px solid var(--line);
     border-radius: var(--radius-m);
@@ -23,6 +26,8 @@
 
   .prep-card.wide {
     grid-column: 1 / -1;
+    grid-row: auto;
+    max-width: none;
   }
 
   .prep-card h4 {
@@ -79,6 +84,7 @@
   .meta-row {
     display: flex;
     flex-wrap: wrap;
+    grid-column: auto;
     gap: var(--sp-2);
   }
 

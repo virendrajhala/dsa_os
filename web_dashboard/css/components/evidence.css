@@ -173,6 +173,7 @@
 
   .bar-row {
     display: grid;
+    min-height: 0;
     grid-template-columns: 180px minmax(0, 1fr) 48px;
     align-items: center;
     gap: var(--sp-3);
@@ -258,6 +259,8 @@
     display: grid;
     gap: var(--sp-1);
     align-content: start;
+    min-height: 0;
+    transition: border-color var(--dur-feedback) var(--ease-out);
     padding: var(--sp-3) var(--sp-4);
     border: 1px solid var(--line);
     border-radius: var(--radius-m);
@@ -347,7 +350,11 @@
   }
 
   .calendar-table th {
+    height: auto;
     position: static;
+    top: auto;
+    z-index: auto;
+    vertical-align: middle;
     padding: 0 0 var(--sp-1);
     border: 0;
     background: none;
@@ -366,6 +373,7 @@
   }
 
   .calendar-table td {
+    height: auto;
     padding: 0;
     border: 0;
     border-radius: 0;
@@ -412,9 +420,16 @@
     color: inherit;
   }
 
+  /* A plain count line, not the round badge legacy drew. */
   .calendar-count {
-    align-items: normal;
     display: block;
+    height: auto;
+    min-height: 0;
+    align-items: normal;
+    align-self: auto;
+    justify-self: auto;
+    justify-items: normal;
+    min-width: 0;
     padding: 0;
     border-radius: 0;
     background: none;
@@ -434,6 +449,7 @@
     display: grid;
     gap: var(--sp-3);
     align-content: start;
+    min-height: 0;
     padding: var(--sp-4);
     border: 1px solid var(--line);
     border-radius: var(--radius-m);
@@ -544,6 +560,7 @@
 
   .heatmap-legend {
     display: grid;
+    flex-wrap: nowrap;
     align-items: normal;
     gap: var(--sp-2);
   }
@@ -573,6 +590,12 @@
     grid-template-columns: auto auto minmax(0, 1fr);
     gap: var(--sp-2);
     align-items: stretch;
+  }
+
+  .axis-title {
+    grid-column: auto;
+    justify-self: auto;
+    transform: none;
   }
 
   .axis-title.y {
@@ -613,6 +636,9 @@
   .line-stroke {
     fill: none;
     stroke-width: 2;
+    stroke-linecap: butt;
+    stroke-linejoin: miter;
+    stroke-dasharray: none;
     vector-effect: non-scaling-stroke;
   }
 

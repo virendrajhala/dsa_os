@@ -47,6 +47,8 @@
   .milestone-card {
     display: grid;
     flex-direction: row;
+    min-height: 0;
+    transition: border-color var(--dur-feedback) var(--ease-out);
     gap: var(--sp-3);
     align-content: start;
     padding: var(--sp-4);
@@ -122,6 +124,10 @@
   .burnup-planned {
     stroke: var(--line);
     stroke-width: 1.5;
+    stroke-linecap: butt;
+    stroke-linejoin: miter;
+    stroke-dasharray: none;
+    vector-effect: none;
   }
 
   .burnup-actual {

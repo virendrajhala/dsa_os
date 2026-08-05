@@ -2,6 +2,24 @@
    is quiet rows and tiles on hairlines. */
 
 @layer components {
+  /* Today stacks: the section itself is one column (legacy split it in two),
+     and only the due-queue/pace pair sits side by side. */
+  #overview {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  #overview > .briefing-next .next-action {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  #overview > .section-head,
+  #overview > .briefing-next,
+  #overview > .briefing-grid,
+  #overview > .panel,
+  .next-action > .meta-row {
+    grid-column: auto;
+  }
+
   .briefing-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
@@ -24,6 +42,12 @@
     justify-items: start;
   }
 
+  .next-action .problem-title,
+  .next-action .meta-row,
+  .next-action .next-reason {
+    grid-column: auto;
+  }
+
   .next-action .problem-title {
     font-family: var(--mono);
     font-size: var(--fs-6);
@@ -39,6 +63,8 @@
   }
 
   .next-action .next-reason {
+    -webkit-line-clamp: none;
+    -webkit-box-orient: horizontal;
     max-width: 68ch;
     font-size: var(--fs-2);
     line-height: 1.5;
@@ -49,6 +75,13 @@
      toward the ink of the current theme: that lands the label (`--surface`)
      above 5:1 in BOTH themes, which the raw accent misses in light. */
   .primary-action {
+    /* Legacy parked this in a second grid column, which is what pushed it to
+       the right edge of the card. It is a normal item in a one-column grid. */
+    grid-column: auto;
+    grid-row: auto;
+    align-self: auto;
+    justify-self: auto;
+    text-shadow: none;
     min-height: var(--sp-8);
     padding-inline: var(--sp-5);
     border: 1px solid transparent;
@@ -74,6 +107,7 @@
 
   .contract-row {
     display: grid;
+    min-height: 0;
     grid-template-columns: var(--sp-5) minmax(0, 1fr) auto;
     align-items: center;
     gap: var(--sp-3);
@@ -113,6 +147,7 @@
   }
 
   .contract-label {
+    flex: 0 1 auto;
     font-size: var(--fs-3);
     font-weight: 500;
     color: var(--text);
@@ -133,6 +168,7 @@
 
   .trajectory-line {
     display: grid;
+    flex-wrap: nowrap;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     align-items: stretch;
     gap: var(--sp-3);
@@ -141,6 +177,10 @@
   .trajectory-station,
   .trajectory-terminus {
     display: grid;
+    flex: 0 1 auto;
+    min-width: 0;
+    min-height: 0;
+    opacity: 1;
     gap: var(--sp-1);
     align-content: start;
     padding: var(--sp-3) var(--sp-4);
@@ -151,6 +191,7 @@
 
   .station-dot {
     position: static;
+    inset: auto;
     min-height: 0;
     display: grid;
     place-items: center;
@@ -201,6 +242,11 @@
       from {
         opacity: 0;
         transform: translateY(4px);
+      }
+
+      to {
+        opacity: 1;
+        transform: none;
       }
     }
   }
@@ -268,6 +314,8 @@
     display: grid;
     gap: var(--sp-1);
     align-content: start;
+    min-height: 0;
+    transition: border-color var(--dur-feedback) var(--ease-out);
     padding: var(--sp-3) var(--sp-4);
     border: 1px solid var(--line);
     border-radius: var(--radius-m);
