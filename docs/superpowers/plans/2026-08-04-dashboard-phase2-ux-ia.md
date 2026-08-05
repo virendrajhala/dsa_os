@@ -658,12 +658,12 @@ git commit -m "feat/dashboard: unified contextual filter bar with url-persisted 
 **Files:**
 - Modify: whatever the walk flags.
 
-- [ ] **Step 1: tests.html** → `PASS (24)`.
-- [ ] **Step 2: Route matrix** — direct-load each: `#/today`, `#/plan`, `#/problems?q=two&status=solved`, `#/practice`, `#/curriculum?s=patterns`, `#/evidence/log` → correct workspace/tab/filters/scroll on a COLD load each time. Back/forward across 5 navigations behaves.
-- [ ] **Step 3: Playwright walk** — 6 workspaces (evidence ×4 tabs) × {dark, light} × reduced-motion: screenshots, zero console errors.
-- [ ] **Step 4: Keyboard-only pass** — g-chords, j/k/Enter, /, t, f, ?, Ctrl+K, Tab through the rail (details/summary are natively focusable; child links reachable; collapse button reachable).
-- [ ] **Step 5: Sidebar persistence** — collapse rail + close two groups + pick evidence tab + set a filter → reload → all restored.
-- [ ] **Step 6: Fix findings, re-verify, commit**
+- [x] **Step 1: tests.html** → `PASS (24)`.
+- [x] **Step 2: Route matrix** — direct-load each: `#/today`, `#/plan`, `#/problems?q=two&status=solved`, `#/practice`, `#/curriculum?s=patterns`, `#/evidence/log` → correct workspace/tab/filters/scroll on a COLD load each time. Back/forward across 5 navigations behaves.
+- [x] **Step 3: Playwright walk** — 6 workspaces (evidence ×4 tabs) × {dark, light} × reduced-motion: screenshots, zero console errors.
+- [x] **Step 4: Keyboard-only pass** — g-chords, j/k/Enter, /, t, f, ?, Ctrl+K, Tab through the rail (details/summary are natively focusable; child links reachable; collapse button reachable).
+- [x] **Step 5: Sidebar persistence** — collapse rail + close two groups + pick evidence tab + set a filter → reload → all restored.
+- [x] **Step 6: Fix findings, re-verify, commit**
 
 ```bash
 git add -A web_dashboard

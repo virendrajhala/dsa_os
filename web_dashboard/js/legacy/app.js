@@ -247,7 +247,7 @@
     // Filter-bar visibility is engine/filterbar.js's call, per route.
     if (targetHash) {
       const target = document.querySelector(targetHash);
-      if (target) target.scrollIntoView({ behavior: "smooth", block: "start" });
+      if (target) scrollToSection(target);
       setActiveSection(targetHash.slice(1));
     } else {
       window.scrollTo({ top: 0, behavior: "smooth" });
@@ -276,14 +276,31 @@
   }
 
   function setActiveSection(sectionId) {
-    if (!sectionId || sectionId === state.activeSection) return;
+    if (sectionId === state.activeSection) return;
     state.activeSection = sectionId;
+    // An empty id clears the rail: Evidence navigates by tab, so no section link
+    // may stay lit from the workspace you came from.
     navLinks().forEach((link) => {
-      const isActive = link.dataset.railTarget === `s:${sectionId}`;
+      const isActive = Boolean(sectionId) && link.dataset.railTarget === `s:${sectionId}`;
       link.classList.toggle("active", isActive);
       if (isActive) link.setAttribute("aria-current", "true");
       else link.removeAttribute("aria-current");
     });
+  }
+
+  // Charts (constellation, heatmap) size themselves after first paint, which
+  // moves the target out from under a cold-load jump. Scroll, then correct —
+  // but only when the page height actually changed, which is the thing that
+  // breaks the jump. A reader who simply scrolled away is left alone.
+  function scrollToSection(target) {
+    const heightAtJump = document.documentElement.scrollHeight;
+    target.scrollIntoView({ behavior: "smooth", block: "start" });
+    setTimeout(() => {
+      if (document.documentElement.scrollHeight === heightAtJump) return;
+      if (Math.abs(target.getBoundingClientRect().top) > 80) {
+        target.scrollIntoView({ behavior: "auto", block: "start" });
+      }
+    }, 250);
   }
 
   // Scroll spy: the active section is the last one whose top has passed under the
@@ -291,24 +308,33 @@
   // nested inside another (revisions inside overview) never steal the highlight.
   function spyActiveSection() {
     const line = ($(".main .topbar")?.getBoundingClientRect().height || 0) + 24;
-    let winner = "";
-    let best = Infinity;
+    const candidates = [];
     navLinks().forEach((link) => {
       if (link.dataset.railWorkspace !== state.activeWorkspace) return;
       const section = document.getElementById(link.dataset.railTarget.slice(2));
       if (!section || section.hidden) return;
       // Evidence sections are reached by tab, not by rail section links.
       if (section.dataset.evidenceTab) return;
+      candidates.push({ id: section.id, top: section.getBoundingClientRect().top });
+    });
+    let winner = "";
+    let best = Infinity;
+    for (const candidate of candidates) {
       // The section under the topbar wins. When a jump lands the target just
       // BELOW the line (the sticky topbar eats the offset), the nearest section
       // still wins, so the rail never points at the row above the one you asked for.
-      const top = section.getBoundingClientRect().top;
-      const distance = top <= line ? line - top : (top - line) * 3;
+      const distance = candidate.top <= line ? line - candidate.top : (candidate.top - line) * 3;
       if (distance < best) {
         best = distance;
-        winner = section.id;
+        winner = candidate.id;
       }
-    });
+    }
+    // At max scroll the page physically cannot bring the last section up to the
+    // line (Today's due queue sits 315px below it), so nothing would ever light
+    // that entry. Being at the bottom means you are looking at the last section.
+    const atBottom =
+      window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 4;
+    if (atBottom && candidates.length) winner = candidates[candidates.length - 1].id;
     // Scrolled above the first section: keep the workspace's first entry lit
     // rather than leaving the rail blank.
     setActiveSection(winner || firstSectionOf(state.activeWorkspace));
