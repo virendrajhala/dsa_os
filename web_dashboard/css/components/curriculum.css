@@ -1,0 +1,432 @@
+/* Curriculum: stage board, promotion ladder, skill + pattern workbenches.
+   (The constellation lives in its own file - it is the one deliberate ink
+   island and does not share this vocabulary.) */
+
+@layer components {
+  /* ---- stage board -------------------------------------------------------- */
+
+  .stage-board {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+    gap: var(--sp-4);
+    align-items: start;
+  }
+
+  .stage-card {
+    display: grid;
+    grid-template-columns: var(--sp-6) minmax(0, 1fr);
+    gap: var(--sp-3);
+    padding: var(--sp-4);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-m);
+    background: var(--surface);
+  }
+
+  .stage-card.active {
+    border-color: color-mix(in oklab, var(--accent) 40%, var(--line));
+  }
+
+  .stage-rail {
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
+    justify-items: center;
+    gap: var(--sp-2);
+  }
+
+  .stage-number {
+    display: grid;
+    place-items: center;
+    width: var(--sp-6);
+    height: var(--sp-6);
+    border: 1px solid var(--line-strong);
+    border-radius: 999px;
+    font-family: var(--mono);
+    font-size: var(--fs-1);
+    color: var(--text-2);
+  }
+
+  .stage-rail.current .stage-number {
+    border-color: var(--accent);
+    background: color-mix(in oklab, var(--accent) 14%, var(--surface));
+    color: var(--accent);
+  }
+
+  .stage-rail.locked .stage-number {
+    color: var(--muted);
+  }
+
+  .stage-line {
+    width: 1px;
+    height: 100%;
+    background: var(--line);
+  }
+
+  .stage-content {
+    display: grid;
+    gap: var(--sp-3);
+    align-content: start;
+    min-width: 0;
+  }
+
+  .stage-card-head {
+    display: flex;
+    align-items: start;
+    justify-content: space-between;
+    gap: var(--sp-3);
+  }
+
+  .stage-card-head h4 {
+    font-size: var(--fs-4);
+  }
+
+  .stage-goal {
+    color: var(--text-2);
+  }
+
+  .stage-progress-box {
+    display: grid;
+    gap: var(--sp-2);
+  }
+
+  .stage-progress-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--sp-3);
+  }
+
+  .stage-progress-head strong {
+    font-family: var(--mono);
+    font-size: var(--fs-5);
+  }
+
+  .stage-progress-head span {
+    font-size: var(--fs-1);
+    color: var(--text-2);
+  }
+
+  /* One shared meter: an accent fill on a quiet track. Sequential by nature -
+     never a categorical colour. */
+  .track,
+  .progress-track {
+    height: var(--sp-2);
+    border-radius: 999px;
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    overflow: hidden;
+  }
+
+  .track .fill,
+  .progress-track > span {
+    display: block;
+    height: 100%;
+    width: var(--width, 0%);
+    border-radius: 999px;
+    background: var(--accent);
+  }
+
+  .stage-stat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+    gap: var(--sp-2);
+  }
+
+  .stage-stat-grid > div {
+    display: grid;
+    gap: var(--sp-1);
+    padding: var(--sp-2) var(--sp-3);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-s);
+    background: var(--surface-2);
+  }
+
+  .stage-stat-grid span {
+    font-family: var(--mono);
+    font-size: var(--fs-0);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-2);
+  }
+
+  .stage-stat-grid strong {
+    font-size: var(--fs-2);
+    font-weight: 650;
+  }
+
+  .stage-card .stage-skill-open {
+    grid-column: 1 / -1;
+    justify-self: start;
+  }
+
+  /* ---- promotion ladder --------------------------------------------------- */
+
+  .ladder-current td {
+    background: color-mix(in oklab, var(--accent) 7%, transparent);
+  }
+
+  .ladder-current td:first-child {
+    font-weight: 650;
+  }
+
+  /* ---- skill + pattern workbenches --------------------------------------- */
+
+  .skill-grid {
+    display: grid;
+    gap: var(--sp-4);
+  }
+
+  .skill-workbench {
+    display: grid;
+    gap: var(--sp-4);
+  }
+
+  .skill-summary-strip {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: var(--sp-3);
+  }
+
+  .skill-stat {
+    display: grid;
+    gap: var(--sp-1);
+    align-content: start;
+    padding: var(--sp-3) var(--sp-4);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-m);
+    background: var(--surface);
+  }
+
+  .skill-stat span {
+    font-family: var(--mono);
+    font-size: var(--fs-0);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-2);
+  }
+
+  .skill-stat strong {
+    font-family: var(--mono);
+    font-size: var(--fs-5);
+    line-height: 1.2;
+  }
+
+  .skill-stat small {
+    font-size: var(--fs-0);
+    color: var(--text-2);
+  }
+
+  .skill-spotlight,
+  .pattern-transfer-guide {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: var(--sp-4);
+    align-items: start;
+    padding: var(--sp-5);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--accent);
+    border-radius: var(--radius-m);
+    background: var(--surface);
+  }
+
+  .skill-spotlight h4,
+  .pattern-transfer-guide h4 {
+    margin-top: var(--sp-1);
+    font-size: var(--fs-4);
+  }
+
+  .skill-spotlight p,
+  .pattern-transfer-guide p:not(.eyebrow) {
+    max-width: 72ch;
+    color: var(--text-2);
+  }
+
+  .skill-spotlight-side {
+    display: grid;
+    gap: var(--sp-1);
+    justify-items: end;
+    min-width: 160px;
+  }
+
+  .skill-spotlight-side strong {
+    font-family: var(--mono);
+    font-size: var(--fs-5);
+  }
+
+  .skill-spotlight-side span {
+    font-size: var(--fs-0);
+    color: var(--text-2);
+  }
+
+  .skill-spotlight-side .progress-track {
+    width: 100%;
+  }
+
+  .skill-spotlight .stage-skill-open,
+  .pattern-transfer-guide .stage-skill-open {
+    grid-column: 1 / -1;
+    justify-self: start;
+  }
+
+  .pattern-transfer-guide ol {
+    display: grid;
+    gap: var(--sp-2);
+    margin: 0;
+    padding-left: var(--sp-5);
+  }
+
+  .pattern-transfer-guide li span {
+    display: block;
+    font-size: var(--fs-1);
+    color: var(--text-2);
+  }
+
+  .skill-lanes {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: var(--sp-4);
+    align-items: start;
+  }
+
+  .skill-lane {
+    display: grid;
+    gap: var(--sp-3);
+    align-content: start;
+    padding: var(--sp-4);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-m);
+    background: var(--surface);
+  }
+
+  .skill-lane .section-head {
+    align-items: start;
+    min-height: 0;
+  }
+
+  .skill-lane h4 {
+    font-size: var(--fs-3);
+  }
+
+  .skill-lane .section-head p {
+    font-size: var(--fs-1);
+    color: var(--text-2);
+  }
+
+  .skill-row-list {
+    display: grid;
+    gap: var(--sp-1);
+  }
+
+  .skill-row-list .empty {
+    padding: var(--sp-3);
+    border: 1px dashed var(--line);
+    border-radius: var(--radius-s);
+    font-size: var(--fs-1);
+    color: var(--text-2);
+  }
+
+  .skill-compact-row,
+  .pattern-transfer-row {
+    display: grid;
+    gap: var(--sp-2);
+    width: 100%;
+    padding: var(--sp-2) var(--sp-3);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-s);
+    background: var(--surface);
+    text-align: left;
+  }
+
+  .skill-compact-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+  }
+
+  .skill-compact-row:hover,
+  .pattern-transfer-row:hover {
+    border-color: var(--line-strong);
+    background: color-mix(in oklab, var(--text) 4%, var(--surface));
+  }
+
+  .skill-compact-row strong,
+  .pattern-row-title strong {
+    display: block;
+    font-size: var(--fs-2);
+    font-weight: 650;
+  }
+
+  .skill-compact-row span,
+  .skill-row-next {
+    font-family: var(--mono);
+    font-size: var(--fs-0);
+    color: var(--text-2);
+  }
+
+  .skill-row-progress {
+    display: grid;
+    gap: var(--sp-1);
+    justify-items: end;
+    min-width: 96px;
+    font-family: var(--mono);
+    font-size: var(--fs-0);
+    color: var(--text-2);
+  }
+
+  .skill-row-progress .progress-track {
+    width: 100%;
+  }
+
+  /* ---- pattern rows -------------------------------------------------------- */
+
+  .pattern-row-title {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--sp-2);
+    min-width: 0;
+  }
+
+  .pattern-row-title small {
+    font-size: var(--fs-0);
+    color: var(--text-2);
+  }
+
+  .pattern-row-cues {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: var(--sp-2);
+    min-width: 0;
+  }
+
+  .pattern-row-cues > div {
+    display: grid;
+    gap: var(--sp-1);
+    min-width: 0;
+    padding: var(--sp-2);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-s);
+    background: var(--surface-2);
+  }
+
+  .pattern-row-cues span {
+    font-family: var(--mono);
+    font-size: var(--fs-0);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-2);
+  }
+
+  .pattern-row-cues strong {
+    font-size: var(--fs-1);
+    font-weight: 400;
+    color: var(--text);
+  }
+
+  .pattern-row-footer {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sp-2);
+    min-width: 0;
+    font-size: var(--fs-0);
+    color: var(--text-2);
+  }
+}
