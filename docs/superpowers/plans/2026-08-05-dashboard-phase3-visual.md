@@ -198,10 +198,10 @@ Commit: `feat/dashboard: evidence views + all chart inks migrated to validated p
 
 **Files:** whatever remains.
 
-- [ ] **Step 1:** `document.querySelector('#legacy-css').disabled = true` and walk EVERY route both themes + modal + focus mode + palette + help overlay. List every visual defect → each is an unmigrated selector; fix in the owning component file.
-- [ ] **Step 2:** `grep -n '!important' css/legacy.css` — confirm all 13 are either replicated (intent) or dead; document each in the commit body.
-- [ ] **Step 3:** Delete dead JS class emissions if any renderer emits classes no stylesheet defines (grep emitted class names against new CSS).
-- [ ] Commit: `refactor/dashboard: close independence gaps - all views render without legacy.css`
+- [x] **Step 1:** `document.querySelector('#legacy-css').disabled = true` and walk EVERY route both themes + modal + focus mode + palette + help overlay. List every visual defect → each is an unmigrated selector; fix in the owning component file.
+- [x] **Step 2:** `grep -n '!important' css/legacy.css` — confirm all 13 are either replicated (intent) or dead; document each in the commit body.
+- [x] **Step 3:** Delete dead JS class emissions if any renderer emits classes no stylesheet defines (grep emitted class names against new CSS).
+- [x] Commit: `refactor/dashboard: close independence gaps - all views render without legacy.css`
 
 ---
 

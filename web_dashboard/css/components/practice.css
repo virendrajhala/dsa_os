@@ -14,6 +14,7 @@
     display: grid;
     gap: var(--sp-3);
     align-content: start;
+    align-items: start;
     padding: var(--sp-4);
     border: 1px solid var(--line);
     border-radius: var(--radius-m);
@@ -29,6 +30,7 @@
   }
 
   .prep-card > p {
+    display: block;
     color: var(--text-2);
   }
 
@@ -61,6 +63,7 @@
   .weakness-cues span {
     font-family: var(--mono);
     font-size: var(--fs-0);
+    font-weight: 500;
     letter-spacing: 0.08em;
     text-transform: uppercase;
     color: var(--text-2);
@@ -69,6 +72,7 @@
   .weakness-cues strong {
     font-size: var(--fs-2);
     font-weight: 500;
+    line-height: 1.35;
     color: var(--text);
   }
 
@@ -131,10 +135,33 @@
   /* ---- nudges ------------------------------------------------------------- */
 
   .nudge-card {
+    position: static;
+    overflow: visible;
     text-align: left;
   }
 
   .nudge-card:hover {
     border-color: var(--line-strong);
+  }
+
+  /* ---- narrow widths ----------------------------------------------------- */
+
+  @media (max-width: 1120px) {
+    .weakness-grid,
+    .edge-case-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 760px) {
+    .weakness-grid,
+    .edge-case-grid,
+    .complexity-row {
+      grid-template-columns: 1fr;
+    }
+
+    .prep-card.wide {
+      grid-column: 1 / -1;
+    }
   }
 }

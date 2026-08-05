@@ -1,0 +1,300 @@
+/* Everything the drill-down modal renders inside #modal-body, plus the few
+   detail blocks the Today/Plan renderers emit. These live outside .app-shell
+   (a top-layer <dialog>), which is exactly why they were the last things still
+   drawing their styling from legacy. */
+
+@layer components {
+  .modal-intro {
+    display: grid;
+    gap: var(--sp-2);
+    padding: var(--sp-3) var(--sp-4);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-m);
+    background: var(--surface-2);
+  }
+
+  .modal-intro p {
+    margin: 0;
+    line-height: 1.45;
+    color: var(--text-2);
+  }
+
+  .detail-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: var(--sp-3);
+    align-items: start;
+  }
+
+  /* `.note-card` itself is Evidence's (evidence.css); the modal reuses it and
+     only needs its list rhythm here. */
+  .note-card h4 {
+    font-size: var(--fs-3);
+  }
+
+  .note-card ul li strong {
+    color: var(--text);
+  }
+
+  /* ---- skills + problems lists -------------------------------------------- */
+
+  .modal-skill-list {
+    display: grid;
+    gap: var(--sp-2);
+  }
+
+  .modal-skill-row {
+    display: grid;
+    gap: var(--sp-2);
+    padding: var(--sp-3) var(--sp-4);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-m);
+    background: var(--surface);
+  }
+
+  .stage-skill-main {
+    display: flex;
+    align-items: start;
+    justify-content: space-between;
+    gap: var(--sp-2);
+  }
+
+  .stage-skill-main strong {
+    display: block;
+    font-size: var(--fs-2);
+    line-height: 1.25;
+  }
+
+  .stage-skill-main span {
+    font-size: var(--fs-1);
+    color: var(--text-2);
+  }
+
+  .stage-skill-main > span {
+    white-space: nowrap;
+    text-align: right;
+  }
+
+  .problem-group {
+    padding-top: var(--sp-2);
+    border-top: 1px solid var(--line);
+  }
+
+  .problem-group summary {
+    padding: var(--sp-1) 0;
+    font-size: var(--fs-1);
+    font-weight: 650;
+    cursor: pointer;
+    color: var(--text-2);
+  }
+
+  .problem-group summary.good {
+    color: var(--good);
+  }
+
+  .problem-chip-list,
+  .revision-history-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: var(--sp-2);
+    margin-top: var(--sp-2);
+  }
+
+  .problem-chip {
+    display: grid;
+    gap: var(--sp-1);
+    padding: var(--sp-2) var(--sp-3);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-s);
+    background: var(--surface);
+    color: var(--text);
+    text-align: left;
+    cursor: pointer;
+  }
+
+  .problem-chip:hover {
+    border-color: var(--line-strong);
+    background: color-mix(in oklab, var(--text) 4%, var(--surface));
+  }
+
+  .problem-chip strong {
+    font-family: var(--mono);
+    font-size: var(--fs-1);
+    color: var(--text-2);
+  }
+
+  .problem-chip span {
+    font-size: var(--fs-2);
+    line-height: 1.3;
+  }
+
+  .problem-chip small {
+    font-size: var(--fs-0);
+    color: var(--text-2);
+  }
+
+  /* ---- code-execution gate ------------------------------------------------ */
+
+  .solution-path {
+    margin: 0;
+    padding: var(--sp-2) var(--sp-3);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-s);
+    background: var(--surface-2);
+    font-size: var(--fs-2);
+    color: var(--text);
+    overflow-wrap: anywhere;
+  }
+
+  .gate-status {
+    margin: 0;
+    color: var(--text-2);
+  }
+
+  .gate-status.warn {
+    color: var(--warn);
+  }
+
+  .solution-file + .solution-file {
+    margin-top: var(--sp-3);
+  }
+
+  .solution-file-head {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-2);
+    margin-bottom: var(--sp-1);
+  }
+
+  .solution-file-name {
+    font-size: var(--fs-1);
+    color: var(--text-2);
+    overflow-wrap: anywhere;
+  }
+
+  .solution-code {
+    margin: 0;
+    max-height: 340px;
+    overflow: auto;
+    padding: var(--sp-3) var(--sp-4);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-m);
+    background: var(--surface-2);
+  }
+
+  .solution-code code {
+    font-family: var(--mono);
+    font-size: var(--fs-1);
+    line-height: 1.5;
+    color: var(--text);
+    white-space: pre;
+  }
+
+  .solution-code-error {
+    color: var(--text-2);
+    white-space: normal;
+  }
+
+  /* ---- mentor tables ------------------------------------------------------ */
+
+  .mentor-block + .mentor-block {
+    margin-top: var(--sp-3);
+  }
+
+  .mentor-table {
+    width: 100%;
+    min-width: 0;
+    border-collapse: collapse;
+  }
+
+  .mentor-table caption {
+    padding-bottom: var(--sp-1);
+    text-align: left;
+  }
+
+  .mentor-table th,
+  .mentor-table td {
+    padding: var(--sp-2) var(--sp-3);
+    border-bottom: 1px solid var(--line);
+    font-size: var(--fs-2);
+    text-align: left;
+  }
+
+  .mentor-table thead th {
+    font-family: var(--mono);
+    font-size: var(--fs-0);
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-2);
+  }
+
+  .mentor-table tbody th {
+    font-weight: 650;
+    color: var(--text);
+  }
+
+  /* ---- mistakes ----------------------------------------------------------- */
+
+  .mistake-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: var(--sp-2);
+  }
+
+  .mistake-list.single {
+    grid-template-columns: 1fr;
+  }
+
+  .mistake-item {
+    display: grid;
+    gap: var(--sp-1);
+    justify-items: start;
+    padding: var(--sp-3);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-s);
+    background: var(--surface-2);
+  }
+
+  .mistake-item strong {
+    font-size: var(--fs-2);
+  }
+
+  .mistake-item p,
+  .mistake-item small {
+    margin: 0;
+    line-height: 1.4;
+    color: var(--text-2);
+  }
+
+  /* ---- odds and ends the view renderers emit ------------------------------ */
+
+  .next-protocol,
+  .next-codegate {
+    margin-top: var(--sp-2);
+    color: var(--text-2);
+  }
+
+  .next-protocol {
+    color: var(--accent);
+  }
+
+  .contract-deload {
+    margin: 0 0 var(--sp-1);
+    color: var(--warn);
+  }
+
+  .source-chips {
+    gap: var(--sp-1);
+  }
+
+  .degraded-banner {
+    padding: var(--sp-2) var(--sp-3);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-s);
+    background: var(--surface-2);
+    font-family: var(--mono);
+    font-size: var(--fs-2);
+    color: var(--text-2);
+  }
+}

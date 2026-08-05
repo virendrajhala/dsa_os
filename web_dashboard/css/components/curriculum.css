@@ -13,6 +13,10 @@
   }
 
   .stage-card {
+    position: static;
+    overflow: visible;
+    min-height: 0;
+    box-shadow: none;
     display: grid;
     grid-template-columns: var(--sp-6) minmax(0, 1fr);
     gap: var(--sp-3);
@@ -34,6 +38,7 @@
   }
 
   .stage-number {
+    background: transparent;
     display: grid;
     place-items: center;
     width: var(--sp-6);
@@ -58,6 +63,8 @@
   .stage-line {
     width: 1px;
     height: 100%;
+    min-height: 0;
+    border-radius: 0;
     background: var(--line);
   }
 
@@ -80,6 +87,8 @@
   }
 
   .stage-goal {
+    display: block;
+    min-height: 0;
     color: var(--text-2);
   }
 
@@ -98,10 +107,12 @@
   .stage-progress-head strong {
     font-family: var(--mono);
     font-size: var(--fs-5);
+    line-height: 1.2;
   }
 
   .stage-progress-head span {
     font-size: var(--fs-1);
+    text-align: right;
     color: var(--text-2);
   }
 
@@ -143,7 +154,9 @@
   .stage-stat-grid span {
     font-family: var(--mono);
     font-size: var(--fs-0);
+    font-weight: 500;
     letter-spacing: 0.08em;
+    line-height: 1.4;
     text-transform: uppercase;
     color: var(--text-2);
   }
@@ -151,6 +164,8 @@
   .stage-stat-grid strong {
     font-size: var(--fs-2);
     font-weight: 650;
+    line-height: 1.35;
+    color: var(--text);
   }
 
   .stage-card .stage-skill-open {
@@ -228,9 +243,17 @@
     background: var(--surface);
   }
 
+  .skill-spotlight > div,
+  .pattern-transfer-guide > div {
+    display: grid;
+    gap: var(--sp-1);
+    align-content: start;
+  }
+
   .skill-spotlight h4,
   .pattern-transfer-guide h4 {
     margin-top: var(--sp-1);
+    min-height: 0;
     font-size: var(--fs-4);
   }
 
@@ -272,6 +295,24 @@
     gap: var(--sp-2);
     margin: 0;
     padding-left: var(--sp-5);
+    list-style-type: decimal;
+  }
+
+  .pattern-transfer-guide ol li {
+    display: list-item;
+    gap: normal;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: none;
+    min-height: 0;
+    list-style-type: decimal;
+  }
+
+  .pattern-transfer-guide ol li strong {
+    display: inline;
+    font-size: var(--fs-2);
+    min-height: 0;
   }
 
   .pattern-transfer-guide li span {
@@ -356,9 +397,22 @@
 
   .skill-compact-row span,
   .skill-row-next {
+    display: block;
     font-family: var(--mono);
     font-size: var(--fs-0);
     color: var(--text-2);
+  }
+
+  .skill-row-next {
+    display: grid;
+    gap: var(--sp-1);
+  }
+
+  .skill-row-next span,
+  .skill-row-next small {
+    display: block;
+    min-height: 0;
+    color: inherit;
   }
 
   .skill-row-progress {
@@ -410,6 +464,7 @@
   .pattern-row-cues span {
     font-family: var(--mono);
     font-size: var(--fs-0);
+    font-weight: 500;
     letter-spacing: 0.08em;
     text-transform: uppercase;
     color: var(--text-2);
@@ -424,9 +479,45 @@
   .pattern-row-footer {
     display: flex;
     flex-wrap: wrap;
+    align-items: center;
     gap: var(--sp-2);
     min-width: 0;
     font-size: var(--fs-0);
     color: var(--text-2);
+  }
+
+  .pattern-row-footer span,
+  .pattern-row-footer small {
+    font-weight: 400;
+    color: var(--text-2);
+  }
+
+  .pattern-transfer-row {
+    align-items: normal;
+  }
+
+  /* ---- narrow widths ----------------------------------------------------- */
+
+  @media (max-width: 1120px) {
+    .stage-board,
+    .skill-lanes,
+    .skill-summary-strip {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .skill-spotlight,
+    .pattern-transfer-guide {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 760px) {
+    .stage-board,
+    .skill-lanes,
+    .skill-summary-strip,
+    .stage-stat-grid,
+    .skill-compact-row {
+      grid-template-columns: 1fr;
+    }
   }
 }

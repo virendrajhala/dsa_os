@@ -46,6 +46,7 @@
 
   .milestone-card {
     display: grid;
+    flex-direction: row;
     gap: var(--sp-3);
     align-content: start;
     padding: var(--sp-4);
@@ -107,6 +108,7 @@
   /* Deload weeks are texture, not a hue: a faint ink wash behind the plot. */
   .burnup-deload {
     fill: color-mix(in oklab, var(--text) 4%, transparent);
+    opacity: 1;
   }
 
   .burnup-target-line {
@@ -138,6 +140,7 @@
   .burnup-today {
     stroke: var(--line-strong);
     stroke-width: 1;
+    opacity: 1;
   }
 
   .burnup-tick {
@@ -159,5 +162,13 @@
 
   .pace-projection input[type="range"] {
     accent-color: var(--accent);
+  }
+
+  /* ---- narrow widths ----------------------------------------------------- */
+
+  @media (max-width: 760px) {
+    .milestone-board {
+      grid-template-columns: 1fr;
+    }
   }
 }

@@ -21,6 +21,8 @@
     fill: var(--text-2);
     font-family: var(--mono);
     font-size: var(--fs-0);
+    letter-spacing: normal;
+    text-transform: none;
   }
 
   .insight-baseline {
@@ -55,12 +57,20 @@
     stroke-linejoin: round;
   }
 
+  /* A surface-coloured halo keeps a marker legible where the line crosses it. */
   .insight-marker {
     fill: var(--series-1);
+    stroke: var(--surface);
+    stroke-width: 2;
   }
 
   .insight-hit {
     fill: transparent;
+  }
+
+  .insight-marker,
+  .insight-hit {
+    cursor: default;
   }
 
   /* ---- performance: mock trend ------------------------------------------- */
@@ -204,6 +214,12 @@
     color: var(--text-2);
   }
 
+  .note-card li,
+  .note-card p {
+    margin: 0;
+    color: var(--text-2);
+  }
+
   /* ---- memory: gauges + tiles -------------------------------------------- */
 
   .memory-gauges > div {
@@ -320,21 +336,43 @@
     overflow-x: auto;
   }
 
+  /* Seven equal fixed columns: this table must NOT inherit the dense-table
+     floor width, or the month grid stops fitting its column. */
   .calendar-table {
     width: 100%;
+    min-width: 0;
     border-collapse: separate;
     border-spacing: var(--sp-1);
     table-layout: fixed;
   }
 
   .calendar-table th {
-    padding-bottom: var(--sp-1);
+    position: static;
+    padding: 0 0 var(--sp-1);
+    border: 0;
+    background: none;
     text-align: center;
     color: var(--text-2);
   }
 
-  .calendar-cell {
+  .calendar-table tbody tr {
+    background: transparent;
+    cursor: default;
+    transition: none;
+  }
+
+  .calendar-cell.empty {
+    background: transparent;
+  }
+
+  .calendar-table td {
     padding: 0;
+    border: 0;
+    border-radius: 0;
+    text-align: left;
+    vertical-align: top;
+    line-height: 1.4;
+    cursor: default;
   }
 
   .calendar-day {
@@ -355,6 +393,7 @@
   }
 
   .calendar-day.past {
+    opacity: 1;
     color: var(--text-2);
     background: var(--surface-2);
   }
@@ -370,11 +409,18 @@
 
   .calendar-daynum {
     font-size: var(--fs-1);
+    color: inherit;
   }
 
   .calendar-count {
+    align-items: normal;
+    display: block;
+    padding: 0;
+    border-radius: 0;
+    background: none;
     font-family: var(--mono);
     font-size: var(--fs-0);
+    font-weight: 400;
     color: var(--text-2);
   }
 
@@ -446,10 +492,22 @@
     height: auto;
   }
 
-  .heat-axis {
+  .heat-axis,
+  .insight-axis {
     fill: var(--text-2);
     font-family: var(--mono);
     font-size: var(--fs-0);
+    text-transform: none;
+  }
+
+  /* Problem history rows open the problem modal. */
+  #problem-table tr {
+    cursor: pointer;
+  }
+
+  #problem-table tr:focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: -2px;
   }
 
   .heat-border {
@@ -486,6 +544,7 @@
 
   .heatmap-legend {
     display: grid;
+    align-items: normal;
     gap: var(--sp-2);
   }
 
@@ -524,9 +583,15 @@
     color: var(--text-2);
   }
 
+  .line-y-axis,
+  .line-axis {
+    font-weight: 400;
+  }
+
   .line-y-axis {
     display: flex;
     flex-direction: column;
+    align-items: end;
     justify-content: space-between;
     font-size: var(--fs-0);
     color: var(--text-2);
@@ -565,6 +630,8 @@
 
   .line-axis {
     display: flex;
+    flex-wrap: wrap;
+    gap: var(--sp-3);
     justify-content: space-between;
     font-size: var(--fs-0);
     color: var(--text-2);
@@ -584,5 +651,24 @@
   .time-bar {
     /* fill comes from the renderer's fixed difficulty slot */
     stroke: none;
+  }
+
+  /* ---- narrow widths ----------------------------------------------------- */
+
+  @media (max-width: 900px) {
+    .calendar-layout {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 760px) {
+    .bar-row {
+      grid-template-columns: 1fr;
+      gap: var(--sp-1);
+    }
+
+    .mock-row {
+      grid-template-columns: var(--sp-4) auto minmax(0, 1fr);
+    }
   }
 }

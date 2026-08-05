@@ -19,9 +19,22 @@
     display: none;
   }
 
+  /* The root carries the page's own paint and metrics. Legacy declared these on
+     :root/body; without them the document root falls back to Times New Roman
+     and default text metrics, which shifts every row height in the app. */
   html {
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    background: var(--bg);
+    color-scheme: light dark;
+    scroll-behavior: smooth;
     scrollbar-width: thin;
     scrollbar-color: var(--line-strong) transparent;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
   }
 
   * {
@@ -31,13 +44,127 @@
 
   body {
     margin: 0;
+    min-width: 320px;
     min-height: 100vh;
+    text-rendering: optimizeLegibility;
     font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
     font-size: var(--fs-2);
     line-height: 1.5;
     color: var(--text);
     background: var(--bg);
     -webkit-font-smoothing: antialiased;
+  }
+
+  /* ---- legacy neutralisation --------------------------------------------
+     Layers beat specificity, so a bare type selector in this layer out-competes
+     every rule in `legacy` no matter how specific that rule is. Declaring the
+     inherited/initial value for the box and text properties legacy scatters
+     across element types is what makes deleting legacy.css a visual no-op:
+     nothing below is left for it to contribute. Component rules are a later
+     layer again, so they still override all of it. */
+
+  article,
+  aside,
+  details,
+  div,
+  figure,
+  footer,
+  header,
+  nav,
+  p,
+  section,
+  summary {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: none;
+    box-shadow: none;
+    overflow: visible;
+    position: static;
+  }
+
+  /* NB: `min-height` is deliberately NOT reset here. Blanket `min-height: 0`
+     removes a grid item's automatic minimum size, which lets rows collapse
+     below their content in any definite-height grid (it flattened the modal
+     body). The handful of selectors legacy sized are neutralised individually. */
+
+  a,
+  dd,
+  dt,
+  label,
+  li,
+  p,
+  small,
+  span,
+  strong,
+  td,
+  th {
+    color: inherit;
+    letter-spacing: inherit;
+    line-height: inherit;
+    text-transform: none;
+  }
+
+  article,
+  aside,
+  caption,
+  details,
+  div,
+  header,
+  li,
+  nav,
+  ol,
+  p,
+  section,
+  span,
+  strong,
+  summary,
+  table,
+  tbody,
+  tfoot,
+  thead,
+  tr,
+  ul {
+    line-height: inherit;
+  }
+
+  ul,
+  ol {
+    margin: 0;
+    padding-left: var(--sp-5);
+    list-style-position: outside;
+  }
+
+  /* Charts are drawn ink, not cards: no chrome on the SVG box itself. */
+  svg {
+    border: 0;
+    border-radius: 0;
+    background: none;
+    min-height: 0;
+  }
+
+  thead {
+    position: static;
+    top: auto;
+    z-index: auto;
+    background: none;
+    color: inherit;
+  }
+
+  thead tr {
+    background: transparent;
+    color: inherit;
+  }
+
+  span,
+  small,
+  td,
+  th,
+  li,
+  p,
+  a {
+    font-weight: inherit;
   }
 
   /* ---- type ------------------------------------------------------------- */
@@ -129,10 +256,16 @@
 
   /* ---- layout primitives ------------------------------------------------ */
 
+  /* Anchored section jumps must clear the sticky topbar. */
+  .section {
+    scroll-margin-top: 150px;
+  }
+
   .section:not([hidden]) {
     display: grid;
     gap: var(--sp-4);
     align-content: start;
+    align-items: stretch;
   }
 
   .section.two-column:not([hidden]) {
@@ -183,6 +316,11 @@
   textarea {
     font-family: inherit;
     font-size: var(--fs-2);
+    /* The UA gives form controls `line-height: normal` and centres their text;
+       inheriting keeps a button's contents on the page's rhythm - and, like the
+       block above, denies legacy a say. */
+    line-height: inherit;
+    text-align: inherit;
     color: var(--text);
   }
 
@@ -210,10 +348,12 @@
      button primitive that IS a chip declares its own box below. */
   button {
     min-height: var(--sp-7);
-    padding-inline: var(--sp-3);
+    padding: 0 var(--sp-3);
     border: 1px solid var(--line);
     border-radius: var(--radius-s);
     background: var(--control-bg);
+    box-shadow: none;
+    font-weight: 500;
     cursor: pointer;
     transition: background var(--dur-feedback) var(--ease-out),
       border-color var(--dur-feedback) var(--ease-out);
@@ -253,9 +393,12 @@
     align-items: center;
     justify-content: center;
     gap: var(--sp-2);
-    padding-inline: var(--sp-4);
+    margin: 0;
+    padding: 0 var(--sp-4);
+    box-shadow: none;
     font-size: var(--fs-2);
     font-weight: 500;
+    text-align: center;
     color: var(--text);
   }
 
@@ -263,6 +406,7 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    gap: var(--sp-2);
     min-height: var(--sp-7);
     width: var(--sp-7);
     padding: 0;
@@ -282,8 +426,10 @@
     background: var(--surface-2);
     font-size: var(--fs-1);
     font-weight: 500;
+    line-height: 1.3;
     color: var(--text-2);
     white-space: nowrap;
+    box-shadow: none;
   }
 
   /* Status pills tint their own hue at low saturation and keep readable ink -
@@ -318,6 +464,7 @@
     display: grid;
     gap: var(--sp-1);
     align-content: start;
+    min-height: 0;
     padding: var(--sp-4);
     border: 1px solid var(--line);
     border-radius: var(--radius-m);
@@ -357,9 +504,17 @@
     background: var(--surface);
   }
 
+  table {
+    border-spacing: 0;
+  }
+
+  /* Dense multi-column tables get a floor width and scroll inside their card
+     rather than crushing columns; narrow screens inherit that scroll. */
   .table-wrap table {
     width: 100%;
+    min-width: 920px;
     border-collapse: collapse;
+    border-spacing: 0;
     font-size: var(--fs-2);
   }
 
@@ -376,19 +531,31 @@
     letter-spacing: 0.06em;
     text-transform: uppercase;
     text-align: left;
+    vertical-align: top;
     white-space: nowrap;
     color: var(--text-2);
   }
 
   .table-wrap td {
     padding: var(--sp-3);
+    border: 0;
     text-align: left;
     vertical-align: top;
+    line-height: 1.45;
     color: var(--text);
   }
 
   .table-wrap tbody tr + tr td {
     border-top: 1px solid var(--line);
+  }
+
+  /* Rows are a flat list on one surface: no zebra, no inset rules, no implied
+     click affordance. Clickable tables opt into the pointer themselves. */
+  .table-wrap tbody tr {
+    background: transparent;
+    box-shadow: none;
+    cursor: default;
+    transition: background var(--dur-feedback) var(--ease-out);
   }
 
   .table-wrap tbody tr:hover {
@@ -400,6 +567,8 @@
   /* Shared chart scaffolding - every view's SVG sits in one of these and uses
      the same axis/baseline ink. */
   .insight-chart {
+    display: block;
+    gap: normal;
     overflow-x: auto;
   }
 
@@ -413,6 +582,7 @@
     fill: var(--text-2);
     font-family: var(--mono);
     font-size: var(--fs-0);
+    text-transform: none;
   }
 
   .forecast-baseline {
@@ -439,8 +609,10 @@
     display: inline-block;
     width: var(--sp-2);
     height: var(--sp-2);
+    border: 0;
     border-radius: 999px;
     background: var(--muted);
+    opacity: 1;
   }
 
   .data-warning:not([hidden]) {

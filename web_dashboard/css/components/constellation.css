@@ -63,6 +63,31 @@
   pointer-events: none;
 }
 
+/* Legend marks echo the plate's four star states as rings, not fills. */
+.chart-legend i.legend-node {
+  border: 2px solid var(--muted);
+  background: transparent;
+}
+
+.chart-legend i.legend-node.mastered {
+  border-color: var(--good);
+  background: var(--good);
+}
+
+.chart-legend i.legend-node.current {
+  border-color: var(--accent);
+  background: var(--accent);
+}
+
+.chart-legend i.legend-node.unlocked {
+  border-color: var(--accent);
+}
+
+.chart-legend i.legend-node.locked {
+  border-color: var(--muted);
+  opacity: 0.5;
+}
+
 .constellation-stage {
   fill: #5f7387;
   font-family: var(--mono);
@@ -202,8 +227,14 @@
   transition: opacity 180ms ease;
 }
 
+.constellation-stage {
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
 .constellation-node {
   cursor: pointer;
+  stroke-width: 2;
   transition: r 140ms ease;
 }
 

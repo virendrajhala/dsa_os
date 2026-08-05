@@ -15,6 +15,7 @@
 
   .browser-tree {
     display: grid;
+    flex-direction: row;
     align-content: start;
     gap: 2px;
     max-height: 70vh;
@@ -35,6 +36,7 @@
   }
 
   .tree-item {
+    will-change: auto;
     position: relative;
     display: block;
     width: 100%;
@@ -93,6 +95,8 @@
   }
 
   .browser-row {
+    background: transparent;
+    box-shadow: none;
     cursor: pointer;
   }
 
@@ -108,15 +112,27 @@
 
   .status-cell {
     display: table-cell;
+    min-width: 168px;
     white-space: nowrap;
   }
 
+  /* Deliberately NOT a chip: glyph + word inline, so the status column reads as
+     text next to the title rather than as another box in a table of boxes.
+     The box properties are stated explicitly - the old badge was a bordered
+     pill and this file is the whole truth about the selector. */
   .status-badge {
     display: inline-flex;
     align-items: center;
     gap: var(--sp-1);
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: none;
+    box-shadow: none;
+    min-height: 0;
     font-size: var(--fs-1);
     font-weight: 500;
+    line-height: 1.4;
   }
 
   .status-badge.status-solved {
@@ -137,7 +153,9 @@
 
   .status-detail {
     display: block;
+    margin-top: var(--sp-1);
     font-size: var(--fs-0);
+    line-height: 1.4;
     color: var(--text-2);
   }
 
@@ -145,6 +163,19 @@
      stays neutral so the column never competes with the status column. */
   .freq-cell {
     letter-spacing: 0.06em;
+    white-space: nowrap;
     color: var(--text-2);
+  }
+
+  /* ---- narrow widths ----------------------------------------------------- */
+
+  @media (max-width: 900px) {
+    .browser-layout {
+      grid-template-columns: 1fr;
+    }
+
+    .browser-tree {
+      max-height: 220px;
+    }
   }
 }

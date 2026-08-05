@@ -12,6 +12,8 @@
   /* ---- rail ------------------------------------------------------------- */
 
   .sidebar {
+    box-shadow: none;
+    overflow: hidden;
     position: sticky;
     top: 0;
     z-index: 10;
@@ -27,6 +29,7 @@
 
   .brand {
     display: grid;
+    min-height: 0;
     grid-template-columns: var(--sp-8) minmax(0, 1fr);
     align-items: center;
     gap: var(--sp-3);
@@ -39,6 +42,7 @@
   /* A tinted chip rather than a filled one: accent letters keep their contrast
      in both themes, and the deck stays free of gradients. */
   .brand-mark {
+    box-shadow: none;
     display: grid;
     place-items: center;
     width: var(--sp-8);
@@ -88,6 +92,8 @@
   /* ---- workspace -------------------------------------------------------- */
 
   .main {
+    min-height: 100vh;
+    max-width: 1760px;
     display: grid;
     align-content: start;
     gap: var(--sp-5);
@@ -99,6 +105,8 @@
   /* Sticky, and bleeding to the workspace's padding edges so content passes
      cleanly underneath rather than beside it. */
   .topbar {
+    border-radius: 0;
+    min-height: 0;
     position: sticky;
     top: 0;
     z-index: 20;
@@ -178,5 +186,67 @@
     gap: var(--sp-4);
     padding: var(--sp-5);
     overflow-y: auto;
+  }
+
+  /* ---- narrow widths ------------------------------------------------------
+     Desktop-first, per the spec: there is no mobile layout, only a rail that
+     collapses to icons and grids that fall to one column so nothing overflows
+     the page. Wide tables keep scrolling inside their own card. */
+
+  @media (max-width: 1024px) {
+    .app-shell {
+      grid-template-columns: 68px minmax(0, 1fr);
+    }
+
+    .sidebar {
+      padding: var(--sp-4) var(--sp-2);
+      gap: var(--sp-3);
+      align-items: center;
+    }
+
+    .brand {
+      grid-template-columns: 1fr;
+      justify-items: center;
+      padding: var(--sp-1);
+    }
+
+    .brand > div:last-child,
+    .source-card,
+    .rail-group > a,
+    .rail-group > summary a,
+    .rail-group > summary::after {
+      display: none;
+    }
+
+    .rail-group > summary {
+      justify-content: center;
+      padding: var(--sp-2) 0;
+    }
+
+    .rail-icon {
+      width: auto;
+    }
+
+    .rail-collapse {
+      justify-self: center;
+      padding: 0 var(--sp-2);
+    }
+  }
+
+  @media (max-width: 900px) {
+    .topbar {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 760px) {
+    .main {
+      padding: var(--sp-4);
+    }
+
+    .topbar {
+      margin: calc(var(--sp-4) * -1) calc(var(--sp-4) * -1) 0;
+      padding: var(--sp-4);
+    }
   }
 }
