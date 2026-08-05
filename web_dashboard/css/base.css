@@ -414,5 +414,6 @@
   dialog::backdrop {
     /* A scrim, not a palette colour - same black-alpha basis as the shadow tokens. */
     background: rgb(0 0 0 / 0.45);
+    backdrop-filter: blur(4px);
   }
 }

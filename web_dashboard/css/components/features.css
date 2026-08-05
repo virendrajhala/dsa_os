@@ -1,8 +1,8 @@
 @layer components {
 .streak-strip {
   display: flex;
-  gap: 28px;
-  margin: 4px 0 14px;
+  gap: var(--sp-7);
+  margin: var(--sp-1) 0 var(--sp-3);
 }
 
 .streak-strip .streak-num {
@@ -12,71 +12,72 @@
 }
 
 .streak-strip .streak-num strong {
-  font-size: 26px;
+  font-size: var(--fs-6);
   line-height: 1.1;
 }
 
-.badge-strip {
+.badge-strip:not([hidden]) {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 12px;
+  gap: var(--sp-2);
+  margin-top: var(--sp-3);
 }
 
 .badge {
-  padding: 3px 10px;
+  padding: var(--sp-1) var(--sp-3);
   border-radius: 999px;
-  font-family: ui-monospace, monospace;
-  font-size: 11.5px;
+  font-family: var(--mono);
+  font-size: var(--fs-0);
 }
 
 .badge.earned {
-  background: light-dark(#dcebff, #16283f);
-  color: light-dark(#1c4e89, #7db4ee);
-  border: 1px solid light-dark(#b7d4f5, #274d78);
+  background: color-mix(in oklab, var(--accent) 12%, var(--surface));
+  color: color-mix(in oklab, var(--accent) 70%, var(--text));
+  border: 1px solid color-mix(in oklab, var(--accent) 45%, var(--line));
 }
 
 .badge.missed {
   background: transparent;
-  color: light-dark(#8a94a6, #637082);
-  border: 1px solid light-dark(#d5dbe5, #232b38);
+  color: var(--text-2);
+  border: 1px solid var(--line);
   opacity: 0.75;
 }
 
 .badge.open {
   background: transparent;
-  color: light-dark(#3c485c, #b6c2d4);
-  border: 1px dashed light-dark(#aab4c4, #3a4657);
+  color: var(--text-2);
+  border: 1px dashed var(--line-strong);
 }
 
 .bests-card {
-  margin-top: 14px;
+  margin-top: var(--sp-3);
   display: grid;
-  gap: 6px;
+  gap: var(--sp-1);
   max-width: 340px;
 }
 
 .best-row {
   display: grid;
   grid-template-columns: 1fr auto auto;
-  gap: 10px;
+  gap: var(--sp-3);
   align-items: baseline;
-  font-size: 13px;
+  font-size: var(--fs-2);
 }
 
 .best-row small {
-  color: light-dark(#8a94a6, #637082);
+  color: var(--text-2);
 }
 
 .drill-row {
   display: block;
   width: 100%;
-  padding: 8px 12px;
-  border: 1px solid light-dark(#d5dbe5, #232b38);
-  border-radius: 8px;
-  background: light-dark(#ffffff, #101623);
+  padding: var(--sp-2) var(--sp-3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-s);
+  background: var(--surface);
   color: inherit;
-  font: 13px/1.4 inherit;
+  font-size: var(--fs-2);
+  line-height: 1.4;
   text-align: left;
   cursor: pointer;
   transition: background var(--dur-feedback);
@@ -84,18 +85,18 @@
 
 .drill-row:hover,
 .drill-row:focus-visible {
-  background: light-dark(#eef2f8, #1a2331);
+  background: color-mix(in oklab, var(--accent) 10%, transparent);
 }
 
 .drill-row + .drill-row {
-  margin-top: 6px;
+  margin-top: var(--sp-1);
 }
 
 .memory-gauges {
   display: flex;
   flex-wrap: wrap;
-  gap: 26px;
-  margin-bottom: 16px;
+  gap: var(--sp-6);
+  margin-bottom: var(--sp-4);
 }
 
 .memory-gauges > div {
@@ -110,7 +111,7 @@
 
 .nudge-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 18px rgb(0 0 0 / 0.12);
+  box-shadow: var(--shadow-lg);
 }
 
 @media (prefers-reduced-motion: reduce) {

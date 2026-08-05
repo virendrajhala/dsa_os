@@ -1,0 +1,182 @@
+/* The frame everything else lives in: two-column shell, rail, sticky topbar,
+   and the one modal. All ink and surface from tokens; hairlines instead of
+   shadows everywhere except the overlay tier. */
+
+@layer components {
+  .app-shell {
+    display: grid;
+    grid-template-columns: 280px minmax(0, 1fr);
+    min-height: 100vh;
+  }
+
+  /* ---- rail ------------------------------------------------------------- */
+
+  .sidebar {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-5);
+    height: 100vh;
+    padding: var(--sp-5) var(--sp-4);
+    border-right: 1px solid var(--line);
+    background: var(--bg-2);
+    color: var(--text);
+  }
+
+  .brand {
+    display: grid;
+    grid-template-columns: var(--sp-8) minmax(0, 1fr);
+    align-items: center;
+    gap: var(--sp-3);
+    padding: var(--sp-2);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-m);
+    background: var(--surface);
+  }
+
+  /* A tinted chip rather than a filled one: accent letters keep their contrast
+     in both themes, and the deck stays free of gradients. */
+  .brand-mark {
+    display: grid;
+    place-items: center;
+    width: var(--sp-8);
+    height: var(--sp-8);
+    border-radius: var(--radius-s);
+    background: color-mix(in oklab, var(--accent) 16%, var(--surface));
+    color: var(--accent);
+    font-size: var(--fs-2);
+    font-weight: 650;
+    letter-spacing: 0.04em;
+  }
+
+  .brand h1 {
+    font-size: var(--fs-3);
+    letter-spacing: 0.01em;
+  }
+
+  .brand .microlabel {
+    margin: 0;
+  }
+
+  .rail-footer {
+    display: grid;
+    gap: var(--sp-3);
+    margin-top: auto;
+  }
+
+  .source-card {
+    display: grid;
+    gap: var(--sp-1);
+    padding: var(--sp-3);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-m);
+    background: var(--surface);
+  }
+
+  .source-card strong {
+    font-size: var(--fs-2);
+    color: var(--text);
+  }
+
+  .source-card small {
+    font-size: var(--fs-0);
+    color: var(--text-2);
+  }
+
+  /* ---- workspace -------------------------------------------------------- */
+
+  .main {
+    display: grid;
+    align-content: start;
+    gap: var(--sp-5);
+    min-width: 0;
+    padding: var(--sp-5) var(--sp-7) var(--sp-8);
+    background: var(--bg);
+  }
+
+  /* Sticky, and bleeding to the workspace's padding edges so content passes
+     cleanly underneath rather than beside it. */
+  .topbar {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: var(--sp-4);
+    margin: calc(var(--sp-5) * -1) calc(var(--sp-7) * -1) 0;
+    padding: var(--sp-5) var(--sp-7) var(--sp-4);
+    border-bottom: 1px solid var(--line);
+    background: var(--bg);
+  }
+
+  .topbar h2 {
+    font-size: var(--fs-5);
+  }
+
+  .topbar-subtitle {
+    margin-top: var(--sp-1);
+    font-size: var(--fs-2);
+    color: var(--text-2);
+  }
+
+  /* ---- modal ------------------------------------------------------------ */
+
+  .modal {
+    width: min(980px, calc(100% - var(--sp-7)));
+    max-height: 88vh;
+    margin: auto;
+    padding: 0;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-l);
+    background: var(--surface);
+    color: var(--text);
+    box-shadow: var(--shadow-lg);
+    overflow: hidden;
+  }
+
+  @starting-style {
+    .modal[open] {
+      opacity: 0;
+    }
+  }
+
+  .modal[open] {
+    opacity: 1;
+    transition: opacity var(--dur-overlay) var(--ease-out);
+  }
+
+  .modal-shell {
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
+    max-height: 88vh;
+  }
+
+  .modal-head {
+    display: flex;
+    align-items: start;
+    justify-content: space-between;
+    gap: var(--sp-4);
+    padding: var(--sp-4) var(--sp-5);
+    border-bottom: 1px solid var(--line);
+    background: var(--surface-2);
+  }
+
+  .modal-head h3 {
+    font-size: var(--fs-4);
+  }
+
+  .modal-head p {
+    color: var(--text-2);
+  }
+
+  .modal-body {
+    display: grid;
+    align-content: start;
+    gap: var(--sp-4);
+    padding: var(--sp-5);
+    overflow-y: auto;
+  }
+}

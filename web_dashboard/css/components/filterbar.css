@@ -1,26 +1,26 @@
 @layer components {
-.filter-bar {
+.filter-bar:not([hidden]) {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: var(--sp-2);
   align-items: end;
   justify-content: flex-end;
 }
 
 .filter-bar input,
 .filter-bar select {
-  height: 38px;
-  padding: 0 10px;
+  height: var(--sp-7);
+  padding: 0 var(--sp-2);
   border: 1px solid var(--line);
-  border-radius: var(--radius);
+  border-radius: var(--radius-s);
   background: var(--control-bg);
   color: inherit;
   font: inherit;
-  font-size: 13px;
+  font-size: var(--fs-2);
 }
 
 .filter-bar input[type="search"] {
-  flex: 1 1 200px;
+  flex: 1 1 220px;
   min-width: 160px;
 }
 
@@ -31,7 +31,7 @@
 
 .filter-bar input:focus-visible,
 .filter-bar select:focus-visible {
-  outline: 2px solid var(--accent, #5aa9e6);
+  outline: 2px solid var(--focus-ring);
   outline-offset: 1px;
 }
 }

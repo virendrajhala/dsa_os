@@ -1,36 +1,36 @@
 @layer components {
 .kb-selected {
-  outline: 2px solid var(--accent, #60a5fa);
+  outline: 2px solid var(--focus-ring);
   outline-offset: -2px;
 }
 
 .kb-help {
   margin: auto;
-  padding: 18px 22px;
+  padding: var(--sp-5) var(--sp-6);
   min-width: 320px;
-  border: 1px solid light-dark(#d5dbe5, #232b38);
-  border-radius: 10px;
-  background: light-dark(#ffffff, #101623);
-  color: light-dark(#1c2330, #e8edf5);
-  box-shadow: 0 12px 40px rgb(0 0 0 / 0.3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-l);
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--shadow-lg);
 }
 
 .kb-help h3 {
-  margin: 0 0 10px;
-  font-size: 14px;
+  margin: 0 0 var(--sp-3);
+  font-size: var(--fs-3);
 }
 
 .kb-help dl {
   display: grid;
   grid-template-columns: auto 1fr;
-  gap: 6px 16px;
+  gap: var(--sp-1) var(--sp-4);
   margin: 0;
-  font-size: 12.5px;
+  font-size: var(--fs-1);
 }
 
 .kb-help dt {
-  font-family: ui-monospace, monospace;
-  color: light-dark(#4b5563, #9aa7ba);
+  font-family: var(--mono);
+  color: var(--text-2);
   white-space: nowrap;
 }
 
