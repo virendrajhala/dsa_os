@@ -5938,13 +5938,13 @@
   const RENDERERS = {
     global: [renderDataWarning],
     byWorkspace: {
-      today: [renderNextAction, renderTrajectory, renderReadiness, renderDueQueue, renderForecast, renderPaceTiles, renderTodayContract],
+      today: [renderNextAction, renderTrajectory, renderReadiness, renderDueQueue, renderPaceTiles, renderTodayContract],
       plan: [renderWeekScoreboard, renderMonthMilestones, renderQuarterRoadmap],
       problems: [renderProblemBrowser],
       practice: [renderWeaknessLab, renderEdgeCases],
       curriculum: [renderStages, renderPromotionLadder, renderConstellation, renderSkills, renderPatterns],
       evidence: [
-        renderDeferredLearnings, renderThinkingBars, renderProblemTable, renderThinkingProfile,
+        renderForecast, renderDeferredLearnings, renderThinkingBars, renderProblemTable, renderThinkingProfile,
         renderLearningNotes, renderHintIndependence, renderMockTrend, renderRetentionTiles,
         renderConsistency, renderTimeInvested, renderActivityHeatmap, renderRevisionCalendar,
       ],

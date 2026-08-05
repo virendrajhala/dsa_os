@@ -329,19 +329,19 @@ git commit -m "feat/dashboard: evidence workspace consolidated into 4 sub-tabs"
 - Consumes: `RENDERERS.byWorkspace` arrays (legacy), `renderNudges`/`renderMotivation` (features/motivation.js).
 - Produces: Today = next action, contract, trajectory, due queue + pace tiles (5 blocks). Practice = weakness lab, nudges, edge checklist.
 
-- [ ] **Step 1: Move nudges panel**
+- [x] **Step 1: Move nudges panel**
 
 In index.html: cut `<section class="panel" id="nudges-panel">…</section>` out of `#overview`; convert to a standalone practice section placed between `#weakness-lab` and `#edge-cases`:
 `<section id="nudges" class="section" data-workspace-section="practice">` with a `.section-head` (eyebrow "Close it out", h3 "Almost done") + the `#nudge-cards` div. Delete the old panel wrapper.
 
-- [ ] **Step 2: Re-register renderers**
+- [x] **Step 2: Re-register renderers**
 
 `js/features/motivation.js`: change `RENDERERS.byWorkspace.today.push(renderNudges)` → `RENDERERS.byWorkspace.practice.push(renderNudges)`.
 `js/legacy/app.js`: in the RENDERERS literal, move `renderForecast` from `today` to `evidence` (its section moved in Task 2 — do it here if Task 2 didn't).
 
-- [ ] **Step 3: Verify** — Today shows exactly: next action, contract, trajectory, due queue, pace tiles (+ data warning when relevant). `g w` → Practice shows weakness lab, Almost done, edge checklist; nudge drill-down still opens. Evidence/Memory tab still renders forecast (renderer fires on first evidence visit).
+- [x] **Step 3: Verify** — Today shows exactly: next action, contract, trajectory, due queue, pace tiles (+ data warning when relevant). `g w` → Practice shows weakness lab, Almost done, edge checklist; nudge drill-down still opens. Evidence/Memory tab still renders forecast (renderer fires on first evidence visit).
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add web_dashboard/index.html web_dashboard/js/features/motivation.js web_dashboard/js/legacy/app.js

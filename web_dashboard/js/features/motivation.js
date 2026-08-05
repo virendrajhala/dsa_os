@@ -93,9 +93,13 @@ export function renderNudges() {
   });
   const top = nearComplete(groups);
   const host = document.querySelector("#nudge-cards");
-  const panel = document.querySelector("#nudges-panel");
-  panel.hidden = top.length === 0;
   host.innerHTML = "";
+  if (!top.length) {
+    // The section is a workspace section now, so its `hidden` belongs to
+    // switchWorkspace; an empty state is how every other section says "nothing".
+    host.innerHTML = `<p class="small-muted">No skill is close enough to finish yet — keep solving.</p>`;
+    return;
+  }
   for (const g of top) {
     const card = document.createElement("button");
     card.type = "button";
@@ -111,4 +115,4 @@ export function renderNudges() {
 }
 
 RENDERERS.byWorkspace.evidence.push(renderMotivation);
-RENDERERS.byWorkspace.today.push(renderNudges);
+RENDERERS.byWorkspace.practice.push(renderNudges);
