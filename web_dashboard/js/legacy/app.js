@@ -39,6 +39,7 @@
   };
 
   const browserState = { selection: { kind: "all" }, search: "", difficulty: "", status: "", sort: "curriculum" };
+  const catalogFilters = { query: "", stage: "", status: "" };
 
   // Problem-browser status: pure display transform of the completion record.
   // Scheduling truth (what to do NOW) stays with feed.next_action.
@@ -196,37 +197,31 @@
       eyebrow: "Today",
       title: "Mission briefing",
       subtitle: "What to do right now, and whether you are on trajectory for interviews.",
-      toolbar: false,
     },
     plan: {
       eyebrow: "Plan",
       title: "Quarter plan",
       subtitle: "Weekly targets, month-end skill milestones, and the burn-up to the quarter goal.",
-      toolbar: false,
     },
     problems: {
       eyebrow: "Problems",
       title: "Problem browser",
       subtitle: "Every curriculum problem, organized by stage and skill, with live status.",
-      toolbar: false,
     },
     practice: {
       eyebrow: "Practice",
       title: "Weakness lab",
       subtitle: "Targeted drilling from recorded mistakes and the edge-case checklist.",
-      toolbar: false,
     },
     curriculum: {
       eyebrow: "Curriculum",
       title: "Skill map",
       subtitle: "The prerequisite constellation, stage meters, skills, and patterns.",
-      toolbar: true,
     },
     evidence: {
       eyebrow: "Evidence",
       title: "Learning evidence",
       subtitle: "History, thinking profile, hint independence, mock trend, retention.",
-      toolbar: true,
     },
   };
 
@@ -249,13 +244,7 @@
     if (title) title.textContent = meta.title;
     if (subtitle) subtitle.textContent = meta.subtitle;
 
-    // Search + filters are contextual: only the list-bearing workspaces show them.
-    const toolbar = $("#list-toolbar");
-    if (toolbar) {
-      toolbar.hidden = !meta.toolbar;
-      toolbar.closest(".topbar")?.classList.toggle("topbar-has-toolbar", Boolean(meta.toolbar));
-    }
-
+    // Filter-bar visibility is engine/filterbar.js's call, per route.
     if (targetHash) {
       const target = document.querySelector(targetHash);
       if (target) target.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -478,14 +467,8 @@
     return haystack.includes(query);
   }
 
-  function buildStageOptions() {
-    const select = $("#stage-filter");
-    state.datasets.stages.stage_order.forEach((stage) => {
-      const option = document.createElement("option");
-      option.value = stage;
-      option.textContent = stage;
-      select.append(option);
-    });
+  function stageOptions() {
+    return state.datasets.stages.stage_order;
   }
 
   function referenceDate() {
@@ -3950,12 +3933,18 @@
     return card;
   }
 
+  // The catalog filters used to be read straight off the topbar DOM. They are
+  // owned by engine/filterbar.js now and pushed in through setCatalogFilters;
+  // `query` is stored normalized because problemMatchesQuery compares against a
+  // lowercased haystack.
   function currentFilters() {
-    return {
-      query: $("#search").value.trim().toLowerCase(),
-      stage: $("#stage-filter").value,
-      status: $("#status-filter").value,
-    };
+    return { ...catalogFilters };
+  }
+
+  function setCatalogFilters(next) {
+    Object.assign(catalogFilters, next);
+    catalogFilters.query = (catalogFilters.query || "").trim().toLowerCase();
+    applyFilters();
   }
 
   function problemMatchesQuery(problem, query) {
@@ -5973,7 +5962,6 @@
     try {
       initTheme();
       await loadData();
-      buildStageOptions();
       renderAll();
       const themeToggle = $("#theme-toggle");
       if (themeToggle) themeToggle.addEventListener("click", toggleTheme);
@@ -5987,33 +5975,7 @@
           $("#data-warning").hidden = true;
         });
       }
-      // Filters live only on list workspaces; guard so their absence is safe.
-      const search = $("#search");
-      if (search) search.addEventListener("input", debounce(applyFilters, 150));
-      const stageFilter = $("#stage-filter");
-      if (stageFilter) stageFilter.addEventListener("change", applyFilters);
-      const statusFilter = $("#status-filter");
-      if (statusFilter) statusFilter.addEventListener("change", applyFilters);
-      const browserSearch = $("#browser-search");
-      if (browserSearch) browserSearch.addEventListener("input", debounce(() => {
-        browserState.search = browserSearch.value;
-        renderProblemBrowser();
-      }, 150));
-      const browserDifficulty = $("#browser-difficulty");
-      if (browserDifficulty) browserDifficulty.addEventListener("change", () => {
-        browserState.difficulty = browserDifficulty.value;
-        renderProblemBrowser();
-      });
-      const browserStatus = $("#browser-status");
-      if (browserStatus) browserStatus.addEventListener("change", () => {
-        browserState.status = browserStatus.value;
-        renderProblemBrowser();
-      });
-      const browserSort = $("#browser-sort");
-      if (browserSort) browserSort.addEventListener("change", () => {
-        browserState.sort = browserSort.value;
-        renderProblemBrowser();
-      });
+      // Filters are owned by engine/filterbar.js, which drives them from the URL.
       // Rail links are plain hash links; the router picks them up from
       // hashchange. Keyboard chords and the palette still announce intent
       // through the `dash:navigate` event that main.js listens for.
@@ -6045,6 +6007,9 @@ export {
   state,
   browserState,
   renderAll,
+  renderProblemBrowser,
+  setCatalogFilters,
+  stageOptions,
   switchWorkspace,
   setModal,
   toggleTheme,

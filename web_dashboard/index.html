@@ -14,6 +14,7 @@
     <link rel="stylesheet" href="./css/components/focus.css" />
     <link rel="stylesheet" href="./css/components/tabs.css" />
     <link rel="stylesheet" href="./css/components/sidebar.css" />
+    <link rel="stylesheet" href="./css/components/filterbar.css" />
   </head>
   <body>
     <div class="app-shell">
@@ -88,18 +89,21 @@
             <h2 id="workspace-title">Mission briefing</h2>
             <p class="topbar-subtitle" id="workspace-subtitle">What to do right now, and whether you are on trajectory for interviews.</p>
           </div>
-          <div class="toolbar" id="list-toolbar" hidden>
-            <input id="search" type="search" placeholder="Search problems, skills, notes" />
-            <select id="stage-filter" aria-label="Filter by stage">
-              <option value="">All stages</option>
-            </select>
-            <select id="status-filter" aria-label="Filter by status">
+          <div id="filter-bar" class="filter-bar" hidden>
+            <input id="fb-search" type="search" placeholder="Search" aria-label="Search" />
+            <select id="fb-stage" aria-label="Stage"><option value="">All stages</option></select>
+            <select id="fb-status" aria-label="Status">
               <option value="">All statuses</option>
-              <option value="completed">Completed</option>
-              <option value="active">Active revisions</option>
-              <option value="failed">Failed revisions</option>
-              <option value="mastered">Mastered revisions</option>
               <option value="not_started">Not started</option>
+              <option value="solved">Solved (in revision)</option>
+              <option value="failed">Recall failed</option>
+              <option value="mastered">Mastered</option>
+            </select>
+            <select id="fb-difficulty" aria-label="Difficulty" hidden>
+              <option value="">All difficulties</option><option>Easy</option><option>Medium</option><option>Hard</option>
+            </select>
+            <select id="fb-sort" aria-label="Sort" hidden>
+              <option value="curriculum">Curriculum order</option><option value="frequency">Interview frequency</option>
             </select>
           </div>
         </header>
@@ -227,26 +231,6 @@
               <p class="eyebrow microlabel">Curriculum catalog</p>
             </div>
             <span class="pill num" id="browser-count">-</span>
-          </div>
-          <div class="browser-toolbar">
-            <input id="browser-search" type="search" placeholder="Search id or title" aria-label="Search problems" />
-            <select id="browser-difficulty" aria-label="Filter by difficulty">
-              <option value="">All difficulties</option>
-              <option value="Easy">Easy</option>
-              <option value="Medium">Medium</option>
-              <option value="Hard">Hard</option>
-            </select>
-            <select id="browser-status" aria-label="Filter by status">
-              <option value="">All statuses</option>
-              <option value="not_started">Not started</option>
-              <option value="solved">Solved (in revision)</option>
-              <option value="failed">Recall failed</option>
-              <option value="mastered">Mastered</option>
-            </select>
-            <select id="browser-sort" aria-label="Sort problems">
-              <option value="curriculum">Curriculum order</option>
-              <option value="frequency">Interview frequency</option>
-            </select>
           </div>
           <div class="browser-layout">
             <aside id="browser-tree" class="browser-tree" aria-label="Stages and skills"></aside>

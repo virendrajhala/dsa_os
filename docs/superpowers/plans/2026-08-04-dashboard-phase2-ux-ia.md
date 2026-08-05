@@ -488,7 +488,7 @@ git commit -m "feat/dashboard: rebuilt sidebar - collapsible persisted groups, i
 - Consumes: `onRoute`, `navigate`, `currentRoute` (router); `browserState`, `applyFilters`-path via exported legacy setter (below).
 - Produces: `initFilterBar()`; unified status vocabulary `["", "not_started", "solved", "failed", "mastered"]`; `mapStatus(unified, consumer)` where consumer ∈ `"browser" | "catalog"` — exported from filterbar.js and unit-tested. Legacy gets a new exported `setCatalogFilters({query, stage, status})` that updates state and runs the old applyFilters pipeline.
 
-- [ ] **Step 1: Failing tests** — `js/tests/filters.test.js`:
+- [x] **Step 1: Failing tests** — `js/tests/filters.test.js`:
 
 ```js
 import { test, assertEq } from "./run.js";
@@ -509,7 +509,7 @@ test("catalog consumer maps solved->active", () => {
 
 Run → FAIL. (Catalog = legacy `problemMatchesStatus`, whose vocabulary is `completed|active|failed|mastered|not_started`; unified drops `completed` — it was ≈ solved∪failed∪mastered and earned nothing.)
 
-- [ ] **Step 2: Legacy prep**
+- [x] **Step 2: Legacy prep**
 
 In `js/legacy/app.js`:
 1. Add module-scoped `const catalogFilters = { query: "", stage: "", status: "" };`
@@ -527,7 +527,7 @@ function setCatalogFilters(next) {
 5. Export `browserState` already exported (Phase 1) — plus export `renderProblemBrowser` for filterbar to trigger.
 6. Delete `toolbar` handling in `switchWorkspace` (the `meta.toolbar` block); remove `toolbar:` keys from `WORKSPACE_META` entries.
 
-- [ ] **Step 3: index.html** — delete `#list-toolbar` (topbar) and the `.browser-toolbar` block (problem browser). In the topbar, where `#list-toolbar` was:
+- [x] **Step 3: index.html** — delete `#list-toolbar` (topbar) and the `.browser-toolbar` block (problem browser). In the topbar, where `#list-toolbar` was:
 
 ```html
 <div id="filter-bar" class="filter-bar" hidden>
@@ -549,7 +549,7 @@ function setCatalogFilters(next) {
 </div>
 ```
 
-- [ ] **Step 4: Implement js/engine/filterbar.js**
+- [x] **Step 4: Implement js/engine/filterbar.js**
 
 ```js
 import { browserState, renderProblemBrowser, setCatalogFilters, stageOptions } from "../legacy/app.js";
@@ -640,11 +640,11 @@ export function initFilterBar() {
 
 CYCLE CHECK: filterbar imports legacy AND router; router imports legacy; legacy imports neither → no cycle. `applyToConsumers` runs on every route apply for filter workspaces — `applyFilters()` and `renderProblemBrowser()` are idempotent re-renders (verify no visible flicker; if flicker, add an early-return when params are unchanged from last apply — keep a `lastApplied` JSON string).
 
-- [ ] **Step 5: Wire + tests green** — main.js: `import { initFilterBar } from "./engine/filterbar.js"; initFilterBar();` before `startRouter()`. tests.html: import filters.test.js. Run → `PASS (24)`.
+- [x] **Step 5: Wire + tests green** — main.js: `import { initFilterBar } from "./engine/filterbar.js"; initFilterBar();` before `startRouter()`. tests.html: import filters.test.js. Run → `PASS (24)`.
 
-- [ ] **Step 6: Verify** — Problems: search "kadane" filters table (URL gains `?q=kadane`), difficulty + status + sort work, tree intact; reload restores all four controls AND the filtered table; Curriculum: search dims constellation + filters skills/stages as before (old topbar behavior preserved via setCatalogFilters); Evidence: search filters history table; switching workspace swaps visible controls and re-applies that workspace's params; `/` still focuses the search box; status vocabulary identical in every workspace.
+- [x] **Step 6: Verify** — Problems: search "kadane" filters table (URL gains `?q=kadane`), difficulty + status + sort work, tree intact; reload restores all four controls AND the filtered table; Curriculum: search dims constellation + filters skills/stages as before (old topbar behavior preserved via setCatalogFilters); Evidence: search filters history table; switching workspace swaps visible controls and re-applies that workspace's params; `/` still focuses the search box; status vocabulary identical in every workspace.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add web_dashboard/index.html web_dashboard/js/engine/filterbar.js web_dashboard/css/components/filterbar.css web_dashboard/js/tests/filters.test.js web_dashboard/tests.html web_dashboard/js/legacy/app.js web_dashboard/js/main.js
