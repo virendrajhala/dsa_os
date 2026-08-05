@@ -1614,9 +1614,9 @@
     if (legendHost) {
       legendHost.append(
         chartLegend([
-          { label: "planned", shape: "line", color: "var(--muted)" },
+          { label: "planned", shape: "line", color: "var(--line)" },
           { label: `actual · ${burnup.actual_total}`, shape: "line", color: "var(--series-1)" },
-          { label: `projection · ${burnup.projected_total}`, shape: "line", color: "var(--series-2)" },
+          { label: `projection · ${burnup.projected_total}`, shape: "line", color: "var(--muted)" },
         ]),
       );
     }

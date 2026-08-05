@@ -1,0 +1,277 @@
+/* Today = mission control. Exactly one hero (the next action); everything else
+   is quiet rows and tiles on hairlines. */
+
+@layer components {
+  .briefing-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+    gap: var(--sp-4);
+    align-items: start;
+  }
+
+  /* ---- the one hero ----------------------------------------------------- */
+
+  .briefing-next {
+    position: relative;
+    padding-left: calc(var(--sp-5) - 3px);
+    border-left: 3px solid var(--accent);
+  }
+
+  .next-action {
+    display: grid;
+    gap: var(--sp-3);
+    justify-items: start;
+  }
+
+  .next-action .problem-title {
+    font-family: var(--mono);
+    font-size: var(--fs-6);
+    font-weight: 650;
+    letter-spacing: -0.01em;
+    line-height: 1.15;
+  }
+
+  .next-action .meta-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sp-2);
+  }
+
+  .next-action .next-reason {
+    max-width: 68ch;
+    color: var(--text-2);
+  }
+
+  /* The only filled control in the app. The fill is the accent pulled 10%
+     toward the ink of the current theme: that lands the label (`--surface`)
+     above 5:1 in BOTH themes, which the raw accent misses in light. */
+  .primary-action {
+    min-height: var(--sp-8);
+    padding-inline: var(--sp-5);
+    border: 1px solid transparent;
+    border-radius: var(--radius-s);
+    background: color-mix(in oklab, var(--accent) 90%, var(--text));
+    color: var(--surface);
+    font-size: var(--fs-3);
+    font-weight: 650;
+  }
+
+  .primary-action:hover {
+    background: color-mix(in oklab, var(--accent) 78%, var(--text));
+    border-color: transparent;
+  }
+
+  /* ---- today's contract -------------------------------------------------- */
+
+  .contract-list {
+    display: grid;
+    gap: var(--sp-1);
+  }
+
+  .contract-row {
+    display: grid;
+    grid-template-columns: var(--sp-5) minmax(0, 1fr) auto;
+    align-items: center;
+    gap: var(--sp-3);
+    padding: var(--sp-2) var(--sp-3);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-s);
+    background: var(--surface);
+  }
+
+  .contract-mark {
+    display: grid;
+    place-items: center;
+    width: var(--sp-5);
+    height: var(--sp-5);
+    border-radius: 999px;
+    font-size: var(--fs-1);
+    line-height: 1;
+  }
+
+  /* The glyph carries the state and the colour reinforces it - never colour alone. */
+  .contract-mark.good {
+    border: 1px solid color-mix(in oklab, var(--good) 55%, var(--line));
+    color: var(--good);
+  }
+
+  .contract-mark.pending {
+    border: 1px solid color-mix(in oklab, var(--warn) 55%, var(--line));
+    color: var(--warn);
+  }
+
+  .contract-mark.skip {
+    border: 1px solid var(--line);
+    color: var(--muted);
+  }
+
+  .contract-label {
+    font-size: var(--fs-3);
+    font-weight: 500;
+    color: var(--text);
+  }
+
+  .contract-row .microlabel {
+    text-align: right;
+  }
+
+  /* ---- trajectory strip -------------------------------------------------- */
+
+  /* `.gridpaper` used to carry a graph-paper texture; the restraint rules keep
+     the deck free of decorative gradients, so it is now a plain panel hook. */
+  .trajectory .trajectory-strip {
+    margin-top: var(--sp-1);
+  }
+
+  .trajectory-line {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--sp-3);
+  }
+
+  .trajectory-station,
+  .trajectory-terminus {
+    display: grid;
+    gap: var(--sp-1);
+    align-content: start;
+    padding: var(--sp-3) var(--sp-4);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-m);
+    background: var(--surface);
+  }
+
+  .station-dot {
+    display: grid;
+    place-items: center;
+    width: var(--sp-4);
+    height: var(--sp-4);
+    border: 1px solid var(--line-strong);
+    border-radius: 999px;
+    font-size: var(--fs-0);
+    line-height: 1;
+  }
+
+  .trajectory-station.met .station-dot {
+    border-color: var(--good);
+    background: color-mix(in oklab, var(--good) 18%, var(--surface));
+    color: var(--good);
+  }
+
+  .trajectory-station.unmet .station-dot {
+    border-color: var(--line-strong);
+    color: var(--muted);
+  }
+
+  .station-value {
+    font-size: var(--fs-5);
+    font-weight: 650;
+    line-height: 1.2;
+  }
+
+  .station-detail,
+  .station-target {
+    font-size: var(--fs-0);
+    color: var(--text-2);
+  }
+
+  .terminus-date {
+    font-size: var(--fs-5);
+    font-weight: 650;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .trajectory-station,
+    .trajectory-terminus {
+      animation: station-in var(--dur-view) var(--ease-out) both;
+      animation-delay: var(--stagger, 0ms);
+    }
+
+    @keyframes station-in {
+      from {
+        opacity: 0;
+        transform: translateY(4px);
+      }
+    }
+  }
+
+  /* ---- due queue ---------------------------------------------------------- */
+
+  .due-queue {
+    display: grid;
+    gap: var(--sp-1);
+  }
+
+  .due-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto auto;
+    align-items: center;
+    gap: var(--sp-3);
+    width: 100%;
+    padding: var(--sp-2) var(--sp-3);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-s);
+    background: var(--surface);
+    text-align: left;
+  }
+
+  .due-row:hover {
+    border-color: var(--line-strong);
+    background: color-mix(in oklab, var(--text) 4%, var(--surface));
+  }
+
+  .due-title {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: var(--fs-2);
+    color: var(--text);
+  }
+
+  .due-date {
+    font-size: var(--fs-1);
+    color: var(--text-2);
+  }
+
+  /* Overdue reads as a glyph AND a word AND a colour - never colour alone. */
+  .due-flag {
+    min-width: 9ch;
+    font-size: var(--fs-0);
+    text-align: right;
+    color: var(--bad);
+  }
+
+  .due-row.overdue {
+    border-color: color-mix(in oklab, var(--bad) 35%, var(--line));
+  }
+
+  /* ---- pace tiles --------------------------------------------------------- */
+
+  .pace-tiles {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: var(--sp-3);
+  }
+
+  .pace-tile {
+    display: grid;
+    gap: var(--sp-1);
+    align-content: start;
+    padding: var(--sp-3) var(--sp-4);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-m);
+    background: var(--surface);
+  }
+
+  .pace-tile strong {
+    font-size: var(--fs-5);
+    font-weight: 650;
+    line-height: 1.2;
+    color: var(--text);
+  }
+
+  .pace-tile small {
+    font-size: var(--fs-0);
+    color: var(--text-2);
+  }
+}

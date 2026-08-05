@@ -48,7 +48,7 @@ function drawProjection(burnup, projection, today) {
     x1: xFor(last.date), y1: yFor(last.cumulative || 0),
     x2: xFor(endIso), y2: yFor(endCount),
     class: "pace-velocity-line",
-    stroke: "var(--accent, #5aa9e6)",
+    stroke: "var(--accent)",
     "stroke-width": 2,
     "stroke-dasharray": "6 5",
     fill: "none",

@@ -1,0 +1,163 @@
+/* Plan: week bars, month milestones, quarter burn-up.
+
+   Chart ink follows the dataviz rules: exactly one series colour carries the
+   thing you achieved (--series-1 = actual), structure wears line tokens, and
+   projections wear --muted so a forecast never reads as data. */
+
+@layer components {
+  /* ---- week bars --------------------------------------------------------- */
+
+  .weekbars {
+    overflow-x: auto;
+  }
+
+  /* Bar geometry is authored at 660x120 in the renderer; letting it stretch to
+     a 1100px column turns two weeks into two billboards. Cap at native width. */
+  .weekbars-svg {
+    display: block;
+    width: 100%;
+    max-width: 660px;
+    height: auto;
+  }
+
+  /* The target is the track; the actual is the fill. Sequential, not two hues. */
+  .weekbar-target {
+    fill: var(--surface-2);
+    stroke: var(--line);
+    stroke-width: 1;
+  }
+
+  .weekbar-actual {
+    fill: var(--series-1);
+  }
+
+  .weekbar-actual.good {
+    fill: var(--good);
+  }
+
+  /* ---- month milestones -------------------------------------------------- */
+
+  .milestone-board {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: var(--sp-4);
+    align-items: start;
+  }
+
+  .milestone-card {
+    display: grid;
+    gap: var(--sp-3);
+    align-content: start;
+    padding: var(--sp-4);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-m);
+    background: var(--surface);
+  }
+
+  .milestone-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--sp-3);
+  }
+
+  .milestone-head h4 {
+    font-family: var(--mono);
+    font-size: var(--fs-3);
+  }
+
+  .milestone-skills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sp-1);
+  }
+
+  .skill-chip {
+    padding: var(--sp-1) var(--sp-2);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    font-size: var(--fs-1);
+    color: var(--text-2);
+  }
+
+  .skill-chip.good {
+    border-color: color-mix(in oklab, var(--good) 45%, var(--line));
+    color: color-mix(in oklab, var(--good) 70%, var(--text));
+  }
+
+  .skill-chip.warn {
+    border-color: color-mix(in oklab, var(--warn) 45%, var(--line));
+    color: color-mix(in oklab, var(--warn) 70%, var(--text));
+  }
+
+  .skill-chip.bad {
+    border-color: color-mix(in oklab, var(--bad) 45%, var(--line));
+    color: color-mix(in oklab, var(--bad) 70%, var(--text));
+  }
+
+  /* ---- quarter burn-up --------------------------------------------------- */
+
+  .burnup-svg {
+    display: block;
+    width: 100%;
+    height: auto;
+    overflow: visible;
+  }
+
+  /* Deload weeks are texture, not a hue: a faint ink wash behind the plot. */
+  .burnup-deload {
+    fill: color-mix(in oklab, var(--text) 4%, transparent);
+  }
+
+  .burnup-target-line {
+    stroke: var(--line-strong);
+    stroke-width: 1;
+    stroke-dasharray: 4 4;
+  }
+
+  /* Target and planned are both structure, so they separate by weight, not hue:
+     the quarter ceiling is the stronger line, the schedule ramp the quieter one. */
+  .burnup-planned {
+    stroke: var(--line);
+    stroke-width: 1.5;
+  }
+
+  .burnup-actual {
+    stroke: var(--series-1);
+    stroke-width: 2.5;
+    stroke-linejoin: round;
+    stroke-linecap: round;
+  }
+
+  .burnup-projection {
+    stroke: var(--muted);
+    stroke-width: 2;
+    stroke-dasharray: 5 4;
+  }
+
+  .burnup-today {
+    stroke: var(--line-strong);
+    stroke-width: 1;
+  }
+
+  .burnup-tick {
+    stroke: var(--line-strong);
+    stroke-width: 1;
+  }
+
+  /* The what-if line is an interactive affordance, so it wears the accent. */
+  .pace-velocity-line {
+    stroke: var(--accent);
+  }
+
+  .pace-projection #pace-line {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-2);
+    font-size: var(--fs-2);
+  }
+
+  .pace-projection input[type="range"] {
+    accent-color: var(--accent);
+  }
+}

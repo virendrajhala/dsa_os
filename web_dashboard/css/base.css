@@ -113,10 +113,17 @@
     color: var(--text-2);
   }
 
+  /* Renderers emit `class="chart-note microlabel"`, but these are full
+     sentences: uppercase mono is unreadable at paragraph length, so the note
+     wins the tie (it is declared after `.microlabel`) and stays sentence-cased. */
   .chart-note {
     margin: 0;
-    font-size: var(--fs-0);
+    font-family: inherit;
+    font-size: var(--fs-1);
+    font-weight: 400;
+    letter-spacing: 0;
     line-height: 1.45;
+    text-transform: none;
     color: var(--text-2);
   }
 
@@ -375,6 +382,29 @@
   }
 
   /* ---- misc primitives -------------------------------------------------- */
+
+  /* Shared chart scaffolding - every view's SVG sits in one of these and uses
+     the same axis/baseline ink. */
+  .insight-chart {
+    overflow-x: auto;
+  }
+
+  .insight-chart svg {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  .forecast-axis {
+    fill: var(--text-2);
+    font-family: var(--mono);
+    font-size: var(--fs-0);
+  }
+
+  .forecast-baseline {
+    stroke: var(--line-strong);
+    stroke-width: 1;
+  }
 
   .chart-legend {
     display: flex;
