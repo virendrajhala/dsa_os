@@ -1,13 +1,9 @@
 <!doctype html>
 <html><head><meta charset="utf-8"><title>running</title></head><body>
 <script type="module">
-  // Test modules are imported here; each calls test() at module top level.
-  import "./js/tests/activity.test.js";
-  import "./js/tests/memory.test.js";
-  import "./js/tests/pace.test.js";
-  import "./js/tests/search.test.js";
-  import "./js/tests/router.test.js";
-  import "./js/tests/filters.test.js";
+  // The suite lives in js/tests/all.js so this page and the headless runner
+  // (js/tests/node.js, run by `make test`) can never drift apart.
+  import "./js/tests/all.js";
   import { report } from "./js/tests/run.js";
   report();
 </script>

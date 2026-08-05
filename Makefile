@@ -1,6 +1,8 @@
 PYTHON ?= python3
 
-.PHONY: validate test dashboard web-dashboard next revise stats weakness progress check-solution refresh-frequency
+NODE ?= node
+
+.PHONY: validate test test-web dashboard web-dashboard next revise stats weakness progress check-solution refresh-frequency
 
 validate:
 	$(PYTHON) scripts/validate_curriculum.py
@@ -14,6 +16,14 @@ test:
 	$(PYTHON) scripts/test_dashboard_feed.py
 	$(PYTHON) scripts/test_plan_feed.py
 	$(PYTHON) scripts/test_curriculum_order.py
+	$(MAKE) test-web
+
+# Dashboard JS suite, headless. Same tests tests.html runs in the browser.
+test-web:
+	@command -v $(NODE) >/dev/null 2>&1 || { \
+	  echo "ERROR: '$(NODE)' not found - the dashboard JS suite needs Node."; \
+	  echo "Install Node, or run 'make NODE=/path/to/node test'."; exit 1; }
+	$(NODE) web_dashboard/js/tests/node.js
 
 dashboard:
 	$(PYTHON) scripts/dashboard.py

@@ -1,0 +1,6 @@
+{
+  "name": "dsa-os-web-dashboard",
+  "private": true,
+  "type": "module",
+  "description": "Marks the dashboard's .js files as ES modules so Node can run js/tests/node.js. No dependencies, no build step - the browser never fetches this file."
+}
