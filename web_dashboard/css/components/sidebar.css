@@ -1,3 +1,4 @@
+@layer components {
 .rail-nav {
   display: flex;
   flex-direction: column;
@@ -158,4 +159,5 @@ body.rail-collapsed .sidebar {
 body.rail-collapsed .brand {
   grid-template-columns: 1fr;
   justify-items: center;
+}
 }

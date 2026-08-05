@@ -1,3 +1,4 @@
+@layer components {
 .evidence-tabs {
   position: sticky;
   top: 0;
@@ -38,4 +39,5 @@
 .evidence-tabs button:focus-visible {
   outline: 2px solid var(--accent, #5aa9e6);
   outline-offset: -2px;
+}
 }

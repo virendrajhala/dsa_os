@@ -1,16 +1,82 @@
-:root {
-  --dur-feedback: 120ms;
-  --dur-overlay: 200ms;
-  --dur-view: 280ms;
-  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
-}
+/* Single source of visual truth. Layer order is declared here because this is
+   the first stylesheet the document loads: later layers beat earlier ones no
+   matter what a selector's specificity is, so `components` always out-competes
+   `legacy` without an override war. */
+@layer legacy, tokens, base, components;
 
-@media (prefers-reduced-motion: reduce) {
-  :root { --dur-feedback: 0ms; --dur-overlay: 0ms; --dur-view: 0ms; }
-  ::view-transition-group(*),
-  ::view-transition-old(*),
-  ::view-transition-new(*) { animation: none !important; }
-}
+@layer tokens {
+  :root { color-scheme: light dark; }
+  :root[data-theme="light"] { color-scheme: light; }
+  :root[data-theme="dark"] { color-scheme: dark; }
 
-::view-transition-old(root) { animation-duration: calc(var(--dur-view) * 0.66); }
-::view-transition-new(root) { animation-duration: var(--dur-view); animation-timing-function: var(--ease-out); }
+  /* Defined at :root AND .main so this one block also beats every scoped
+     redefinition inside legacy - one theme definition, whole app. */
+  :root, .main {
+    /* surfaces + ink (validated reference chrome) */
+    --bg: light-dark(#f9f9f7, #0d0d0d);
+    --bg-2: light-dark(#f4f3f0, #131312);
+    --surface: light-dark(#fcfcfb, #1a1a19);
+    --surface-2: light-dark(#f4f3f0, #222221);
+    --surface-3: var(--surface-2);
+    --surface-soft: var(--surface-2);
+    --control-bg: var(--surface);
+    --line: light-dark(#e1e0d9, #2c2c2a);
+    --line-strong: light-dark(#c3c2b7, #383835);
+    --text: light-dark(#0b0b0b, #ffffff);
+    --text-2: light-dark(#52514e, #c3c2b7);
+    --muted: #898781;
+    --accent: light-dark(#2a78d6, #3987e5);
+    --focus-ring: color-mix(in oklab, var(--accent) 60%, transparent);
+
+    /* status (fixed, never series) */
+    --good: #0ca30c;
+    --warn: light-dark(#c98500, #fab219);
+    --serious: #ec835a;
+    --bad: light-dark(#d03b3b, #e66767);
+
+    /* categorical series - validated order, never re-order or cycle */
+    --series-1: light-dark(#2a78d6, #3987e5);
+    --series-2: light-dark(#eb6834, #d95926);
+    --series-3: light-dark(#1baf7a, #199e70);
+    --series-4: light-dark(#eda100, #c98500);
+    --series-5: light-dark(#e87ba4, #d55181);
+    --series-6: #008300;
+    --series-7: light-dark(#4a3aa7, #9085e9);
+    --series-8: light-dark(#e34948, #e66767);
+
+    /* sequential blue ramp, 5 steps low->high (heatmaps): low recedes to surface */
+    --seq-1: light-dark(#cde2fb, #0d366b);
+    --seq-2: light-dark(#86b6ef, #1c5cab);
+    --seq-3: light-dark(#3987e5, #2a78d6);
+    --seq-4: light-dark(#1c5cab, #5598e7);
+    --seq-5: light-dark(#0d366b, #86b6ef);
+
+    /* scale */
+    --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px;
+    --sp-5: 20px; --sp-6: 24px; --sp-7: 32px; --sp-8: 48px;
+    --fs-0: 11px; --fs-1: 12px; --fs-2: 13px; --fs-3: 14px;
+    --fs-4: 16px; --fs-5: 20px; --fs-6: 28px;
+    --radius-s: 6px; --radius-m: 10px; --radius-l: 14px;
+    --radius: var(--radius-m);
+    --mono: "SFMono-Regular", ui-monospace, "Cascadia Mono", Consolas, monospace;
+    --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.06);
+    --shadow-lg: 0 8px 28px rgb(0 0 0 / 0.16);
+    --shadow: var(--shadow-sm);
+
+    /* motion (carried from phase 1) */
+    --dur-feedback: 120ms; --dur-overlay: 200ms; --dur-view: 280ms;
+    --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    :root { --dur-feedback: 0ms; --dur-overlay: 0ms; --dur-view: 0ms; }
+    /* The one permitted !important: a motion kill. Layer reversal works in its
+       favour - an important declaration in an EARLY layer beats later layers. */
+    ::view-transition-group(*),
+    ::view-transition-old(*),
+    ::view-transition-new(*) { animation: none !important; }
+  }
+
+  ::view-transition-old(root) { animation-duration: calc(var(--dur-view) * 0.66); }
+  ::view-transition-new(root) { animation-duration: var(--dur-view); animation-timing-function: var(--ease-out); }
+}

@@ -1,3 +1,4 @@
+@layer components {
 .kb-selected {
   outline: 2px solid var(--accent, #60a5fa);
   outline-offset: -2px;
@@ -35,4 +36,5 @@
 
 .kb-help dd {
   margin: 0;
+}
 }

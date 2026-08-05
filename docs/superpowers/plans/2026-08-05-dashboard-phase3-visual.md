@@ -43,9 +43,9 @@
   `--bg --surface --surface-2 --line --line-strong --text --text-2 --muted --accent --focus-ring --good --warn --bad --serious --series-1..8 --seq-1..5 --sp-1..8 --fs-0..5 --radius-s/m/l --shadow-sm/lg --mono`.
 - Legacy consumes some of these same names (`--bg --surface --line --text --muted --good --warn --bad --accent --series-*` + refresh-layer extras `--bg-2 --surface-3 --surface-soft --line-strong --control-bg --focus-ring --shadow-sm --shadow-lg --radius --shadow`): redefining them at `:root` AND `.main` in the tokens layer beats every legacy scope (layers beat specificity), which rethemes ALL legacy views in one move.
 
-- [ ] **Step 1: Wrap legacy** — first line of `css/legacy.css` becomes `@layer legacy {`, append closing `}` at EOF. In index.html give its link `id="legacy-css"`. Wrap each of the 8 component files' entire content in `@layer components {` … `}`.
+- [x] **Step 1: Wrap legacy** — first line of `css/legacy.css` becomes `@layer legacy {`, append closing `}` at EOF. In index.html give its link `id="legacy-css"`. Wrap each of the 8 component files' entire content in `@layer components {` … `}`.
 
-- [ ] **Step 2: Rewrite css/tokens.css** (declares layer order FIRST — it is the first stylesheet loaded):
+- [x] **Step 2: Rewrite css/tokens.css** (declares layer order FIRST — it is the first stylesheet loaded):
 
 ```css
 @layer legacy, tokens, base, components;
@@ -123,9 +123,9 @@
 
 (The `!important` in the reduced-motion view-transition rule is the ONE permitted exception — it's a motion-kill, and layer-reversal works in its favor.)
 
-- [ ] **Step 3: Verify the retheme** — reload both themes, walk all routes. EXPECTED: global palette shift to warm neutrals + validated series everywhere tokens reach; hardcoded-hex spots (291 in legacy) will look inconsistent — that is Tasks 3-8's job, note the worst offenders per view but don't fix here. REQUIRED-INTACT: layout unbroken everywhere, theme toggle still flips both directions, view transitions still fire, tests.html `PASS (24)`, zero console errors. If any view's layout (not color) broke, a legacy `!important` or unlayered leak is the suspect — fix before committing.
+- [x] **Step 3: Verify the retheme** — reload both themes, walk all routes. EXPECTED: global palette shift to warm neutrals + validated series everywhere tokens reach; hardcoded-hex spots (291 in legacy) will look inconsistent — that is Tasks 3-8's job, note the worst offenders per view but don't fix here. REQUIRED-INTACT: layout unbroken everywhere, theme toggle still flips both directions, view transitions still fire, tests.html `PASS (24)`, zero console errors. If any view's layout (not color) broke, a legacy `!important` or unlayered leak is the suspect — fix before committing.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add web_dashboard/css web_dashboard/index.html

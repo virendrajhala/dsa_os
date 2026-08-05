@@ -1,3 +1,4 @@
+@layer legacy {
 /* Mission Deck token system (design spec section 7). Dark-first: the default
    selector is :root without a light override; the theme toggle stamps
    data-theme on <html> and localStorage persists it. */
@@ -6613,4 +6614,5 @@ tbody tr:hover {
   .constellation-minimap {
     display: none;
   }
+}
 }
