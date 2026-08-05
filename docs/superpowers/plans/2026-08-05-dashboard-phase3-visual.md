@@ -142,9 +142,9 @@ git commit -m "feat/dashboard: cascade-layer scaffold + single light-dark token 
 **Interfaces:**
 - Produces `@layer base` rules for: `body` (font stack, `--fs-2`, `--text` on `--bg`), headings scale (h1 `--fs-5`, h2 `--fs-5`, h3 `--fs-4`, h4 `--fs-3`; weight 650; margins on the 4px grid), `.microlabel`, `.eyebrow`, `.num` (mono + `tabular-nums`), links, `input/select/button` (control height 30px, `--radius-s`, `--control-bg`, hairline `--line`, focus-visible ring `0 0 0 2px var(--focus-ring)`), `.pill`, `.mini-button`, `.icon-button`, `.metric-card`, `.panel`, `.section`, `.section-head`, `.chart-note`, `.chart-legend`, `.table-wrap table` (header `--text-2` uppercase `--fs-0`, row hairlines, hover wash `color-mix(in oklab, var(--text) 4%, transparent)`), `dialog::backdrop`, scrollbars (`scrollbar-width: thin; scrollbar-color: var(--line-strong) transparent`), `.data-warning`, `.small-muted`, `.stack`.
 
-- [ ] **Step 1: Write base.css** — fully specify each primitive above from tokens (no raw px outside the scale, no hex). These selectors deliberately re-cover legacy's most-repeated shared rules; base layer beats legacy so the old 25-selector repeated lists become inert without being touched.
-- [ ] **Step 2: Verify** — all routes × both themes: tables, pills, buttons, inputs, panels, section heads consistent; focus-visible ring on every control (Tab walk); no double-borders or clipped text anywhere. tests green.
-- [ ] **Step 3: Commit** — `git add web_dashboard/css/base.css web_dashboard/index.html && git commit -m "feat/dashboard: base layer - type scale, controls, shared primitives on tokens"`
+- [x] **Step 1: Write base.css** — fully specify each primitive above from tokens (no raw px outside the scale, no hex). These selectors deliberately re-cover legacy's most-repeated shared rules; base layer beats legacy so the old 25-selector repeated lists become inert without being touched.
+- [x] **Step 2: Verify** — all routes × both themes: tables, pills, buttons, inputs, panels, section heads consistent; focus-visible ring on every control (Tab walk); no double-borders or clipped text anywhere. tests green.
+- [x] **Step 3: Commit** — `git add web_dashboard/css/base.css web_dashboard/index.html && git commit -m "feat/dashboard: base layer - type scale, controls, shared primitives on tokens"`
 
 ---
 
