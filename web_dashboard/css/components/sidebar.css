@@ -126,6 +126,58 @@ body.rail-collapsed .rail-collapse {
   padding: 0 var(--sp-2);
 }
 
+/* ---- Track switch ------------------------------------------------------ */
+/* Which curriculum the whole dashboard is looking at. A segmented control, not
+   a toggle: both tracks stay visible so the active one is a fact on screen
+   rather than something you infer from a label. Flipping reloads the page. */
+.track-switch {
+  display: grid;
+  gap: var(--sp-1);
+}
+
+.track-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px;
+  padding: 2px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+}
+
+.track-option {
+  min-height: var(--sp-6);
+  padding: 0 var(--sp-2);
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-2);
+  font-size: var(--fs-0);
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  line-height: 1;
+  transition: background var(--dur-feedback), color var(--dur-feedback);
+}
+
+.track-option:hover {
+  background: color-mix(in oklab, var(--text) 6%, transparent);
+  color: var(--text);
+}
+
+.track-option[aria-pressed="true"] {
+  background: color-mix(in oklab, var(--accent) 14%, var(--surface));
+  color: color-mix(in oklab, var(--accent) 75%, var(--text));
+}
+
+/* Collapsed rail is 56px wide: stack the segments instead of squeezing them. */
+body.rail-collapsed .track-switch > .microlabel {
+  display: none;
+}
+
+body.rail-collapsed .track-options {
+  grid-template-columns: 1fr;
+}
+
 /* ---- Icon rail -------------------------------------------------------- */
 /* Additive layout under a NEW body class; the expanded rail keeps whatever
    legacy sets. */

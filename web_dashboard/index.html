@@ -83,9 +83,16 @@
           >
             Theme
           </button>
+          <div class="track-switch" role="group" aria-label="Curriculum track">
+            <span class="microlabel">Track</span>
+            <div class="track-options">
+              <button type="button" class="track-option" data-track="main" aria-pressed="true">582</button>
+              <button type="button" class="track-option" data-track="blind75" aria-pressed="false">B75</button>
+            </div>
+          </div>
           <div class="source-card">
             <span class="microlabel">Source</span>
-            <strong class="num">progress.json</strong>
+            <strong class="num" id="source-file">progress.json</strong>
             <small id="last-updated" class="num">Loading...</small>
           </div>
         </div>

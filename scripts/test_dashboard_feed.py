@@ -194,6 +194,25 @@ class FeedEndpointTests(unittest.TestCase):
                     time.sleep(0.15)
             self.assertIsNotNone(feed, "server did not answer /api/feed in time")
             self.assertIn("next_action", feed)
+            self.assertEqual(feed["track"], "main")
+
+            # ?track= selects the curriculum the feed is built from...
+            track_dir = _shared.ROOT / "tracks" / "blind75"
+            if track_dir.is_dir():
+                with urllib.request.urlopen(f"{base}/api/feed?track=blind75", timeout=5) as resp:
+                    self.assertEqual(resp.status, 200)
+                    blind = _json.loads(resp.read().decode("utf-8"))
+                self.assertEqual(blind["track"], "blind75")
+                self.assertNotEqual(
+                    blind["next_action"]["problem_id"], feed["next_action"]["problem_id"]
+                )
+
+            # ...and an unknown track is a bad request, not a 500.
+            with self.assertRaises(urllib.error.HTTPError) as ctx:
+                urllib.request.urlopen(f"{base}/api/feed?track=no_such_track", timeout=5)
+            self.assertEqual(ctx.exception.code, 400)
+            self.assertIn("no_such_track", ctx.exception.read().decode("utf-8"))
+
             with urllib.request.urlopen(
                 f"{base}/web_dashboard/index.html", timeout=2
             ) as resp:

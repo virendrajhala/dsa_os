@@ -7,6 +7,7 @@ import { initEvidenceTabs } from "./engine/tabs.js";
 import { initSidebar } from "./engine/sidebar.js";
 import { initFilterBar } from "./engine/filterbar.js";
 import { viewSwitch } from "./engine/motion.js";
+import { otherTrack, setTrack, trackMeta } from "./engine/track.js";
 import "./features/motivation.js";
 import "./features/memory.js";
 import "./features/pace.js";
@@ -33,6 +34,12 @@ initPalette({ actions: [
   { id: "act:theme", label: "Toggle theme", hint: "t", run: toggleTheme },
   { id: "act:help", label: "Keyboard help", hint: "?", run: () => help.togglePopover() },
   { id: "act:focus", label: "Focus mode", hint: "f", run: toggleFocusMode },
+  {
+    id: "act:track",
+    label: `Switch to ${trackMeta(otherTrack()).label}`,
+    hint: "reloads",
+    run: () => setTrack(otherTrack()),
+  },
 ] });
 
 // Everything below needs loaded data: the first route apply renders a workspace.

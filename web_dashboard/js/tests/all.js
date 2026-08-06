@@ -7,3 +7,4 @@ import "./pace.test.js";
 import "./search.test.js";
 import "./router.test.js";
 import "./filters.test.js";
+import "./track.test.js";
