@@ -3,6 +3,10 @@
 
 Each entry records a reusable invariant.
 
+This is the main (582) track's log. Tracks share nothing: the Blind 75 track
+keeps its own at `tracks/blind75/thinking_patterns.md`. `Related problems` here
+name main-track ids only.
+
 ## Template
 Pattern:
 Trigger:

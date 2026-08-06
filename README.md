@@ -4,7 +4,7 @@ DSA_OS is a production-grade apprenticeship repository for data structures and a
 
 It is not a problem dump and it is not a Leetcode tracker. The repository is designed to support a 6-9 month preparation journey focused on transferable interview thinking: reading precisely, building examples, grounding in brute force, identifying invariants, selecting the right pattern, communicating tradeoffs, and revising weak spots deliberately.
 
-The curriculum is derived from the PDF source `DSA_Questions_and_Patterns_500.pdf (1).pdf`. All 507 original problems are preserved and mapped back through `original_number`, then reorganized by learning dependency instead of PDF order. An additional 74 supplemental problems (marked `"supplemental": true`, `original_number: null`) were added on top to close specific coverage gaps — see `curriculum/curriculum.json`'s `source` block and `curriculum/dsa-skill-map.md` for the full breakdown. The curriculum currently totals 581 problems across 93 skills and 13 stages (see `knowledge/skills.json` and `curriculum/stages.json`); every problem's `primary_skill` determines its stage, replacing the old `pattern`/`module` fields.
+The curriculum is derived from the PDF source `DSA_Questions_and_Patterns_500.pdf (1).pdf`. All 507 original problems are preserved and mapped back through `original_number`, then reorganized by learning dependency instead of PDF order. An additional 75 supplemental problems (marked `"supplemental": true`, `original_number: null`) were added on top to close specific coverage gaps — see `curriculum/curriculum.json`'s `source` block and `curriculum/dsa-skill-map.md` for the full breakdown. The curriculum currently totals 582 problems across 93 skills and 13 stages (see `knowledge/skills.json` and `curriculum/stages.json`); every problem's `primary_skill` determines its stage, replacing the old `pattern`/`module` fields.
 
 ## Installation
 
@@ -31,6 +31,53 @@ python3 --version
    `make revise`
 8. Generate a weakness-targeted practice plan.
    `make weakness`
+
+Every command above runs the main 582-problem curriculum. Add `TRACK=blind75`
+to any of them to run the Blind 75 sprint instead — see Tracks, next.
+
+## Tracks (582 vs Blind 75)
+
+The repository carries two independent curricula. Every workflow target takes
+`TRACK=`, defaulting to the main 582-problem curriculum:
+
+```bash
+make next                  # main curriculum (582 problems)
+make next TRACK=blind75    # Blind 75 sprint (75 problems)
+make dashboard TRACK=blind75
+make progress TRACK=blind75 ARGS="--problem-id B75-001 ..."
+```
+
+`blind75` is a compressed pass over the same learning path: all 75 problems are
+the main curriculum's own slots for the Blind 75 LeetCode ids, re-identified as
+`B75-001..B75-075` and re-ordered stage-major, covering 35 skills across 12
+stages. It is **generated**, not hand-written:
+
+```bash
+python3 scripts/generate_blind75_track.py
+```
+
+Everything it needs lives in `tracks/blind75/` (curriculum, skills, stages,
+dependency graph, patterns, scoring, progress, plan, solutions). Regenerating is
+safe: the generator refuses to overwrite a `progress.json` that already holds
+recorded work.
+
+**The two tracks share nothing.** Not progress, not solutions, and not
+learner-knowledge either: each track keeps its own `mistake_catalog.json`,
+`mentor_memory.md`, `thinking_patterns.md`, `interview_playbook.md` and
+`interview_frequency.json`. Solving a problem on one track records nothing on
+the other, even where they cover the same LeetCode problem, and a mistake logged
+on one never appears in the other's catalog.
+
+That is the separation-of-concerns rule for this repo: **a track directory is
+self-contained.** If you can name a file, you can say which track owns it.
+`tracks/blind75/` holds every file that track reads or writes; the main track's
+equivalents stay in their classic locations (`progress/`, `curriculum/`,
+`knowledge/`, `solutions/`, and the four learner files at the repo root).
+
+In the web dashboard, the rail footer carries a **582 / B75** switch; flipping it
+reloads the page against the other track's data (`/api/feed?track=`) and the
+workspace eyebrow shows `B75 ·` so no screen can be mistaken for the other
+curriculum. `make validate` checks the main track plus every `tracks/<name>/`.
 
 ## Workflow
 
@@ -64,6 +111,14 @@ The repository keeps one source of truth per concern.
   signals, proof ideas, contrasts, and linked problems/skills.
 - `progress/scoring.json`
   Thinking rubric, independent implementation engineering rubric, interview rubric, revision recall rubric, promotion thresholds, hint levels, and revision policy.
+- `tracks/<name>/`
+  One alternate curriculum track — self-contained, sharing nothing with any
+  other track (see Tracks). Holds its own copy of every file above plus the
+  learner files (`mistake_catalog.json`, `mentor_memory.md`,
+  `thinking_patterns.md`, `interview_playbook.md`, `interview_frequency.json`)
+  and its own `solutions/`. The curriculum-side files are generated and must not
+  be hand-edited; the learner-side files are yours and the generator never
+  overwrites them once they hold anything.
 - `docs/DSA_OS_MASTER.md`
   The constitution: philosophy, rules, thinking pipeline, revision model, and scoring logic.
 - `mentor/mentor_protocol.md`
@@ -115,11 +170,16 @@ make progress ARGS="\
   --interview-score complexity=8"
 ```
 
+On another track, add `TRACK=blind75` to the `make` invocation (or
+`--track blind75` when calling `update_progress.py` directly) and use that
+track's problem ids.
+
 ## Revision Workflow
 
 Revisions are state-based active recall, not passive date checks.
 
-- Every solve records a per-problem `revision` object in `progress/progress.json`.
+- Every solve records a per-problem `revision` object in the track's
+  `progress.json`. Revision queues are per-track and never mix.
 - A problem becomes mastered only after four successful recall stages (R1-R4).
   The stage intervals, the recall gates a PASS requires, and FAIL/maintenance
   behavior are defined authoritatively in `mentor/mentor_protocol.md` under
@@ -205,6 +265,10 @@ The repository ships with a Makefile.
 - `make weakness`
 - `make progress ARGS="..."`
 
+All of these take `TRACK=<name>` (default `main`); `make validate` and
+`make test` always cover every track at once. Each Python CLI takes the
+equivalent `--track <name>`.
+
 Each Python CLI includes help output:
 
 ```bash
@@ -223,21 +287,29 @@ Run `make web-dashboard` and open `http://127.0.0.1:8765/web_dashboard/`
 (`python3 scripts/serve_dashboard.py --port N` for any other port). It reads
 the canonical repository files directly and never mutates progress state.
 
-Four workspaces, reachable from the left rail:
+Six workspaces, reachable from the left rail:
 
 - **Today** — the briefing: next action, the readiness trajectory strip, the
   due revision queue, a 14-day review-load forecast, and pace tiles.
+- **Plan** — the pace contract: week scoreboard, month milestones, quarter
+  roadmap and burn-up.
+- **Problems** — the filterable problem browser.
 - **Practice** — weakness lab and the edge-case dry-run checklist.
-- **Curriculum** — the skill constellation (the 93-skill prerequisite DAG),
-  stage map, skills table, pattern index.
+- **Curriculum** — the skill constellation (the prerequisite DAG), stage map,
+  skills table, pattern index.
 - **Evidence** — problem history, thinking profile, hint independence, mock
   trend, retention split, 30-day consistency, deferred learning.
 
+One server shows every track. The rail footer carries a **582 / B75** switch;
+clicking it reloads the page against that track's data. The Source card names
+the progress file in use and each workspace heading is prefixed (`B75 · Today`)
+on a non-default track, so no screen can be mistaken for the other curriculum.
+
 Everything derived is computed in Python and served as one payload:
-`GET /api/feed` calls `build_dashboard_feed` in `scripts/_shared.py`, the same
-functions `next_problem.py` and `revision_report.py` use, so the dashboard
-cannot disagree with the CLI. The browser renders that feed; it does not
-re-implement the scheduler.
+`GET /api/feed?track=<name>` calls `build_dashboard_feed` in
+`scripts/_shared.py`, the same functions `next_problem.py` and
+`revision_report.py` use, so the dashboard cannot disagree with the CLI. The
+browser renders that feed; it does not re-implement the scheduler.
 
 Opening the page without the server (or with a plain static server) still
 works: the tables, curriculum views and constellation read the JSON files

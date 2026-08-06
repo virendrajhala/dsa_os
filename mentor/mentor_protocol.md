@@ -5,6 +5,31 @@ v3 — this file replaces the earlier protocol variants. The file
 `mentor/enhanced_mentor_protocol.md` exists only as a compatibility pointer for
 older prompts and tooling; if it conflicts with this file, this file wins.
 
+**Track note.** The repository carries two independent curricula. Paths and
+script calls below are written for the `main` (582-problem) track. When the
+session runs on another track, pass `--track <name>` to every script and read
+each path as that track's own — on `blind75`:
+
+| written here | means |
+|---|---|
+| `progress/progress.json` | `tracks/blind75/progress.json` |
+| `progress/scoring.json` | `tracks/blind75/scoring.json` |
+| `knowledge/skills.json` | `tracks/blind75/skills.json` |
+| `knowledge/patterns.json` | `tracks/blind75/patterns.json` |
+| `curriculum/*.json` | `tracks/blind75/*.json` |
+| `solutions/<ID>.py` | `tracks/blind75/solutions/<ID>.py` |
+| `mistake_catalog.json` | `tracks/blind75/mistake_catalog.json` |
+| `mentor_memory.md` | `tracks/blind75/mentor_memory.md` |
+| `thinking_patterns.md` | `tracks/blind75/thinking_patterns.md` |
+| `interview_playbook.md` | `tracks/blind75/interview_playbook.md` |
+
+Track selection happens once, before the session starts (see
+`boot_instructions/instructions.txt` PHASE 0a). **Tracks share nothing** — every
+file above exists once per track, and a session writes only to the active
+track's copies. The single exception is `mentor/error_taxonomy.md`, which is not
+data at all: it is the fixed A-E classification scheme this protocol is written
+against, like the hint ladder.
+
 The mentor is not a teacher. The mentor is a thinking catalyst.
 
 The objective is not to finish problems. The objective is to permanently
@@ -195,10 +220,10 @@ Before either score is recorded, run the mentor-graded pass described under
 Scoring Rule: the mentor grades every dimension independently, with
 evidence, before the learner states their own.
 
-Then update `progress/progress.json` (via
-`scripts/update_progress.py`), `thinking_patterns.md`, and
-`mistake_catalog.json`. Only record genuine discoveries — never record
-memorized facts.
+Then update the track's `progress.json` (via
+`scripts/update_progress.py --track <name>`), and the track's own
+`thinking_patterns.md` and `mistake_catalog.json`. Only record genuine
+discoveries — never record memorized facts.
 
 If the learner solved the problem but left unfinished learning behind, create a
 deferred learning instead of treating the session as failed. Deferred learnings
@@ -221,12 +246,14 @@ idea, and complexity reasoning.
 
 ## Revision Protocol
 
-Before every session, run `scripts/next_problem.py`; it decides whether today
-is recall or new work. Due ACTIVE or FAILED revisions outrank new problems once
-the recall backlog passes `revision_policy.revision_backlog_threshold` in
-`progress/scoring.json` — under that line a few due items may wait while new
-work continues, and the scheduler says so. `scripts/revision_report.py` shows
-the whole queue as context, but it is not the running order. A revision is an
+Before every session, run `scripts/next_problem.py --track <name>`; it decides
+whether today is recall or new work. Due ACTIVE or FAILED revisions outrank new
+problems once the recall backlog passes
+`revision_policy.revision_backlog_threshold` in the track's `scoring.json` —
+under that line a few due items may wait while new work continues, and the
+scheduler says so. `scripts/revision_report.py --track <name>` shows the whole
+queue as context, but it is not the running order. Revision queues are per-track:
+a track's recall pressure never spills into the other's. A revision is an
 active-recall interview, not a date-based reread.
 
 A problem is mastered only after four successful recall stages. The schedule is
@@ -372,7 +399,7 @@ authoritative for mock conduct, and the scheduler (`scripts/next_problem.py`
 
 ## Hint Ladder
 
-This matches `progress/scoring.json.hint_levels` exactly (0-7) — the scale
+This matches the track's `scoring.json.hint_levels` exactly (0-7) — the scale
 `update_progress.py` actually validates `--hint-level-used` against. Use the
 smallest hint that creates motion.
 
@@ -498,10 +525,20 @@ first principles. That is the definition of mastery.
 ## Unlocking New Material
 
 Do not unlock new problems just because the current one was marked solved.
-Unlock on **skill mastery**, per `progress/scoring.json`'s `skill_mastery`
+Unlock on **skill mastery**, per the track's `scoring.json` `skill_mastery`
 block: a skill is mastered only once its primary validation problem clears
 the minimum weighted thinking score AND at least one reinforcement problem
-for that skill has been attempted (see `knowledge/skills.json`). A single
+for that skill has been attempted (see the track's `skills.json`).
+
+One rule genuinely differs by track: a **compressed track can contain a skill
+with no reinforcement problems at all** (13 of Blind 75's do), and such a skill
+masters on its primary alone — there is nothing to reinforce with. The bar is
+still the weighted thinking score, so this is not a discount; but be aware the
+usual second look at a skill does not exist there, and lean harder on the
+retrospective before accepting the skill as mastered. The main track always has
+at least one reinforcement problem per skill.
+
+A single
 solved problem is evidence toward mastery, not mastery itself — one clean
 solve can still be luck, a memorized pattern, or a shallow pass. If a
 student solves a skill's primary problem but the retrospective reveals

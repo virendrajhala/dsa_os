@@ -4,6 +4,19 @@ Use this checklist after every solved problem or completed revision session.
 It is the single top-level reminder for what must be synchronized before the
 session is considered finished.
 
+## 0. Which track?
+
+Paths in this document are the `main` (582-problem) track's. If the session ran
+on another track, pass `--track <name>` to every script below and substitute
+that track's paths — on `blind75` that means `tracks/blind75/progress.json`,
+`tracks/blind75/solutions/<ID>.py`, and problem ids like `B75-001`.
+
+**Tracks share nothing.** Every file named in this checklist exists once per
+track, including the learner-knowledge files: `mistake_catalog.json`,
+`mentor_memory.md`, `thinking_patterns.md`, `interview_playbook.md`. On
+`blind75` they live in `tracks/blind75/`; on `main` they are the repo-root
+files. Record this session's findings in the active track's copies only.
+
 ## 1. Capture Session Facts
 
 Collect only facts that cannot be recomputed by scripts. A problem should not
@@ -25,6 +38,7 @@ are available.
 
 For a new problem completion, `scripts/update_progress.py` requires:
 
+- `--track` (omit only on the main track, where it defaults)
 - `--problem-id`
 - `--time-taken-minutes`
 - `--hint-level-used`
@@ -89,11 +103,12 @@ the relevant optional section unchanged according to the existing schema.
 
 ## 2. Update Learner State
 
-Use `scripts/update_progress.py` or `make progress ARGS="..."`.
+Use `scripts/update_progress.py --track <TRACK>` or
+`make progress TRACK=<TRACK> ARGS="..."`.
 
 This is the source-of-truth writer for:
 
-- `progress/progress.json`
+- the track's `progress.json`
 - completed problem records
 - revision state
 - revision history
@@ -205,7 +220,7 @@ or a revision: it never touches completion records, revision state, skill
 mastery, or the current-problem pointer. Record it with `--mode mock`:
 
 ```bash
-python3 scripts/update_progress.py --mode mock \
+python3 scripts/update_progress.py --mode mock --track main \
   --problem-id CPX-004 --mock-duration-minutes 42 \
   --mock-score problem_solving=3 --mock-score communication=3 \
   --mock-score code_quality=3 --mock-score testing=2 \
@@ -225,10 +240,13 @@ scale is strong-hire / hire / no-hire / strong-no-hire.
 After updates, run:
 
 ```bash
-python3 scripts/validate_curriculum.py
-python3 scripts/revision_report.py --today-only
-python3 scripts/next_problem.py
+python3 scripts/validate_curriculum.py --track <TRACK>
+python3 scripts/revision_report.py --today-only --track <TRACK>
+python3 scripts/next_problem.py --track <TRACK>
 ```
+
+`make validate` covers the main track plus every `tracks/<name>/` directory in
+one go, so prefer it when you want the whole repo checked.
 
 For script or dashboard changes, also run:
 

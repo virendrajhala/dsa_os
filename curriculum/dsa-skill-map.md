@@ -2,7 +2,9 @@
 
 This file is generated, not hand-maintained. It replaces the old module/pattern-based skill map after the skill-first migration (curriculum.json v3.0). Regenerate it any time `knowledge/skills.json` or `curriculum/curriculum.json` changes.
 
-**581 problems** across **93 skills** in **13 stages**. Difficulty: 99 Easy / 337 Medium / 145 Hard. Importance: 292 CORE / 252 COMMON / 37 SPECIALIZED / 0 NICHE.
+This map covers the **main track** only. Other tracks (`tracks/<name>/`) carry their own `skills.json` and `curriculum.json` and have no generated map — read the track's own files, or the Curriculum workspace of the dashboard with that track selected.
+
+**582 problems** across **93 skills** in **13 stages**. Difficulty: 99 Easy / 338 Medium / 145 Hard. Importance: 292 CORE / 253 COMMON / 37 SPECIALIZED / 0 NICHE.
 
 ## Observation
 

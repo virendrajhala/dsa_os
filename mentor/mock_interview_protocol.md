@@ -10,13 +10,25 @@ opposite: it measures whether that reasoning survives an unfamiliar problem,
 a clock, and an interviewer who will not help. A mock is a measurement, not a
 lesson. The lesson happens afterward, in the debrief.
 
+**Track note.** Mocks are per-track: the problem is drawn from the track's own
+curriculum and the entry is written to that track's `progress.json`. Pass
+`--track <name>` to every script call in this file, and read each path as that
+track's own — on `blind75`, `progress.json` means `tracks/blind75/progress.json`
+and problem ids look like `B75-001`. Both tracks schedule mocks the same way
+(one per weekend), but they schedule them independently: a mock recorded on the
+main track does not satisfy the Blind 75 track's weekend, or the reverse. The
+weakness trail a mock leaves — `weaknesses_detected`, `mistake_catalog.json`,
+`mentor_memory.md` — goes into the active track's copies only. Tracks share
+nothing.
+
 ## When a Mock Runs
 
 1. Mocks run on Saturday and Sunday only. Weekday sessions stay teaching-only.
 2. Run at least one mock per weekend. The scheduler enforces this:
-   `scripts/next_problem.py` gains a `mock_due` mode that, on a Sat/Sun with no
-   mock already recorded in that Saturday-Sunday window, ranks a mock above new
-   work. Overdue revisions still come first — clear those, then run the mock.
+   `scripts/next_problem.py --track <name>` gains a `mock_due` mode that, on a
+   Sat/Sun with no mock already recorded in that Saturday-Sunday window, ranks a
+   mock above new work. Overdue revisions still come first — clear those, then
+   run the mock. The window is per-track (see the track note above).
 3. Run a second, optional mock the same weekend only if the first verdict was
    `no-hire` or `strong-no-hire`. A `hire` or `strong-hire` weekend needs just
    one mock.
@@ -36,8 +48,8 @@ lesson. The lesson happens afterward, in the debrief.
    an unsolved reinforcement sibling of a completed problem. Announce that it is
    a practice mock; grade it the same way, but read the verdict as calibration,
    not a hiring signal.
-8. Let the scheduler pick. `scripts/next_problem.py` in `mock_due` mode returns
-   the problem; do not hand-pick to make the mock easier.
+8. Let the scheduler pick. `scripts/next_problem.py --track <name>` in `mock_due`
+   mode returns the problem; do not hand-pick to make the mock easier.
 
 ## What the Teaching Protocol Suspends
 
@@ -210,7 +222,7 @@ verdict, still honest, now as a coach again.
 37. Record the mock with `scripts/update_progress.py --mode mock`:
 
     ```bash
-    python3 scripts/update_progress.py --mode mock \
+    python3 scripts/update_progress.py --mode mock --track main \
       --problem-id CPX-004 \
       --completed-at 2026-07-25 \
       --mock-duration-minutes 42 \

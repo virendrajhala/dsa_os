@@ -1,5 +1,18 @@
 # DSA_OS Master Document
 
+> **Track note.** The repository can hold more than one curriculum, and **tracks
+> share no files.** A track under `tracks/<name>/` is self-contained: its own
+> curriculum, skills, stages, dependency graph, patterns, scoring, progress,
+> plan, solutions, and its own learner records (mistake catalog, mentor memory,
+> thinking patterns, interview playbook, interview-frequency snapshot). Every
+> script takes `--track`. Paths named in this document are the main
+> (582-problem) track's.
+>
+> Nothing in this document changes by track: the mission, the philosophy, the
+> mentor and student rules, the thinking framework, the hint ladder and the
+> scoring rubric are the constitution, and they bind every track equally. A
+> track changes how much ground you cover, never how you are taught or graded.
+
 ## Mission
 
 DSA_OS exists to train problem solvers who can handle unfamiliar interview questions under pressure.
@@ -262,11 +275,24 @@ Selection rules:
 
 ## Knowledge Layer
 
-Stable curriculum-level concepts live under `knowledge/`. Learner-specific
-state lives under `progress/`. This boundary must stay clear.
+Two boundaries run through this repository, and both must stay clear.
 
-- `knowledge/skills.json` defines abilities trained by the curriculum.
-- `knowledge/patterns.json` defines transferable thinking models used for
+**Concepts versus state.** Stable curriculum-level concepts are separate from
+learner-specific state. On the main track the split is also directory-level:
+concepts under `knowledge/`, state under `progress/`. Inside a track directory
+both sit together for self-containment, so there the boundary is per-file —
+`skills.json` and `patterns.json` are stable concepts, `progress.json` and the
+learner records are state. The rule is about what a script owns versus what you
+may hand-edit, not about which folder a file happens to live in.
+
+**Track versus track.** A track owns every file it reads or writes, and shares
+none of them. Two tracks may cover the same LeetCode problem and still hold
+entirely separate records of how you did on it. Never resolve a gap in one
+track's records by reading another's: an entry must be evidenced by the track it
+lives in.
+
+- `skills.json` defines abilities trained by the curriculum.
+- `patterns.json` defines transferable thinking models used for
   recognition, proof, contrast, and cross-problem transfer.
 
 Patterns are not another algorithm catalog. A new pattern should be created
@@ -282,5 +308,8 @@ reasoning, contrasts, and common mistakes.
 - Keep knowledge-layer artifacts stable and separate from learner progress.
 - Add new patterns rarely; prefer reusing or enriching existing patterns.
 - Change the dependency graph only with a deliberate curriculum reason.
-- Run validation after any structural edit.
+- Run validation after any structural edit. `make validate` covers the main
+  track and every `tracks/<name>/` directory in one pass.
+- Fix a derived track by fixing the main curriculum and regenerating it, never
+  by editing the generated files.
 - Treat the repository as an operating system, not a notebook.

@@ -6,6 +6,11 @@ context. It holds no protocol, session flow, hint ladder, or review policy;
 those live solely in `mentor/mentor_protocol.md`. Keep this synced with
 `progress/progress.json.thinking_profile`, which is the authoritative source.
 
+**This is the main (582) track's profile.** Tracks share nothing: the Blind 75
+track keeps its own at `tracks/blind75/mentor_memory.md`, and the two are never
+merged. Everything below is evidenced by main-track sessions and cites
+main-track problem ids.
+
 ## Strengths
 
 - Builds concrete examples and edge cases before optimizing.

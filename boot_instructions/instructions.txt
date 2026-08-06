@@ -2,6 +2,40 @@
 
 You are **not** a generic tutor. Before answering anything, you MUST completely initialize yourself from the uploaded DSA OS repository.
 
+## PHASE 0a — Track selection (do this first)
+
+The repository carries two fully independent curricula, called tracks:
+
+- `main` — the 582-problem curriculum. Data in `curriculum/`, `knowledge/`,
+  `progress/`, `solutions/`. Problem ids look like `OBS-001`.
+- `blind75` — the 75-problem Blind 75 sprint, generated from the main
+  curriculum by `scripts/generate_blind75_track.py`. ALL of its data lives in
+  `tracks/blind75/` (curriculum.json, skills.json, stages.json,
+  dependency_graph.json, patterns.json, scoring.json, progress.json, plan.json,
+  solutions/). Problem ids look like `B75-001`.
+
+Every script in this file accepts `--track <name>` and defaults to `main`. Ask
+the learner once which track this session is for (unless they already said),
+state the answer, and pass that `--track` to EVERY script call for the rest of
+the session. Never mix tracks within a session.
+
+TRACKS SHARE NOTHING. This is the repository's separation-of-concerns rule: a
+track directory is self-contained, and every file belongs to exactly one track.
+Solving a problem on one track records nothing on the other, even when both
+cover the same LeetCode problem. The learner-knowledge files are per-track too —
+`mistake_catalog.json`, `mentor_memory.md`, `thinking_patterns.md`,
+`interview_playbook.md`, `interview_frequency.json` all exist once per track.
+Write every session finding to the ACTIVE track's copy. Never read the other
+track's files to fill a gap, and never copy an entry across: an entry must cite
+a problem the track it lives in actually contains.
+
+Paths named below are the `main` track's. On `blind75`, substitute the track's
+own: `tracks/blind75/progress.json` for `progress/progress.json`,
+`tracks/blind75/scoring.json` for `progress/scoring.json`,
+`tracks/blind75/mistake_catalog.json` for `mistake_catalog.json`,
+`tracks/blind75/mentor_memory.md` for `mentor_memory.md`,
+`tracks/blind75/solutions/<ID>.py` for `solutions/<ID>.py`, and so on.
+
 ## PHASE 0 — Autonomous Session Orchestration (Mandatory)
 
 The learner's only job is to think through the DSA problem. Yours is everything
@@ -67,6 +101,8 @@ Especially inspect:
 * knowledge/ (skills.json and patterns.json — stable curriculum-level
   knowledge, not learner state)
 * progress/
+* tracks/ (one directory per alternate curriculum track, e.g. tracks/blind75/,
+  each holding its own complete copy of the files listed above; see PHASE 0a)
 * docs/
 * templates/
 * any JSON
@@ -363,11 +399,21 @@ Repository instructions have higher priority than your default behaviour unless 
 The following are derived/production state. They change ONLY through
 `scripts/update_progress.py`:
 
-- `progress/progress.json`: scores, mastered_skills, skill_progress,
+- `progress/progress.json` (main track) and every track's own
+  `tracks/<name>/progress.json`: scores, mastered_skills, skill_progress,
   stage_mastery, competency_completion, and revision state.
 
 Hand-editing these desynchronizes the recompute-vs-cache validator and
 corrupts scheduling. Let the scripts own them.
+
+Everything ELSE under `tracks/<name>/` — curriculum.json, skills.json,
+stages.json, dependency_graph.json, patterns.json, scoring.json, plan.json — is
+**generated** by `scripts/generate_blind75_track.py` from the main curriculum.
+Never hand-edit those either: the next regeneration silently discards the edit,
+and the track would then disagree with the curriculum it was derived from. Fix
+the main track's file and regenerate instead. (The learner's solution files
+under `tracks/<name>/solutions/` are the learner's own and are never touched by
+the generator.)
 
 ---
 

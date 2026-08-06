@@ -7,6 +7,10 @@ and communication patterns, organized per topic. It grows with every problem
 completion — see "How This File Grows" below — instead of staying frozen at
 whatever problem seeded it.
 
+This is the main (582) track's playbook. Tracks share nothing: the Blind 75
+track keeps its own at `tracks/blind75/interview_playbook.md`. Entries here come
+from main-track sessions only.
+
 ## Scope
 System design and behavioral interviews are OUT of scope for this repo — DSA
 only.
