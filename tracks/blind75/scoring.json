@@ -1,0 +1,232 @@
+{
+  "scale": {
+    "minimum": 0,
+    "maximum": 4,
+    "labels": {
+      "0": "Missed the step entirely.",
+      "1": "Needed sustained prompting.",
+      "2": "Partially correct but unstable.",
+      "3": "Independent and mostly interview-ready.",
+      "4": "Clean, defensible, and teachable."
+    }
+  },
+  "dimensions": {
+    "understanding": "Restates the problem, constraints, and success condition accurately.",
+    "examples": "Builds clarifying examples and edge cases before designing the algorithm.",
+    "brute_force": "Finds a correct baseline before optimizing.",
+    "pattern_detection": "Identifies the governing invariant or reusable pattern.",
+    "algorithm_design": "Produces a correct optimized approach with the right data flow.",
+    "complexity_analysis": "Explains time and space tradeoffs precisely.",
+    "implementation": "Translates the plan into code without breaking invariants.",
+    "communication": "Communicates decisions, alternatives, and failure modes clearly."
+  },
+  "weights": {
+    "understanding": 0.15,
+    "examples": 0.1,
+    "brute_force": 0.1,
+    "pattern_detection": 0.2,
+    "algorithm_design": 0.2,
+    "complexity_analysis": 0.1,
+    "implementation": 0.1,
+    "communication": 0.05
+  },
+  "interview_scale": {
+    "minimum": 0,
+    "maximum": 10,
+    "labels": {
+      "0": "Could not demonstrate the skill.",
+      "5": "Adequate but inconsistent under interview pressure.",
+      "10": "Interview-ready, precise, and reliable."
+    }
+  },
+  "interview_dimensions": {
+    "understanding": "Problem reading, scope control, and clarification quality.",
+    "communication": "Structure, precision, and interviewer alignment while speaking.",
+    "algorithm": "Algorithm quality, invariant selection, and decision-making.",
+    "coding": "Implementation accuracy and debugging discipline.",
+    "complexity": "Time and space analysis quality."
+  },
+  "hint_levels": {
+    "0": "Solved without hints. Silence \u2014 allow thinking.",
+    "1": "Needed a light clarification prompt.",
+    "2": "Needed one directional hint (e.g. ask for another example or edge case).",
+    "3": "Needed multiple directional hints (e.g. \"what information is being reused?\").",
+    "4": "Needed pattern-level guidance (e.g. ask for the invariant, without naming the pattern).",
+    "5": "Needed step-level algorithm guidance (e.g. ask for a proof, or reveal one logical step \u2014 never the full algorithm).",
+    "6": "Needed near-complete rescue.",
+    "7": "Solution was effectively revealed. Allowed only if the student explicitly requests it, or remains stuck after multiple genuine proof attempts."
+  },
+  "hint_mastery_discount": {
+    "description": "Skill-mastery evidence weight for a primary-validation solve, by hint_level_used. Hint 0-2 counts full; 3-4 counts at half weight; 5-7 counts as an attempt only (never enough to master).",
+    "0": 1,
+    "1": 1,
+    "2": 1,
+    "3": 0.5,
+    "4": 0.5,
+    "5": 0,
+    "6": 0,
+    "7": 0
+  },
+  "promotion_thresholds": {
+    "Observation": {
+      "minimum_weighted_score": 2.4,
+      "minimum_completed_problems": 8
+    },
+    "State Construction": {
+      "minimum_weighted_score": 2.5,
+      "minimum_completed_problems": 21
+    },
+    "Constraint Maintenance": {
+      "minimum_weighted_score": 2.6,
+      "minimum_completed_problems": 28
+    },
+    "Ordered Reasoning": {
+      "minimum_weighted_score": 2.7,
+      "minimum_completed_problems": 30
+    },
+    "Query Processing": {
+      "minimum_weighted_score": 3.05,
+      "minimum_completed_problems": 33
+    },
+    "Recursive Thinking": {
+      "minimum_weighted_score": 2.9,
+      "minimum_completed_problems": 47
+    },
+    "Pattern Discovery": {
+      "minimum_weighted_score": 3.1,
+      "minimum_completed_problems": 48
+    },
+    "Graph Thinking": {
+      "minimum_weighted_score": 3.0,
+      "minimum_completed_problems": 55
+    },
+    "State Transition": {
+      "minimum_weighted_score": 2.95,
+      "minimum_completed_problems": 65
+    },
+    "Interval Reasoning": {
+      "minimum_weighted_score": 2.85,
+      "minimum_completed_problems": 70
+    },
+    "Mathematical Thinking": {
+      "minimum_weighted_score": 3.15,
+      "minimum_completed_problems": 75
+    },
+    "Integration": {
+      "minimum_weighted_score": 3.2,
+      "minimum_completed_problems": 75
+    }
+  },
+  "revision_policy": {
+    "description": "Revision progression is state-based: a problem is mastered only after four successful active-recall revisions. successful_recall_intervals are CUMULATIVE days after the original solve (the 'first lecture'), not gaps between revisions: R1 on day 7, R2 on day 21, R3 on day 45, R4 on day 60. Time passing only makes a revision due; it never advances mastery.",
+    "successful_recall_intervals": {
+      "R1": 7,
+      "R2": 21,
+      "R3": 45,
+      "R4": 60
+    },
+    "mastered_after_stage": 4,
+    "failure_retry_days": 1,
+    "quarterly_maintenance_days": 90,
+    "quarterly_maintenance_sample_size": 3,
+    "revision_backlog_threshold": 0,
+    "failure_effect": "A failed revision does not advance stage. It is retried the next day at the same stage.",
+    "maintenance_failure_effect": "A failed quarterly maintenance check restores the problem to ACTIVE at stage 3.",
+    "revision_backlog_note": "New problem solving proceeds while the number of due revisions is at or below revision_backlog_threshold; past it, recall takes priority until the backlog drains. Reactivations and quarterly maintenance are never deferred. 0 restores strict revision-first order."
+  },
+  "revision_evaluation": {
+    "scale": {
+      "minimum": 0,
+      "maximum": 10,
+      "pass_minimum": 7,
+      "labels": {
+        "0": "Could not recall the concept.",
+        "7": "Passable active recall with minimal prompting.",
+        "10": "Independent, precise, implementation-ready recall."
+      }
+    },
+    "dimensions": {
+      "concept_recall": "Explains the intuition without being led to the pattern.",
+      "invariant_recall": "States the invariant or correctness lever precisely.",
+      "algorithm_reconstruction": "Reconstructs the algorithm from the invariant.",
+      "implementation": "Writes or describes an implementation that preserves the invariant.",
+      "hint_dependency": "Requires minimal or no hints during recall.",
+      "confidence": "Reports stable confidence after recall.",
+      "implementation_blueprint": "Explains state, initialization, loop bounds, previous-state needs, answer maintenance, and return value before coding.",
+      "code_from_memory": "Writes correct implementation from memory before the revision can pass."
+    },
+    "pass_rule": "A revision counts only when pattern, state, transition, complexity, implementation blueprint, code from memory, dry run, edge cases, and interview discussion are all satisfactory with minimal or no hints."
+  },
+  "revision_triggers": [
+    "Any failed active recall keeps the same revision stage and schedules the problem for tomorrow.",
+    "Failure on a later problem caused by an earlier concept should restore that prerequisite problem to ACTIVE revision.",
+    "Quarterly maintenance struggles should restore a mastered problem to ACTIVE at stage 3.",
+    "Repeated misses on the same pattern should update thinking_profile.gaps."
+  ],
+  "skill_mastery": {
+    "description": "A skill is mastered when its primary validation problem is solved at or above minimum_primary_weighted_score AND at least one reinforcement problem for that skill is solved (any passing score). This mirrors improvement #11: the mentor unlocks new material on skill mastery, not merely on problem completion.",
+    "minimum_primary_weighted_score": 2.6,
+    "require_reinforcement_attempt": true
+  },
+  "stage_mastery": {
+    "description": "A stage is mastered once every skill in that stage (see curriculum/stages.json `skills`) is mastered."
+  },
+  "algorithm_thinking": {
+    "scale": {
+      "minimum": 0,
+      "maximum": 10
+    },
+    "description": "Independent session score for algorithm discovery and reasoning. Never mix with implementation engineering mistakes.",
+    "weights": {
+      "understanding": 0.18,
+      "examples": 0.12,
+      "brute_force": 0.12,
+      "pattern_detection": 0.24,
+      "algorithm_design": 0.24,
+      "complexity_analysis": 0.1
+    },
+    "weights_note": "Used by migrate_progress_payload to backfill algorithm_thinking_score from 6 algorithm-side thinking dimensions (x2.5 to the 0-10 scale).",
+    "dimensions": {
+      "pattern_recognition": "Identifies the relevant invariant or reasoning family.",
+      "state_design": "Defines the right state, invariant, or data representation.",
+      "transition": "Derives the recurrence, greedy decision, or update rule correctly.",
+      "complexity": "Explains time and space from the algorithm structure."
+    }
+  },
+  "implementation_engineering": {
+    "scale": {
+      "minimum": 0,
+      "maximum": 10
+    },
+    "description": "Independent session score for translating a known algorithm into correct code.",
+    "dimensions": {
+      "initialization": "Initial values satisfy the state definition, including index 0.",
+      "loop_bounds": "Loop start, end, direction, and inclusivity are correct.",
+      "previous_state": "Previous values are preserved when an update depends on old state.",
+      "update_ordering": "State variables update in an order that preserves the invariant.",
+      "answer_maintenance": "Global/local answer ownership and update point are correct.",
+      "return_value": "The returned variable exactly matches the problem requirement.",
+      "edge_cases": "Code is dry-run against boundary and adversarial cases."
+    }
+  },
+  "error_taxonomy": {
+    "A": "Pattern Selection Error",
+    "B": "State Design Error",
+    "C": "Transition Error",
+    "D": "Implementation Engineering Error",
+    "E": "Language/Syntax Error"
+  },
+  "readiness": {
+    "description": "F23: system-derived interview-readiness estimator. Thresholds are informational only - readiness gates nothing.",
+    "core_skill_fraction": 0.8,
+    "stage_scope_count": 10,
+    "revision_pass_rate": 0.9,
+    "recent_mock_count": 3,
+    "min_mock_verdicts": [
+      "hire",
+      "strong-hire"
+    ],
+    "pace_window_days": 28
+  },
+  "track": "blind75"
+}

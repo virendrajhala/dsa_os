@@ -1,0 +1,75 @@
+{
+  "schema_version": 1,
+  "track": "blind75",
+  "quarter": {
+    "label": "Blind 75 sprint - 8 weeks",
+    "start": "2026-08-03",
+    "end": "2026-09-27",
+    "target_new_solves": 75,
+    "target_mocks": 8,
+    "daily_review_capacity": 4
+  },
+  "weeks": [
+    {
+      "week": 1,
+      "start": "2026-08-03",
+      "deload": false,
+      "target_solves": 10,
+      "mock": true
+    },
+    {
+      "week": 2,
+      "start": "2026-08-10",
+      "deload": false,
+      "target_solves": 10,
+      "mock": true
+    },
+    {
+      "week": 3,
+      "start": "2026-08-17",
+      "deload": false,
+      "target_solves": 10,
+      "mock": true
+    },
+    {
+      "week": 4,
+      "start": "2026-08-24",
+      "deload": false,
+      "target_solves": 9,
+      "mock": true
+    },
+    {
+      "week": 5,
+      "start": "2026-08-31",
+      "deload": false,
+      "target_solves": 9,
+      "mock": true
+    },
+    {
+      "week": 6,
+      "start": "2026-09-07",
+      "deload": false,
+      "target_solves": 9,
+      "mock": true
+    },
+    {
+      "week": 7,
+      "start": "2026-09-14",
+      "deload": false,
+      "target_solves": 9,
+      "mock": true
+    },
+    {
+      "week": 8,
+      "start": "2026-09-21",
+      "deload": false,
+      "target_solves": 9,
+      "mock": true
+    }
+  ],
+  "notes": [
+    "The scheduler (make next TRACK=blind75) is the authority; the plan is the pace contract.",
+    "No deload weeks: the point of this track is one fast pass over every pattern.",
+    "Finishing early is the goal - the burn-up ahead of target means move to the main track."
+  ]
+}

@@ -12,23 +12,15 @@ from pathlib import Path
 from typing import Any
 
 from _shared import (
-    CURRICULUM_PATH,
     challenge_stage_gate,
     DEFERRED_LEARNING_CATEGORIES,
     DEFERRED_LEARNING_PRIORITIES,
     DEFERRED_LEARNING_STATUSES,
-    GRAPH_PATH,
     is_problem_unlocked,
     MOCK_DIMENSIONS,
     MOCK_SCORE_MAXIMUM,
     MOCK_SCORE_MINIMUM,
     MOCK_VERDICTS,
-    PATTERNS_PATH,
-    PROGRESS_PATH,
-    PROGRESS_TEMPLATE_PATH,
-    SCORING_PATH,
-    SKILLS_PATH,
-    STAGES_PATH,
     REVISION_RESULTS,
     REVISION_STATUSES,
     WEAKNESS_SOURCES,
@@ -42,10 +34,13 @@ from _shared import (
     open_revision_entries,
     parse_iso_date,
     problem_lookup,
+    track_paths,
 )
 
 
 ID_RE = re.compile(r"^[A-Z]{2,3}-\d{3}$")
+# Derived tracks (source.track_derived) may carry a digit in the prefix, e.g. B75-001.
+TRACK_ID_RE = re.compile(r"^[A-Z][A-Z0-9]{1,2}-\d{3}$")
 SKILL_ID_RE = re.compile(r"^SK-[A-Z]{2}-\d{2}$")
 PATTERN_ID_RE = re.compile(r"^PAT-\d{3}$")
 ALLOWED_DIFFICULTIES = {"Easy", "Medium", "Hard"}
@@ -190,13 +185,18 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--progress-file",
-        default=str(PROGRESS_PATH),
-        help="Progress file to validate as the live state. Defaults to progress/progress.json.",
+        default=None,
+        help="Progress file to validate as the live state. Defaults to the track's progress.json.",
+    )
+    parser.add_argument(
+        "--track",
+        default="main",
+        help="Curriculum track to validate (main or a tracks/<name> directory).",
     )
     parser.add_argument(
         "--skip-template-progress",
         action="store_true",
-        help="Skip validation of progress/progress_template.json.",
+        help="Skip validation of the track's progress_template.json.",
     )
     return parser
 
@@ -273,8 +273,23 @@ def validate_curriculum(
     # -- source / count metadata ------------------------------------------------
     source = curriculum.get("source", {})
     original_count = 507
+    # Derived tracks (tracks/<name>/, generated from the main curriculum) have
+    # no source-PDF numbering: only the total count is enforced, ids may carry
+    # a digit in the prefix, and skills may lack reinforcement problems.
+    track_derived = isinstance(source, dict) and source.get("track_derived") is True
     if not isinstance(source, dict):
         add_error(errors, "curriculum.json: `source` must be an object.")
+    elif track_derived:
+        original_count = 0
+        total_count = source.get("total_problem_count")
+        if not isinstance(total_count, int) or total_count <= 0:
+            add_error(errors, "curriculum.json: `source.total_problem_count` must be a positive integer.")
+        elif len(problems) != total_count:
+            add_error(
+                errors,
+                f"curriculum.json: expected {total_count} problems per `source.total_problem_count`, "
+                f"found {len(problems)}.",
+            )
     else:
         original_count = source.get("original_problem_count", source.get("problem_count"))
         if not isinstance(original_count, int) or original_count <= 0:
@@ -450,7 +465,7 @@ def validate_curriculum(
             add_error(errors, f"knowledge/skills.json: `{primary_id}`.primary_skill does not point back to `{skill_id}`.")
 
         reinforcement = skill.get("reinforcement_problems")
-        if not isinstance(reinforcement, list) or not reinforcement:
+        if not isinstance(reinforcement, list) or (not reinforcement and not track_derived):
             add_error(errors, f"knowledge/skills.json: skill `{skill_id}` must have at least one reinforcement problem.")
         challenge = skill.get("challenge_problems", [])
         for pid in list(reinforcement or []) + list(challenge or []):
@@ -529,7 +544,8 @@ def validate_curriculum(
             continue
 
         problem_id = problem["id"]
-        if not isinstance(problem_id, str) or not ID_RE.match(problem_id):
+        id_re = TRACK_ID_RE if track_derived else ID_RE
+        if not isinstance(problem_id, str) or not id_re.match(problem_id):
             add_error(errors, f"curriculum.json: invalid problem id `{problem_id}`.")
             continue
         problem_ids.append(problem_id)
@@ -537,7 +553,10 @@ def validate_curriculum(
 
         original_number = problem["original_number"]
         is_supplemental = problem.get("supplemental") is True
-        if is_supplemental:
+        if track_derived:
+            if original_number is not None:
+                add_error(errors, f"curriculum.json: track-derived problem `{problem_id}` must have `original_number: null`.")
+        elif is_supplemental:
             if original_number is not None:
                 add_error(errors, f"curriculum.json: supplemental problem `{problem_id}` must have `original_number: null`.")
         elif not isinstance(original_number, int) or not 1 <= original_number <= original_count:
@@ -904,6 +923,17 @@ def validate_patterns(
     pattern_defs = patterns.get("patterns")
     problems = problem_lookup(curriculum)
     skill_defs = skills.get("skills", {})
+    # On a derived track the pattern index is filtered down to what the track
+    # actually contains, so a pattern may legitimately end up with no in-track
+    # skills or no contrasting pattern. `appears_in` still must not be empty -
+    # a pattern that appears nowhere is dropped from the track entirely.
+    source = curriculum.get("source")
+    track_derived = isinstance(source, dict) and source.get("track_derived") is True
+    required_non_empty = (
+        {"recognition_signals", "appears_in"}
+        if track_derived
+        else {"recognition_signals", "appears_in", "skills", "contrast_with"}
+    )
 
     if not isinstance(pattern_order, list) or not pattern_order:
         add_error(errors, "knowledge/patterns.json: `pattern_order` must be a non-empty list.")
@@ -963,7 +993,7 @@ def validate_patterns(
             if not isinstance(values, list):
                 add_error(errors, f"knowledge/patterns.json: pattern `{pattern_id}` `{list_field}` must be a list.")
                 continue
-            if list_field in {"recognition_signals", "appears_in", "skills", "contrast_with"} and not values:
+            if list_field in required_non_empty and not values:
                 add_error(errors, f"knowledge/patterns.json: pattern `{pattern_id}` `{list_field}` must not be empty.")
             if len(values) != len(set(str(value) for value in values)):
                 add_error(errors, f"knowledge/patterns.json: pattern `{pattern_id}` `{list_field}` contains duplicates.")
@@ -1717,20 +1747,22 @@ def main() -> int:
     args = parser.parse_args()
 
     try:
-        curriculum = load_json_file(CURRICULUM_PATH)
-        graph = load_json_file(GRAPH_PATH)
-        stages = load_json_file(STAGES_PATH)
-        skills = load_json_file(SKILLS_PATH)
-        patterns = load_json_file(PATTERNS_PATH)
-        scoring = load_json_file(SCORING_PATH)
+        paths = track_paths(args.track)
+        progress_file = args.progress_file or str(paths.progress)
+        curriculum = load_json_file(paths.curriculum)
+        graph = load_json_file(paths.graph)
+        stages = load_json_file(paths.stages)
+        skills = load_json_file(paths.skills)
+        patterns = load_json_file(paths.patterns)
+        scoring = load_json_file(paths.scoring)
         progress_payloads: list[tuple[str, dict[str, Any]]] = [
             (
-                str(Path(args.progress_file)),
-                migrate_progress_payload(load_json_file(Path(args.progress_file)), scoring=scoring),
+                str(Path(progress_file)),
+                migrate_progress_payload(load_json_file(Path(progress_file)), scoring=scoring),
             ),
         ]
-        template_path = PROGRESS_TEMPLATE_PATH.resolve()
-        live_path = Path(args.progress_file).resolve()
+        template_path = paths.progress_template.resolve()
+        live_path = Path(progress_file).resolve()
         if not args.skip_template_progress and template_path != live_path:
             progress_payloads.append(
                 (

@@ -1,0 +1,386 @@
+{
+  "schema_version": 8,
+  "last_updated": null,
+  "current_stage": "Observation",
+  "current_problem": null,
+  "completed": [],
+  "completion_record_optional_fields": {
+    "session_summary": "Optional object: free-form end-of-session summary keyed by topic.",
+    "conceptual_discoveries": "Optional list of strings: conceptual insights captured during the solve.",
+    "variable_semantics": "Optional object: variable-name -> meaning notes for the final solution.",
+    "revision_material": "Optional object: {focus, questions[]} used to drive future active recall."
+  },
+  "deferred_learnings": [],
+  "mock_interviews": [],
+  "mastered_skills": [],
+  "skill_progress": {
+    "SK-OB-01": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-OB-03": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-OB-04": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-OB-05": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-SC-01": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-SC-02": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-SC-04": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-SC-05": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-SC-07": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-CM-01": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-CM-02": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-CM-03": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-CM-04": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-OR-03": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-QP-01": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-QP-05": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-QP-06": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-RT-01": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-RT-02": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-RT-03": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-RT-04": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-RT-05": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-PD-04": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-GT-03": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-GT-04": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-GT-05": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-ST-01": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-ST-02": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-ST-03": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-ST-04": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-ST-12": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-ST-13": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-IR-02": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    },
+    "SK-MT-03": {
+      "primary_solved": false,
+      "primary_weighted_score": null,
+      "reinforcement_attempted": false,
+      "mastered": false
+    }
+  },
+  "stage_mastery": {
+    "Observation": {
+      "status": "in_progress",
+      "skills_mastered": 0,
+      "skills_total": 4
+    },
+    "State Construction": {
+      "status": "locked",
+      "skills_mastered": 0,
+      "skills_total": 5
+    },
+    "Constraint Maintenance": {
+      "status": "locked",
+      "skills_mastered": 0,
+      "skills_total": 4
+    },
+    "Ordered Reasoning": {
+      "status": "locked",
+      "skills_mastered": 0,
+      "skills_total": 1
+    },
+    "Query Processing": {
+      "status": "locked",
+      "skills_mastered": 0,
+      "skills_total": 3
+    },
+    "Recursive Thinking": {
+      "status": "locked",
+      "skills_mastered": 0,
+      "skills_total": 5
+    },
+    "Pattern Discovery": {
+      "status": "locked",
+      "skills_mastered": 0,
+      "skills_total": 1
+    },
+    "Graph Thinking": {
+      "status": "locked",
+      "skills_mastered": 0,
+      "skills_total": 3
+    },
+    "State Transition": {
+      "status": "locked",
+      "skills_mastered": 0,
+      "skills_total": 6
+    },
+    "Interval Reasoning": {
+      "status": "locked",
+      "skills_mastered": 0,
+      "skills_total": 1
+    },
+    "Mathematical Thinking": {
+      "status": "locked",
+      "skills_mastered": 0,
+      "skills_total": 1
+    },
+    "Integration": {
+      "status": "locked",
+      "skills_mastered": 0,
+      "skills_total": 0
+    }
+  },
+  "competency_completion": {
+    "mastered_skills": 0,
+    "total_skills": 34,
+    "percent": 0.0
+  },
+  "lessons_learned": {},
+  "weaknesses_detected": {},
+  "personal_playbook": [],
+  "thinking_profile": {
+    "strengths": [],
+    "gaps": [],
+    "common_failures": [],
+    "preferred_patterns": [],
+    "notes": ""
+  },
+  "scores": {
+    "latest_thinking_score": {},
+    "latest_interview_score": {},
+    "averages": {
+      "thinking_weighted": 0.0,
+      "thinking_dimensions": {
+        "understanding": 0.0,
+        "examples": 0.0,
+        "brute_force": 0.0,
+        "pattern_detection": 0.0,
+        "algorithm_design": 0.0,
+        "complexity_analysis": 0.0,
+        "implementation": 0.0,
+        "communication": 0.0
+      },
+      "interview_average": 0.0,
+      "interview_dimensions": {
+        "understanding": 0.0,
+        "communication": 0.0,
+        "algorithm": 0.0,
+        "coding": 0.0,
+        "complexity": 0.0
+      },
+      "confidence_before": 0.0,
+      "confidence_after": 0.0,
+      "solved_unique_problems": 0
+    },
+    "stage_checks": {
+      "Observation": {
+        "attempted": 0,
+        "passed": 0
+      },
+      "State Construction": {
+        "attempted": 0,
+        "passed": 0
+      },
+      "Constraint Maintenance": {
+        "attempted": 0,
+        "passed": 0
+      },
+      "Ordered Reasoning": {
+        "attempted": 0,
+        "passed": 0
+      },
+      "Query Processing": {
+        "attempted": 0,
+        "passed": 0
+      },
+      "Recursive Thinking": {
+        "attempted": 0,
+        "passed": 0
+      },
+      "Pattern Discovery": {
+        "attempted": 0,
+        "passed": 0
+      },
+      "Graph Thinking": {
+        "attempted": 0,
+        "passed": 0
+      },
+      "State Transition": {
+        "attempted": 0,
+        "passed": 0
+      },
+      "Interval Reasoning": {
+        "attempted": 0,
+        "passed": 0
+      },
+      "Mathematical Thinking": {
+        "attempted": 0,
+        "passed": 0
+      },
+      "Integration": {
+        "attempted": 0,
+        "passed": 0
+      }
+    }
+  },
+  "notes": [],
+  "history": [],
+  "implementation_engineering": {
+    "score": 0,
+    "strengths": [],
+    "weaknesses": [],
+    "common_errors": [],
+    "improvement_notes": []
+  }
+}

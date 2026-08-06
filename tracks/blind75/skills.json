@@ -1,0 +1,528 @@
+{
+  "schema_version": 1,
+  "source_of_truth": true,
+  "track": "blind75",
+  "note": "Generated for the Blind 75 track from knowledge/skills.json. Only skills owning a Blind 75 problem are kept (plus the SK-IE-00 meta-skill). Roles are re-derived: the first problem of a skill validates it, the rest reinforce it. A skill with no reinforcement problems masters from its primary alone.",
+  "skill_order": [
+    "SK-OB-01",
+    "SK-OB-03",
+    "SK-OB-04",
+    "SK-OB-05",
+    "SK-SC-01",
+    "SK-SC-02",
+    "SK-SC-04",
+    "SK-SC-05",
+    "SK-SC-07",
+    "SK-CM-01",
+    "SK-CM-02",
+    "SK-CM-03",
+    "SK-CM-04",
+    "SK-OR-03",
+    "SK-QP-01",
+    "SK-QP-05",
+    "SK-QP-06",
+    "SK-RT-01",
+    "SK-RT-02",
+    "SK-RT-03",
+    "SK-RT-04",
+    "SK-RT-05",
+    "SK-PD-04",
+    "SK-GT-03",
+    "SK-GT-04",
+    "SK-GT-05",
+    "SK-ST-01",
+    "SK-ST-02",
+    "SK-ST-03",
+    "SK-ST-04",
+    "SK-ST-12",
+    "SK-ST-13",
+    "SK-IR-02",
+    "SK-MT-03",
+    "SK-IE-00"
+  ],
+  "skills": {
+    "SK-OB-01": {
+      "id": "SK-OB-01",
+      "name": "Asymptotic Estimation",
+      "description": "Brute force O(n^2) vs hash-map O(n) \u2014 the canonical first lesson in reading constraints to infer required complexity.",
+      "stage": "Observation",
+      "prerequisites": [],
+      "primary_validation_problem": "B75-001",
+      "reinforcement_problems": [
+        "B75-002"
+      ],
+      "challenge_problems": []
+    },
+    "SK-OB-03": {
+      "id": "SK-OB-03",
+      "name": "Running Extremum Scan",
+      "description": "Running Extremum Scan \u2014 track a running best-so-far value (max, min, or both) in a single pass; when a new element makes the running value worse than starting fresh, reset instead of carrying stale history forward. The basis of Kadane's algorithm for maximum subarray problems.",
+      "stage": "Observation",
+      "prerequisites": [],
+      "primary_validation_problem": "B75-003",
+      "reinforcement_problems": [
+        "B75-004"
+      ],
+      "challenge_problems": []
+    },
+    "SK-OB-04": {
+      "id": "SK-OB-04",
+      "name": "Single-Pass Greedy Choice",
+      "description": "Single-Pass Greedy Choice \u2014 scan once, maintain one running invariant (best buy-so-far, farthest reachable index, cumulative deficit, or a two-pass local allocation), and make an irrevocable locally-optimal decision at each step instead of exploring alternatives. Distinct from Running Extremum Scan: the invariant here drives a decision (buy/sell, jump, refuel, allocate), not just a max/min value.",
+      "stage": "Observation",
+      "prerequisites": [
+        "SK-OB-03"
+      ],
+      "primary_validation_problem": "B75-005",
+      "reinforcement_problems": [
+        "B75-006"
+      ],
+      "challenge_problems": []
+    },
+    "SK-OB-05": {
+      "id": "SK-OB-05",
+      "name": "Expand Around Center",
+      "description": "Expand Around Center \u2014 for every possible palindrome center (each index, and each gap between two indices, for odd- and even-length palindromes), expand outward while the characters on both sides match. O(n^2) time, O(1) space; the standard non-DP approach to palindrome-substring problems.",
+      "stage": "Observation",
+      "prerequisites": [
+        "SK-OB-04",
+        "SK-OB-01"
+      ],
+      "primary_validation_problem": "B75-007",
+      "reinforcement_problems": [
+        "B75-008"
+      ],
+      "challenge_problems": []
+    },
+    "SK-SC-01": {
+      "id": "SK-SC-01",
+      "name": "String Simulation / Frequency Map",
+      "description": "Scan a string while maintaining a frequency map (array or hash) of character or token counts, then compare or update counts to detect anagrams, duplicates, or valid arrangements in O(n). Often paired with a running state that you simulate character by character.",
+      "stage": "State Construction",
+      "prerequisites": [],
+      "primary_validation_problem": "B75-009",
+      "reinforcement_problems": [
+        "B75-010",
+        "B75-021"
+      ],
+      "challenge_problems": []
+    },
+    "SK-SC-02": {
+      "id": "SK-SC-02",
+      "name": "Hash Map / Hash Set",
+      "description": "HashMap \u2014 O(1) lookups to avoid nested loops; track frequency, index, or pairs. Intentional revisit preserved from the PDF.",
+      "stage": "State Construction",
+      "prerequisites": [
+        "SK-SC-01"
+      ],
+      "primary_validation_problem": "B75-011",
+      "reinforcement_problems": [],
+      "challenge_problems": []
+    },
+    "SK-SC-04": {
+      "id": "SK-SC-04",
+      "name": "Fast & Slow Pointers",
+      "description": "Advance two pointers through a sequence at different speeds (one step vs two steps); Floyd's tortoise-and-hare uses this to detect a cycle when they meet, find the cycle entry, or locate the list midpoint in O(n) time and O(1) space.",
+      "stage": "State Construction",
+      "prerequisites": [],
+      "primary_validation_problem": "B75-012",
+      "reinforcement_problems": [
+        "B75-013"
+      ],
+      "challenge_problems": []
+    },
+    "SK-SC-05": {
+      "id": "SK-SC-05",
+      "name": "Linked-List Reversal / Merge",
+      "description": "Reverse a linked list or a sublist in place by rewiring next pointers one node at a time (prev, curr, next), and merge two sorted lists by splicing nodes; both run in O(n) with O(1) extra space and underlie reorder, palindrome, and k-group problems.",
+      "stage": "State Construction",
+      "prerequisites": [
+        "SK-SC-04"
+      ],
+      "primary_validation_problem": "B75-014",
+      "reinforcement_problems": [
+        "B75-015",
+        "B75-016",
+        "B75-017"
+      ],
+      "challenge_problems": []
+    },
+    "SK-SC-07": {
+      "id": "SK-SC-07",
+      "name": "Matrix Simulation",
+      "description": "Matrix Simulation - transform a 2D grid in place (rotate, spiral-traverse, mark-and-sweep, simultaneous update) by carefully managing boundaries, index mapping, and update ordering without allocating a second grid.",
+      "stage": "State Construction",
+      "prerequisites": [
+        "SK-SC-01"
+      ],
+      "primary_validation_problem": "B75-018",
+      "reinforcement_problems": [
+        "B75-019",
+        "B75-020"
+      ],
+      "challenge_problems": []
+    },
+    "SK-CM-01": {
+      "id": "SK-CM-01",
+      "name": "Two Pointers",
+      "description": "Two Pointers \u2014 use two indices moving toward/away from each other to reduce O(n\u00b2) to O(n). Intentional revisit preserved from the PDF.",
+      "stage": "Constraint Maintenance",
+      "prerequisites": [
+        "SK-SC-04"
+      ],
+      "primary_validation_problem": "B75-022",
+      "reinforcement_problems": [
+        "B75-023",
+        "B75-028"
+      ],
+      "challenge_problems": []
+    },
+    "SK-CM-02": {
+      "id": "SK-CM-02",
+      "name": "Sliding Window",
+      "description": "Sliding Window \u2014 maintain a window of elements; expand/shrink to satisfy a constraint.",
+      "stage": "Constraint Maintenance",
+      "prerequisites": [
+        "SK-CM-01"
+      ],
+      "primary_validation_problem": "B75-024",
+      "reinforcement_problems": [
+        "B75-025"
+      ],
+      "challenge_problems": []
+    },
+    "SK-CM-03": {
+      "id": "SK-CM-03",
+      "name": "Sliding Window on Strings",
+      "description": "Variable-size Sliding Window \u2014 track character counts inside a window.",
+      "stage": "Constraint Maintenance",
+      "prerequisites": [
+        "SK-CM-02",
+        "SK-SC-01"
+      ],
+      "primary_validation_problem": "B75-026",
+      "reinforcement_problems": [],
+      "challenge_problems": []
+    },
+    "SK-CM-04": {
+      "id": "SK-CM-04",
+      "name": "Stack Parsing / Monotonic Stack",
+      "description": "Monotonic Stack / Explicit Stack \u2014 process characters left-to-right with a stack.",
+      "stage": "Constraint Maintenance",
+      "prerequisites": [
+        "SK-CM-01"
+      ],
+      "primary_validation_problem": "B75-027",
+      "reinforcement_problems": [],
+      "challenge_problems": []
+    },
+    "SK-OR-03": {
+      "id": "SK-OR-03",
+      "name": "Binary Search on Rotated Array",
+      "description": "Binary search on a rotated sorted array by, at each midpoint, deciding which half is sorted and whether the target lies within it, then discarding the other half - locating a value or the pivot in O(log n) despite the rotation.",
+      "stage": "Ordered Reasoning",
+      "prerequisites": [],
+      "primary_validation_problem": "B75-029",
+      "reinforcement_problems": [
+        "B75-030"
+      ],
+      "challenge_problems": []
+    },
+    "SK-QP-01": {
+      "id": "SK-QP-01",
+      "name": "Prefix Sum / Difference Array",
+      "description": "Prefix Sum \u2014 precompute cumulative sums for O(1) range queries.",
+      "stage": "Query Processing",
+      "prerequisites": [
+        "SK-SC-02"
+      ],
+      "primary_validation_problem": "B75-031",
+      "reinforcement_problems": [],
+      "challenge_problems": []
+    },
+    "SK-QP-05": {
+      "id": "SK-QP-05",
+      "name": "Top-K Heap",
+      "description": "Min-Heap of size K \u2014 maintain the K largest elements efficiently. Intentional revisit preserved from the PDF.",
+      "stage": "Query Processing",
+      "prerequisites": [],
+      "primary_validation_problem": "B75-032",
+      "reinforcement_problems": [],
+      "challenge_problems": []
+    },
+    "SK-QP-06": {
+      "id": "SK-QP-06",
+      "name": "Two Heaps / Priority Queue",
+      "description": "Two Heaps \u2014 one max-heap and one min-heap to find the median dynamically.",
+      "stage": "Query Processing",
+      "prerequisites": [
+        "SK-QP-05"
+      ],
+      "primary_validation_problem": "B75-033",
+      "reinforcement_problems": [],
+      "challenge_problems": []
+    },
+    "SK-RT-01": {
+      "id": "SK-RT-01",
+      "name": "Tree Traversal (DFS/BFS)",
+      "description": "Traverse a tree via DFS (preorder, inorder, or postorder, recursively or with an explicit stack) or BFS (level-order with a queue); these traversals underpin nearly all tree computations such as searching, aggregating, and building level-based answers.",
+      "stage": "Recursive Thinking",
+      "prerequisites": [
+        "SK-CM-04"
+      ],
+      "primary_validation_problem": "B75-034",
+      "reinforcement_problems": [],
+      "challenge_problems": []
+    },
+    "SK-RT-02": {
+      "id": "SK-RT-02",
+      "name": "Tree Recursion",
+      "description": "Tree Recursion \u2014 solve sub-problems on left/right subtrees and combine results.",
+      "stage": "Recursive Thinking",
+      "prerequisites": [
+        "SK-RT-01"
+      ],
+      "primary_validation_problem": "B75-035",
+      "reinforcement_problems": [
+        "B75-036",
+        "B75-037",
+        "B75-038",
+        "B75-047"
+      ],
+      "challenge_problems": []
+    },
+    "SK-RT-03": {
+      "id": "SK-RT-03",
+      "name": "Tree Serialization",
+      "description": "Tree Serialization \u2014 convert a tree into a string (typically via pre-order or level-order traversal, encoding null children as sentinels) and reconstruct it unambiguously from that string alone.",
+      "stage": "Recursive Thinking",
+      "prerequisites": [
+        "SK-RT-02"
+      ],
+      "primary_validation_problem": "B75-039",
+      "reinforcement_problems": [
+        "B75-046"
+      ],
+      "challenge_problems": []
+    },
+    "SK-RT-04": {
+      "id": "SK-RT-04",
+      "name": "BST Invariant",
+      "description": "BST Invariant \u2014 for every node, all values in the left subtree are smaller and all values in the right subtree are larger. Exploit this ordering to prune search (go left or right, never both) instead of visiting every node.",
+      "stage": "Recursive Thinking",
+      "prerequisites": [
+        "SK-RT-02"
+      ],
+      "primary_validation_problem": "B75-040",
+      "reinforcement_problems": [
+        "B75-041",
+        "B75-042"
+      ],
+      "challenge_problems": []
+    },
+    "SK-RT-05": {
+      "id": "SK-RT-05",
+      "name": "Trie / Prefix Tree",
+      "description": "A trie stores strings as a tree of character-labeled edges with a shared-prefix path, enabling insert and prefix/word lookup in O(L) per key (L = key length) independent of the number of stored words; ideal for autocomplete, prefix counting, and word dictionaries.",
+      "stage": "Recursive Thinking",
+      "prerequisites": [
+        "SK-RT-01",
+        "SK-SC-02"
+      ],
+      "primary_validation_problem": "B75-043",
+      "reinforcement_problems": [
+        "B75-044",
+        "B75-045"
+      ],
+      "challenge_problems": []
+    },
+    "SK-PD-04": {
+      "id": "SK-PD-04",
+      "name": "Permutation Backtracking",
+      "description": "Backtracking that generates all orderings by, at each depth, choosing an unused element (via swap or a used[] array), recursing, then undoing the choice; produces n! permutations and handles duplicate-skipping when the input has repeats.",
+      "stage": "Pattern Discovery",
+      "prerequisites": [],
+      "primary_validation_problem": "B75-048",
+      "reinforcement_problems": [],
+      "challenge_problems": []
+    },
+    "SK-GT-03": {
+      "id": "SK-GT-03",
+      "name": "Graph BFS",
+      "description": "Breadth-first search explores a graph level by level using a queue and a visited set, guaranteeing the shortest path (fewest edges) in unweighted graphs; used for level-order, multi-source spread, and shortest-hop problems.",
+      "stage": "Graph Thinking",
+      "prerequisites": [],
+      "primary_validation_problem": "B75-049",
+      "reinforcement_problems": [
+        "B75-050"
+      ],
+      "challenge_problems": []
+    },
+    "SK-GT-04": {
+      "id": "SK-GT-04",
+      "name": "Graph DFS / Union-Find",
+      "description": "Depth-first search recurses (or uses a stack) along each path with a visited set to enumerate reachable nodes, find connected components, and detect cycles; disjoint-set union is an alternative for incrementally merging components and testing connectivity.",
+      "stage": "Graph Thinking",
+      "prerequisites": [
+        "SK-GT-03",
+        "SK-RT-01"
+      ],
+      "primary_validation_problem": "B75-051",
+      "reinforcement_problems": [
+        "B75-052",
+        "B75-053",
+        "B75-054"
+      ],
+      "challenge_problems": []
+    },
+    "SK-GT-05": {
+      "id": "SK-GT-05",
+      "name": "Topological Sort",
+      "description": "Produce a linear ordering of a DAG's nodes so every edge points forward, via Kahn's algorithm (repeatedly remove zero-indegree nodes) or DFS post-order reversal; used for dependency resolution, build/course scheduling, and cycle detection in directed graphs.",
+      "stage": "Graph Thinking",
+      "prerequisites": [
+        "SK-GT-04"
+      ],
+      "primary_validation_problem": "B75-055",
+      "reinforcement_problems": [],
+      "challenge_problems": []
+    },
+    "SK-ST-01": {
+      "id": "SK-ST-01",
+      "name": "2-D Dynamic Programming",
+      "description": "2-D DP \u2014 state is two indices (i, j); fill a table row by row.",
+      "stage": "State Transition",
+      "prerequisites": [
+        "SK-RT-02",
+        "SK-OB-03"
+      ],
+      "primary_validation_problem": "B75-063",
+      "reinforcement_problems": [
+        "B75-064"
+      ],
+      "challenge_problems": []
+    },
+    "SK-ST-02": {
+      "id": "SK-ST-02",
+      "name": "Word-Break Dynamic Programming",
+      "description": "Word-Break Dynamic Programming \u2014 dp[i] is true if the prefix of length i can be segmented into dictionary words: dp[i] is true when some dp[j] is true and s[j:i] is in the dictionary.",
+      "stage": "State Transition",
+      "prerequisites": [
+        "SK-ST-01"
+      ],
+      "primary_validation_problem": "B75-056",
+      "reinforcement_problems": [],
+      "challenge_problems": []
+    },
+    "SK-ST-03": {
+      "id": "SK-ST-03",
+      "name": "Decode Dynamic Programming",
+      "description": "Decode Dynamic Programming \u2014 dp[i] is the number of ways to decode the prefix of length i, combining the ways from treating s[i-1] alone and s[i-2:i] as a pair, with '0' and two-digit validity as base-case constraints.",
+      "stage": "State Transition",
+      "prerequisites": [
+        "SK-ST-01"
+      ],
+      "primary_validation_problem": "B75-057",
+      "reinforcement_problems": [],
+      "challenge_problems": []
+    },
+    "SK-ST-04": {
+      "id": "SK-ST-04",
+      "name": "LIS Dynamic Programming with Bisect",
+      "description": "Longest Increasing Subsequence in O(n log n): maintain a tails array where tails[k] is the smallest possible tail of an increasing subsequence of length k+1, and binary-search (bisect) each element's insertion point.",
+      "stage": "State Transition",
+      "prerequisites": [
+        "SK-ST-01"
+      ],
+      "primary_validation_problem": "B75-058",
+      "reinforcement_problems": [],
+      "challenge_problems": []
+    },
+    "SK-ST-12": {
+      "id": "SK-ST-12",
+      "name": "1-D Dynamic Programming",
+      "description": "1-D DP \u2014 state is a single index; transition from previous states.",
+      "stage": "State Transition",
+      "prerequisites": [
+        "SK-RT-02",
+        "SK-OB-03"
+      ],
+      "primary_validation_problem": "B75-059",
+      "reinforcement_problems": [
+        "B75-060",
+        "B75-061",
+        "B75-062"
+      ],
+      "challenge_problems": []
+    },
+    "SK-ST-13": {
+      "id": "SK-ST-13",
+      "name": "Knapsack Dynamic Programming",
+      "description": "DP over items with weights and values: 0/1 knapsack allows each item once (iterate capacity descending), unbounded allows repeats (iterate ascending), maximizing value under a capacity constraint; the same recurrence covers subset-sum, coin-change, and partition problems.",
+      "stage": "State Transition",
+      "prerequisites": [
+        "SK-ST-12"
+      ],
+      "primary_validation_problem": "B75-065",
+      "reinforcement_problems": [],
+      "challenge_problems": []
+    },
+    "SK-IR-02": {
+      "id": "SK-IR-02",
+      "name": "Sorting / Interval Sweep",
+      "description": "Sort intervals by start (or end) and sweep through them, merging overlaps, counting concurrent intervals, or processing sorted event endpoints, to solve merge-intervals, meeting-rooms, and range-coverage problems in O(n log n).",
+      "stage": "Interval Reasoning",
+      "prerequisites": [],
+      "primary_validation_problem": "B75-066",
+      "reinforcement_problems": [
+        "B75-067",
+        "B75-068",
+        "B75-069",
+        "B75-070"
+      ],
+      "challenge_problems": []
+    },
+    "SK-MT-03": {
+      "id": "SK-MT-03",
+      "name": "Bit Manipulation",
+      "description": "Manipulate numbers at the bit level using XOR (find the unique element, swap without temp), AND/OR masks (set/clear/test bits), shifts, and Brian Kernighan's n & (n-1) trick to strip the lowest set bit for fast bit counting.",
+      "stage": "Mathematical Thinking",
+      "prerequisites": [],
+      "primary_validation_problem": "B75-071",
+      "reinforcement_problems": [
+        "B75-072",
+        "B75-073",
+        "B75-074",
+        "B75-075"
+      ],
+      "challenge_problems": []
+    },
+    "SK-IE-00": {
+      "id": "SK-IE-00",
+      "name": "Implementation Engineering",
+      "description": "The ability to correctly translate an understood algorithm into bug-free code by determining initialization, loop boundaries, state ownership, update ordering, previous-state preservation, and return value without relying on memorized implementations.",
+      "scope": "meta",
+      "stage": "Integration",
+      "required_for_difficulties": [
+        "Medium",
+        "Hard"
+      ],
+      "subskills": [
+        "State initialization",
+        "Loop boundaries",
+        "Loop direction",
+        "State ownership",
+        "Previous state preservation",
+        "Update ordering",
+        "Global answer maintenance",
+        "Return variable selection",
+        "Off-by-one detection",
+        "Edge-case driven coding"
+      ],
+      "prerequisites": [],
+      "primary_validation_problem": null,
+      "reinforcement_problems": [],
+      "challenge_problems": []
+    }
+  }
+}
