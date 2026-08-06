@@ -152,6 +152,93 @@ class RepositoryError(RuntimeError):
     """Raised when repository state cannot be loaded or interpreted safely."""
 
 
+DEFAULT_TRACK = "main"
+TRACKS_DIR = ROOT / "tracks"
+
+
+@dataclass(frozen=True)
+class TrackPaths:
+    """Every file one curriculum track owns.
+
+    Tracks share NOTHING. "main" is the classic repo layout (curriculum/,
+    knowledge/, progress/, solutions/, and the learner files at the repo root);
+    every other track lives entirely under tracks/<name>/. That includes the
+    learner-knowledge files — mistake catalog, mentor memory, thinking patterns,
+    interview playbook — and the interview-frequency snapshot: a track's
+    observations belong to that track and never leak into another's.
+    """
+
+    track: str
+    curriculum: Path
+    graph: Path
+    stages: Path
+    skills: Path
+    patterns: Path
+    scoring: Path
+    progress: Path
+    progress_template: Path
+    plan: Path
+    solutions_dir: Path
+    mistake_catalog: Path
+    mentor_memory: Path
+    thinking_patterns: Path
+    interview_playbook: Path
+    interview_frequency: Path
+
+
+def track_paths(track: str = DEFAULT_TRACK) -> TrackPaths:
+    """Resolve the data-file layout for a track."""
+
+    if track == DEFAULT_TRACK:
+        return TrackPaths(
+            track=track,
+            curriculum=CURRICULUM_PATH,
+            graph=GRAPH_PATH,
+            stages=STAGES_PATH,
+            skills=SKILLS_PATH,
+            patterns=PATTERNS_PATH,
+            scoring=SCORING_PATH,
+            progress=PROGRESS_PATH,
+            progress_template=PROGRESS_TEMPLATE_PATH,
+            plan=PLAN_PATH,
+            solutions_dir=ROOT / "solutions",
+            mistake_catalog=ROOT / "mistake_catalog.json",
+            mentor_memory=ROOT / "mentor_memory.md",
+            thinking_patterns=ROOT / "thinking_patterns.md",
+            interview_playbook=ROOT / "interview_playbook.md",
+            interview_frequency=ROOT / "curriculum" / "interview_frequency.json",
+        )
+    base = TRACKS_DIR / track
+    if not base.is_dir():
+        known = (
+            sorted(entry.name for entry in TRACKS_DIR.iterdir() if entry.is_dir())
+            if TRACKS_DIR.is_dir()
+            else []
+        )
+        raise RepositoryError(
+            f"Unknown track {track!r}: no directory {base}. "
+            f"Available tracks: {', '.join([DEFAULT_TRACK, *known])}."
+        )
+    return TrackPaths(
+        track=track,
+        curriculum=base / "curriculum.json",
+        graph=base / "dependency_graph.json",
+        stages=base / "stages.json",
+        skills=base / "skills.json",
+        patterns=base / "patterns.json",
+        scoring=base / "scoring.json",
+        progress=base / "progress.json",
+        progress_template=base / "progress_template.json",
+        plan=base / "plan.json",
+        solutions_dir=base / "solutions",
+        mistake_catalog=base / "mistake_catalog.json",
+        mentor_memory=base / "mentor_memory.md",
+        thinking_patterns=base / "thinking_patterns.md",
+        interview_playbook=base / "interview_playbook.md",
+        interview_frequency=base / "interview_frequency.json",
+    )
+
+
 @dataclass(frozen=True)
 class RepositoryState:
     """Loaded repository data required by the CLI scripts."""
@@ -164,6 +251,15 @@ class RepositoryState:
     scoring: JsonDict
     progress: JsonDict
     progress_path: Path
+    # None when constructed by hand (tests); load_repository_state always sets
+    # it. state_paths() maps None back to the main-track layout.
+    paths: TrackPaths | None = None
+
+
+def state_paths(state: RepositoryState) -> TrackPaths:
+    """The track layout behind loaded state (main when not track-loaded)."""
+
+    return state.paths or track_paths()
 
 
 @dataclass(frozen=True)
@@ -194,32 +290,39 @@ def save_json_file(path: Path, payload: JsonDict) -> None:
     path.write_text(json.dumps(payload, indent=2, ensure_ascii=True) + "\n")
 
 
-def resolve_progress_path(explicit_path: str | None = None) -> Path:
+def resolve_progress_path(
+    explicit_path: str | None = None, paths: TrackPaths | None = None
+) -> Path:
     """Resolve the progress file path, preferring the live progress file."""
 
     if explicit_path:
         return Path(explicit_path).expanduser().resolve()
-    if PROGRESS_PATH.exists():
-        return PROGRESS_PATH
-    return PROGRESS_TEMPLATE_PATH
+    resolved = paths or track_paths()
+    if resolved.progress.exists():
+        return resolved.progress
+    return resolved.progress_template
 
 
-def load_repository_state(explicit_progress_path: str | None = None) -> RepositoryState:
+def load_repository_state(
+    explicit_progress_path: str | None = None, track: str = DEFAULT_TRACK
+) -> RepositoryState:
     """Load curriculum, graph, stages, skills, scoring, and progress state."""
 
-    progress_path = resolve_progress_path(explicit_progress_path)
+    paths = track_paths(track)
+    progress_path = resolve_progress_path(explicit_progress_path, paths)
     progress = load_json_file(progress_path)
-    scoring = load_json_file(SCORING_PATH)
+    scoring = load_json_file(paths.scoring)
     migrate_progress_payload(progress, scoring=scoring)
     return RepositoryState(
-        curriculum=load_json_file(CURRICULUM_PATH),
-        graph=load_json_file(GRAPH_PATH),
-        stages=load_json_file(STAGES_PATH),
-        skills=load_json_file(SKILLS_PATH),
-        patterns=load_json_file(PATTERNS_PATH),
+        curriculum=load_json_file(paths.curriculum),
+        graph=load_json_file(paths.graph),
+        stages=load_json_file(paths.stages),
+        skills=load_json_file(paths.skills),
+        patterns=load_json_file(paths.patterns),
         scoring=scoring,
         progress=progress,
         progress_path=progress_path,
+        paths=paths,
     )
 
 
@@ -778,7 +881,9 @@ def compute_skill_progress(
 
     A skill is mastered when its primary validation problem is solved at or
     above `scoring.skill_mastery.minimum_primary_weighted_score` AND at least
-    one reinforcement problem for that skill has been completed.
+    one reinforcement problem for that skill has been completed. A skill with
+    an empty `reinforcement_problems` list (possible on derived tracks)
+    masters from its primary alone.
 
     The primary problem's mastery bar is scaled by how much hinting it took
     (`scoring.hint_mastery_discount`, keyed by `hint_level_used`) instead of
@@ -825,7 +930,11 @@ def compute_skill_progress(
                 primary_meets_bar = raw_primary_score >= effective_bar
         primary_meets_bar = primary_solved and primary_meets_bar
         reinforcement_done = any(r in latest_by_problem for r in reinforcement)
-        mastered = primary_meets_bar and (reinforcement_done or not require_reinforcement)
+        # A skill with no reinforcement problems at all (possible on derived
+        # tracks like Blind 75) masters from its primary alone.
+        mastered = primary_meets_bar and (
+            reinforcement_done or not reinforcement or not require_reinforcement
+        )
         skill_progress[skill_id] = {
             "primary_solved": primary_solved,
             "primary_weighted_score": raw_primary_score,
@@ -2260,6 +2369,9 @@ def build_dashboard_feed(state: RepositoryState, on_date: date) -> JsonDict:
 
     from datetime import datetime
 
+    paths = state_paths(state)
+    solutions_dir = paths.solutions_dir
+    solutions_rel = solutions_dir.relative_to(ROOT).as_posix()
     problems = problem_lookup(state.curriculum)
     selection = select_next_problem(state, on_date=on_date)
 
@@ -2290,9 +2402,9 @@ def build_dashboard_feed(state: RepositoryState, on_date: date) -> JsonDict:
     solve_modes = {"resume_current_problem", "current_skill",
                    "current_stage", "earliest_unlocked"}
     if selection.mode in solve_modes and next_action["problem_id"]:
-        solution_path = ROOT / "solutions" / f"{next_action['problem_id']}.py"
+        solution_path = solutions_dir / f"{next_action['problem_id']}.py"
         next_action["code_gate"] = {
-            "solution_expected": f"solutions/{next_action['problem_id']}.py",
+            "solution_expected": f"{solutions_rel}/{next_action['problem_id']}.py",
             "solution_exists": solution_path.exists(),
         }
 
@@ -2316,6 +2428,7 @@ def build_dashboard_feed(state: RepositoryState, on_date: date) -> JsonDict:
 
     feed: JsonDict = {
         "generated_at": datetime.now().isoformat(timespec="seconds"),
+        "track": paths.track,
         "reference_date": format_iso_date(on_date),
         "next_action": next_action,
         "revision_queue": revision_queue,
@@ -2332,21 +2445,22 @@ def build_dashboard_feed(state: RepositoryState, on_date: date) -> JsonDict:
             {
                 path.stem
                 for pattern in ("*.py", "*.java")
-                for path in (ROOT / "solutions").glob(pattern)
+                for path in solutions_dir.glob(pattern)
                 if path.stem in problems
             }
         ),
         # Per-file listing so the dashboard can show the actual code, Java or
-        # Python, for a problem (solutions_present keeps only ids).
+        # Python, for a problem (solutions_present keeps only ids). Paths are
+        # repo-relative so the browser's ../<path> fetch works on any track.
         "solution_files": sorted(
             (
                 {
                     "problem_id": path.stem,
-                    "path": f"solutions/{path.name}",
+                    "path": f"{solutions_rel}/{path.name}",
                     "language": "Java" if path.suffix == ".java" else "Python",
                 }
                 for pattern in ("*.py", "*.java")
-                for path in (ROOT / "solutions").glob(pattern)
+                for path in solutions_dir.glob(pattern)
                 if path.stem in problems
             ),
             key=lambda entry: (entry["problem_id"], entry["path"]),
@@ -2866,7 +2980,7 @@ def build_plan_feed(
     """Assemble the feed's `plan` block. None when no plan.json exists."""
 
     if plan is None:
-        plan = load_plan()
+        plan = load_plan(state_paths(state).plan)
     if plan is None:
         return None
     quarter = plan["quarter"]

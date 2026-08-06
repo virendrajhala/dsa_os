@@ -26,6 +26,11 @@ def build_parser() -> argparse.ArgumentParser:
         help="Override the progress file path. Defaults to progress/progress.json.",
     )
     parser.add_argument(
+        "--track",
+        default="main",
+        help="Curriculum track to operate on (main or a tracks/<name> directory).",
+    )
+    parser.add_argument(
         "--date",
         default=date.today().isoformat(),
         help="Evaluate due revisions and unlocked work for this date (YYYY-MM-DD).",
@@ -84,7 +89,7 @@ def main() -> int:
     parser = build_parser()
     args = parser.parse_args()
     try:
-        state = load_repository_state(args.progress_file)
+        state = load_repository_state(args.progress_file, track=args.track)
         selection = select_next_problem(
             state=state,
             on_date=date.fromisoformat(args.date),

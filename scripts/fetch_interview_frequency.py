@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
-"""Build curriculum/interview_frequency.json from a community company-wise
-dataset (one-shot snapshot; the dashboard never fetches the internet)."""
+"""Build a track's interview_frequency.json from a community company-wise
+dataset (one-shot snapshot; the dashboard never fetches the internet).
+
+Each track owns its own snapshot and refreshes independently: `--track main`
+writes curriculum/interview_frequency.json, any other track writes
+tracks/<name>/interview_frequency.json."""
 
 from __future__ import annotations
 
@@ -14,6 +18,8 @@ import zipfile
 from datetime import date
 from pathlib import Path
 
+from _shared import DEFAULT_TRACK, RepositoryError, track_paths
+
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_URL = (
     "https://codeload.github.com/liquidslr/"
@@ -23,7 +29,6 @@ FALLBACK_URL = (
     "https://codeload.github.com/krishnadey30/"
     "LeetCode-Questions-CompanyWise/zip/refs/heads/master"
 )
-DEFAULT_OUT = ROOT / "curriculum" / "interview_frequency.json"
 DEFAULT_SOURCE_LABEL = "github.com/liquidslr/leetcode-company-wise-problems"
 FALLBACK_SOURCE_LABEL = "github.com/krishnadey30/LeetCode-Questions-CompanyWise"
 MIN_EXPECTED_SLUGS = 500
@@ -155,8 +160,23 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--url", default=DEFAULT_URL)
     parser.add_argument("--source-zip", help="Local dataset zip (skips download).")
-    parser.add_argument("--out", default=str(DEFAULT_OUT))
+    parser.add_argument(
+        "--track",
+        default=DEFAULT_TRACK,
+        help="Curriculum track to refresh. Each track owns its own snapshot.",
+    )
+    parser.add_argument(
+        "--out",
+        default=None,
+        help="Override the output path. Defaults to the track's interview_frequency.json.",
+    )
     args = parser.parse_args()
+
+    try:
+        paths = track_paths(args.track)
+    except RepositoryError as exc:
+        print(str(exc), file=sys.stderr)
+        return 1
 
     try:
         if args.source_zip:
@@ -180,7 +200,7 @@ def main() -> int:
     aggregated = aggregate(per_company)
     assign_tiers(aggregated)
 
-    curriculum = json.loads((ROOT / "curriculum" / "curriculum.json").read_text())
+    curriculum = json.loads(paths.curriculum.read_text())
     slugs_in_curriculum = {
         slug
         for problem in curriculum.get("problems", [])
@@ -194,7 +214,7 @@ def main() -> int:
         "retrieved_at": date.today().isoformat(),
         "problems": {slug: aggregated[slug] for slug in sorted(aggregated)},
     }
-    out_path = Path(args.out)
+    out_path = Path(args.out) if args.out else paths.interview_frequency
     out_path.write_text(json.dumps(payload, indent=2, ensure_ascii=True) + "\n")
     print(
         f"Wrote {out_path} \u2014 {len(aggregated)} problems, "

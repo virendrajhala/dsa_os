@@ -98,6 +98,11 @@ def build_parser() -> argparse.ArgumentParser:
         help="Override the progress file path. Defaults to progress/progress.json.",
     )
     parser.add_argument(
+        "--track",
+        default="main",
+        help="Curriculum track to operate on (main or a tracks/<name> directory).",
+    )
+    parser.add_argument(
         "--refresh-current-problem",
         action="store_true",
         help=(
@@ -621,7 +626,7 @@ def main() -> int:
     parser = build_parser()
     args = parser.parse_args()
     try:
-        state = load_repository_state(args.progress_file)
+        state = load_repository_state(args.progress_file, track=args.track)
         problems = problem_lookup(state.curriculum)
         progress = state.progress
         completed_on = parse_iso_date(args.completed_at, "completed_at")
@@ -886,7 +891,12 @@ def main() -> int:
                     "file executed."
                 )
             else:
-                solutions_dir = Path(args.solutions_dir) if args.solutions_dir else SOLUTIONS_DIR
+                if args.solutions_dir:
+                    solutions_dir = Path(args.solutions_dir)
+                elif state.paths is not None and state.paths.track != "main":
+                    solutions_dir = state.paths.solutions_dir
+                else:
+                    solutions_dir = SOLUTIONS_DIR
                 solution_path = solution_path_for(problem_id, solutions_dir)
                 timeout_seconds = (
                     args.code_check_timeout

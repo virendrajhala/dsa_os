@@ -2,10 +2,18 @@ PYTHON ?= python3
 
 NODE ?= node
 
+# Curriculum track for track-aware targets: `make next TRACK=blind75`.
+TRACK ?= main
+
 .PHONY: validate test test-web dashboard web-dashboard next revise stats weakness progress check-solution refresh-frequency
 
+# Validates the main track plus every tracks/<name>/ directory.
 validate:
 	$(PYTHON) scripts/validate_curriculum.py
+	@for t in $$(ls -d tracks/*/ 2>/dev/null | xargs -r -n1 basename); do \
+	  echo "== track: $$t"; \
+	  $(PYTHON) scripts/validate_curriculum.py --track $$t || exit 1; \
+	done
 
 test:
 	$(PYTHON) scripts/test_shared.py
@@ -16,6 +24,8 @@ test:
 	$(PYTHON) scripts/test_dashboard_feed.py
 	$(PYTHON) scripts/test_plan_feed.py
 	$(PYTHON) scripts/test_curriculum_order.py
+	$(PYTHON) scripts/test_track_paths.py
+	$(PYTHON) scripts/test_generate_blind75_track.py
 	$(MAKE) test-web
 
 # Dashboard JS suite, headless. Same tests tests.html runs in the browser.
@@ -26,28 +36,28 @@ test-web:
 	$(NODE) web_dashboard/js/tests/node.js
 
 dashboard:
-	$(PYTHON) scripts/dashboard.py
+	$(PYTHON) scripts/dashboard.py --track $(TRACK)
 
 web-dashboard:
 	$(PYTHON) scripts/serve_dashboard.py
 
 next:
-	$(PYTHON) scripts/next_problem.py --format text
+	$(PYTHON) scripts/next_problem.py --format text --track $(TRACK)
 
 revise:
-	$(PYTHON) scripts/revision_report.py --today-only
+	$(PYTHON) scripts/revision_report.py --today-only --track $(TRACK)
 
 stats:
-	$(PYTHON) scripts/revision_report.py
+	$(PYTHON) scripts/revision_report.py --track $(TRACK)
 
 weakness:
-	$(PYTHON) scripts/weakness_lab.py $(if $(ARGS),$(ARGS),)
+	$(PYTHON) scripts/weakness_lab.py --track $(TRACK) $(if $(ARGS),$(ARGS),)
 
 progress:
-	$(PYTHON) scripts/update_progress.py $(if $(ARGS),$(ARGS),--help)
+	$(PYTHON) scripts/update_progress.py $(if $(ARGS),--track $(TRACK) $(ARGS),--help)
 
 check-solution:
-	$(PYTHON) scripts/run_checks.py $(PROBLEM)
+	$(PYTHON) scripts/run_checks.py $(PROBLEM) $(if $(filter-out main,$(TRACK)),--solutions-dir tracks/$(TRACK)/solutions,)
 
 refresh-frequency:
-	$(PYTHON) scripts/fetch_interview_frequency.py
+	$(PYTHON) scripts/fetch_interview_frequency.py --track $(TRACK)
