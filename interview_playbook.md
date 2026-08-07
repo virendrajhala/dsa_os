@@ -154,6 +154,19 @@ let a section sit unedited just because no recent problem touched that topic.
 - Derive the encode/decode formulas live rather than reciting them: a new
   minimum is stored as `2*newMin - prevMin`; a value below `getMin` is an
   encoded marker whose pop restores `prevMin = 2*currentMin - encoded`.
+- Say the encoding as *reflection*, not as algebra: "values below the current
+  minimum are impossible for real data, so that region is free marker space;
+  I store the old minimum reflected across the new one — same distance,
+  opposite side — so it is self-identifying, and reflecting it back on pop
+  restores the previous minimum." `newMin` is the midpoint of `marker` and
+  `prevMin`, which is why encode and decode are the same equation solved for
+  different unknowns. Framed this way the overflow is a stated consequence
+  ("reflection doubles range, so widen to `long`") rather than a caught bug.
+- State the container when claiming O(1): `pop`/`top`/`getMin` are worst-case
+  O(1), `push` is *amortized* O(1) because the backing array doubles and
+  copies; with a linked-list stack all four are worst-case O(1). Amortized is a
+  worst-case guarantee over a sequence of operations, not an average over
+  inputs — do not use the two words interchangeably in front of an interviewer.
 - For bounded-key design problems, say the constraint-driven tradeoff out loud:
   array indexing gives O(1) operations by spending O(maxKey) space, while a
   general HashMap must handle a sparse or unbounded key space with buckets and

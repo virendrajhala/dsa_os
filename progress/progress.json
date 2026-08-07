@@ -1,8 +1,8 @@
 {
   "schema_version": 8,
-  "last_updated": "2026-07-28",
+  "last_updated": "2026-08-07",
   "current_stage": "Observation",
-  "current_problem": "CPX-007",
+  "current_problem": "OBS-003",
   "completed": [
     {
       "problem_id": "OBS-001",
@@ -822,11 +822,30 @@
         "complexity": 10
       },
       "revision": {
-        "status": "ACTIVE",
+        "status": "FAILED",
         "stage": 0,
         "completed": [],
-        "next_due": "2026-07-31",
-        "history": []
+        "next_due": "2026-08-08",
+        "history": [
+          {
+            "date": "2026-08-07",
+            "result": "FAIL",
+            "stage": 0,
+            "attempted_stage": 1,
+            "confidence": 9,
+            "hint_level": 5,
+            "thinking_score": {
+              "concept_recall": 9,
+              "invariant_recall": 6,
+              "algorithm_reconstruction": 7,
+              "implementation": 8,
+              "hint_dependency": 5,
+              "confidence": 9,
+              "implementation_blueprint": 4,
+              "code_from_memory": 6
+            }
+          }
+        ]
       }
     },
     {
@@ -1333,6 +1352,22 @@
       "deferred_learnings_created": [],
       "deferred_learnings_resolved": [],
       "next_problem": "CPX-007"
+    },
+    {
+      "timestamp": "2026-08-07",
+      "event": "revision_recorded",
+      "problem_id": "CPX-004",
+      "mode": "revision",
+      "stage_before": "Observation",
+      "stage_after": "Observation",
+      "revision_result": "FAIL",
+      "revision_stage": 0,
+      "revision_status": "FAILED",
+      "next_due": "2026-08-08",
+      "reactivated_problems": [],
+      "deferred_learnings_created": [],
+      "deferred_learnings_resolved": [],
+      "next_problem": "OBS-003"
     }
   ],
   "notes": [
@@ -1441,6 +1476,10 @@
     {
       "date": "2026-07-28",
       "text": "CPX-002 R1 PASS: recalled the problem statement, O(n) target complexity, processed-prefix HashSet invariant, contains-before-add ordering, duplicate handling, normal and edge-case dry runs, complete Java implementation from memory, and HashSet.add() boolean-return optimization. No hints, corrections, or conceptual gaps observed."
+    },
+    {
+      "date": "2026-08-07",
+      "text": "R1 revision FAILED. Algorithm recall strong (concept, invariant, proof, duplicate handling, both designs rebuilt from memory). Failed on two pass-rule gates: (1) complexity - the worst-case vs amortized distinction had to be taught, and amortized was conflated with average case; (2) implementation blueprint - requested explicitly, skipped twice, never delivered. Mentor-graded scores used as the self-report by learner agreement; confidence 9 self-reported."
     }
   ],
   "scores": {
@@ -2491,7 +2530,8 @@
       "Made repeated hasNext() calls idempotent with prepared-next state.",
       "Implemented the accepted direct-addressing solution cleanly with array indexing and a -1 sentinel while respecting LeetCode 706's bounded key constraint.",
       "CPX-001 R1: reconstructed the Java Two Sum implementation from memory with correct complement-before-insert ordering and processed-prefix state ownership.",
-      "CPX-002 R1: implemented Contains Duplicate from memory with correct HashSet state, O(n)/O(n) complexity, no corrections, and independently used HashSet.add()'s boolean return optimization."
+      "CPX-002 R1: implemented Contains Duplicate from memory with correct HashSet state, O(n)/O(n) complexity, no corrections, and independently used HashSet.add()'s boolean return optimization.",
+      "Update ordering correct unprompted in both designs - encoded against the old min before overwriting it, restored against the current min before overwriting it."
     ],
     "weaknesses": [
       "Initialization",
@@ -2503,7 +2543,10 @@
       "Forgot global answer update location",
       "Mixed local DP state with final answer",
       "Initially advanced currentIndex inside next(), skipping elements.",
-      "Initially accessed a restored parent list before checking whether it was exhausted."
+      "Initially accessed a restored parent list before checking whether it was exhausted.",
+      "Accessor mutated state: top() used pop() instead of peek().",
+      "Initialization regressed: encoded design left min at Java's default 0, so the first push of any positive value never became the minimum.",
+      "Integer overflow recurred (M005): 2*newMin - prevMin computed in int before widening every participating variable to long."
     ],
     "improvement_notes": [
       "The learner consistently derives correct algorithms but occasionally loses marks while translating the algorithm into code. Future sessions should require an Implementation Blueprint before coding.",

@@ -12,7 +12,8 @@
     "PAT-007",
     "PAT-008",
     "PAT-009",
-    "PAT-010"
+    "PAT-010",
+    "PAT-011"
   ],
   "patterns": {
     "PAT-001": {
@@ -371,6 +372,40 @@
         "Ignoring the O(maxKey) space cost when the used keys may be sparse",
         "Using 0 as a missing sentinel when 0 is a valid value",
         "Marking collision handling, load factor, resizing, or rehashing as mastered from a direct-addressing solution"
+      ]
+    },
+    "PAT-011": {
+      "id": "PAT-011",
+      "name": "Impossible Value Region as Marker Space",
+      "idea_family": "Encoding state into unreachable values",
+      "mental_model": "When a structure guarantees every real element lies in some range, the values outside that range are unreachable by data and are therefore free storage for markers the algorithm places itself.",
+      "recognition_signals": [
+        "Auxiliary state must be remembered but no extra container is allowed",
+        "The structure already guarantees a bound every genuine element satisfies",
+        "A displaced previous value must be recoverable when the current one is removed"
+      ],
+      "core_invariant": "Every stored value that violates the structure's own guarantee is a marker, never data; and each marker encodes the displaced state relative to the value that displaced it.",
+      "proof_idea": "Detection is total because the guarantee is total: if no real element can fall below the current bound, then 'stored value below the bound' is a complete and unambiguous test needing no flag. To make the marker also carry the displaced value, store it reflected across the new bound (marker = 2*newBound - oldBound), so the new bound is the midpoint of marker and old bound. Reflection places the marker below the new bound automatically, and reading the same relation backwards recovers the old bound.",
+      "complexity_reasoning": "Encoding and decoding are constant arithmetic, so operations stay O(1) while auxiliary space drops from O(n) to O(1). Reflection doubles distance from the origin, so the storage type must be wider than the input type.",
+      "appears_in": [
+        "CPX-004"
+      ],
+      "skills": [
+        "SK-OB-02"
+      ],
+      "related_patterns": [
+        "PAT-001"
+      ],
+      "contrast_with": [
+        "Storing the displaced value in a parallel container",
+        "Adding a boolean flag or wrapper object per entry",
+        "Reserving a sentinel constant that real data could legitimately take"
+      ],
+      "common_mistakes": [
+        "Memorizing the encode formula instead of deriving it from 'store the gap below the new bound'",
+        "Transposing encode and decode, which are one relation solved for different unknowns",
+        "Storing the displaced value directly, where it is indistinguishable from real data",
+        "Leaving the arithmetic in the input's type, so reflection overflows"
       ]
     }
   }

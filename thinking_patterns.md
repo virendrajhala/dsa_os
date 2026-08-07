@@ -123,3 +123,40 @@ Common mistakes:
 
 Problems:
 - CPX-006 Design a HashMap
+
+---
+
+## Pattern 006
+Pattern: Impossible Value Region as Marker Space
+
+Trigger:
+Auxiliary state must be stored, but no extra container is allowed. The
+structure already guarantees a range of values that real data can never take.
+
+Invariant:
+Every genuine element satisfies the structure's own guarantee (for a min-stack,
+`element >= min`). Therefore any stored value violating that guarantee is a
+marker the algorithm placed there itself, and can be decoded rather than read.
+
+Proof:
+Detection needs no flag because the guarantee is total: if no real element can
+be below `min`, then `stored < min` is a complete and unambiguous test. To make
+the marker also carry the displaced state, store the old value reflected across
+the new one — `marker = 2*newMin - prevMin`, so that `newMin` is the midpoint of
+`marker` and `prevMin`. Reflection lands the marker below `newMin` automatically
+(because `prevMin > newMin`), so detectability is forced by the geometry rather
+than arranged. Decoding is the same reflection read backwards:
+`prevMin = 2*newMin - marker`.
+
+Common mistakes:
+- Memorizing `2x - m` as a formula instead of deriving it from "store the gap
+  below the new minimum".
+- Transposing encode and decode — they are one equation
+  (`2*newMin = marker + prevMin`) solved for different unknowns.
+- Trying to store the displaced value directly; it sits above the boundary and
+  becomes indistinguishable from real data.
+- Forgetting that reflection doubles distance from the origin, so the storage
+  type must be wider than the input type.
+
+Related problems:
+- CPX-004 Min Stack

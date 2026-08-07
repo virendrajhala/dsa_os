@@ -37,6 +37,16 @@ main-track problem ids.
 - **Current focus — Implementation Engineering:** can derive the correct algorithm
   but must derive initialization, loop boundaries, update ordering, global answer
   ownership, and return value *from the state definition* before coding.
+- Skips the Implementation Blueprint when eager to code. On the CPX-004 R1
+  revision it was requested explicitly, deflected twice, and never delivered —
+  and the code that followed carried three defects the blueprint would have
+  caught (mutating accessor, default-zero initialization, unwidened arithmetic).
+- Treats an operation's cost as the algorithm's work alone, ignoring the backing
+  container. Conflated *amortized* with *average case* on CPX-004 and claimed all
+  four operations were worst-case O(1) on an array-backed stack.
+- States invariants informally ("the minimum found till now") where the precise
+  set matters ("the minimum over elements currently in the stack"). The loose
+  phrasing is literally false after a pop that removes the minimum.
 
 ## Preferred reasoning patterns
 
@@ -56,6 +66,13 @@ main-track problem ids.
 - May mix local DP state with the final answer variable when translating to code,
   or place the global-answer update after the loop instead of immediately after
   the state transition that creates a new candidate.
+- May write a read accessor using a destructive API (`pop()` where `peek()` was
+  meant), desynchronizing structures that must move in lockstep. The failure
+  surfaces far from its cause.
+- May guess a sign or transpose a formula instead of dry-running it, and may dry
+  -run the code intended rather than the code actually written. Both appeared on
+  CPX-004 R1: a guessed sign flip on the encoding, and a trace that assumed a
+  correct constructor the code did not have.
 
 ## Notes for next session
 
@@ -65,6 +82,16 @@ main-track problem ids.
   solve, no hints, no mistakes).
 - OBS-008 (Candy): O(n)-space two-pass greedy is mastered; the O(1)-space
   optimization is an intentionally deferred open learning, not a weakness.
+- CPX-004 R1 (2026-08-07) FAILED and retries 2026-08-08 at stage 0. Algorithm
+  recall was strong — concept, invariant, proof, duplicate handling and both
+  designs rebuilt from memory. It failed the complexity gate (amortized vs
+  worst-case had to be taught) and the blueprint gate (never delivered). On the
+  retry, hold the blueprint requirement hard and open with the amortized
+  question; do not re-teach the encoding, which was re-derived as reflection and
+  is now recorded as thinking pattern 006.
+- M005 (widen every variable in an overflowing expression) recurred on the
+  CPX-004 R1 rebuild fourteen days after it was catalogued. Watch for decay on
+  catalogued implementation mistakes specifically, not just on algorithms.
 - CPX-006 is complete only for LeetCode's bounded-key direct-addressing design.
   Do not treat separate chaining, collision handling, load factor, resizing,
   rehashing, amortized implementation, or Java HashMap internals as mastered;

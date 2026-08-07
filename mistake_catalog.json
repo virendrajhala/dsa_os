@@ -47,6 +47,26 @@
       "source_problem": "CPX-004",
       "taxonomy": "D",
       "corrected_on": "2026-07-24"
+    },
+    {
+      "id": "M006",
+      "title": "Read accessor mutates the structure it reports on",
+      "symptom": "top() returned mainStack.pop() instead of peek(), silently removing an element. The two stacks desynchronized, the auxiliary stack drained ahead of the main stack, and the failure surfaced far later as EmptyStackException inside getMin().",
+      "fix": "Classify every method as reader or writer before writing it, and check that readers use only non-destructive operations. When a design maintains two structures in lockstep, any method that mutates one must mutate the other; a method that is supposed to mutate neither must call no removal API at all.",
+      "source_problem": "CPX-004",
+      "taxonomy": "D",
+      "corrected_on": "2026-08-07",
+      "note": "Surfaced during the CPX-004 R1 revision (2026-08-07). The original 2026-07-24 solve had peek() correct, so this is a from-memory regression, not a first-time error."
+    },
+    {
+      "id": "M007",
+      "title": "Amortized conflated with average case",
+      "symptom": "Claimed push/pop/top/getMin are \"worst case, average case (amortized) and best case - all O(1)\" because each does constant work, missing that java.util.Stack is array-backed and a resizing push costs O(n).",
+      "fix": "An operation's complexity includes its container's complexity, not just the algorithm's own work. Amortized is a worst-case guarantee over a sequence (any m operations cost O(m) total, no input distribution assumed); average case is probabilistic over inputs. State which container backs the structure before claiming a bound: array-backed push is amortized O(1); linked-list push is worst-case O(1).",
+      "source_problem": "CPX-004",
+      "taxonomy": "D",
+      "corrected_on": "2026-08-07",
+      "note": "Caused the CPX-004 R1 revision FAIL on the complexity gate. CPX-004 is the primary validation problem for SK-OB-02 (Amortized Analysis), so this is the skill's core distinction rather than a peripheral detail."
     }
   ]
 }
