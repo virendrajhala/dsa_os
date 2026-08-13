@@ -67,6 +67,16 @@
       "taxonomy": "D",
       "corrected_on": "2026-08-07",
       "note": "Caused the CPX-004 R1 revision FAIL on the complexity gate. CPX-004 is the primary validation problem for SK-OB-02 (Amortized Analysis), so this is the skill's core distinction rather than a peripheral detail."
+    },
+    {
+      "id": "M008",
+      "title": "Overwrite prefix minimum on a local dip",
+      "symptom": "First OBS-003 R2 Java paste updated minPrice when prices[i] < prices[i-1], which can replace the true historical minimum with a merely lower-than-yesterday value.",
+      "fix": "Update the tracked prefix minimum only by comparing the current price against minPrice itself. The condition must preserve the invariant, not describe the local slope.",
+      "source_problem": "OBS-003",
+      "taxonomy": "D",
+      "corrected_on": "2026-08-13",
+      "note": "Near-miss from the first pasted revision implementation; the learner immediately corrected it before recording, so this is tracked as implementation condition drift rather than an algorithm-recall failure."
     }
   ]
 }

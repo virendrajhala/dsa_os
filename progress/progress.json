@@ -1,8 +1,8 @@
 {
   "schema_version": 8,
-  "last_updated": "2026-08-07",
+  "last_updated": "2026-08-13",
   "current_stage": "Observation",
-  "current_problem": "OBS-003",
+  "current_problem": "CPX-005",
   "completed": [
     {
       "problem_id": "OBS-001",
@@ -213,11 +213,12 @@
       },
       "revision": {
         "status": "ACTIVE",
-        "stage": 1,
+        "stage": 2,
         "completed": [
-          "2026-07-19"
+          "2026-07-19",
+          "2026-08-13"
         ],
-        "next_due": "2026-08-01",
+        "next_due": "2026-08-25",
         "history": [
           {
             "date": "2026-07-19",
@@ -261,6 +262,26 @@
             ],
             "algorithm_thinking_score": 10.0,
             "implementation_engineering_score": 10.0
+          },
+          {
+            "date": "2026-08-13",
+            "result": "PASS",
+            "stage": 2,
+            "attempted_stage": 2,
+            "confidence": 8,
+            "hint_level": 3,
+            "thinking_score": {
+              "concept_recall": 7,
+              "invariant_recall": 7,
+              "algorithm_reconstruction": 8,
+              "implementation": 8,
+              "hint_dependency": 7,
+              "confidence": 8,
+              "implementation_blueprint": 9,
+              "code_from_memory": 8
+            },
+            "algorithm_thinking_score": 8.0,
+            "implementation_engineering_score": 8.0
           }
         ]
       },
@@ -1368,6 +1389,22 @@
       "deferred_learnings_created": [],
       "deferred_learnings_resolved": [],
       "next_problem": "OBS-003"
+    },
+    {
+      "timestamp": "2026-08-13",
+      "event": "revision_recorded",
+      "problem_id": "OBS-003",
+      "mode": "revision",
+      "stage_before": "Observation",
+      "stage_after": "Observation",
+      "revision_result": "PASS",
+      "revision_stage": 2,
+      "revision_status": "ACTIVE",
+      "next_due": "2026-08-25",
+      "reactivated_problems": [],
+      "deferred_learnings_created": [],
+      "deferred_learnings_resolved": [],
+      "next_problem": "CPX-005"
     }
   ],
   "notes": [
@@ -1480,6 +1517,10 @@
     {
       "date": "2026-08-07",
       "text": "R1 revision FAILED. Algorithm recall strong (concept, invariant, proof, duplicate handling, both designs rebuilt from memory). Failed on two pass-rule gates: (1) complexity - the worst-case vs amortized distinction had to be taught, and amortized was conflated with average case; (2) implementation blueprint - requested explicitly, skipped twice, never delivered. Mentor-graded scores used as the self-report by learner agreement; confidence 9 self-reported."
+    },
+    {
+      "date": "2026-08-13",
+      "text": "OBS-003 R2 mentor-derived scoring: learner recalled the prefix-min observation after clarification, tightened the invariant after a prompt, reconstructed the algorithm and blueprint, corrected the Java implementation, and the runnable assertion gate passed."
     }
   ],
   "scores": {
@@ -2531,12 +2572,14 @@
       "Implemented the accepted direct-addressing solution cleanly with array indexing and a -1 sentinel while respecting LeetCode 706's bounded key constraint.",
       "CPX-001 R1: reconstructed the Java Two Sum implementation from memory with correct complement-before-insert ordering and processed-prefix state ownership.",
       "CPX-002 R1: implemented Contains Duplicate from memory with correct HashSet state, O(n)/O(n) complexity, no corrections, and independently used HashSet.add()'s boolean return optimization.",
-      "Update ordering correct unprompted in both designs - encoded against the old min before overwriting it, restored against the current min before overwriting it."
+      "Update ordering correct unprompted in both designs - encoded against the old min before overwriting it, restored against the current min before overwriting it.",
+      "Completed the state/init/loop/answer/return blueprint and final Java implementation preserved the prefix-min invariant."
     ],
     "weaknesses": [
       "Initialization",
       "Global answer maintenance",
-      "Update ordering"
+      "Update ordering",
+      "First pasted update condition compared against the previous price rather than the maintained minimum; corrected before recording."
     ],
     "common_errors": [
       "Initial values derived incorrectly",
@@ -2561,7 +2604,8 @@
       "CPX-001 confirmed the learner can derive value-to-index HashMap state from the repeated query: Have I already seen this required partner?",
       "CPX-002 reinforced that implementation order must preserve the state definition: before index i, the HashSet contains exactly values from indices 0..i-1.",
       "Keep traversal ownership in prepareNextElement(); next() should only consume prepared state.",
-      "Do not count separate chaining, collision handling, load factor, dynamic resizing, rehashing, or Java HashMap internals as mastered from CPX-006; those belong to CPX-007."
+      "Do not count separate chaining, collision handling, load factor, dynamic resizing, rehashing, or Java HashMap internals as mastered from CPX-006; those belong to CPX-007.",
+      "OBS-003 R2 scores were mentor-derived at learner request. Updating minPrice before profit is also correct for LC121 because same-day zero profit cannot improve maxProfit, but profit-before-update communicates the buy-before-sell invariant more clearly."
     ]
   }
 }

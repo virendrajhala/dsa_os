@@ -96,3 +96,8 @@ main-track problem ids.
   Do not treat separate chaining, collision handling, load factor, resizing,
   rehashing, amortized implementation, or Java HashMap internals as mastered;
   CPX-007 is the independent follow-up for that implementation layer.
+- OBS-003 R2 (2026-08-13) PASSED with mentor-derived scores. Recall was solid
+  after clarification, but invariant wording and global-answer proof needed
+  tightening. Keep coaching exact state boundaries, and watch for implementation
+  condition drift where a local comparison replaces the maintained invariant
+  state (`prices[i] < prices[i-1]` instead of `prices[i] < minPrice`).

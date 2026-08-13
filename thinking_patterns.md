@@ -160,3 +160,32 @@ Common mistakes:
 
 Related problems:
 - CPX-004 Min Stack
+
+---
+
+## Pattern 007
+Pattern: Prefix Extremum
+
+Trigger:
+A current decision can only use values from earlier positions, and one
+historical minimum or maximum dominates all worse historical candidates.
+
+Invariant:
+Before processing index `i`, the tracked extremum is the best eligible value
+from the processed prefix `0..i-1`.
+
+Proof:
+For any fixed current value, a worse historical candidate can never produce a
+better result than the best historical extremum. In Best Time to Buy and Sell
+Stock, any earlier buy price larger than `minPrice` gives lower profit for the
+same sell price, so it can be discarded.
+
+Common mistakes:
+- Saying "minimum so far" without naming whether the current index is included.
+- Overwriting the prefix extremum on a local dip instead of only on a new global
+  prefix extremum.
+- Confusing the clearest invariant-preserving update order with the only
+  mathematically correct update order.
+
+Related problems:
+- OBS-003 Best Time to Buy and Sell Stock

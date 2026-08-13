@@ -74,11 +74,18 @@ let a section sit unedited just because no recent problem touched that topic.
 - Separate local state (per-position/per-window) from global state
   (best-so-far) and say out loud which is which — a common confusion source
   in Kadane's/sliding-window-style problems.
+- For single-transaction stock scans, say the state boundary precisely:
+  `minPrice` is the minimum legal buy price before the current sell day. Profit
+  before min-update communicates the buy-before-sell invariant most cleanly;
+  min-update before profit is still correct only because same-day profit is zero
+  and cannot improve a global answer initialized to zero.
 
 ### Follow-up variations seen
 - (Kadane's / max-subarray family) Why is your greedy decision always safe?
 - (Kadane's / max-subarray family) Can you prove your invariant?
 - (Kadane's / max-subarray family) Can this be done in O(1) extra space?
+- (Best Time to Buy and Sell Stock / prefix extremum) What changes if you update
+  the tracked minimum before computing today's profit?
 
 ### Edge-case checklists
 - Empty input (if allowed)
