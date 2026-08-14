@@ -2,7 +2,7 @@
   "schema_version": 8,
   "last_updated": "2026-08-14",
   "current_stage": "Observation",
-  "current_problem": "OBS-004",
+  "current_problem": "CPX-006",
   "completed": [
     {
       "problem_id": "OBS-001",
@@ -316,11 +316,12 @@
       },
       "revision": {
         "status": "ACTIVE",
-        "stage": 1,
+        "stage": 2,
         "completed": [
-          "2026-07-19"
+          "2026-07-19",
+          "2026-08-14"
         ],
-        "next_due": "2026-08-02",
+        "next_due": "2026-08-26",
         "history": [
           {
             "date": "2026-07-19",
@@ -354,6 +355,26 @@
             ],
             "error_classification": "None",
             "algorithm_thinking_score": 9.0,
+            "implementation_engineering_score": 9.0
+          },
+          {
+            "date": "2026-08-14",
+            "result": "PASS",
+            "stage": 2,
+            "attempted_stage": 2,
+            "confidence": 8,
+            "hint_level": 1,
+            "thinking_score": {
+              "concept_recall": 8,
+              "invariant_recall": 7,
+              "algorithm_reconstruction": 8,
+              "implementation": 9,
+              "hint_dependency": 8,
+              "confidence": 8,
+              "implementation_blueprint": 7,
+              "code_from_memory": 9
+            },
+            "algorithm_thinking_score": 8.0,
             "implementation_engineering_score": 9.0
           }
         ]
@@ -1442,6 +1463,22 @@
       "deferred_learnings_created": [],
       "deferred_learnings_resolved": [],
       "next_problem": "OBS-004"
+    },
+    {
+      "timestamp": "2026-08-14",
+      "event": "revision_recorded",
+      "problem_id": "OBS-004",
+      "mode": "revision",
+      "stage_before": "Observation",
+      "stage_after": "Observation",
+      "revision_result": "PASS",
+      "revision_stage": 2,
+      "revision_status": "ACTIVE",
+      "next_due": "2026-08-26",
+      "reactivated_problems": [],
+      "deferred_learnings_created": [],
+      "deferred_learnings_resolved": [],
+      "next_problem": "CPX-006"
     }
   ],
   "notes": [
@@ -1562,6 +1599,10 @@
     {
       "date": "2026-08-14",
       "text": "CPX-005 R1 revision failed: lazy iterator concept and parent-context invariant mostly recalled, but active recall required direct hints on eager-vs-lazy cost distribution, prepare-loop shape, and next() stale-cache handling."
+    },
+    {
+      "date": "2026-08-14",
+      "text": "OBS-004 R2 PASS recorded from live transcript evidence: learner reconstructed the unlimited-transaction positive-adjacent-difference rule, gave the exact sum-of-positive-differences invariant after prefix clarification, answered the one-transaction modification correctly, wrote the Java loop from memory, and dry-ran [7,1,5,3,6,4] to 7. Hint level 1 reflects wording/prefix clarification only; no algorithm or code hint was given."
     }
   ],
   "scores": {
@@ -2615,7 +2656,8 @@
       "CPX-002 R1: implemented Contains Duplicate from memory with correct HashSet state, O(n)/O(n) complexity, no corrections, and independently used HashSet.add()'s boolean return optimization.",
       "Update ordering correct unprompted in both designs - encoded against the old min before overwriting it, restored against the current min before overwriting it.",
       "Completed the state/init/loop/answer/return blueprint and final Java implementation preserved the prefix-min invariant.",
-      "CPX-005 R1: correctly recovered parent-list plus resume-index context and dry-ran [[], 7] after the implementation bug was isolated."
+      "CPX-005 R1: correctly recovered parent-list plus resume-index context and dry-ran [[], 7] after the implementation bug was isolated.",
+      "OBS-004 R2: reconstructed the positive-adjacent-difference scan and wrote the Java implementation from memory with correct empty, single-element, decreasing, increasing, and mixed-case handling."
     ],
     "weaknesses": [
       "Initialization",

@@ -101,3 +101,8 @@ main-track problem ids.
   tightening. Keep coaching exact state boundaries, and watch for implementation
   condition drift where a local comparison replaces the maintained invariant
   state (`prices[i] < prices[i-1]` instead of `prices[i] < minPrice`).
+- OBS-004 R2 (2026-08-14) PASSED. The learner reconstructed the unlimited
+  transaction positive-adjacent-difference rule, one-transaction modification,
+  Java implementation, and dry run from memory. Exact invariant wording still
+  needed clarification around "prefix"; treat that as communication/state
+  precision coaching, not algorithm loss.

@@ -79,6 +79,10 @@ let a section sit unedited just because no recent problem touched that topic.
   before min-update communicates the buy-before-sell invariant most cleanly;
   min-update before profit is still correct only because same-day profit is zero
   and cannot improve a global answer initialized to zero.
+- For unlimited-transaction stock scans, say the constraint change out loud:
+  there is no single historical buy state to preserve. The answer is the sum of
+  every positive adjacent rise seen so far; dips are skipped because they cannot
+  increase profit.
 
 ### Follow-up variations seen
 - (Kadane's / max-subarray family) Why is your greedy decision always safe?
@@ -86,6 +90,9 @@ let a section sit unedited just because no recent problem touched that topic.
 - (Kadane's / max-subarray family) Can this be done in O(1) extra space?
 - (Best Time to Buy and Sell Stock / prefix extremum) What changes if you update
   the tracked minimum before computing today's profit?
+- (Best Time to Buy and Sell Stock II / unlimited transactions) Why is adding
+  every positive adjacent rise equivalent to waiting through a longer increasing
+  run, and why do dips split transactions rather than reduce accumulated profit?
 
 ### Edge-case checklists
 - Empty input (if allowed)
