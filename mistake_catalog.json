@@ -77,6 +77,16 @@
       "taxonomy": "D",
       "corrected_on": "2026-08-13",
       "note": "Near-miss from the first pasted revision implementation; the learner immediately corrected it before recording, so this is tracked as implementation condition drift rather than an algorithm-recall failure."
+    },
+    {
+      "id": "M009",
+      "title": "Trust stale cached iterator value",
+      "symptom": "next() returned based on nextElement != null after the prepared flag had been cleared, so a second next() call could return the same stale integer without preparing a new one.",
+      "fix": "Treat the prepared flag as the source of truth. next() should return the cached value only when isNextElementPrepared is true; otherwise it must prepare through hasNext() or throw NoSuchElementException.",
+      "source_problem": "CPX-005",
+      "taxonomy": "D",
+      "corrected_on": "2026-08-14",
+      "note": "Surfaced during the CPX-005 R1 revision. The bug was corrected after the cache-invalidation gate was isolated, but the revision was recorded as FAIL because active recall needed direct implementation guidance."
     }
   ]
 }

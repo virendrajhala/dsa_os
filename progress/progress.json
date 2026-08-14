@@ -1,8 +1,8 @@
 {
   "schema_version": 8,
-  "last_updated": "2026-08-13",
+  "last_updated": "2026-08-14",
   "current_stage": "Observation",
-  "current_problem": "CPX-005",
+  "current_problem": "OBS-004",
   "completed": [
     {
       "problem_id": "OBS-001",
@@ -898,11 +898,32 @@
         "complexity": 8
       },
       "revision": {
-        "status": "ACTIVE",
+        "status": "FAILED",
         "stage": 0,
         "completed": [],
-        "next_due": "2026-08-02",
-        "history": []
+        "next_due": "2026-08-15",
+        "history": [
+          {
+            "date": "2026-08-14",
+            "result": "FAIL",
+            "stage": 0,
+            "attempted_stage": 1,
+            "confidence": 9,
+            "hint_level": 5,
+            "thinking_score": {
+              "concept_recall": 6,
+              "invariant_recall": 8,
+              "algorithm_reconstruction": 7,
+              "implementation": 7,
+              "implementation_blueprint": 7,
+              "code_from_memory": 6,
+              "hint_dependency": 4,
+              "confidence": 9
+            },
+            "algorithm_thinking_score": 7.0,
+            "implementation_engineering_score": 6.5
+          }
+        ]
       }
     },
     {
@@ -1405,6 +1426,22 @@
       "deferred_learnings_created": [],
       "deferred_learnings_resolved": [],
       "next_problem": "CPX-005"
+    },
+    {
+      "timestamp": "2026-08-14",
+      "event": "revision_recorded",
+      "problem_id": "CPX-005",
+      "mode": "revision",
+      "stage_before": "Observation",
+      "stage_after": "Observation",
+      "revision_result": "FAIL",
+      "revision_stage": 0,
+      "revision_status": "FAILED",
+      "next_due": "2026-08-15",
+      "reactivated_problems": [],
+      "deferred_learnings_created": [],
+      "deferred_learnings_resolved": [],
+      "next_problem": "OBS-004"
     }
   ],
   "notes": [
@@ -1521,6 +1558,10 @@
     {
       "date": "2026-08-13",
       "text": "OBS-003 R2 mentor-derived scoring: learner recalled the prefix-min observation after clarification, tightened the invariant after a prompt, reconstructed the algorithm and blueprint, corrected the Java implementation, and the runnable assertion gate passed."
+    },
+    {
+      "date": "2026-08-14",
+      "text": "CPX-005 R1 revision failed: lazy iterator concept and parent-context invariant mostly recalled, but active recall required direct hints on eager-vs-lazy cost distribution, prepare-loop shape, and next() stale-cache handling."
     }
   ],
   "scores": {
@@ -2573,13 +2614,15 @@
       "CPX-001 R1: reconstructed the Java Two Sum implementation from memory with correct complement-before-insert ordering and processed-prefix state ownership.",
       "CPX-002 R1: implemented Contains Duplicate from memory with correct HashSet state, O(n)/O(n) complexity, no corrections, and independently used HashSet.add()'s boolean return optimization.",
       "Update ordering correct unprompted in both designs - encoded against the old min before overwriting it, restored against the current min before overwriting it.",
-      "Completed the state/init/loop/answer/return blueprint and final Java implementation preserved the prefix-min invariant."
+      "Completed the state/init/loop/answer/return blueprint and final Java implementation preserved the prefix-min invariant.",
+      "CPX-005 R1: correctly recovered parent-list plus resume-index context and dry-ran [[], 7] after the implementation bug was isolated."
     ],
     "weaknesses": [
       "Initialization",
       "Global answer maintenance",
       "Update ordering",
-      "First pasted update condition compared against the previous price rather than the maintained minimum; corrected before recording."
+      "First pasted update condition compared against the previous price rather than the maintained minimum; corrected before recording.",
+      "CPX-005 R1: needed direct help to convert the lazy traversal blueprint into the while(true) prepare loop and cache-invalidation contract."
     ],
     "common_errors": [
       "Initial values derived incorrectly",
@@ -2589,7 +2632,8 @@
       "Initially accessed a restored parent list before checking whether it was exhausted.",
       "Accessor mutated state: top() used pop() instead of peek().",
       "Initialization regressed: encoded design left min at Java's default 0, so the first push of any positive value never became the minimum.",
-      "Integer overflow recurred (M005): 2*newMin - prevMin computed in int before widening every participating variable to long."
+      "Integer overflow recurred (M005): 2*newMin - prevMin computed in int before widening every participating variable to long.",
+      "CPX-005 R1: stale cached nextElement could be returned again after next() because next() initially trusted nextElement != null instead of isNextElementPrepared."
     ],
     "improvement_notes": [
       "The learner consistently derives correct algorithms but occasionally loses marks while translating the algorithm into code. Future sessions should require an Implementation Blueprint before coding.",
