@@ -880,7 +880,7 @@ def main() -> int:
                 )
 
         # F9: "solved means it ran." A NEW solve is gated on a runnable
-        # solutions/<PROBLEM-ID>.py (learner's solution + embedded asserts).
+        # solutions/<PROBLEM-ID>.py (learner's solution; asserts optional).
         # Runs AFTER the F3 revision gate (revisions are higher priority) and
         # BEFORE any state mutation/write. Revision mode is never gated.
         no_code_note = None
@@ -907,8 +907,8 @@ def main() -> int:
                 if not check.passed:
                     gate_message = (
                         f"Code-execution gate failed for `{problem_id}`: {check.message} "
-                        f"Expected a runnable solution at {solution_path} with 3-5 embedded "
-                        "asserts (see solutions/README.md). Fix it and rerun, or pass "
+                        f"Expected a runnable solution at {solution_path} (embedded asserts "
+                        "optional; see solutions/README.md). Fix it and rerun, or pass "
                         "--no-code for a whiteboard-style session."
                     )
                     stderr_tail = check.stderr.strip()

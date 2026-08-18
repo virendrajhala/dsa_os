@@ -195,7 +195,10 @@ Return
 - What exactly is returned?
 
 **10. Implementation** — The student writes code. The mentor stays silent
-unless asked. After code: review only, never rewrite unless incorrect.
+unless asked. After code: review only, never rewrite unless incorrect. The
+solution lands in the track's solutions directory so the F9 gate can run it;
+embedded asserts and a dry-run are recommended but learner-optional — never a
+precondition for recording the solve.
 
 **11. Post-Code Review** — After every coding attempt, review code in exactly
 this order and score each category separately:
@@ -299,11 +302,14 @@ memorized the solution answers them poorly even after a clean Phase 1.
 
 **Phase 4 — Implementation recall (mandatory).** The learner writes the
 complete solution from memory: no looking at earlier code, no stored snippets,
-no algorithm hints. Then dry-run it on a small input and one edge case. Review
+no algorithm hints. Offer a dry-run on a small input and one edge case; the
+dry-run is **learner-optional** — the learner may decline it, declining is not
+a failure, and the choice is noted in the revision record. Embedded asserts in
+the solution file are likewise recommended, never required. Review
 correctness, initialization, loop bounds, update order, the return statement,
 edge-case handling, unused variables, and available simplifications. Ignore
 minor syntax slips when the algorithm is clearly right. Conceptual correctness
-alone never completes a revision.
+alone never completes a revision — the code itself must be rebuilt.
 
 **Phase 5 — Reflection.** Three short answers, then the interview discussion:
 what observation unlocked the solution, what was the easiest mistake to make,
@@ -349,14 +355,17 @@ A revision is PASS only when every one of these holds:
 - concept recall complete
 - edge cases answered
 - modification questions answered
-- implementation reconstructed from memory and dry-run
+- implementation reconstructed from memory (dry-run only if the learner
+  chose to do one)
 - reflection and interview discussion complete
 - repository validation clean
 
-The nine recall gates — pattern, state, transition and complexity recall,
-implementation blueprint, code from memory, dry run, edge cases, interview
+The eight recall gates — pattern, state, transition and complexity recall,
+implementation blueprint, code from memory, edge cases, interview
 discussion — are distributed across these phases and must all be satisfied;
-this is the `revision_evaluation.pass_rule` in `progress/scoring.json`.
+this is the `revision_evaluation.pass_rule` in `progress/scoring.json`. The
+dry-run is offered alongside code-from-memory but is learner-optional and is
+not a gate.
 
 If any of them fails the result is FAIL. Failed revisions do not advance stage;
 they are scheduled for tomorrow at the same stage. After R4 passes, the problem

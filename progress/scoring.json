@@ -159,7 +159,7 @@
       "implementation_blueprint": "Explains state, initialization, loop bounds, previous-state needs, answer maintenance, and return value before coding.",
       "code_from_memory": "Writes correct implementation from memory before the revision can pass."
     },
-    "pass_rule": "A revision counts only when pattern, state, transition, complexity, implementation blueprint, code from memory, dry run, edge cases, and interview discussion are all satisfactory with minimal or no hints."
+    "pass_rule": "A revision counts only when pattern, state, transition, complexity, implementation blueprint, code from memory, edge cases, and interview discussion are all satisfactory with minimal or no hints. A dry-run is offered but learner-optional and is not a gate."
   },
   "revision_triggers": [
     "Any failed active recall keeps the same revision stage and schedules the problem for tomorrow.",
@@ -210,7 +210,7 @@
       "update_ordering": "State variables update in an order that preserves the invariant.",
       "answer_maintenance": "Global/local answer ownership and update point are correct.",
       "return_value": "The returned variable exactly matches the problem requirement.",
-      "edge_cases": "Code is dry-run against boundary and adversarial cases."
+      "edge_cases": "Code handles boundary and adversarial cases (checked by dry-run or asserts when the learner chooses to)."
     }
   },
   "error_taxonomy": {

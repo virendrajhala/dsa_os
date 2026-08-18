@@ -2,7 +2,7 @@
 """Run a learner's solution file as a minimal code-execution check.
 
 F9: "solved means it ran." Convention: `solutions/<PROBLEM-ID>.py` holds the
-learner's solution plus 3-5 embedded asserts they write themselves. This
+learner's solution plus optional embedded asserts they write themselves. This
 script runs one solution file in a subprocess with a timeout and reports
 pass/fail. Exit 0 only if the file exists AND runs to completion without an
 assertion failure, exception, or timeout. Deliberately NOT a full test
@@ -136,7 +136,7 @@ def _run_java_file(path: Path, timeout_seconds: float) -> CheckResult:
     """Compile and run a Java solution with assertions enabled (`java -ea`).
 
     F9 for Java mirrors the Python contract: the file compiles, its `main`
-    runs its embedded asserts, and it exits 0. javac/java must be on PATH.
+    runs any embedded asserts, and it exits 0. javac/java must be on PATH.
     """
 
     if shutil.which("javac") is None or shutil.which("java") is None:
@@ -174,7 +174,7 @@ def _run_java_file(path: Path, timeout_seconds: float) -> CheckResult:
                 passed=False,
                 message=(
                     f"Java solution has no runnable entry point: {path}. Add a class "
-                    "with `public static void main(String[])` that runs your asserts."
+                    "with `public static void main(String[])` that runs the file (asserts optional)."
                 ),
             )
 
