@@ -106,3 +106,16 @@ main-track problem ids.
   Java implementation, and dry run from memory. Exact invariant wording still
   needed clarification around "prefix"; treat that as communication/state
   precision coaching, not algorithm loss.
+- CPX-006 R1 (2026-08-18) PASSED (mentor-derived scores, avg ~7.7). Direct
+  addressing recalled instantly; the *justification* of the -1 sentinel (outside
+  the 0..10^6 value range) and the contents invariant (`arr[k]` is the mapped
+  value or -1) each needed 3-4 retries — the learner states intent and
+  complexity where an invariant/proof is asked. Transfer was fine: key offset
+  for negative keys, out-of-range sentinel for negative values, chaining+resize
+  for 10^9 keys after one hint. Learner explicitly declined the Phase-4 dry-run
+  and asserts ("not important for this problem") and asked to relax the
+  protocol; waived for this session and recorded in the revision note. The
+  protocol was then changed the same day (2026-08-18): the dry-run and
+  embedded asserts are now learner-optional everywhere (mentor_protocol.md
+  Phase 4 / state 10, scoring.json pass_rule, solutions/README.md, F9 gate
+  wording). Code-from-memory remains mandatory.

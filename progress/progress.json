@@ -1,8 +1,8 @@
 {
   "schema_version": 8,
-  "last_updated": "2026-08-14",
+  "last_updated": "2026-08-18",
   "current_stage": "Observation",
-  "current_problem": "CPX-006",
+  "current_problem": "OBS-005",
   "completed": [
     {
       "problem_id": "OBS-001",
@@ -977,10 +977,31 @@
       },
       "revision": {
         "status": "ACTIVE",
-        "stage": 0,
-        "completed": [],
-        "next_due": "2026-08-04",
-        "history": []
+        "stage": 1,
+        "completed": [
+          "2026-08-18"
+        ],
+        "next_due": "2026-08-19",
+        "history": [
+          {
+            "date": "2026-08-18",
+            "result": "PASS",
+            "stage": 1,
+            "attempted_stage": 1,
+            "confidence": 9,
+            "hint_level": 2,
+            "thinking_score": {
+              "concept_recall": 8,
+              "invariant_recall": 6,
+              "algorithm_reconstruction": 8,
+              "implementation_blueprint": 8,
+              "code_from_memory": 9,
+              "implementation": 8,
+              "hint_dependency": 7,
+              "confidence": 9
+            }
+          }
+        ]
       },
       "notes": [
         "Recorded new solve via --override-revisions while overdue: CPX-001, CPX-002."
@@ -1479,6 +1500,22 @@
       "deferred_learnings_created": [],
       "deferred_learnings_resolved": [],
       "next_problem": "CPX-006"
+    },
+    {
+      "timestamp": "2026-08-18",
+      "event": "revision_recorded",
+      "problem_id": "CPX-006",
+      "mode": "revision",
+      "stage_before": "Observation",
+      "stage_after": "Observation",
+      "revision_result": "PASS",
+      "revision_stage": 1,
+      "revision_status": "ACTIVE",
+      "next_due": "2026-08-19",
+      "reactivated_problems": [],
+      "deferred_learnings_created": [],
+      "deferred_learnings_resolved": [],
+      "next_problem": "OBS-005"
     }
   ],
   "notes": [
@@ -1603,6 +1640,10 @@
     {
       "date": "2026-08-14",
       "text": "OBS-004 R2 PASS recorded from live transcript evidence: learner reconstructed the unlimited-transaction positive-adjacent-difference rule, gave the exact sum-of-positive-differences invariant after prefix clarification, answered the one-transaction modification correctly, wrote the Java loop from memory, and dry-ran [7,1,5,3,6,4] to 7. Hint level 1 reflects wording/prefix clarification only; no algorithm or code hint was given."
+    },
+    {
+      "date": "2026-08-18",
+      "text": "R1 2026-08-18 PASS (mentor-derived scores). Direct-addressing recall solid; sentinel justification (-1 outside value range) and contents-invariant needed repeated prompting. Transfer: offset for negative keys, chaining+resize for 10^9 keys (with one hint), out-of-range sentinel for negative values. Phase-4 dry-run and asserts waived at learner's explicit request; code correct from memory (missing Arrays import only)."
     }
   ],
   "scores": {
