@@ -189,3 +189,37 @@ Common mistakes:
 
 Related problems:
 - OBS-003 Best Time to Buy and Sell Stock
+
+---
+
+## Pattern 008
+Pattern: Compression Licence (why one value is enough)
+
+Trigger:
+A greedy or scan keeps a single variable in place of a whole set of candidates
+(a frontier, a best-so-far, a leftmost feasible position), and the algorithm
+tests each new element against that one variable.
+
+Invariant:
+Two separate facts are in play. The invariant says what the variable means. The
+compression licence says why testing that one value is equivalent to testing
+every discarded candidate.
+
+Proof:
+Identify the structural property that makes the discarded candidates redundant,
+usually contiguity, monotonicity, or a total order. In Jump Game, a jump from
+`i` reaches a contiguous range, so if `i` reaches any good index it also reaches
+the leftmost one, which sits between them. The single comparison therefore never
+rejects an index a fuller check would accept.
+
+Common mistakes:
+- Justifying the compression by restating its comparison (see M010).
+- Assuming the licence survives a problem perturbation because the invariant's
+  wording is unchanged. Exact-jump Jump Game keeps the invariant and loses the
+  licence: `[6,5,4,3,2,1,0]` is reachable end-to-end, yet leftmost-only tracking
+  returns false.
+- Never asking which property is doing the work, so an interviewer's variant
+  breaks the solution for reasons the learner cannot name.
+
+Related problems:
+- OBS-005 Jump Game

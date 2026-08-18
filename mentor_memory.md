@@ -119,3 +119,18 @@ main-track problem ids.
   embedded asserts are now learner-optional everywhere (mentor_protocol.md
   Phase 4 / state 10, scoring.json pass_rule, solutions/README.md, F9 gate
   wording). Code-from-memory remains mandatory.
+- OBS-005 R2 (2026-08-18) PASSED (mentor-graded avg 8.5). Backward
+  leftmost-good-index scan, invariant, edge cases, blueprint and code were all
+  rebuilt unaided and the F9 gate ran clean on the first attempt. Two gaps:
+  the learner justifies a compression by restating its check rather than naming
+  the property that licenses it (now catalogued as M010 and thinking pattern
+  008), and the forward `maxReach` formulation was never reached — they offered
+  the success test `i + nums[i] >= n-1` five times instead of the standing test
+  `i > maxReach`, so it was revealed and filed as DL-003. MENTOR ERROR this
+  session: the core comparison was written out verbatim during the proof
+  discussion, before Phase 4. Scoring excluded the leak rather than charging it
+  to the learner, but the lesson is to hold the verdict-only rule and restate a
+  question more precisely instead of illustrating it with the algorithm's own
+  line. The learner also pushed back, correctly, that stonewalling with bare
+  "Incorrect" verdicts on an unclear question is not adjudication — sharpen the
+  question, then withhold.

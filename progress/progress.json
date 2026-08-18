@@ -2,7 +2,7 @@
   "schema_version": 8,
   "last_updated": "2026-08-18",
   "current_stage": "Observation",
-  "current_problem": "OBS-005",
+  "current_problem": "OBS-006",
   "completed": [
     {
       "problem_id": "OBS-001",
@@ -410,11 +410,12 @@
       },
       "revision": {
         "status": "ACTIVE",
-        "stage": 1,
+        "stage": 2,
         "completed": [
-          "2026-07-23"
+          "2026-07-23",
+          "2026-08-18"
         ],
-        "next_due": "2026-08-04",
+        "next_due": "2026-08-28",
         "history": [
           {
             "date": "2026-07-23",
@@ -432,6 +433,24 @@
               "code_from_memory": 10,
               "hint_dependency": 10,
               "confidence": 10
+            }
+          },
+          {
+            "date": "2026-08-18",
+            "result": "PASS",
+            "stage": 2,
+            "attempted_stage": 2,
+            "confidence": 9,
+            "hint_level": 5,
+            "thinking_score": {
+              "concept_recall": 9,
+              "invariant_recall": 8,
+              "algorithm_reconstruction": 8,
+              "implementation_blueprint": 9,
+              "code_from_memory": 10,
+              "implementation": 10,
+              "hint_dependency": 5,
+              "confidence": 9
             }
           }
         ]
@@ -1516,6 +1535,24 @@
       "deferred_learnings_created": [],
       "deferred_learnings_resolved": [],
       "next_problem": "OBS-005"
+    },
+    {
+      "timestamp": "2026-08-18",
+      "event": "revision_recorded",
+      "problem_id": "OBS-005",
+      "mode": "revision",
+      "stage_before": "Observation",
+      "stage_after": "Observation",
+      "revision_result": "PASS",
+      "revision_stage": 2,
+      "revision_status": "ACTIVE",
+      "next_due": "2026-08-28",
+      "reactivated_problems": [],
+      "deferred_learnings_created": [
+        "DL-003"
+      ],
+      "deferred_learnings_resolved": [],
+      "next_problem": "OBS-006"
     }
   ],
   "notes": [
@@ -1644,6 +1681,10 @@
     {
       "date": "2026-08-18",
       "text": "R1 2026-08-18 PASS (mentor-derived scores). Direct-addressing recall solid; sentinel justification (-1 outside value range) and contents-invariant needed repeated prompting. Transfer: offset for negative keys, chaining+resize for 10^9 keys (with one hint), out-of-range sentinel for negative values. Phase-4 dry-run and asserts waived at learner's explicit request; code correct from memory (missing Arrays import only)."
+    },
+    {
+      "date": "2026-08-18",
+      "text": "OBS-005 R2 (2026-08-18) PASS. Backward scan, invariant, edge cases and code all recalled unaided; complexity correct. Two weak spots: (1) the sufficiency proof - why one comparison against the leftmost good index covers all good indices - took several attempts and the learner restated the check instead of naming the contiguous-reachable-range property; (2) the forward max-reach formulation was not reconstructed - the learner repeatedly offered the success test (i+nums[i] >= n-1) instead of the standing test (i > maxReach) and it was ultimately revealed after five attempts. Transfer to the exact-jump variant was strong: the learner built the breaking case [6,5,4,3,2,1,0] themselves and derived that contiguity, not the good-index definition, is what licenses the single-variable compression. MENTOR ERROR: during the sufficiency proof the mentor wrote the comparison i + nums[i] >= L verbatim, leaking the core line before Phase 4; hint_dependency was scored on learner-requested hints only and the leak was excluded from scoring rather than charged to the learner. Confidence 6 -> 9, ~30-45 min. Mentor-graded average 8.5; the learner declined to self-report dimension scores and delegated grading to the mentor, so thinking_score self-report is absent by choice."
     }
   ],
   "scores": {
@@ -2325,6 +2366,20 @@
       "resolved_on": "2026-07-21",
       "resolved_by_problem": "CPX-002",
       "evidence": "CPX-002 resolved the HashMap/HashSet pattern-recognition deferred learning by deriving the repeated query, required state, minimal HashSet structure, contains-before-add invariant, and O(n)/O(n) complexity without memorized pattern recall."
+    },
+    {
+      "id": "DL-003",
+      "origin_problem": "OBS-005",
+      "origin_revision_stage": 2,
+      "skill": "SK-OB-04",
+      "category": "invariant_reasoning",
+      "description": "Forward (left-to-right) formulation of Jump Game: maintain maxReach and detect unreachability with the standing test i > maxReach, rather than the success test i + nums[i] >= n-1. The learner reconstructed the backward leftmost-good-index scan flawlessly but could not derive the forward frontier version, reaching for the success condition five times. Resolve when a future problem or revision requires reasoning about a reachable frontier scanned forward.",
+      "priority": "MEDIUM",
+      "status": "OPEN",
+      "created_on": "2026-08-18",
+      "resolved_on": null,
+      "resolved_by_problem": null,
+      "evidence": null
     }
   ],
   "mastered_skills": [
@@ -2698,7 +2753,8 @@
       "Update ordering correct unprompted in both designs - encoded against the old min before overwriting it, restored against the current min before overwriting it.",
       "Completed the state/init/loop/answer/return blueprint and final Java implementation preserved the prefix-min invariant.",
       "CPX-005 R1: correctly recovered parent-list plus resume-index context and dry-ran [[], 7] after the implementation bug was isolated.",
-      "OBS-004 R2: reconstructed the positive-adjacent-difference scan and wrote the Java implementation from memory with correct empty, single-element, decreasing, increasing, and mixed-case handling."
+      "OBS-004 R2: reconstructed the positive-adjacent-difference scan and wrote the Java implementation from memory with correct empty, single-element, decreasing, increasing, and mixed-case handling.",
+      "Rebuilt the backward leftmost-good-index scan from memory on the first attempt: init at n-1, bounds n-2..0, test-before-assign ordering, return leftMostGoodIndex == 0. F9 gate green under java -ea."
     ],
     "weaknesses": [
       "Initialization",
@@ -2732,7 +2788,8 @@
       "CPX-002 reinforced that implementation order must preserve the state definition: before index i, the HashSet contains exactly values from indices 0..i-1.",
       "Keep traversal ownership in prepareNextElement(); next() should only consume prepared state.",
       "Do not count separate chaining, collision handling, load factor, dynamic resizing, rehashing, or Java HashMap internals as mastered from CPX-006; those belong to CPX-007.",
-      "OBS-003 R2 scores were mentor-derived at learner request. Updating minPrice before profit is also correct for LC121 because same-day zero profit cannot improve maxProfit, but profit-before-update communicates the buy-before-sell invariant more clearly."
+      "OBS-003 R2 scores were mentor-derived at learner request. Updating minPrice before profit is also correct for LC121 because same-day zero profit cannot improve maxProfit, but profit-before-update communicates the buy-before-sell invariant more clearly.",
+      "Single-element input is handled by construction (loop body never runs, init already satisfies the return check) rather than by a special case."
     ]
   }
 }

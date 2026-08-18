@@ -87,6 +87,16 @@
       "taxonomy": "D",
       "corrected_on": "2026-08-14",
       "note": "Surfaced during the CPX-005 R1 revision. The bug was corrected after the cache-invalidation gate was isolated, but the revision was recorded as FAIL because active recall needed direct implementation guidance."
+    },
+    {
+      "id": "M010",
+      "title": "Justify a compression by restating its check",
+      "symptom": "Asked why tracking a single leftmost good index is sufficient, the learner answered with the comparison itself ('we check i + nums[i] >= leftmost good index, so checking it is enough') instead of naming the structural property that makes one check stand in for all of them.",
+      "fix": "Separate two questions: what does the tracked value MEAN (invariant), and why is ONE value enough (compression). The second is licensed by a structural property of the problem - here, that a jump reaches a contiguous range, so any index reaching a farther good index also reaches the nearer one. That property appears nowhere in the code, so it must be stated explicitly or it is silently assumed.",
+      "source_problem": "OBS-005",
+      "taxonomy": "B",
+      "corrected_on": "2026-08-18",
+      "note": "Surfaced during the OBS-005 R2 revision. The learner later proved the point themselves by constructing [6,5,4,3,2,1,0] under exact-jump rules, where the invariant survives but the single-variable compression produces a wrong answer."
     }
   ]
 }
