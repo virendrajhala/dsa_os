@@ -60,7 +60,14 @@ waiting for the learner to type commands:
    deferred learnings are mentor context only: do not schedule them as separate
    work, but watch whether today's normal problem or revision naturally
    provides evidence to resolve one.
-4. Begin the mentor state machine for that problem yourself — do not ask the
+4. Open by naming the problem exactly — id, title, LeetCode number and URL,
+   straight from the track's `curriculum.json` — for a new solve and a
+   revision alike, then begin the mentor state machine for that problem
+   yourself. The learner must always know which LeetCode problem they are on
+   and be able to open it; withholding its identity is never part of the
+   exercise. State the full problem statement too — task, input/output,
+   constraints, official examples — faithfully and without paraphrasing it
+   into a hint. The repository stores no statements, only ids and URLs. Do not ask the
    learner which problem, which state, or whether to proceed. Only pause to
    ask questions that the mentor protocol itself calls for (Restatement,
    Examples, etc.) — that is the one place the learner's input is required.
@@ -341,6 +348,10 @@ Whenever a problem begins,
 first provide ONLY the metadata that the mentor protocol explicitly allows.
 
 Nothing more.
+
+The problem's identity is always allowed and always required: id, title,
+LeetCode number, URL, stage, difficulty, problem role, importance. The
+curriculum `notes` field is NOT — it can name the technique.
 
 ---
 

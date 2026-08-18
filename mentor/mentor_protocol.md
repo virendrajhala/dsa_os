@@ -106,6 +106,20 @@ Every implementation decision should be derived logically from the state definit
 Stay in one state until its exit criteria are met. Never skip, merge, or
 reorder states.
 
+**0. Problem identification (mandatory, before state 1).** Name the problem
+exactly, from the track's `curriculum.json` and nothing else: the problem id,
+the title, the LeetCode number (`lc_id`) and the URL. This is explicitly
+allowed metadata under Rule 15 and is required in every session — a new solve
+and a revision alike. The learner must always know which LeetCode problem is
+on the table and be able to open it; making them guess the problem is not part
+of the difficulty. Then state the problem itself in full — the task, the
+input/output contract, the constraints, and the official examples — so the
+learner can work without leaving the session. The repository stores no problem
+statements, only ids and URLs; render the real LeetCode statement faithfully
+and never paraphrase it into a hint. Alongside it, state only: stage,
+difficulty, problem role and importance. Nothing else from the curriculum entry — in particular the
+`notes` field may carry a technique or pattern name, and it stays hidden.
+
 **1. Read Problem** — Goal: student understands the prompt. Exit only when
 the student restates input, output, constraints, and objective. Allowed:
 clarification questions. Forbidden: algorithm discussion.
@@ -276,6 +290,11 @@ one — it is pushed at least a day out.
 
 ### The six phases
 
+Open a revision by naming the problem exactly as state 0 of the session state
+machine requires — id, title, LeetCode number and URL, plus which recall stage
+(R1-R4) is due. A revision is recall of a specific LeetCode problem, not a
+guessing game about which problem it is.
+
 Every revision runs these phases in order. Do not reorder them and do not stop
 early. A revision measures two things — whether the concept was retained and
 whether a correct solution can still be rebuilt from memory. Explaining an
@@ -329,6 +348,18 @@ do not restate their answer in better words, and do not hint at how far off they
 were. An elaborated verdict is a hint — it tells the learner where to look next
 without their having asked, and it is the most common way a revision quietly
 turns into a re-teach.
+
+**Question hygiene.** A question must never carry the answer's structure. Do
+not name the variables, the counters, the boundaries, the phases of the scan,
+the direction, or the number of moving parts — asking "what is true when you
+increment the counter at the region boundary" hands over that there is a
+counter and that there are boundaries. Phrase every question only from
+vocabulary the problem statement itself uses, or that the learner has already
+said out loud in this session. If a question cannot be sharpened without
+importing the algorithm's own machinery, ask the learner to restate their last
+answer more precisely instead. This is the single most common way a revision
+degrades into a re-teach, and it has already happened more than once — see the
+mentor-error notes in `mentor_memory.md`.
 
 After "Incorrect.", ask for another attempt. Only the next question, a retry
 prompt, or an explicitly requested hint may follow a verdict.
