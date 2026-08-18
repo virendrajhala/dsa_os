@@ -2,7 +2,7 @@
   "schema_version": 8,
   "last_updated": "2026-08-18",
   "current_stage": "Observation",
-  "current_problem": "OBS-006",
+  "current_problem": "OBS-007",
   "completed": [
     {
       "problem_id": "OBS-001",
@@ -486,11 +486,12 @@
       },
       "revision": {
         "status": "ACTIVE",
-        "stage": 1,
+        "stage": 2,
         "completed": [
-          "2026-07-23"
+          "2026-07-23",
+          "2026-08-18"
         ],
-        "next_due": "2026-08-05",
+        "next_due": "2026-08-29",
         "history": [
           {
             "date": "2026-07-23",
@@ -507,6 +508,24 @@
               "implementation_blueprint": 9,
               "code_from_memory": 9,
               "hint_dependency": 8,
+              "confidence": 8
+            }
+          },
+          {
+            "date": "2026-08-18",
+            "result": "PASS",
+            "stage": 2,
+            "attempted_stage": 2,
+            "confidence": 8,
+            "hint_level": 1,
+            "thinking_score": {
+              "concept_recall": 9,
+              "invariant_recall": 6,
+              "algorithm_reconstruction": 8,
+              "implementation_blueprint": 9,
+              "code_from_memory": 9,
+              "implementation": 9,
+              "hint_dependency": 7,
               "confidence": 8
             }
           }
@@ -1553,6 +1572,24 @@
       ],
       "deferred_learnings_resolved": [],
       "next_problem": "OBS-006"
+    },
+    {
+      "timestamp": "2026-08-18",
+      "event": "revision_recorded",
+      "problem_id": "OBS-006",
+      "mode": "revision",
+      "stage_before": "Observation",
+      "stage_after": "Observation",
+      "revision_result": "PASS",
+      "revision_stage": 2,
+      "revision_status": "ACTIVE",
+      "next_due": "2026-08-29",
+      "reactivated_problems": [],
+      "deferred_learnings_created": [],
+      "deferred_learnings_resolved": [
+        "DL-003"
+      ],
+      "next_problem": "OBS-007"
     }
   ],
   "notes": [
@@ -1685,6 +1722,10 @@
     {
       "date": "2026-08-18",
       "text": "OBS-005 R2 (2026-08-18) PASS. Backward scan, invariant, edge cases and code all recalled unaided; complexity correct. Two weak spots: (1) the sufficiency proof - why one comparison against the leftmost good index covers all good indices - took several attempts and the learner restated the check instead of naming the contiguous-reachable-range property; (2) the forward max-reach formulation was not reconstructed - the learner repeatedly offered the success test (i+nums[i] >= n-1) instead of the standing test (i > maxReach) and it was ultimately revealed after five attempts. Transfer to the exact-jump variant was strong: the learner built the breaking case [6,5,4,3,2,1,0] themselves and derived that contiguity, not the good-index definition, is what licenses the single-variable compression. MENTOR ERROR: during the sufficiency proof the mentor wrote the comparison i + nums[i] >= L verbatim, leaking the core line before Phase 4; hint_dependency was scored on learner-requested hints only and the leak was excluded from scoring rather than charged to the learner. Confidence 6 -> 9, ~30-45 min. Mentor-graded average 8.5; the learner declined to self-report dimension scores and delegated grading to the mentor, so thinking_score self-report is absent by choice."
+    },
+    {
+      "date": "2026-08-18",
+      "text": "R2 recall PASS. Revision scores are MENTOR-DERIVED (learner declined the self-report batch; precedent: CPX-006 R1, OBS-003 R2). Mentor average 8.125. Concept recall was immediate and unaided. Weakest dimension was invariant_recall (6): defining region k took three attempts and one incorrect answer ('i >= k'), landing only after computing the per-index minimum-jump row by hand - the recurring pattern of executing the procedure instead of naming the property it rests on (see M010 / thinking pattern 008). Code from memory was flawless, first attempt, F9 gate clean; update ordering (maxReachableIdx before the boundary check) was correct unprompted. Transfer was strong: target-index-t variant, unreachable -> -1 variant (after one wrong rule and a counterexample), and the exact-jump variant where the learner correctly saw the choice collapses and greedy becomes unnecessary. Hint level negotiated down from 3 to 1 by the learner, accepted: the escalations were clarifications of the mentor's own unclear questions, not content help. TWO MENTOR ERRORS this session: (1) a Phase-1 question named the algorithm's own machinery ('when you increment the jump counter at the region boundary') - the learner called it out and a Question Hygiene rule was added to mentor_protocol.md the same day; (2) the blueprint was compressed to six one-liners, accepted with 'gate satisfied, not re-litigating', and then scored down for missing the whys - the learner correctly objected that penalizing an unprobed gap is not adjudication, and implementation_blueprint was corrected 7 -> 9. Protocol was also amended this session, on the learner's instruction, to require naming the exact LeetCode problem AND stating its full problem statement at the start of every session and revision."
     }
   ],
   "scores": {
@@ -2375,11 +2416,11 @@
       "category": "invariant_reasoning",
       "description": "Forward (left-to-right) formulation of Jump Game: maintain maxReach and detect unreachability with the standing test i > maxReach, rather than the success test i + nums[i] >= n-1. The learner reconstructed the backward leftmost-good-index scan flawlessly but could not derive the forward frontier version, reaching for the success condition five times. Resolve when a future problem or revision requires reasoning about a reachable frontier scanned forward.",
       "priority": "MEDIUM",
-      "status": "OPEN",
+      "status": "RESOLVED",
       "created_on": "2026-08-18",
-      "resolved_on": null,
-      "resolved_by_problem": null,
-      "evidence": null
+      "resolved_on": "2026-08-18",
+      "resolved_by_problem": "OBS-006",
+      "evidence": "OBS-006 R2: under a counterexample challenge on [1,0,5,0], the learner derived the forward standing test 'currentRegionEnd < i' as the unreachability condition and placed it correctly (at the region boundary, after currentRegionEnd is updated from maxReachableIdx), rather than reaching for a success test. Also traced the forward frontier correctly end to end and rebuilt the forward maxReachableIdx implementation from memory, gate-clean on the first attempt."
     }
   ],
   "mastered_skills": [

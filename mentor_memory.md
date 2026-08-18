@@ -134,3 +134,41 @@ main-track problem ids.
   line. The learner also pushed back, correctly, that stonewalling with bare
   "Incorrect" verdicts on an unclear question is not adjudication — sharpen the
   question, then withhold.
+- OBS-006 R2 (2026-08-18) PASSED, mentor-derived scores (learner declined the
+  self-report batch), average 8.125. Concept recall was immediate and unaided;
+  code from memory was flawless on the first attempt with the F9 gate clean,
+  and the load-bearing update ordering (maxReachableIdx before the boundary
+  check) was correct unprompted. Transfer was strong across three
+  modifications, including the exact-jump variant where the learner saw that
+  the choice collapses and the greedy becomes unnecessary.
+  Weakest dimension was invariant_recall (6): defining region k took three
+  attempts and one wrong answer ("i >= k"), and landed only after computing
+  the per-index minimum-jump row by hand. This is M010 recurring one problem
+  later - the learner executes the procedure fluently and reaches for a trace
+  when asked to name the property the procedure rests on. When that happens,
+  stop asking for the property in the abstract and give them a small
+  computation whose output IS the property; they read it off correctly once
+  the data is in front of them.
+  DL-003 (forward frontier standing test) RESOLVED here: challenged with
+  [1,0,5,0], the learner traced it, saw maxReachableIdx pick up 7 from an
+  unreachable index, and derived `currentRegionEnd < i` with correct
+  placement. New catalogue entry M011 covers the general form - detecting a
+  failure state from a final value instead of a standing test.
+  TWO MENTOR ERRORS this session, same root cause as the OBS-005 one:
+  (1) a Phase-1 question named the algorithm's own machinery ("when you
+  increment the jump counter at the region boundary"). The learner called it
+  out; a Question Hygiene rule now sits in mentor_protocol.md under
+  Adjudication - questions may only use vocabulary from the problem statement
+  or from what the learner has already said.
+  (2) the blueprint was compressed to six one-liners, accepted with "gate
+  satisfied, not re-litigating", and then scored down for missing the whys.
+  The learner objected, correctly, that penalizing an unprobed gap is not
+  adjudication; implementation_blueprint was corrected 7 -> 9. Rule for next
+  time: probe the gap or do not score it.
+  The learner also renegotiated hint level 3 -> 1, accepted - the escalations
+  were clarifications of the mentor's own unclear questions, not content help.
+  Charge hints for content, never for the mentor's failure to ask clearly.
+  Protocol amended this session on the learner's instruction: every session
+  and revision must now open by naming the exact LeetCode problem (id, title,
+  lc_id, URL) AND stating its full problem statement. The curriculum `notes`
+  field stays hidden - on OBS-006 it names the technique outright.

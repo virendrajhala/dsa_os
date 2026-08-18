@@ -97,6 +97,16 @@
       "taxonomy": "B",
       "corrected_on": "2026-08-18",
       "note": "Surfaced during the OBS-005 R2 revision. The learner later proved the point themselves by constructing [6,5,4,3,2,1,0] under exact-jump rules, where the invariant survives but the single-variable compression produces a wrong answer."
+    },
+    {
+      "id": "M011",
+      "title": "Detect a failure state from the final value instead of a standing test",
+      "symptom": "Asked how the algorithm would report an unreachable last index, the learner proposed checking maxReachableIdx < lastIndex AFTER the loop finishes. That check reads a value the loop has already corrupted: the scan visits every index up to n-2 unconditionally, including indices that are themselves unreachable, and folds their reach into maxReachableIdx. On [1,0,5,0] the unreachable index 2 contributes 2+5=7, so the post-loop check reports reachable and the function returns 2 instead of -1.",
+      "fix": "A failure state that arises DURING a scan needs a test that runs during the scan, not a verdict read off the end. Ask where the wrong state first becomes observable, then place the test there. Here the frontier stops expanding at a region boundary (currentRegionEnd == i after the update, equivalently i > currentRegionEnd on the next iteration) - a standing test, checked every step, that fires the moment progress stops rather than after the damage is aggregated.",
+      "source_problem": "OBS-006",
+      "taxonomy": "D",
+      "corrected_on": "2026-08-18",
+      "note": "Surfaced during the OBS-006 R2 revision as a Phase 3 modification. The learner's first rule was wrong; shown the counterexample [1,0,5,0] they traced it mechanically, saw maxReachableIdx reach 7 from an unreachable index, and derived the standing test themselves. This same forward standing test was the open deferred learning DL-003 from OBS-005, resolved by this session."
     }
   ]
 }
